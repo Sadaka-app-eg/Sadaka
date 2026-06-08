@@ -1,7 +1,10 @@
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open('sadaqa-v1').then(cache => {
-      return cache.addAll(['/', '/index.html']);
+      return cache.addAll([
+        '/Sadaka/',
+        '/Sadaka/index.html'
+      ]);
     })
   );
 });
