@@ -1093,20 +1093,12 @@ function toggleAudio() {
       playNextInQueue();
     } else {
       isPlayingQueue = false;
-      const num = String(currentSurah.n).padStart(3,'0');
-        const reciterIds = {
-  'minsh': 'Mohammed_Siddiq_Al-Minshawi',
-  'Husary': 'mahmood_khaleel_al-husaree',
-  'afs': 'ar.alafasy'
+      const reciterUrls = {
+  'minsh': `https://listen.ourquraan.com/Mohammed_Siddiq_Al-Minshawi/${num}.mp3`,
+  'Husary': `https://download.quranicaudio.com/quran/mahmood_khaleel_al-husaree/${num}.mp3`,
+  'afs': `https://server8.mp3quran.net/afs/${num}.mp3`
 };
-const surahNum = String(currentSurah.n).padStart(3,'0');
-if(currentReciter === 'Husary') {
-  audio.src = `https://download.quranicaudio.com/quran/${reciterIds[currentReciter]}/${surahNum}.mp3`;
-} else if(currentReciter === 'afs') {
-  audio.src = `https://server8.mp3quran.net/afs/${surahNum}.mp3`;
-} else {
-  audio.src = `https://listen.ourquraan.com/${reciterIds[currentReciter]}/${surahNum}.mp3`;
-}
+audio.src = reciterUrls[currentReciter];
       audio.play();
       isPlaying = true;
       document.getElementById('playBtn').textContent = '⏸';
