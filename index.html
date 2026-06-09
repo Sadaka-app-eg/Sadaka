@@ -181,6 +181,7 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
 
 <div class="header">
   <h1>🌙 صدقة جارية — شيماء سعيد</h1>
+  <button class="icon-btn" onclick="toggleSearch()">🔍</button>
   <button class="icon-btn" onclick="toggleTheme()" id="themeBtn">☀️</button>
 </div>
 
@@ -218,6 +219,9 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
     <button class="back-btn" onclick="closeSurah()">←</button>
     <h2 id="surahScreenTitle">السورة</h2>
     <button class="icon-btn" onclick="toggleFavSurah()" id="favSurahBtn">🤍</button>
+  </div>
+  <div id="searchBar" style="display:none;padding:8px 14px;background:var(--bg2);border-bottom:1px solid var(--border);">
+  <input id="searchInput" class="search-box" placeholder="🔍 ابحث بنص أو رقم آية..." oninput="searchAyah(this.value)" style="margin:0;">
   </div>
   <div class="audio-bar">
     <button class="play-btn" id="playBtn" onclick="toggleAudio()">▶</button>
