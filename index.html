@@ -80,17 +80,13 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
 .mushaf-pages-wrap{flex:1;overflow:hidden;position:relative;}
 .mushaf-slider{display:flex;flex-direction:row;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;height:100%;scrollbar-width:none;}
 .mushaf-slider::-webkit-scrollbar{display:none;}
-. ..mushaf-page{
+. .mushaf-page{
   flex:0 0 100vw;width:100vw;scroll-snap-align:center;
-  padding:20px 15px 40px;overflow-y:auto;
+  padding:18px 18px 30px;overflow-y:auto;
   background:#fdf6e3;color:#1a1008;
-  font-family:'Amiri Quran',serif;
-  font-size:18px;line-height:2.2;
-  text-align:justify;
-  direction:rtl;
-display:block;
-  border-left:6px solid #c8a96e;
-  border-right:6px solid #c8a96e;
+  font-family:'Amiri Quran',serif;font-size:18px;line-height:2.2;
+  text-align:justify;text-justify:inter-word;
+  border-right:4px solid #c8a96e;
 }
 .mushaf-page:first-child{border-right:none;}
 ..surah-name-header{
