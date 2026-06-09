@@ -853,9 +853,12 @@ if(bm && bm.surah === n) {
   setTimeout(() => {
     const el = document.getElementById('ayah_' + bm.index);
     if(el) {
-      el.style.borderRight = '3px solid #ffd700';
-      el.style.background = 'rgba(255,215,0,0.1)';
-      el.scrollIntoView({behavior:'smooth', block:'center'});
+      const mark = document.createElement('span');
+mark.className = 'bookmark-mark';
+mark.textContent = ' 🔖';
+mark.style.color = '#ffd700';
+el.appendChild(mark);
+el.scrollIntoView({behavior:'smooth', block:'center'});
     }
   }, 500);
     }
@@ -1235,6 +1238,7 @@ function searchAyah(q) {
     });
   }
 }
+ 
  function actionBookmark() {
   closeActionMenu();
   const ayah = currentAyahsData[activeAyahIndex];
@@ -1245,8 +1249,20 @@ function searchAyah(q) {
     index: activeAyahIndex
   };
   localStorage.setItem('quran_bookmark', JSON.stringify(bookmark));
-  alert('✅ تم حفظ موضع القراءة — سورة ' + currentSurah.name + ' آية ' + ayah.numberInSurah);
- }
+  
+  // إزالة أي علامة قديمة
+  document.querySelectorAll('.bookmark-mark').forEach(el => el.remove());
+  
+  // إضافة علامة على الآية
+  const span = document.getElementById('ayah_' + activeAyahIndex);
+  if(span) {
+    const mark = document.createElement('span');
+    mark.className = 'bookmark-mark';
+    mark.textContent = ' 🔖';
+    mark.style.color = '#ffd700';
+    span.appendChild(mark);
+  }
+   }
  let mushafNight = false;
 function toggleMushafNight() {
   mushafNight = !mushafNight;
