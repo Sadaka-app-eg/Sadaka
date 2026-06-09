@@ -1332,15 +1332,11 @@ function toggleMushafNight() {
  function fitPageText() {
   const pages = document.querySelectorAll('.mushaf-page');
   pages.forEach(page => {
-    let fontSize = 22;
+    let fontSize = 12;
     page.style.fontSize = fontSize + 'px';
+    page.style.lineHeight = '2';
     
-    while (page.scrollHeight > page.clientHeight && fontSize > 12) {
-      fontSize -= 0.5;
-      page.style.fontSize = fontSize + 'px';
-    }
-    
-    while (page.scrollHeight <= page.clientHeight && fontSize < 28) {
+    while (fontSize < 30) {
       fontSize += 0.5;
       page.style.fontSize = fontSize + 'px';
       if (page.scrollHeight > page.clientHeight) {
