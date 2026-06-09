@@ -1198,7 +1198,28 @@ function renderFav() {
       <div class="surah-info"><div class="surah-name">${s.name}</div><div class="surah-details">${s.ayat} آية — ${s.type}</div></div>
       <div>⭐</div></div>`).join('');
 }
+function toggleSearch() {
+  const bar = document.getElementById('searchBar');
+  bar.style.display = bar.style.display === 'none' ? 'block' : 'none';
+}
 
+function searchAyah(q) {
+  document.querySelectorAll('.ayah-span').forEach(el => el.style.background = '');
+  if(!q) return;
+  const num = parseInt(q);
+  if(!isNaN(num)) {
+    const idx = num - 1;
+    const el = document.getElementById('ayah_' + idx);
+    if(el) { el.style.background = 'rgba(255,215,0,0.3)'; el.scrollIntoView({behavior:'smooth', block:'center'}); }
+  } else {
+    currentAyahsData.forEach((a, i) => {
+      if(a.text.includes(q)) {
+        const el = document.getElementById('ayah_' + i);
+        if(el) { el.style.background = 'rgba(255,215,0,0.3)'; el.scrollIntoView({behavior:'smooth', block:'center'}); }
+      }
+    });
+  }
+}
 function updateStats() {
   document.getElementById('statTasbeh').textContent = tasbehCount;
   document.getElementById('statAzkar').textContent = totalAzkar;
