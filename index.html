@@ -220,6 +220,7 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
     <h2 id="surahScreenTitle">السورة</h2>
     <button class="icon-btn" onclick="toggleFavSurah()" id="favSurahBtn">🤍</button>
     <button class="icon-btn" onclick="toggleSearch()">🔍</button>
+   <button class="icon-btn" id="nightModeBtn" onclick="toggleMushafNight()">🌙</button>
   </div>
   <div id="searchBar" style="display:none;padding:8px 14px;background:var(--bg2);border-bottom:1px solid var(--border);">
     <input id="searchInput" class="search-box" placeholder="🔍 ابحث بنص أو رقم آية..." oninput="searchAyah(this.value)" style="margin:0;">
@@ -1246,6 +1247,25 @@ function searchAyah(q) {
   localStorage.setItem('quran_bookmark', JSON.stringify(bookmark));
   alert('✅ تم حفظ موضع القراءة — سورة ' + currentSurah.name + ' آية ' + ayah.numberInSurah);
  }
+ let mushafNight = false;
+function toggleMushafNight() {
+  mushafNight = !mushafNight;
+  const pages = document.querySelectorAll('.mushaf-page');
+  const btn = document.getElementById('nightModeBtn');
+  if(mushafNight) {
+    pages.forEach(p => {
+      p.style.background = '#1a1208';
+      p.style.color = '#f0d090';
+    });
+    btn.textContent = '☀️';
+  } else {
+    pages.forEach(p => {
+      p.style.background = '#fdf6e3';
+      p.style.color = '#1a1008';
+    });
+    btn.textContent = '🌙';
+  }
+}
 function updateStats() {
   document.getElementById('statTasbeh').textContent = tasbehCount;
   document.getElementById('statAzkar').textContent = totalAzkar;
