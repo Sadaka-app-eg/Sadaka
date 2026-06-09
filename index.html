@@ -910,7 +910,8 @@ function renderSurahs(list) {
 renderSurahs(surahs);
 
 function filterSurahs(q) {
-  renderSurahs(surahs.filter(s => s.name.includes(q) || String(s.n).includes(q)));
+  if(!q) { renderSurahs(surahs); return; }
+  renderSurahs(surahs.filter(s => s.name.includes(q)));
 }
 
 // ===========================
