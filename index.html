@@ -1093,13 +1093,16 @@ function toggleAudio() {
       playNextInQueue();
     } else {
       isPlayingQueue = false;
-      const num3 = String(num).padStart(3, '0');
+      const num = currentSurah.n;
+const num3 = String(num).padStart(3, '0');
 
 const reciterUrls = {
   'minsh': `https://listen.ourquraan.com/Mohammed_Siddiq_Al-Minshawi/${num}.mp3`,
-  'husary': `https://server13.mp3quran.net/husr/${num3}.mp3`,  // ✅ 001, 002, 003...
+  'husary': `https://server13.mp3quran.net/husr/${num3}.mp3`,
   'afs': `https://server8.mp3quran.net/afs/${num3}.mp3`
 };
+audio.src = reciterUrls[currentReciter];
+      
       audio.play();
       isPlaying = true;
       document.getElementById('playBtn').textContent = '⏸';
