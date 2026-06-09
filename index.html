@@ -106,6 +106,8 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
 .mushaf-page{
   flex:0 0 100vw;width:100vw;scroll-snap-align:center;
   padding:12px 14px 20px;overflow-y:auto;
+ display:flex;
+flex-direction:column;
   background:var(--mushaf-bg);color:var(--mushaf-text);
   font-family:'Amiri Quran',serif;font-size:17px;line-height:2;
   text-align:justify;text-justify:inter-word;
@@ -123,7 +125,14 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
   text-align:center;font-size:22px;margin:8px 0 16px;
   color:#5a3e00;display:block;font-family:'Amiri Quran',serif;
 }
-.page-footer{text-align:center;font-size:13px;color:#8b6914;margin-top:20px;font-family:'Amiri',serif;}
+.page-footer{
+  text-align:center;
+  font-size:13px;
+  color:#8b6914;
+  margin-top:auto;
+  padding-top:10px;
+  font-family:'Amiri',serif;
+}
 .juz-label{font-size:12px;color:#8b6914;text-align:left;margin-bottom:6px;font-family:'Amiri',serif;}
 
 /* Ayah spans */
@@ -1332,18 +1341,15 @@ function toggleMushafNight() {
  function fitPageText() {
   const pages = document.querySelectorAll('.mushaf-page');
   pages.forEach(page => {
-    let fontSize = 12;
+    const footer = page.querySelector('.page-footer');
+    const available = page.clientHeight;
+    let fontSize = 30;
     page.style.fontSize = fontSize + 'px';
     page.style.lineHeight = '2';
     
-    while (fontSize < 30) {
-      fontSize += 0.5;
+    while (page.scrollHeight > available && fontSize > 12) {
+      fontSize -= 0.5;
       page.style.fontSize = fontSize + 'px';
-      if (page.scrollHeight > page.clientHeight) {
-        fontSize -= 0.5;
-        page.style.fontSize = fontSize + 'px';
-        break;
-      }
     }
   });
  }
