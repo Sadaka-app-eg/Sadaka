@@ -1094,12 +1094,13 @@ function toggleAudio() {
     } else {
       isPlayingQueue = false;
       const num = String(currentSurah.n).padStart(3,'0');
-      const reciterUrls = {
-  'minsh': `https://server8.mp3quran.net/minsh/${num}.mp3`,
-  'Husary': `https://server8.mp3quran.net/Husary/${num}.mp3`,
-  'afs': `https://server8.mp3quran.net/afs/${num}.mp3`
+       const reciterIds = {
+  'minsh': 'ar.minshawi',
+  'Husary': 'ar.husary',
+  'afs': 'ar.alafasy'
 };
-audio.src = reciterUrls[currentReciter];
+const surahNum = String(currentSurah.n).padStart(3,'0');
+audio.src = `https://cdn.islamic.network/quran/audio-surah/128/${reciterIds[currentReciter]}/${surahNum}.mp3`;
       audio.play();
       isPlaying = true;
       document.getElementById('playBtn').textContent = '⏸';
