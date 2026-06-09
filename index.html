@@ -80,7 +80,7 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
 .controls-hidden .audio-bar {
   display: none;
 }
-.toggle-controls-btn {
+
 .toggle-controls-btn {
   position: fixed;
   bottom: 80px;
@@ -98,7 +98,31 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
   display: none;
   box-shadow: 0 3px 12px rgba(0,0,0,0.3);
 }
+ .bookmark-jump-btn {
+  position: fixed;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 400;
+  background: rgba(255,215,0,0.5);
+  border: none;
+  border-radius: 12px 0 0 12px;
+  width: 32px;
+  height: 52px;
+  font-size: 20px;
+  cursor: pointer;
+  display: none;
+  backdrop-filter: blur(4px);
+  box-shadow: -2px 2px 8px rgba(0,0,0,0.2);
+  writing-mode: vertical-rl;
+}
+.surah-screen.open .bookmark-jump-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .surah-screen.open .toggle-controls-btn {
+ <button class="bookmark-jump-btn" onclick="jumpToBookmark()" title="اذهب لعلامة الوقف">🔖</button>
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1360,6 +1384,15 @@ function toggleMushafNight() {
       page.style.fontSize = fontSize + 'px';
     }
   });
+ }
+ function jumpToBookmark() {
+  const bm = JSON.parse(localStorage.getItem('quran_bookmark') || 'null');
+  if(!bm || bm.surah !== currentSurah.n) {
+    document.getElementById('audioStatus').textContent = 'مفيش علامة وقف في السورة دي';
+    return;
+  }
+  const el = document.getElementById('ayah_' + bm.index);
+  if(el) el.scrollIntoView({behavior:'smooth', block:'center'});
  }
 function updateStats() {
   document.getElementById('statTasbeh').textContent = tasbehCount;
