@@ -1084,7 +1084,7 @@ function toggleAudio() {
     } else {
       isPlayingQueue = false;
       const num = String(currentSurah.n).padStart(3,'0');
-      audio.src = `https://server8.mp3quran.net/afs/${num}.mp3`;
+      audio.src = `https://server8.mp3quran.net/minsh/${num}.mp3`;
       audio.play();
       isPlaying = true;
       document.getElementById('playBtn').textContent = '⏸';
