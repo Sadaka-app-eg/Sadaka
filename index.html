@@ -75,7 +75,29 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
 .audio-title{font-size:12px;color:var(--text);font-weight:700;}
 .audio-status{font-size:11px;color:var(--text2);margin-top:2px;}
 .clear-sel-btn{background:transparent;border:1px solid rgba(255,100,100,0.4);color:#ff6b6b;padding:5px 10px;border-radius:8px;cursor:pointer;font-size:11px;white-space:nowrap;}
-
+.controls-hidden .surah-header,
+.controls-hidden .audio-bar {
+  display: none;
+}
+.toggle-controls-btn {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 400;
+  background: rgba(255,215,0,0.85);
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  font-size: 16px;
+  cursor: pointer;
+  display: none;
+}
+.surah-screen.open .toggle-controls-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 /* Mushaf Pages */
 .mushaf-pages-wrap{flex:1;overflow:hidden;position:relative;}
 .mushaf-slider{display:flex;flex-direction:row;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;height:100%;scrollbar-width:none;}
@@ -215,6 +237,7 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
 
 <!-- SURAH SCREEN -->
 <div class="surah-screen" id="surahScreen">
+ <button class="toggle-controls-btn" onclick="toggleControls()">☰</button>
   <div class="surah-header">
     <button class="back-btn" onclick="closeSurah()">←</button>
     <h2 id="surahScreenTitle">السورة</h2>
@@ -1300,6 +1323,9 @@ function toggleMushafNight() {
     btn.textContent = '🌙';
   }
 }
+ function toggleControls() {
+  document.getElementById('surahScreen').classList.toggle('controls-hidden');
+  }
 function updateStats() {
   document.getElementById('statTasbeh').textContent = tasbehCount;
   document.getElementById('statAzkar').textContent = totalAzkar;
