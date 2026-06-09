@@ -1255,7 +1255,9 @@ document.getElementById('azkarAudioStatus').textContent = 'اضغط للاستم
     </div>`;
   }).join('');
 }
-showAzkar('sabah', document.querySelector('.cat-btn'));
+document.addEventListener('DOMContentLoaded', () => {
+  showAzkar('sabah', document.querySelector('.cat-btn'));
+});
 
 function countZekr(cat, i, max) {
   const key = cat+'_'+i;
