@@ -1094,13 +1094,13 @@ function toggleAudio() {
     } else {
       isPlayingQueue = false;
       const num = String(currentSurah.n).padStart(3,'0');
-       const reciterIds = {
-  'minsh': 'ar.minshawi',
-  'Husary': 'ar.husary',
-  'afs': 'ar.alafasy'
+        const reciterIds = {
+  'minsh': 'Mohammed_Siddiq_Al-Minshawi',
+  'Husary': 'Mahmoud_Khalil_Al-Husary',
+  'afs': 'Mishary_Rashid_Al-Afasy'
 };
 const surahNum = String(currentSurah.n).padStart(3,'0');
-audio.src = `https://cdn.islamic.network/quran/audio-surah/128/${reciterIds[currentReciter]}/${surahNum}.mp3`;
+audio.src = `https://listen.ourquraan.com/${reciterIds[currentReciter]}/${surahNum}.mp3`;
       audio.play();
       isPlaying = true;
       document.getElementById('playBtn').textContent = '⏸';
