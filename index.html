@@ -122,7 +122,6 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
   justify-content: center;
 }
 .surah-screen.open .toggle-controls-btn {
- <button class="bookmark-jump-btn" onclick="jumpToBookmark()" title="اذهب لعلامة الوقف">🔖</button>
   display: flex;
   align-items: center;
   justify-content: center;
@@ -280,6 +279,9 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
 <!-- SURAH SCREEN -->
 <div class="surah-screen" id="surahScreen">
  <button class="toggle-controls-btn" onclick="toggleControls()">☰</button>
+ <div class="surah-screen" id="surahScreen">
+ <button class="toggle-controls-btn" onclick="toggleControls()">☰</button>
+ <button class="bookmark-jump-btn" onclick="jumpToBookmark()" title="اذهب لعلامة الوقف">🔖</button>
   <div class="surah-header">
     <button class="back-btn" onclick="closeSurah()">→</button>
     <h2 id="surahScreenTitle">السورة</h2>
