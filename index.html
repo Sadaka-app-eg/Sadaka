@@ -124,6 +124,95 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
   align-items: center;
   justify-content: center;
 }
+  /* ===== MUSHAF QCF MODE ===== */
+.qcf-page {
+  flex: 0 0 100vw;
+  width: 100vw;
+  scroll-snap-align: center;
+  background: #fdf6e3;
+  color: #1a1008;
+  padding: 10px 6px 30px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.qcf-surah-header {
+  text-align: center;
+  font-size: 18px;
+  font-weight: 700;
+  color: #5a3e00;
+  margin: 4px 0 6px;
+  padding: 6px 20px;
+  background: linear-gradient(90deg,transparent,rgba(200,169,110,0.3),transparent);
+  border-top: 2px solid #c8a96e;
+  border-bottom: 2px solid #c8a96e;
+  font-family: 'Amiri', serif;
+  width: 100%;
+}
+.qcf-bismillah {
+  text-align: center;
+  font-size: 22px;
+  margin: 4px 0 10px;
+  color: #5a3e00;
+  font-family: 'Amiri Quran', serif;
+}
+.qcf-line {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: center;
+  width: 100%;
+  margin: 1px 0;
+}
+.qcf-word {
+  display: inline-block;
+  cursor: pointer;
+  padding: 0 1px;
+  border-radius: 3px;
+  transition: background 0.15s;
+  line-height: 1.8;
+}
+.qcf-word:active, .qcf-word.selected {
+  background: rgba(76,175,80,0.25);
+}
+.qcf-word.playing {
+  background: rgba(255,215,0,0.4);
+}
+.qcf-page-footer {
+  text-align: center;
+  font-size: 13px;
+  color: #8b6914;
+  padding-top: 10px;
+  font-family: 'Amiri', serif;
+  border-top: 1px solid rgba(200,169,110,0.3);
+  margin-top: 10px;
+  width: 100%;
+}
+.mode-toggle-row {
+  display: flex;
+  gap: 8px;
+  padding: 6px 14px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.mode-btn {
+  flex: 1;
+  padding: 6px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text2);
+  font-size: 12px;
+  cursor: pointer;
+  font-family: 'Amiri', serif;
+  transition: all 0.2s;
+}
+.mode-btn.active {
+  background: var(--gold);
+  color: #111;
+  border-color: var(--gold);
+  }
 .surah-screen.open .toggle-controls-btn {
   display: flex;
   align-items: center;
@@ -294,6 +383,10 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
   <div id="searchBar" style="display:none;padding:8px 14px;background:var(--bg2);border-bottom:1px solid var(--border);">
     <input id="searchInput" class="search-box" placeholder="🔍 ابحث بنص أو رقم آية..." oninput="searchAyah(this.value)" style="margin:0;">
   </div>
+   <div class="mode-toggle-row">
+  <button class="mode-btn active" id="modeNass" onclick="switchMode('nass')">📝 نص عثماني</button>
+  <button class="mode-btn" id="modeQcf" onclick="switchMode('qcf')">📖 مصحف</button>
+   </div>
   <div class="audio-bar">
     <button class="play-btn" id="playBtn" onclick="toggleAudio()">▶</button>
     <div class="audio-info">
@@ -883,7 +976,142 @@ let pressTimer = null;
 let startX = 0, startY = 0, isScrolling = false;
 let currentPageDots = [];
  let currentReciter = 'minsh';
+// ===== وضع المصحف QCF =====
+let mushafMode = 'nass'; // 'nass' أو 'qcf'
+let qcfFontsLoaded = {};
 
+function switchMode(mode) {
+  mushafMode = mode;
+  document.getElementById('modeNass').classList.toggle('active', mode === 'nass');
+  document.getElementById('modeQcf').classList.toggle('active', mode === 'qcf');
+  
+  if (!currentSurah) return;
+  stopAudio();
+  
+  if (mode === 'qcf') {
+    renderQcfPages();
+  } else {
+    // أعد عرض النص العثماني
+    openSurah(currentSurah.n);
+    // منع إعادة تهيئة mode-toggle
+    setTimeout(() => {
+      document.getElementById('modeNass').classList.add('active');
+      document.getElementById('modeQcf').classList.remove('active');
+    }, 100);
+  }
+}
+
+async function renderQcfPages() {
+  const slider = document.getElementById('mushafSlider');
+  slider.innerHTML = '<div style="width:100%;text-align:center;padding:50px;color:#8b6914;font-family:Amiri,serif;font-size:18px;">⏳ جاري تحميل المصحف...</div>';
+  document.getElementById('pageDots').innerHTML = '';
+
+  try {
+    // جيب بيانات الآيات الأول عشان نعرف أرقام الصفحات
+    const r = await fetch(`https://api.alquran.cloud/v1/surah/${currentSurah.n}`);
+    const d = await r.json();
+    const ayahs = d.data.ayahs;
+    
+    // استخرج أرقام الصفحات الفريدة
+    const pages = [...new Set(ayahs.map(a => a.page))];
+    
+    let allHtml = '';
+    
+    for (let pi = 0; pi < pages.length; pi++) {
+      const pageNum = pages[pi];
+      const pageStr = String(pageNum).padStart(3, '0');
+      
+      // جيب بيانات الصفحة من QCF4
+      let pageData;
+      try {
+        const pr = await fetch(`https://raw.githubusercontent.com/MohamadHajjRabee/quran-qcf4/main/pages/${pageStr}.json`);
+        pageData = await pr.json();
+      } catch(e) {
+        continue;
+      }
+      
+      // حمّل الخط المطلوب للصفحة
+      const fontName = `QCF4_Hafs_${pageStr}`;
+      if (!qcfFontsLoaded[pageStr]) {
+        const fontNum = String(Math.ceil(pageNum / 20)).padStart(2, '0');
+        const style = document.createElement('style');
+        style.textContent = `@font-face { font-family: "${fontName}"; src: url("https://cdn.jsdelivr.net/gh/MohamadHajjRabee/quran-qcf4@main/fonts-woff2/QCF4_Hafs_${pageStr}_W.woff2"); }`;
+        document.head.appendChild(style);
+        qcfFontsLoaded[pageStr] = true;
+      }
+      
+      // ابحث عن آيات هذه الصفحة
+      const pageAyahs = ayahs.filter(a => a.page === pageNum);
+      const firstAyah = pageAyahs[0];
+      
+      let pageHtml = `<div class="qcf-page" id="qpage_${pageNum}">`;
+      
+      // عنوان السورة في أول صفحة
+      if (pi === 0) {
+        pageHtml += `<div class="qcf-surah-header">سورة ${currentSurah.name}</div>`;
+        if (currentSurah.n !== 1 && currentSurah.n !== 9) {
+          pageHtml += `<div class="qcf-bismillah">بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</div>`;
+        }
+      }
+      
+      // ارسم السطور
+      if (pageData.lines) {
+        for (const line of pageData.lines) {
+          pageHtml += `<div class="qcf-line" style="font-family:'${fontName}';font-size:32px;">`;
+          for (const word of line) {
+            const ayahIdx = word.ayah_number ? (word.ayah_number - 1) : -1;
+            pageHtml += `<span class="qcf-word" 
+              data-ayah="${word.ayah_number || ''}"
+              oncontextmenu="event.preventDefault();"
+              onmousedown="startPress(event,${ayahIdx})"
+              ontouchstart="startPress(event,${ayahIdx})"
+              onmousemove="cancelPress(event)" ontouchmove="cancelPress(event)"
+              onmouseup="cancelPress(event)" ontouchend="cancelPress(event)"
+            >${word.text || ''}</span>`;
+          }
+          pageHtml += `</div>`;
+        }
+      } else {
+        // fallback: نص عادي
+        pageHtml += `<div style="font-family:'Amiri Quran',serif;font-size:20px;line-height:2.2;text-align:justify;padding:10px;">`;
+        pageAyahs.forEach((a, i) => {
+          const idx = ayahs.findIndex(x => x.number === a.number);
+          pageHtml += `<span class="ayah-span" id="ayah_${idx}"
+            oncontextmenu="event.preventDefault();"
+            onmousedown="startPress(event,${idx})"
+            ontouchstart="startPress(event,${idx})"
+            onmousemove="cancelPress(event)" ontouchmove="cancelPress(event)"
+            onmouseup="cancelPress(event)" ontouchend="cancelPress(event)"
+          >${a.text}<span class="ayah-sign">﴿${toAr(a.numberInSurah)}﴾</span></span> `;
+        });
+        pageHtml += `</div>`;
+      }
+      
+      pageHtml += `<div class="qcf-page-footer">صفحة ${toAr(pageNum)}</div></div>`;
+      allHtml += pageHtml;
+    }
+    
+    slider.innerHTML = allHtml || '<div style="width:100%;text-align:center;padding:50px;color:#8b6914;">حدث خطأ في التحميل</div>';
+    
+    // نقاط التنقل
+    if (pages.length > 1) {
+      document.getElementById('pageDots').innerHTML = pages.map((_, i) =>
+        `<div class="page-dot ${i===0?'active':''}" id="dot_${i}"></div>`
+      ).join('');
+      
+      slider.addEventListener('scroll', () => {
+        const idx = Math.round(slider.scrollLeft / window.innerWidth);
+        pages.forEach((_, i) => {
+          const d = document.getElementById('dot_'+i);
+          if(d) d.classList.toggle('active', i === idx);
+        });
+      }, {passive: true});
+    }
+    
+  } catch(e) {
+    slider.innerHTML = '<div style="width:100%;text-align:center;padding:50px;color:#8b6914;font-family:Amiri,serif;font-size:18px;">تحتاج اتصال بالإنترنت 🌐</div>';
+  }
+  }
 function changeReciter() {
   currentReciter = document.getElementById('reciterSelect').value;
   stopAudio();
