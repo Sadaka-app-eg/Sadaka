@@ -1484,14 +1484,17 @@ function azkarAudioEnded() {
     const now = today.getHours()*60 + today.getMinutes();
     document.getElementById('prayerTimes').innerHTML = prayers.map(p => {
       const [h,min] = p.time.split(':').map(Number);
-      const pMin = h*60 + min;
-      const isNext = pMin > now;
+const pMin = h*60 + min;
+const isNext = pMin > now;
+const h12 = h === 0 ? 12 : h > 12 ? h-12 : h;
+const ampm = h < 12 ? 'ص' : 'م';
+const timeStr = `${h12}:${String(min).padStart(2,'0')} ${ampm}`;
       return `<div style="background:var(--card);border-radius:15px;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;border:1px solid ${isNext?'rgba(255,215,0,0.4)':' var(--border)'};${isNext?'box-shadow:0 0 10px rgba(255,215,0,0.1)':''}">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-size:22px;">${p.icon}</span>
           <span style="font-size:16px;font-family:'Amiri',serif;color:${isNext?'var(--gold)':'var(--text)'};">${p.name}</span>
         </div>
-        <div style="font-size:18px;font-family:'Amiri',serif;color:${isNext?'var(--gold)':'var(--text2)'};">${p.time}</div>
+        <div style="font-size:18px;font-family:'Amiri',serif;color:${isNext?'var(--gold)':'var(--text2)'};">${timeStr}</div>
       </div>`;
     }).join('');
   } catch(e) {
