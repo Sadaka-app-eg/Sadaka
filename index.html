@@ -1538,5 +1538,70 @@ function updateStats() {
   document.getElementById('statAzkar').textContent = totalAzkar;
 }
 </script>
+ <script>
+// ===== تذكيرات الأذكار =====
+if('serviceWorker' in navigator && 'Notification' in window) {
+
+  // زر التفعيل في صفحة الأذكار
+  const reminderHTML = `
+  <div id="reminderBox" style="background:var(--card);border-radius:15px;padding:15px;margin-bottom:14px;border:1px solid var(--border);">
+    <div style="font-size:14px;color:var(--gold);font-family:'Amiri',serif;margin-bottom:10px;">🔔 تذكيرات الأذكار التلقائية</div>
+    <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+      <button onclick="setReminder(60)" class="cat-btn" id="r60">⏰ كل ساعة</button>
+      <button onclick="setReminder(120)" class="cat-btn" id="r120">⏰ كل ساعتين</button>
+      <button onclick="setReminder(180)" class="cat-btn" id="r180">⏰ كل 3 ساعات</button>
+      <button onclick="stopReminder()" class="cat-btn" style="color:#ff6b6b;border-color:rgba(255,100,100,0.3);">✕ إيقاف</button>
+    </div>
+    <div id="reminderStatus" style="font-size:12px;color:var(--text2);font-family:'Amiri',serif;">اضغط لتفعيل التذكيرات</div>
+  </div>`;
+
+  // ضيف الـ HTML في أول صفحة الأذكار
+  document.getElementById('azkar').insertAdjacentHTML('afterbegin', reminderHTML);
+
+  // تسجيل الـ Service Worker
+  navigator.serviceWorker.register('/Sadaka/sw.js').then(reg => {
+    console.log('SW registered');
+    // لو كان فيه إعداد محفوظ
+    const saved = localStorage.getItem('reminderMinutes');
+    if(saved) {
+      updateReminderUI(parseInt(saved));
+    }
+  });
+}
+
+let swReg = null;
+navigator.serviceWorker.ready.then(reg => swReg = reg);
+
+async function setReminder(minutes) {
+  // طلب إذن الإشعارات
+  const perm = await Notification.requestPermission();
+  if(perm !== 'granted') {
+    document.getElementById('reminderStatus').textContent = '❌ محتاج تسمح بالإشعارات من إعدادات الموبايل';
+    return;
+  }
+  // بعت للـ SW الوقت
+  if(swReg && swReg.active) {
+    swReg.active.postMessage({ type: 'SET_INTERVAL', minutes });
+  }
+  localStorage.setItem('reminderMinutes', minutes);
+  updateReminderUI(minutes);
+}
+
+function stopReminder() {
+  localStorage.removeItem('reminderMinutes');
+  if(swReg && swReg.active) {
+    swReg.active.postMessage({ type: 'SET_INTERVAL', minutes: 99999 });
+  }
+  document.getElementById('reminderStatus').textContent = '⏹ التذكيرات متوقفة';
+  document.querySelectorAll('#r60,#r120,#r180').forEach(b => b.classList.remove('active'));
+}
+
+function updateReminderUI(minutes) {
+  const labels = { 60: 'كل ساعة', 120: 'كل ساعتين', 180: 'كل 3 ساعات' };
+  document.getElementById('reminderStatus').textContent = `✅ التذكيرات فعّالة — ${labels[minutes]}`;
+  document.querySelectorAll('#r60,#r120,#r180').forEach(b => b.classList.remove('active'));
+  document.getElementById('r'+minutes).classList.add('active');
+}
+ </script>
 </body>
 </html>
