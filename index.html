@@ -1494,13 +1494,42 @@ const timeStr = `${h12}:${String(min).padStart(2,'0')} ${ampm}`;
           <span style="font-size:22px;">${p.icon}</span>
           <span style="font-size:16px;font-family:'Amiri',serif;color:${isNext?'var(--gold)':'var(--text)'};">${p.name}</span>
         </div>
-        <div style="font-size:18px;font-family:'Amiri',serif;color:${isNext?'var(--gold)':'var(--text2)'};">${timeStr}</div>
+        <div style="display:flex;align-items:center;gap:10px;">
+  <div style="font-size:18px;font-family:'Amiri',serif;color:${isNext?'var(--gold)':'var(--text2)'};">${timeStr}</div>
+  <button onclick="setAdhanReminder('${p.name}',${h},${min})" style="background:transparent;border:1px solid var(--border);color:var(--gold);padding:4px 8px;border-radius:8px;cursor:pointer;font-size:11px;">🔔</button>
+</div>
       </div>`;
     }).join('');
   } catch(e) {
     document.getElementById('prayerTimes').innerHTML = '<div style="text-align:center;padding:30px;color:var(--text2);">تحتاج اتصال بالإنترنت 🌐</div>';
   }
  }
+ function setAdhanReminder(name, h, min) {
+  const options = ['قبل 5 دقائق', 'قبل 10 دقائق', 'قبل 15 دقائق', 'عند الأذان'];
+  const mins = [5, 10, 15, 0];
+  const choice = prompt(`تذكير بأذان ${name}؟\n0 = عند الأذان\n5 = قبل 5 دقائق\n10 = قبل 10 دقائق\n15 = قبل 15 دقائق\n\nاكتب الرقم:`);
+  if(choice === null) return;
+  const before = parseInt(choice) || 0;
+  const now = new Date();
+  const target = new Date();
+  target.setHours(h, min - before, 0, 0);
+  if(target <= now) target.setDate(target.getDate() + 1);
+  const diff = target - now;
+  if(Notification.permission === 'granted') {
+    setTimeout(() => {
+      new Notification(`🕌 حان وقت ${name}`, {
+        body: before > 0 ? `باقي ${before} دقائق على أذان ${name}` : `حان الآن وقت صلاة ${name}`,
+        icon: '🕌'
+      });
+    }, diff);
+    alert(`✅ تم ضبط التذكير — ${before > 0 ? `قبل ${before} دقيقة من أذان ${name}` : `عند أذان ${name}`}`);
+  } else {
+    Notification.requestPermission().then(p => {
+      if(p === 'granted') setAdhanReminder(name, h, min);
+      else alert('❌ محتاج تسمح بالإشعارات');
+    });
+  }
+                           }
 function updateStats() {
   document.getElementById('statTasbeh').textContent = tasbehCount;
   document.getElementById('statAzkar').textContent = totalAzkar;
