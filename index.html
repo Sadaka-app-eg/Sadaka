@@ -254,6 +254,7 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
   <div class="tab" onclick="showPage('azkar',this)">🤲 الأذكار</div>
   <div class="tab" onclick="showPage('tasbeh',this)">📿 السبحة</div>
   <div class="tab" onclick="showPage('favPage',this)">⭐ المفضلة</div>
+ <div class="tab" onclick="showPage('awkat',this)">🕌 المواقيت</div>
 </div>
 
 <!-- HOME -->
@@ -350,7 +351,14 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
     <div class="tasbeh-totals" id="tasbehTotal"></div>
   </div>
 </div>
-
+<!-- AWKAT -->
+<div class="page" id="awkat">
+  <div style="background:var(--card);border-radius:20px;padding:20px;border:1px solid var(--border);text-align:center;margin-bottom:14px;">
+    <div style="font-size:14px;color:var(--gold);font-family:'Amiri',serif;margin-bottom:5px;">🕌 مواقيت الصلاة — القاهرة</div>
+    <div id="hijriDate" style="font-size:12px;color:var(--text2);"></div>
+  </div>
+  <div id="prayerTimes" style="display:grid;gap:10px;"></div>
+</div>
 <!-- FAVORITES -->
 <div class="page" id="favPage">
   <div id="favContent"></div>
@@ -897,6 +905,7 @@ function showPage(id, el) {
   document.getElementById(id).classList.add('active');
   el.classList.add('active');
   if(id === 'favPage') renderFav();
+ if(id === 'awkat') loadPrayerTimes();
   updateStats();
 }
 
@@ -1453,6 +1462,42 @@ function azkarAudioEnded() {
   document.getElementById('azkarPlayBtn').textContent = '▶';
   document.getElementById('azkarAudioStatus').textContent = 'انتهت التلاوة 🌙';
    }
+ async function loadPrayerTimes() {
+  const today = new Date();
+  const d = today.getDate();
+  const m = today.getMonth() + 1;
+  const y = today.getFullYear();
+  try {
+    const r = await fetch(`https://api.aladhan.com/v1/timingsByCity/${d}-${m}-${y}?city=Cairo&country=Egypt&method=5`);
+    const data = await r.json();
+    const t = data.data.timings;
+    const prayers = [
+      {name:'الفجر', time:t.Fajr, icon:'🌙'},
+      {name:'الشروق', time:t.Sunrise, icon:'🌅'},
+      {name:'الظهر', time:t.Dhuhr, icon:'☀️'},
+      {name:'العصر', time:t.Asr, icon:'🌤'},
+      {name:'المغرب', time:t.Maghrib, icon:'🌆'},
+      {name:'العشاء', time:t.Isha, icon:'🌙'},
+    ];
+    const hijri = data.data.date.hijri;
+    document.getElementById('hijriDate').textContent = `${hijri.day} ${hijri.month.ar} ${hijri.year}`;
+    const now = today.getHours()*60 + today.getMinutes();
+    document.getElementById('prayerTimes').innerHTML = prayers.map(p => {
+      const [h,min] = p.time.split(':').map(Number);
+      const pMin = h*60 + min;
+      const isNext = pMin > now;
+      return `<div style="background:var(--card);border-radius:15px;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;border:1px solid ${isNext?'rgba(255,215,0,0.4)':' var(--border)'};${isNext?'box-shadow:0 0 10px rgba(255,215,0,0.1)':''}">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:22px;">${p.icon}</span>
+          <span style="font-size:16px;font-family:'Amiri',serif;color:${isNext?'var(--gold)':'var(--text)'};">${p.name}</span>
+        </div>
+        <div style="font-size:18px;font-family:'Amiri',serif;color:${isNext?'var(--gold)':'var(--text2)'};">${p.time}</div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    document.getElementById('prayerTimes').innerHTML = '<div style="text-align:center;padding:30px;color:var(--text2);">تحتاج اتصال بالإنترنت 🌐</div>';
+  }
+ }
 function updateStats() {
   document.getElementById('statTasbeh').textContent = tasbehCount;
   document.getElementById('statAzkar').textContent = totalAzkar;
