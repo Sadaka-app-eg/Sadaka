@@ -365,9 +365,15 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
 
 <!-- QURAN -->
 <div class="page" id="quran">
-  <input class="search-box" placeholder="🔍 ابحث عن سورة..." oninput="filterSurahs(this.value)">
+  <!-- تعديل السطر ده لتغيير النص واستدعاء الدالة الجديدة globalSearch -->
+  <input class="search-box" placeholder="🔍 ابحث عن سورة أو آية..." oninput="globalSearch(this.value)">
+  
+  <!-- السطر الجديد ده: مكان مخصص لظهور نتائج البحث في الآيات -->
+  <div id="ayahSearchResults" style="display:none; margin-bottom:14px;"></div>
+  
   <div class="surah-list" id="surahList"></div>
 </div>
+
 
 <!-- SURAH SCREEN -->
  <div class="surah-screen" id="surahScreen">
@@ -377,12 +383,10 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
     <button class="back-btn" onclick="closeSurah()">→</button>
     <h2 id="surahScreenTitle">السورة</h2>
     <button class="icon-btn" onclick="toggleFavSurah()" id="favSurahBtn">🤍</button>
-    <button class="icon-btn" onclick="toggleSearch()">🔍</button>
+    
    <button class="icon-btn" id="nightModeBtn" onclick="toggleMushafNight()">🌙</button>
   </div>
-  <div id="searchBar" style="display:none;padding:8px 14px;background:var(--bg2);border-bottom:1px solid var(--border);">
-    <input id="searchInput" class="search-box" placeholder="🔍 ابحث بنص أو رقم آية..." oninput="searchAyah(this.value)" style="margin:0;">
-  </div>
+  
    <div class="mode-toggle-row">
   <button class="mode-btn active" id="modeNass" onclick="switchMode('nass')">📝 نص عثماني</button>
   <button class="mode-btn" id="modeQcf" onclick="switchMode('qcf')">📖 مصحف</button>
@@ -1057,7 +1061,9 @@ function filterSurahs(q) {
 // ===========================
 // Open Surah + Mushaf Pages
 // ===========================
-async function openSurah(n) {
+ // تعديل السطر الأول للدالة ليصبح هكذا
+async function openSurah(n, targetAyahNum = null) {
+
   currentSurah = surahs.find(s => s.n === n);
   const screen = document.getElementById('surahScreen');
   screen.classList.add('open');
@@ -1157,6 +1163,29 @@ el.scrollIntoView({behavior:'smooth', block:'center'});
         });
       }, {passive:true});
     }
+    // ---- كود الانتقال التلقائي للآية المبحوث عنها ----
+    if (targetAyahNum !== null) {
+      setTimeout(() => {
+        const targetIdx = currentAyahsData.findIndex(a => a.numberInSurah === targetAyahNum);
+        if (targetIdx !== -1) {
+          const el = document.getElementById('ayah_' + targetIdx);
+          if (el) {
+            // سحب المصحف للصفحة المناسبة أولاً
+            const ayahPage = currentAyahsData[targetIdx].page;
+            const pageEl = document.getElementById('mpage_' + ayahPage);
+            if (pageEl) pageEl.scrollIntoView({ behavior: 'auto' });
+            
+            // تمييز الآية بلون ذهبي مؤقت وعمل Scroll لها
+            el.style.background = 'rgba(255,215,0,0.3)';
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // إزالة التمييز بعد ثانيتين بشكل ناعم
+            setTimeout(() => { el.style.background = ''; }, 2500);
+          }
+        }
+      }, 600);
+    }
+    // ------------------------------------------------
 
   } catch(e) {
     document.getElementById('mushafSlider').innerHTML =
@@ -1453,28 +1482,7 @@ function renderFav() {
       <div class="surah-info"><div class="surah-name">${s.name}</div><div class="surah-details">${s.ayat} آية — ${s.type}</div></div>
       <div>⭐</div></div>`).join('');
 }
-function toggleSearch() {
-  const bar = document.getElementById('searchBar');
-  bar.style.display = bar.style.display === 'none' ? 'block' : 'none';
-}
 
-function searchAyah(q) {
-  document.querySelectorAll('.ayah-span').forEach(el => el.style.background = '');
-  if(!q) return;
-  const num = parseInt(q);
-  if(!isNaN(num)) {
-    const idx = num - 1;
-    const el = document.getElementById('ayah_' + idx);
-    if(el) { el.style.background = 'rgba(255,215,0,0.3)'; el.scrollIntoView({behavior:'smooth', block:'center'}); }
-  } else {
-    currentAyahsData.forEach((a, i) => {
-      if(a.text.includes(q)) {
-        const el = document.getElementById('ayah_' + i);
-        if(el) { el.style.background = 'rgba(255,215,0,0.3)'; el.scrollIntoView({behavior:'smooth', block:'center'}); }
-      }
-    });
-  }
-}
  
  function actionBookmark() {
   closeActionMenu();
@@ -1652,7 +1660,60 @@ const timeStr = `${h12}:${String(min).padStart(2,'0')} ${ampm}`;
       else alert('❌ محتاج تسمح بالإشعارات');
     });
   }
-                           }
+   
+ }
+ let searchTimeout = null;
+
+async function globalSearch(q) {
+  // 1. فلترة السور الحالية شغالة في نفس الوقت بدون تأخير
+  filterSurahs(q); 
+  
+  const resultsDiv = document.getElementById('ayahSearchResults');
+  
+  // لو الخانة فاضية أو الكلمة أقل من 3 حروف، إخفي نتائج الآيات
+  if (!q || q.trim().length < 3) {
+    resultsDiv.style.display = 'none';
+    resultsDiv.innerHTML = '';
+    return;
+  }
+  
+  // تأخير إرسال الطلب لضمان استقرار الكتابة
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(async () => {
+    try {
+      resultsDiv.style.display = 'block';
+      resultsDiv.innerHTML = '<div style="color:var(--gold); padding:10px; font-size:13px; font-family:Amiri,serif;">⏳ جاري البحث في الآيات الكريمات...</div>';
+      
+      // الاتصال بـ API المصحف الشامل للبحث عن الكلمة
+      const r = await fetch(`https://api.alquran.cloud/v1/search/${q}/all/ar.uthmani`);
+      const data = await r.json();
+      
+      if (data.code === 200 && data.data.matches.length > 0) {
+        let html = `<div style="color:var(--gold); font-size:14px; margin: 12px 0 6px; font-weight:bold; font-family:Amiri,serif;">📖 آيات تطابق بحثك (${toAr(data.data.matches.length)}):</div>`;
+        
+        // سنعرض أول 15 نتيجة فقط لعدم تكدس الشاشة
+        const matches = data.data.matches.slice(0, 15);
+        
+        html += matches.map(m => `
+          <div class="surah-item" onclick="openSurah(${m.surah.number}, ${m.numberInSurah})" style="border-right: 3px solid var(--gold); margin-bottom:8px; background:var(--card); display:block; padding:14px;">
+            <div class="zekr-text" style="font-size:16px; line-height:1.8; color:var(--text); text-align:justify; font-family:'Amiri Quran',serif;">${m.text}</div>
+            <div class="surah-details" style="color:var(--gold); margin-top:6px; font-size:12px;">سورة ${m.surah.name} — آية رقم ${toAr(m.numberInSurah)}</div>
+          </div>
+        `).join('');
+        
+        if (data.data.matches.length > 15) {
+          html += `<div style="text-align:center; font-size:11px; color:var(--text2); padding:5px; font-family:Amiri,serif;">توجد نتائج أخرى.. يرجى كتابة كلمة أكثر دقة 🎯</div>`;
+        }
+        resultsDiv.innerHTML = html;
+      } else {
+        resultsDiv.innerHTML = '<div style="color:var(--text2); padding:10px; font-size:12px; font-family:Amiri,serif;">لم نعثر على آيات تحتوي على هذا النص 🕊️</div>';
+      }
+    } catch (e) {
+      resultsDiv.innerHTML = '<div style="color:var(--text2); padding:10px; font-size:12px; font-family:Amiri,serif;">فشل البحث في الآيات (تأكد من الاتصال بالإنترنت) 🌐</div>';
+    }
+  }, 500); // 500 مللي ثانية انتطار
+}
+
 function updateStats() {
   document.getElementById('statTasbeh').textContent = tasbehCount;
   document.getElementById('statAzkar').textContent = totalAzkar;
