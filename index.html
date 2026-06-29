@@ -1691,6 +1691,7 @@ async function globalSearch(q) {
 
       // استخدمنا quran-simple لأن البحث بالتشكيل الكامل (uthmani) يفشل غالباً مع مدخلات المستخدم العادية
       const response = await fetch(`https://api.alquran.cloud/v1/search/${encodeURIComponent(q.trim())}/all/quran-simple`);
+
       const data = await response.json();
 
       if (data.code === 200 && data.data && data.data.matches && data.data.matches.length > 0) {
