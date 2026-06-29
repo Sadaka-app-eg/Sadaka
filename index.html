@@ -1665,8 +1665,6 @@ const timeStr = `${h12}:${String(min).padStart(2,'0')} ${ampm}`;
   // يجب تعريف المتغير خارج الدالة ليحتفظ بقيمته بين الاستدعاءات
 let searchTimeout; 
 
-// التعديل الجديد للدالة لمنع العبط في النتائج
-// التعديل الجديد للدالة لمنع العبط في النتائج
 async function globalSearch(q) {
   if (typeof filterSurahs === 'function') {
     filterSurahs(q);
@@ -1674,6 +1672,7 @@ async function globalSearch(q) {
 
   const resultsDiv = document.getElementById('ayahSearchResults');
   
+  // 1. رفعنا الحد الأدنى لـ 3 أحرف حتى لا يبحث عن "ال" أو "من" ويجلب نتائج عشوائية
   if (!q || q.trim().length < 3) {
     resultsDiv.style.display = 'none';
     resultsDiv.innerHTML = '';
@@ -1687,28 +1686,25 @@ async function globalSearch(q) {
       resultsDiv.style.display = 'block';
       resultsDiv.innerHTML = '<div style="color:var(--gold);padding:10px;font-size:13px;font-family:Amiri,serif;">⏳ جاري البحث...</div>';
 
-      // رجعنا للطبعة البسيطة العادية المستقرة عشان الكود ميضربش
-      const secureUrl = `https://api.alquran.cloud/v1/search/${encodeURIComponent(q.trim())}/all/quran-simple`;
+      // 2. استخدام quran-simple-clean لضمان مطابقة الكلمات النظيفة تماماً
+      const secureUrl = `https://api.alquran.cloud/v1/search/${encodeURIComponent(q.trim())}/all/quran-simple-clean`;
       
       const response = await fetch(secureUrl);
       const data = await response.json();
 
       if (data.code === 200 && data.data && data.data.matches && data.data.matches.length > 0) {
         const sorted = data.data.matches.sort((a, b) => a.number - b.number);
-        const matches = sorted.slice(0, 15); // أخذ أول 15 نتيجة مركزة ودقيقة
+        
+        const matches = sorted.slice(0, 200);
 
         let html = `<div style="color:var(--gold);font-size:13px;margin-bottom:8px;font-family:Amiri,serif;">📖 نتائج البحث المحددة (${toAr(data.data.matches.length)})</div>`;
         
-        html += matches.map(m => {
-          // السطر السحري: بنشيل كلمة "سُورَةُ" بالتشكيل بتاعها عشان منكتبش "سورة سورة"
-          const cleanSurahName = m.surah.name.replace(/^سُورَةُ\s*/, '').trim();
+        html += matches.map(m => `
+          <div class="surah-item" onclick="openSurah(${m.surah.number},${m.numberInSurah})" style="border-right:3px solid var(--gold);margin-bottom:8px;display:block;padding:14px;cursor:pointer;">
+            <div style="font-size:17px;line-height:2;color:var(--text);font-family:'Amiri Quran',serif;text-align:justify;">${m.text}</div>
+            <div style="color:var(--gold);margin-top:6px;font-size:12px;font-family:Amiri,serif;">سورة ${m.surah.name.replace(/^سُورَةُ\s*/, '').trim()} — الآية ${toAr(m.numberInSurah)}</div>
 
-          return `
-            <div class="surah-item" onclick="openSurah(${m.surah.number},${m.numberInSurah})" style="border-right:3px solid var(--gold);margin-bottom:8px;display:block;padding:14px;cursor:pointer;">
-              <div style="font-size:17px;line-height:2;color:var(--text);font-family:'Amiri Quran',serif;text-align:justify;">${m.text}</div>
-              <div style="color:var(--gold);margin-top:6px;font-size:12px;font-family:Amiri,serif;">سورة ${cleanSurahName} — الآية ${toAr(m.numberInSurah)}</div>
-            </div>`;
-        }).join('');
+          </div>`).join('');
 
         resultsDiv.innerHTML = html;
       } else {
@@ -1718,8 +1714,9 @@ async function globalSearch(q) {
       console.error("Search Fail:", e);
       resultsDiv.innerHTML = '<div style="color:var(--text2);padding:10px;font-size:12px;font-family:Amiri,serif;">تحتاج اتصال بالإنترنت 🌐</div>';
     }
-  }, 600);
+  }, 600); // زيادة مهلة الكتابة قليلاً لراحة المستخدم
 }
+
 
 async function renderQcfPages() {
   const slider = document.getElementById('mushafSlider');
