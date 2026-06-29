@@ -11,18 +11,41 @@
 <link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg:#0f0f1a; --bg2:#1a1a2e; --bg3:#16213e;
-  --card:rgba(255,255,255,0.07); --gold:#ffd700;
-  --green:#4caf50; --text:#fff; --text2:#aaa;
-  --border:rgba(255,255,255,0.12);
-  --mushaf-bg:#fdf6e3; --mushaf-text:#1a1008;
-  --mushaf-border:#c8a96e;
+:root {
+  /* الوضع المظلم: زيتي ملكي عميق ووقور */
+  --bg: #0b120c;           /* خلفية التطبيق الأساسية - أخضر زيتي غامق جداً قريب للأسود */
+  --bg2: #121e14;          /* القوائم والهيدر - درجة زيتية متناسقة */
+  --bg3: #172719;          /* العناصر النشطة والخلفيات الثانوية */
+  --card: rgba(255, 255, 255, 0.04); /* بطاقات شفافة ناعمة لتوزيع الإضاءة */
+  --border: rgba(212, 175, 55, 0.12); /* حدود رفيعة مذهبة ناعمة */
+  
+  /* ألوان الذهب والنصوص للمظلم */
+  --gold: #d4af37;         /* ذهب معتق دافئ ومريح للعين (وليس فاقعاً) */
+  --green: #81c784;        /* أخضر روحاني ناعم للإشعارات والمصادر */
+  --text: #f4f6f4;         /* نص أساسي أبيض مائل للرمادي لتقليل إجهاد العين */
+  --text2: #9aa79c;        /* نص ثانوي رمادي زيتي خافت */
+  
+  /* ألوان شاشة المصحف (ثابتة ومريحة في القراءة) */
+  --mushaf-bg: #fbf7ed;    /* خلفية ورقية دافئة (شامواه فاخر) */
+  --mushaf-text: #1a1105;  /* بني داكن جداً مريح للعين لقراءة الآيات */
+  --mushaf-border: #cda869;/* برواز ذهبي هادئ */
 }
+
 .light {
-  --bg:#f0ece4; --bg2:#e0d9cc; --bg3:#d5ccbb;
-  --card:rgba(0,0,0,0.05); --gold:#8b6914; --green:#2e7d32;
-  --text:#1a1008; --text2:#6b5a3e; --border:rgba(0,0,0,0.12);
+  /* الوضع الفاتح: مزيج من ألوان المخطوطات والورق العتيق */
+  --bg: #f7f4eb;           /* خلفية التطبيق - بيج دافئ مريح */
+  --bg2: #ede8dc;          /* الهيدر والقوائم - بيج أعمق قليلاً */
+  --bg3: #e2dac9;          /* العناصر المحددة */
+  --card: rgba(0, 0, 0, 0.03);
+  --border: rgba(139, 105, 20, 0.15);
+  
+  /* ألوان الذهب والنصوص للفاتح */
+  --gold: #8b6914;         /* ذهب بني عميق (بني أندلسي) */
+  --green: #2e7d32;        /* أخضر عشبي هادئ */
+  --text: #2c2212;         /* نص أساسي بني داكن متناسق مع البيج */
+  --text2: #6e614c;        /* نص ثانوي خافت */
 }
+
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background 0.3s,color 0.3s;overflow-x:hidden;padding-bottom:env(safe-area-inset-bottom);}
 
