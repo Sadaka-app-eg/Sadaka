@@ -440,6 +440,19 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
     <div class="stat-card"><div class="stat-num" id="statTasbeh">0</div><div class="stat-label">تسبيحة اليوم</div></div>
     <div class="stat-card"><div class="stat-num" id="statAzkar">0</div><div class="stat-label">ذكر اليوم</div></div>
   </div>
+ <div class="stat-card">...</div>
+  </div> <div class="daily-card" style="background: var(--card); border-radius: 20px; padding: 22px 20px; margin-top: 16px; border: 1px solid var(--border); text-align: center; border-right: 4px solid var(--gold);">
+    <div style="font-size: 13px; color: var(--gold); font-weight: 700; margin-bottom: 12px; font-family: 'Amiri', serif; letter-spacing: 0.5px;">📖 آيَةٌ وَهِدَايَةٌ (مَعَ التَّفْسِيرِ)</div>
+    
+    <div id="dailyAyahText" style="font-size: 22px; line-height: 2.2; color: var(--text); font-family: 'Amiri Quran', serif; margin-bottom: 14px; text-align: justify; text-justify: inter-word; direction: rtl; padding: 0 5px;">⏳ جاري جلب آية تلمس القلوب...</div>
+    
+    <div id="dailyAyahRef" style="font-size: 12px; color: var(--gold); font-family: 'Amiri', serif; text-align: right; margin-bottom: 12px; font-weight: 700;"></div>
+    
+    <div style="background: rgba(0,0,0,0.15); padding: 12px 14px; border-radius: 12px; border-right: 2px solid var(--green); text-align: justify; direction: rtl;">
+      <div style="font-size: 11px; color: var(--green); font-weight: 700; margin-bottom: 4px; font-family: 'Amiri', serif;">📚 تَفْسِيرُ الإِمَامِ ابْنِ كَثِيرٍ:</div>
+      <div id="dailyAyahTafseer" style="font-size: 13px; line-height: 1.8; color: var(--text2); font-family: 'Amiri', serif;"></div>
+    </div>
+  </div>
 </div>
 
 <!-- QURAN -->
@@ -1038,6 +1051,46 @@ const azkarData = {
     },
   ]
 };
+// ====== كود آية اليوم وتفسير ابن كثير (جديد) ======
+const dailyAyahs = [
+  { 
+    text: "قُلْ يَا عِبَادِيَ الَّذِينَ أَسْرَفُوا عَلَىٰ أَنفُسِهِمْ لَا تَقْنَطُوا مِن رَّحْمَةِ اللَّهِ ۚ إِنَّ اللَّهَ يَغْفِرُ الذُّنُوبَ جَمِيعًا ۚ إِنَّهُ هُوَ الْغَفُورُ الرَّحِيمُ", 
+    ref: "سورة الزمر: آية ٥٣",
+    tafseer: "هذه الآية الكريمة دعوة لجميع العصاة من الكفرة وغيرهم إلى التوبة والإنابة، وإخبار بأن الله يغفر الذنوب جميعاً لمن تاب منها ورجع عنها، وإن كانت كبحر من الخطايا، فلا يجوز لمذنب أن ييأس من عفو الله."
+  },
+  { 
+    text: "وَتَوَكَّلْ عَلَى الْحَيِّ الَّذِي لَا يَمُوتُ وَسَبِّحْ بِحَمْدِهِ", 
+    ref: "سورة الفرقان: آية ٥٨",
+    tafseer: "أي: في جميع أمورك وفوض أمرك إلى الله الحي الدائم الباقي الذي لا يزول، وهو كافيك وناصرك، واقرن هذا التوكل بالثناء عليه والعبادة له لأنه الخالق والمالك لكل شيء."
+  },
+  { 
+    text: "أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ", 
+    ref: "سورة الرعد: آية ٢٨",
+    tafseer: "أي تلين قلوب المؤمنين وتسكن وتستأنس بذكر الله الصادق، وترضى به مولى ونصيراً، فإنه لا شيء أحلى للقلب ولا لذ من الأنس بخالقه سبحانه."
+  },
+  { 
+    text: "وَإِذَا سَأَلَكَ عِبَادِي عَنِّي فَإِنِّي قَرِيبٌ ۖ أُجِيبُ دَعْوَةَ الدَّاعِ إِذَا دَعَانِ", 
+    ref: "سورة البقرة: آية ١٨٦",
+    tafseer: "في هذه الآية إعلام وتوجيه فخم بأن الله سبحانه قريب من الداعي يسمع دعاءه ويراه، ولا واسطة بين العبد وربه، وفيه حث وتأكيد على الإخلاص واليقين في الدعاء."
+  },
+  { 
+    text: "وَمَن يَتَّقِ اللَّهَ يَجْعَل لَّهُ مَخْرَجًا * وَيَرْزُقْهُ مِنْ حَيْثُ لَا يَحْتَسِبُ", 
+    ref: "سورة الطلاق: آية ٢-٣",
+    tafseer: "أي ومن يتق الله بامتثال أوامره واجتناب نواهيه، يجعل له فرجاً من كل كرب ويأتيه بالرزق والخير من طريق لا يخطر على باله ولا يرجوه."
+  },
+  { 
+    text: "مَنْ عَمِلَ صَالِحًا مِّن ذَكَرٍ أَوْ أُنثَىٰ وَهُوَ مُؤْمِنٌ فَلَنُحْيِيَنَّهُ حَيَاةً طَيِّبَةً", 
+    ref: "سورة النحل: آية ٩٧",
+    tafseer: "الحياة الطيبة تشتمل على وجوه الراحة والاطمئنان والرزق الحلال في الدنيا، والقناعة في القلب، وجزاء وافر حسن يوم القيامة."
+  },
+  {
+    text: "وَمَنْ أَعْرَضَ عَن ذِكْرِي فَإِنَّ لَهُ مَعِيشَةً ضَنكًا وَنَحْشُرُهُ يَوْمَ الْقِيَامَةِ أَعْمَىٰ",
+    ref: "سورة طه: آية ١٢٤",
+    tafseer: "أي من خالف أمري ونسي ما أنزلته، فله ضيق في الدنيا فلا طمأنينة له ولا انشراح لصدره وإن تنعم بظاهرها، وجزاؤه يوم الحساب أليم."
+  }
+];
+
+
 
 // ===========================
 // State
@@ -1886,19 +1939,33 @@ if (document.readyState === 'loading') {
 } else {
   startSilentPreFetch();
 }
-
+function displayDailyAyah() {
+  const dayOfMonth = new Date().getDate();
+  const index = dayOfMonth % dailyAyahs.length;
+  const selected = dailyAyahs[index];
+  
+  document.getElementById('dailyAyahText').innerHTML = `﴿ ${selected.text} ﴾`;
+  document.getElementById('dailyAyahRef').textContent = selected.ref;
+  document.getElementById('dailyAyahTafseer').textContent = selected.tafseer;
+}
 function updateStats() {
   document.getElementById('statTasbeh').textContent = tasbehCount;
   document.getElementById('statAzkar').textContent = totalAzkar;
 }
  // كود استعادة التبويب الأخير تلقائياً بعد التحديث لثبات التطبيق
+// كود استعادة البيانات وتشغيل الدوال عند فتح التطبيق (محدث)
 document.addEventListener('DOMContentLoaded', () => {
+  
+  // ١. تشغيل دالة آية اليوم فوراً عند الفتح
+  displayDailyAyah();
+
+  // ٢. تذكر التبويب الأخير للمستخدم (الكود القديم)
   const lastTab = localStorage.getItem('last_opened_tab');
   if (lastTab && document.getElementById(lastTab)) {
-    // فتح الصفحة الأخيرة التي كان يقف عليها المستخدم تلقائياً
     showPage(lastTab, null);
   }
 });
+
 
 </script>
 </body>
