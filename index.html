@@ -1685,7 +1685,7 @@ async function globalSearch(q) {
       resultsDiv.innerHTML = '<div style="color:var(--gold); padding:10px; font-size:13px; font-family:Amiri,serif;">⏳ جاري البحث في الآيات الكريمات...</div>';
       
       // الاتصال بـ API المصحف الشامل للبحث عن الكلمة
-      const r = await fetch(`https://api.alquran.cloud/v1/search/${q}/all/ar.uthmani`);
+      const r = await fetch(`https://api.alquran.cloud/v1/search/${encodeURIComponent(q)}/all/ar`);
       const data = await r.json();
       
       if (data.code === 200 && data.data.matches.length > 0) {
