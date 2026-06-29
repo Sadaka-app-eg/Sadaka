@@ -1943,15 +1943,7 @@ if (document.readyState === 'loading') {
 } else {
   startSilentPreFetch();
 }
-function displayDailyAyah() {
-  const dayOfMonth = new Date().getDate();
-  const index = dayOfMonth % dailyAyahs.length;
-  const selected = dailyAyahs[index];
-  
-  document.getElementById('dailyAyahText').innerHTML = `﴿ ${selected.text} ﴾`;
-  document.getElementById('dailyAyahRef').textContent = selected.ref;
-  document.getElementById('dailyAyahTafseer').textContent = selected.tafseer;
-}
+
 function updateStats() {
   document.getElementById('statTasbeh').textContent = tasbehCount;
   document.getElementById('statAzkar').textContent = totalAzkar;
@@ -1970,6 +1962,96 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+// ==========================================
+// كود نفحات اليوم (آية، حديث، وتفسير) الشامل
+// ==========================================
+const dailyNafahat = [
+  {
+    ayah: "قُلْ يَا عِبَادِيَ الَّذِينَ أَسْرَفُوا عَلَىٰ أَنفُسِهِمْ لَا تَقْنَطُوا مِن رَّحْمَةِ اللَّهِ ۚ إِنَّ اللَّهَ يَغْفِرُ الذُّنُوبَ جَمِيعًا ۚ إِنَّهُ هُوَ الْغَفُورُ الرَّحِيمُ",
+    ayahRef: "سورة الزمر: آية ٥٣",
+    tafseer: "هذه الآية الكريمة دعوة لجميع العصاة إلى التوبة والإنابة، وإخبار بأن الله يغفر الذنوب جميعاً لمن تاب منها ورجع عنها، وإن كانت كبحر من الخطايا، فلا يجوز لمذنب أن ييأس من عفو الله.",
+    hadith: "«إنَّ اللهَ عزَّ وجلَّ يَبْسُطُ يَدَهُ باللَّيْلِ لِيَتُوبَ مُسِيءُ النَّهَارِ، وَيَبْسُطُ يَدَهُ بالنَّهَارِ لِيَتُوبَ مُسِيءُ اللَّيْلِ، حَتَّى تَطْلُعَ الشَّمْسُ مِنْ مَغْرِبِهَا»",
+    hadithRawy: "رواه مسلم عن أبي موسى الأشعري",
+    hadithSharh: "الشرح: يبين النبي ﷺ سعة رحمة الله تعالى ولطفه بعباده، فهو يفتح باب التوبة في كل وقت وآونة، ولا يغلق هذا الباب المبارك في وجه قاصد أبداً حتى قيام الساعة."
+  },
+  {
+    ayah: "أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ",
+    ayahRef: "سورة الرعد: آية ٢٨",
+    tafseer: "أي تلين قلوب المؤمنين وتسكن وتستأنس بذكر الله الصادق، وترضى به مولى ونصيراً، فإنه لا شيء أحلى للقلب ولا لذ من الأنس بخالقه سبحانه وتعالى.",
+    hadith: "«مَثَلُ الَّذِي يَذْكُرُ رَبَّهُ وَالَّذِي لَا يَذْكُرُ رَبَّهُ، مَثَلُ الْحَيِّ وَالْمَيِّتِ»",
+    hadithRawy: "رواه البخاري عن أبي موسى الأشعري",
+    hadithSharh: "الشرح: يوضح الحديث أن الذكر هو حياة الروح الحقيقية، والقلب الذي يخلو من ذكر الله شبيه بالقبر المظلم والميت الذي لا حراك فيه ولا نور بروحانيته."
+  }
+];
+
+// دالة ذكية لإنشاء الصفحة وزرار الضغط تلقائياً في الـ HTML بدون ما تدور عليهم
+function setupNafahatSystem() {
+  // ١. إنشاء صفحة النفحات كاملة وإضافتها لآخر جسم التطبيق
+  if (!document.getElementById('nafahatPage')) {
+    const nafahatDiv = document.createElement('div');
+    nafahatDiv.className = 'page';
+    nafahatDiv.id = 'nafahatPage';
+    nafahatDiv.style.cssText = "padding: 15px; overflow-y: auto; max-height: calc(100vh - 120px);";
+    nafahatDiv.innerHTML = `
+      <div style="text-align: center; margin-bottom: 20px;">
+        <h2 style="color: var(--gold); font-family: 'Amiri', serif; font-size: 24px;">✨ نَفَحَاتُ اليَوْمِ التَّقِيَّةُ ✨</h2>
+        <p style="color: var(--text2); font-size: 13px; font-family: 'Amiri', serif;">زادٌ يومي متجدد للمسلم من القرآن والسنة</p>
+      </div>
+      <div style="background: var(--card); border-radius: 20px; padding: 20px; margin-bottom: 16px; border: 1px solid var(--border); border-right: 4px solid var(--gold);">
+        <div style="font-size: 13px; color: var(--gold); font-weight: 700; margin-bottom: 12px; font-family: 'Amiri', serif;">📖 آيَةٌ وَهِدَايَةٌ (ابْنِ كَثِيرٍ)</div>
+        <div id="dailyAyahText" style="font-size: 21px; line-height: 2.1; color: var(--text); font-family: 'Amiri Quran', serif; margin-bottom: 12px; text-align: justify; direction: rtl;"></div>
+        <div id="dailyAyahRef" style="font-size: 12px; color: var(--gold); font-family: 'Amiri', serif; text-align: left; margin-bottom: 10px; font-weight: 700;"></div>
+        <div style="background: rgba(0,0,0,0.18); padding: 12px; border-radius: 12px; border-right: 2px solid var(--green); text-align: justify; direction: rtl;">
+          <div id="dailyAyahTafseer" style="font-size: 13px; line-height: 1.8; color: var(--text2); font-family: 'Amiri', serif;"></div>
+        </div>
+      </div>
+      <div style="background: var(--card); border-radius: 20px; padding: 20px; margin-bottom: 25px; border: 1px solid var(--border); border-right: 4px solid var(--green);">
+        <div style="font-size: 13px; color: var(--green); font-weight: 700; margin-bottom: 12px; font-family: 'Amiri', serif;">📜 حَدِيثٌ وَشَرْحُهُ المَيَسَّر</div>
+        <div id="dailyHadithText" style="font-size: 16px; line-height: 1.9; color: var(--text); font-family: 'Amiri', serif; margin-bottom: 12px; text-align: justify; direction: rtl; font-style: italic;"></div>
+        <div id="dailyHadithRawy" style="font-size: 12px; color: var(--green); font-family: 'Amiri', serif; text-align: left; margin-bottom: 10px; font-weight: 700;"></div>
+        <div style="background: rgba(0,0,0,0.18); padding: 12px; border-radius: 12px; border-right: 2px solid var(--gold); text-align: justify; direction: rtl;">
+          <div id="dailyHadithSharh" style="font-size: 13px; line-height: 1.8; color: var(--text2); font-family: 'Amiri', serif;"></div>
+        </div>
+      </div>
+      <button onclick="showPage('home', null)" style="width: 100%; background: var(--bg2); border: 1px solid var(--border); color: var(--gold); padding: 12px; border-radius: 12px; font-family: 'Amiri', serif; font-size: 16px; cursor: pointer;">⬅ العودة للشاشة الرئيسية</button>
+    `;
+    document.body.appendChild(nafahatDiv);
+  }
+
+  // ٢. صب البيانات اليومية داخل الشاشة الجديدة
+  const dayOfMonth = new Date().getDate();
+  const index = dayOfMonth % dailyNafahat.length;
+  const selected = dailyNafahat[index];
+  
+  document.getElementById('dailyAyahText').innerHTML = `﴿ ${selected.ayah} ﴾`;
+  document.getElementById('dailyAyahRef').textContent = selected.ayahRef;
+  document.getElementById('dailyAyahTafseer').textContent = selected.tafseer;
+  document.getElementById('dailyHadithText').textContent = selected.hadith;
+  document.getElementById('dailyHadithRawy').textContent = selected.hadithRawy;
+  document.getElementById('dailyHadithSharh').textContent = selected.hadithSharh;
+
+  // ٣. البحث السحري عن كارت الثلاث نقط وتحويله لزرار يفتح الصفحة
+  const allDivs = document.querySelectorAll('div');
+  allDivs.forEach(div => {
+    if (div.textContent.trim() === '...' && div.children.length === 0) {
+      div.innerHTML = `<span style="color: var(--gold); font-family: 'Amiri', serif; font-size: 15px; font-weight: 700;">✨ اضغط لعرض نفحات وهداية اليوم ✨</span>`;
+      div.style.cursor = 'pointer';
+      div.style.padding = '15px';
+      div.onclick = function() { showPage('nafahatPage', null); };
+    }
+  });
+}
+
+// تشغيل النظام الذكي تلقائياً عند فتح التطبيق
+document.addEventListener('DOMContentLoaded', () => {
+  setupNafahatSystem();
+  
+  // الكود القديم لتذكر التبويب
+  const lastTab = localStorage.getItem('last_opened_tab');
+  if (lastTab && document.getElementById(lastTab)) {
+    showPage(lastTab, null);
+  }
+});
 
 </script>
 </body>
