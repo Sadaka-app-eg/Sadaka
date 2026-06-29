@@ -1685,7 +1685,7 @@ async function globalSearch(q) {
       resultsDiv.innerHTML = '<div style="color:var(--gold); padding:10px; font-size:13px; font-family:Amiri,serif;">⏳ جاري البحث في الآيات الكريمات...</div>';
       
       // الاتصال بـ API المصحف الشامل للبحث عن الكلمة
-      const r = await fetch(`https://api.alquran.cloud/v1/search/${encodeURIComponent(q)}/all/ar`);
+      const r = await fetch(`https://api.alquran.cloud/v1/search/${encodeURIComponent(q)}/all/quran-uthmani`);
       const data = await r.json();
       
       if (data.code === 200 && data.data.matches.length > 0) {
@@ -1694,7 +1694,8 @@ async function globalSearch(q) {
         // سنعرض أول 15 نتيجة فقط لعدم تكدس الشاشة
         const matches = data.data.matches.slice(0, 15);
         
-        html += matches.map(m => `
+       const sorted = matches.sort((a,b) => a.number - b.number);
+html += sorted.map(m => `
           <div class="surah-item" onclick="openSurah(${m.surah.number}, ${m.numberInSurah})" style="border-right: 3px solid var(--gold); margin-bottom:8px; background:var(--card); display:block; padding:14px;">
             <div class="zekr-text" style="font-size:16px; line-height:1.8; color:var(--text); text-align:justify; font-family:'Amiri Quran',serif;">${m.text}</div>
             <div class="surah-details" style="color:var(--gold); margin-top:6px; font-size:12px;">سورة ${m.surah.name} — آية رقم ${toAr(m.numberInSurah)}</div>
