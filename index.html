@@ -1106,14 +1106,33 @@ function toggleTheme() {
 }
 
 function showPage(id, el) {
+function showPage(id, el) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  
+  // حفظ اسم الصفحة الحالية في ذاكرة المتصفح الدائمة فوراً قبل أي شيء
+  localStorage.setItem('last_opened_tab', id);
+
   document.getElementById(id).classList.add('active');
-  el.classList.add('active');
+  
+  // إذا مررنا العنصر (el) نقوم بتنشيطه، وإلا سنبحث عنه بواسطة الـ id (للتشغيل التلقائي)
+  if (el) {
+    el.classList.add('active');
+  } else {
+    // كود ذكي لتنشيط التبويب الصحيح بناءً على الصفحة
+    const tabs = document.querySelectorAll('.tabs .tab');
+    tabs.forEach(t => {
+      if (t.getAttribute('onclick').includes(`'${id}'`)) {
+        t.classList.add('active');
+      }
+    });
+  }
+
   if(id === 'favPage') renderFav();
- if(id === 'awkat') loadPrayerTimes();
+  if(id === 'awkat') loadPrayerTimes();
   updateStats();
 }
+
 
 // ===========================
 // Surah List
@@ -1884,6 +1903,15 @@ function updateStats() {
   document.getElementById('statTasbeh').textContent = tasbehCount;
   document.getElementById('statAzkar').textContent = totalAzkar;
 }
+ // كود استعادة التبويب الأخير تلقائياً بعد التحديث لثبات التطبيق
+document.addEventListener('DOMContentLoaded', () => {
+  const lastTab = localStorage.getItem('last_opened_tab');
+  if (lastTab && document.getElementById(lastTab)) {
+    // فتح الصفحة الأخيرة التي كان يقف عليها المستخدم تلقائياً
+    showPage(lastTab, null);
+  }
+});
+
 </script>
 </body>
  </html>
