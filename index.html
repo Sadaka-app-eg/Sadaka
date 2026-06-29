@@ -1508,8 +1508,7 @@ document.getElementById('azkarAudioStatus').textContent = 'اضغط للاستم
           <div class="zekr-count" id="zc_${cat}_${i}" style="${done?'color:#4caf50':''}">${cur}</div>
           <div class="zekr-max">/ ${z.count}</div>
         </div>
-        <button onclick="speakZekr('${z.text.replace(/'/g, "\\'")}')" style="background:transparent;border:1px solid var(--border);color:var(--text2);padding:5px 10px;border-radius:8px;cursor:pointer;font-size:12px;">🔊 استمع</button>
-        <span class="done-badge" id="done_${cat}_${i}" style="${done?'display:inline-block':''}">✓ تم</span>
+         <span class="done-badge" id="done_${cat}_${i}" style="${done?'display:inline-block':''}">✓ تم</span>
         
       </div>
       <div class="zekr-progress"><div class="zekr-prog-bar" id="bar_${cat}_${i}" style="width:${pct}%"></div></div>
