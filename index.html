@@ -1665,42 +1665,40 @@ const timeStr = `${h12}:${String(min).padStart(2,'0')} ${ampm}`;
   // يجب تعريف المتغير خارج الدالة ليحتفظ بقيمته بين الاستدعاءات
 let searchTimeout; 
 
+// التعديل الجديد للدالة لمنع العبط في النتائج
 async function globalSearch(q) {
-  // تصفية السور المحلية (إذا كانت موجودة)
   if (typeof filterSurahs === 'function') {
     filterSurahs(q);
   }
 
   const resultsDiv = document.getElementById('ayahSearchResults');
   
-  // التحقق من المدخلات
-  if (!q || q.trim().length < 2) {
+  // 1. رفعنا الحد الأدنى لـ 3 أحرف حتى لا يبحث عن "ال" أو "من" ويجلب نتائج عشوائية
+  if (!q || q.trim().length < 3) {
     resultsDiv.style.display = 'none';
     resultsDiv.innerHTML = '';
     return;
   }
 
-  // إلغاء المؤقت السابق (Debounce)
   clearTimeout(searchTimeout);
 
-  // إعداد مؤقت جديد بانتظار توقف المستخدم عن الكتابة (500 ملي ثانية)
   searchTimeout = setTimeout(async () => {
     try {
       resultsDiv.style.display = 'block';
       resultsDiv.innerHTML = '<div style="color:var(--gold);padding:10px;font-size:13px;font-family:Amiri,serif;">⏳ جاري البحث...</div>';
 
-      // استخدمنا quran-simple لأن البحث بالتشكيل الكامل (uthmani) يفشل غالباً مع مدخلات المستخدم العادية
-      const response = await fetch(`https://api.alquran.cloud/v1/search/${encodeURIComponent(q.trim())}/all/quran-simple`);
-
+      // 2. استخدام quran-simple-clean لضمان مطابقة الكلمات النظيفة تماماً
+      const secureUrl = `https://api.alquran.cloud/v1/search/${encodeURIComponent(q.trim())}/all/quran-simple-clean`;
+      
+      const response = await fetch(secureUrl);
       const data = await response.json();
 
       if (data.code === 200 && data.data && data.data.matches && data.data.matches.length > 0) {
-        // ترتيب النتائج حسب ترتيبها في المصحف
         const sorted = data.data.matches.sort((a, b) => a.number - b.number);
-        // أخذ أول 15 نتيجة فقط لتسريع الأداء
+        // أخذ أول 15 نتيجة مركزة ودقيقة
         const matches = sorted.slice(0, 15);
 
-        let html = `<div style="color:var(--gold);font-size:13px;margin-bottom:8px;font-family:Amiri,serif;">📖 نتائج البحث (${toAr(data.data.matches.length)})</div>`;
+        let html = `<div style="color:var(--gold);font-size:13px;margin-bottom:8px;font-family:Amiri,serif;">📖 نتائج البحث المحددة (${toAr(data.data.matches.length)})</div>`;
         
         html += matches.map(m => `
           <div class="surah-item" onclick="openSurah(${m.surah.number},${m.numberInSurah})" style="border-right:3px solid var(--gold);margin-bottom:8px;display:block;padding:14px;cursor:pointer;">
@@ -1710,13 +1708,13 @@ async function globalSearch(q) {
 
         resultsDiv.innerHTML = html;
       } else {
-        resultsDiv.innerHTML = '<div style="color:var(--text2);padding:10px;font-size:12px;font-family:Amiri,serif;">لم نعثر على نتائج 🕊️</div>';
+        resultsDiv.innerHTML = '<div style="color:var(--text2);padding:10px;font-size:12px;font-family:Amiri,serif;">لم نعثر على نتائج دقيقة 🕊️</div>';
       }
     } catch (e) {
-      console.error("Search Error:", e);
+      console.error("Search Fail:", e);
       resultsDiv.innerHTML = '<div style="color:var(--text2);padding:10px;font-size:12px;font-family:Amiri,serif;">تحتاج اتصال بالإنترنت 🌐</div>';
     }
-  }, 500);
+  }, 600); // زيادة مهلة الكتابة قليلاً لراحة المستخدم
 }
 
 async function renderQcfPages() {
