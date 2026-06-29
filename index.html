@@ -1665,54 +1665,37 @@ const timeStr = `${h12}:${String(min).padStart(2,'0')} ${ampm}`;
  let searchTimeout = null;
 
 async function globalSearch(q) {
-  // 1. فلترة السور الحالية شغالة في نفس الوقت بدون تأخير
-  filterSurahs(q); 
-  
+  filterSurahs(q);
   const resultsDiv = document.getElementById('ayahSearchResults');
-  
-  // لو الخانة فاضية أو الكلمة أقل من 3 حروف، إخفي نتائج الآيات
-  if (!q || q.trim().length < 3) {
+  if (!q || q.trim().length < 2) {
     resultsDiv.style.display = 'none';
     resultsDiv.innerHTML = '';
     return;
   }
-  
-  // تأخير إرسال الطلب لضمان استقرار الكتابة
   clearTimeout(searchTimeout);
   searchTimeout = setTimeout(async () => {
     try {
       resultsDiv.style.display = 'block';
-      resultsDiv.innerHTML = '<div style="color:var(--gold); padding:10px; font-size:13px; font-family:Amiri,serif;">⏳ جاري البحث في الآيات الكريمات...</div>';
-      
-      // الاتصال بـ API المصحف الشامل للبحث عن الكلمة
-      const r = await fetch(`https://api.alquran.cloud/v1/search/${encodeURIComponent(q)}/all/ar.alafasy`);
+      resultsDiv.innerHTML = '<div style="color:var(--gold);padding:10px;font-size:13px;font-family:Amiri,serif;">⏳ جاري البحث...</div>';
+      const r = await fetch(`https://api.alquran.cloud/v1/search/${q}/all/quran-uthmani`);
       const data = await r.json();
-      
-      if (data.code === 200 && data.data.matches.length > 0) {
-        let html = `<div style="color:var(--gold); font-size:14px; margin: 12px 0 6px; font-weight:bold; font-family:Amiri,serif;">📖 آيات تطابق بحثك (${toAr(data.data.matches.length)}):</div>`;
-        
-        // سنعرض أول 15 نتيجة فقط لعدم تكدس الشاشة
-        const matches = data.data.matches.slice(0, 15);
-        
-       const sorted = matches.sort((a,b) => a.number - b.number);
-html += sorted.map(m => `
-          <div class="surah-item" onclick="openSurah(${m.surah.number}, ${m.numberInSurah})" style="border-right: 3px solid var(--gold); margin-bottom:8px; background:var(--card); display:block; padding:14px;">
-            <div class="zekr-text" style="font-size:16px; line-height:1.8; color:var(--text); text-align:justify; font-family:'Amiri Quran',serif;">${m.text}</div>
-            <div class="surah-details" style="color:var(--gold); margin-top:6px; font-size:12px;">سورة ${m.surah.name} — آية رقم ${toAr(m.numberInSurah)}</div>
-          </div>
-        `).join('');
-        
-        if (data.data.matches.length > 15) {
-          html += `<div style="text-align:center; font-size:11px; color:var(--text2); padding:5px; font-family:Amiri,serif;">توجد نتائج أخرى.. يرجى كتابة كلمة أكثر دقة 🎯</div>`;
-        }
+      if (data.code === 200 && data.data && data.data.matches && data.data.matches.length > 0) {
+        const sorted = data.data.matches.sort((a,b) => a.number - b.number);
+        const matches = sorted.slice(0, 15);
+        let html = `<div style="color:var(--gold);font-size:13px;margin-bottom:8px;font-family:Amiri,serif;">📖 نتائج البحث (${toAr(data.data.matches.length)})</div>`;
+        html += matches.map(m => `
+          <div class="surah-item" onclick="openSurah(${m.surah.number},${m.numberInSurah})" style="border-right:3px solid var(--gold);margin-bottom:8px;display:block;padding:14px;">
+            <div style="font-size:17px;line-height:2;color:var(--text);font-family:'Amiri Quran',serif;text-align:justify;">${m.text}</div>
+            <div style="color:var(--gold);margin-top:6px;font-size:12px;font-family:Amiri,serif;">سورة ${m.surah.name} — الآية ${toAr(m.numberInSurah)}</div>
+          </div>`).join('');
         resultsDiv.innerHTML = html;
       } else {
-        resultsDiv.innerHTML = '<div style="color:var(--text2); padding:10px; font-size:12px; font-family:Amiri,serif;">لم نعثر على آيات تحتوي على هذا النص 🕊️</div>';
+        resultsDiv.innerHTML = '<div style="color:var(--text2);padding:10px;font-size:12px;font-family:Amiri,serif;">لم نعثر على نتائج 🕊️</div>';
       }
-    } catch (e) {
-      resultsDiv.innerHTML = '<div style="color:var(--text2); padding:10px; font-size:12px; font-family:Amiri,serif;">فشل البحث في الآيات (تأكد من الاتصال بالإنترنت) 🌐</div>';
+    } catch(e) {
+      resultsDiv.innerHTML = '<div style="color:var(--text2);padding:10px;font-size:12px;font-family:Amiri,serif;">تحتاج اتصال بالإنترنت 🌐</div>';
     }
-  }, 500); // 500 مللي ثانية انتطار
+  }, 500);
 }
 function toggleSearch() {
   const bar = document.getElementById('searchBar');
