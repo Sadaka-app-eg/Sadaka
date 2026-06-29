@@ -359,6 +359,56 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
 .modal p{font-size:15px;line-height:2;color:var(--text);font-family:'Amiri',serif;}
 .modal-source{font-size:12px;color:var(--green);margin-top:10px;border-right:2px solid var(--green);padding-right:8px;}
 .modal-close{width:100%;padding:11px;background:var(--gold);color:#111;border:none;border-radius:12px;cursor:pointer;font-weight:700;margin-top:14px;font-size:14px;font-family:'Amiri',serif;}
+ /* ضبط زر القائمة السفلي العائم ليصبح خافتاً وبدون حواف حادة */
+.toggle-controls-btn {
+  position: fixed;
+  bottom: 80px;
+  right: 16px;
+  left: auto;
+  top: auto;
+  z-index: 400;
+  background: rgba(212, 175, 55, 0.4); /* قللنا خلفية الزر الذهبية لتكون شفافة وهادئة */
+  border: none;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  font-size: 18px;
+  cursor: pointer;
+  display: none;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+  opacity: 0.35; /* هنا السحر: مخفي بنسبة 65% عشان ميزعجش القارئ */
+  transition: opacity 0.3s cubic-bezier(.25,.8,.25,1), background 0.3s; /* حركة ناعمة جداً عند اللمس */
+}
+
+/* ضبط زر علامة الوقف الجانبي ليصبح خافتاً ومندمجاً مع الحافة */
+.bookmark-jump-btn {
+  position: fixed;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 400;
+  background: rgba(212, 175, 55, 0.3); /* خلفية شفافة هادئة */
+  border: none;
+  border-radius: 12px 0 0 12px;
+  width: 32px;
+  height: 52px;
+  font-size: 20px;
+  cursor: pointer;
+  display: none;
+  backdrop-filter: blur(4px);
+  box-shadow: -2px 2px 8px rgba(0,0,0,0.1);
+  writing-mode: vertical-rl;
+  opacity: 0.35; /* مخفي بشكل كبير ومريح للعين */
+  transition: opacity 0.3s cubic-bezier(.25,.8,.25,1), background 0.3s;
+}
+
+/* تأثير اللمس أو الوقوف (Hover/Active) يرجعهم منورين 100% وبكامل هيبتهم */
+.toggle-controls-btn:hover, .toggle-controls-btn:active,
+.bookmark-jump-btn:hover, .bookmark-jump-btn:active {
+  opacity: 1; /* يرجع واضح تماماً أول ما تلمسه */
+  background: rgba(212, 175, 55, 0.9); /* ترجع الخلفية الذهبية القوية */
+}
+
 </style>
 </head>
 <body>
