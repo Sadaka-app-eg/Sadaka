@@ -1988,16 +1988,14 @@ async function renderQcfPages() {
       }
 
       return `
-  <div class="mushaf-page" style="position: relative; width: 100%; height: 100vh; max-width: 100%; margin: 0 auto; overflow: hidden; background: #f4ebd0;">
-    <img src="${finalSrc}" style="width: 100%; height: 100%; object-fit: fill; display: block;" onload="
+  <div class="mushaf-page" style="position: relative; width: 100%; height: 100%; max-width: 100%; margin: 0 auto; overflow: hidden; background: #0b120c; display: flex; align-items: center; justify-content: center;">
+    <img src="${finalSrc}" style="width: 100%; height: auto; max-height: 100vh; object-fit: contain; display: block; margin: 0 auto;" onload="
       (function(imgElement){
-        // لقط رقم الصفحة الذكي
         const pNum = typeof pageNumber !== 'undefined' ? pageNumber : (typeof currentPage !== 'undefined' ? currentPage : ${i + 1});
         const overlay = imgElement.nextElementSibling;
         if (!overlay) return;
         overlay.innerHTML = '';
         
-        // جلب الإحداثيات لرسم المربعات المتفاعلة
         fetch('https://api.quran.com/api/v4/quran/images/bwb?page_number=' + pNum)
           .then(res => res.json())
           .then(data => {
@@ -2016,9 +2014,8 @@ async function renderQcfPages() {
                 box.style.transition = 'background-color 0.2s';
                 box.style.zIndex = '99';
                 
-                // عند الضغط على آية: تتحدد أصفر وتجيب الخصائص
                 box.addEventListener('click', (e) => {
-                  e.stopPropagation(); // منع اختفاء القوائم عند الضغط على آية صريحة
+                  e.stopPropagation();
                   overlay.querySelectorAll('div').forEach(d => d.style.backgroundColor = 'transparent');
                   box.style.backgroundColor = 'rgba(212, 175, 55, 0.4)';
                   alert('تم تحديد: السورة ' + word.verse_key.split(':')[0] + ' - الآية ' + word.verse_key.split(':')[1]);
@@ -2032,6 +2029,7 @@ async function renderQcfPages() {
     
     <div onclick="document.body.classList.toggle('hide-controls')" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: auto; z-index: 5;"></div>
   </div>`;
+
 
 
 
