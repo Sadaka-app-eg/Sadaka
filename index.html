@@ -439,6 +439,27 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
       animation-delay: 0.4s;
       text-shadow: 0 3px 15px rgba(0,0,0,0.6);
     }
+   /* كود السحر لإخفاء القوائم برمشة عين */
+body.hide-controls .header,
+body.hide-controls .tabs,
+body.hide-controls #quran {
+  /* التعديل الذكي للمظهر */
+}
+/* أسهل طريقة لإخفاء عناصر التحكم العلوي والسفلي عندك */
+body.hide-controls .header, 
+body.hide-controls .tabs,
+body.hide-controls [style*="position: fixed"],
+body.hide-controls button:not(.mushaf-page button) {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  transition: opacity 0.4s ease, visibility 0.4s ease !important;
+}
+/* جعل الحركة ناعمة في الوضع الطبيعي */
+.header, .tabs {
+  transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+
   </style>
   <div class="splash-moon">🌙</div>
   <div class="splash-text">صَدَقَةٌ جَارِيَةٌ</div>
@@ -1967,16 +1988,16 @@ async function renderQcfPages() {
       }
 
       return `
-  <div class="mushaf-page" style="position: relative; width: 100%; max-width: 100%; margin: 0 auto; overflow: hidden;">
-    <!-- صورة صفحة المصحف الصريحة -->
-    <img src="${finalSrc}" style="width: 100%; height: auto; object-fit: fill; display: block;" onload="
+  <div class="mushaf-page" style="position: relative; width: 100%; height: 100vh; max-width: 100%; margin: 0 auto; overflow: hidden; background: #f4ebd0;">
+    <img src="${finalSrc}" style="width: 100%; height: 100%; object-fit: fill; display: block;" onload="
       (function(imgElement){
-        // الـ id بتاع الصفحة عندك في الكود غالباً i أو pageNo، هنلقط رقم الصفحة الذكي
+        // لقط رقم الصفحة الذكي
         const pNum = typeof pageNumber !== 'undefined' ? pageNumber : (typeof currentPage !== 'undefined' ? currentPage : ${i + 1});
         const overlay = imgElement.nextElementSibling;
         if (!overlay) return;
         overlay.innerHTML = '';
         
+        // جلب الإحداثيات لرسم المربعات المتفاعلة
         fetch('https://api.quran.com/api/v4/quran/images/bwb?page_number=' + pNum)
           .then(res => res.json())
           .then(data => {
@@ -1993,10 +2014,11 @@ async function renderQcfPages() {
                 box.style.cursor = 'pointer';
                 box.style.backgroundColor = 'transparent';
                 box.style.transition = 'background-color 0.2s';
-                box.style.zIndex = '999';
+                box.style.zIndex = '99';
                 
+                // عند الضغط على آية: تتحدد أصفر وتجيب الخصائص
                 box.addEventListener('click', (e) => {
-                  e.stopPropagation();
+                  e.stopPropagation(); // منع اختفاء القوائم عند الضغط على آية صريحة
                   overlay.querySelectorAll('div').forEach(d => d.style.backgroundColor = 'transparent');
                   box.style.backgroundColor = 'rgba(212, 175, 55, 0.4)';
                   alert('تم تحديد: السورة ' + word.verse_key.split(':')[0] + ' - الآية ' + word.verse_key.split(':')[1]);
@@ -2007,9 +2029,10 @@ async function renderQcfPages() {
           }).catch(err => console.log(err));
       })(this)
     ">
-    <!-- طبقة التحديد الشفافة المباشرة -->
-    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: auto;"></div>
+    
+    <div onclick="document.body.classList.toggle('hide-controls')" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: auto; z-index: 5;"></div>
   </div>`;
+
 
 
     }));
