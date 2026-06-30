@@ -1116,19 +1116,13 @@ function displayDailyNafahat() {
   const index = dayOfMonth % dailyNafahat.length;
   const selected = dailyNafahat[index];
   
-  // ١. صب بيانات الآية والتفسير
   document.getElementById('dailyAyahText').innerHTML = `﴿ ${selected.ayah} ﴾`;
   document.getElementById('dailyAyahRef').textContent = selected.ayahRef;
   document.getElementById('dailyAyahTafseer').textContent = selected.tafseer;
-  
-  // ٢. صب بيانات الحديث والشرح
   document.getElementById('dailyHadithText').textContent = selected.hadith;
   document.getElementById('dailyHadithRawy').textContent = selected.hadithRawy;
   document.getElementById('dailyHadithSharh').textContent = selected.hadithSharh;
-  
-  // ٣. صب بيانات الدعاء (السطر المظبوط الجديد)
   document.getElementById('dailyDoaaText').textContent = selected.doaa;
-}
 
 
 
