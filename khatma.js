@@ -3,7 +3,8 @@
 // ===========================
 let khatmaData = JSON.parse(localStorage.getItem('khatma_data') || 'null');
 const TOTAL_PAGES = 604;
-
+// رقم الصفحة الحقيقي اللي تبدأ فيها كل سورة (مصحف المدينة 604 صفحة)
+const surahStartPages = [1,2,50,77,106,128,151,177,187,208,221,235,249,255,262,267,282,293,305,312,322,332,342,350,359,367,377,385,396,404,411,415,418,428,434,440,446,453,458,467,477,483,489,496,499,502,507,511,515,518,520,523,526,528,531,534,537,542,545,547,549,551,553,554,556,558,560,562,564,566,568,570,572,574,575,577,578,580,582,583,585,586,587,587,589,590,591,591,592,593,594,595,596,597,598,599,600,600,601,601,602,602,602,603,603,603,604,604,604,604];
 function startKhatma(days) {
   const startDate = new Date();
   const endDate = new Date();
@@ -37,8 +38,10 @@ function saveKhatma() {
   localStorage.setItem('khatma_data', JSON.stringify(khatmaData));
 }
 
-function estimateSurahPages(ayatCount) {
-  return Math.max(1, Math.ceil(ayatCount / 9));
+function estimateSurahPages(ayatCount, surahNum) {
+  const start = surahStartPages[surahNum - 1];
+  const end = surahNum < 114 ? surahStartPages[surahNum] : 605;
+  return Math.max(1, end - start);
 }
 
 function renderKhatma() {
@@ -79,7 +82,7 @@ function renderKhatma() {
   let todaySurahs = [];
 
   for(let i = 0; i < surahs.length; i++) {
-    const sPages = estimateSurahPages(surahs[i].ayat);
+    const sPages = estimateSurahPages(surahs[i].ayat, surahs[i].n);
     const sStart = cumulativePages;
     const sEnd = cumulativePages + sPages;
 
