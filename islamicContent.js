@@ -600,7 +600,7 @@ function switchSubContent(subCat) {
   }
   // ----------------------------------
 
-  if (data.length === 0) {
+  
 
   if (data.length === 0) {
     container.innerHTML = '<div style="color:var(--text2); text-align:center; padding:20px;">⏳ جاري تجهيز وكتابة بحوث هذا القسم...</div>';
@@ -660,28 +660,78 @@ function switchSubContent(subCat) {
     } else {
       // بقية الأقسام تعرض بشكل طبيعي منسق
             // بقية الأقسام تعرض بشكل طبيعي منسق
-      formattedText = `<div style="color: var(--text); font-size: 16px; line-height: 2.1;">${item.text}</div>`;
+function switchSubContent(subCat) {
+  // 1. تفعيل الزر المختار
+  const buttons = document.querySelectorAll('.cat-btn');
+  buttons.forEach(btn => btn.classList.remove('active'));
+  const activeBtn = document.getElementById('btn_' + subCat);
+  if (activeBtn) activeBtn.classList.add('active'); // تصحيح الخطأ هنا
+
+  const container = document.getElementById('islamicCardsContainer');
+  if (!container) return;
+
+  const data = islamicLibraryData[subCat] || [];
+  
+  // 2. التحقق من البيانات
+  if (data.length === 0) {
+    container.innerHTML = '<div style="color:var(--text2); text-align:center; padding:20px;">⏳ جاري تجهيز وكتابة بحوث هذا القسم...</div>';
+    return;
+  }
+
+  // 3. عرض المواعظ (YouTube) - فقط إذا كان القسم audio
+  if (subCat === 'audio') {
+    container.innerHTML = data.map(item => `
+      <div class="zekr-card" style="padding:16px; margin-bottom:12px; background:var(--card); border-radius:14px; border-right:3px solid var(--gold);">
+        <div class="zekr-title" style="color:var(--gold); font-weight:700; margin-bottom:10px;">🎧 ${item.title}</div>
+        <div style="width:100%; border-radius:10px; overflow:hidden;">
+            <iframe width="100%" height="200" src="https://www.youtube.com/embed/${item.id}" frameborder="0" allowfullscreen></iframe>
+        </div>
+      </div>
+    `).join('');
+    return;
+  }
+
+  // 4. عرض الاختبارات (Quiz)
+  if (subCat === 'quiz') {
+    container.innerHTML = data.map((q, idx) => `
+      <div class="zekr-card" style="border-right:3px solid var(--green); padding:16px; margin-bottom:12px; background:var(--card); border-radius:14px;">
+        <div class="zekr-title" style="color:var(--gold); font-weight:700; margin-bottom:8px;">🧠 ${q.title}</div>
+        <div style="font-size:16px; margin-bottom:12px; color:var(--text); font-weight:bold;">${q.question}</div>
+        <div style="display:grid; gap:8px;">
+          ${q.options.map((opt, oIdx) => `
+            <button onclick="checkQuizAnswer(${idx}, ${oIdx}, ${q.answer})" id="qbtn_${idx}_${oIdx}" class="mode-btn" style="text-align:right; padding:10px; width:100%; background:rgba(0,0,0,0.15); border:1px solid var(--border); border-radius:8px;">${opt}</button>
+          `).join('')}
+        </div>
+        <div id="qans_${idx}" style="margin-top:10px; font-weight:bold;"></div>
+      </div>
+    `).join('');
+    return;
+  }
+
+  // 5. العرض القياسي (مقالات، أدب، سير، أحاديث)
+  container.innerHTML = data.map((item, idx) => {
+    let formattedText = item.text;
+    if (subCat === 'hadith' && item.text.includes('💡')) {
+      let parts = item.text.split('💡');
+      formattedText = `
+        <div style="color:var(--text); font-size:16px; line-height:2;">${parts[0].trim()}</div>
+        <div style="background:rgba(255,193,7,0.06); border-right:3px solid var(--gold); padding:10px; border-radius:8px; margin-top:10px;">
+          <span style="color:var(--gold); font-weight:bold;">💡 الشرح:</span> ${parts[1].replace('الشرح المبسط:', '').trim()}
+        </div>`;
+    } else {
+      formattedText = `<div style="color:var(--text); font-size:16px; line-height:2.1;">${item.text}</div>`;
     }
 
     return `
-      <div class="zekr-card" style="border-right: 3px solid var(--gold); padding: 16px; margin-bottom: 12px; background: var(--card); border-radius: 14px; position:relative;">
-        <!-- زر حفظ في المفضلة الخاصة بالمكتبة -->
-        <button onclick="toggleLibraryFav('${subCat}', ${idx}, this)" style="position:absolute; left:12px; top:12px; background:transparent; border:none; cursor:pointer; font-size:16px;">
-          ${checkLibFav(subCat, idx) ? '⭐' : '🤍'}
-        </button>
-        
-        <div class="zekr-title" style="font-size: 15px; color: var(--gold); font-weight: 700; margin-bottom: 12px; padding-left:25px;">✨ ${item.title}</div>
-        <div class="zekr-text" style="text-align: justify; font-family: 'Amiri', serif; margin-bottom: 6px; direction: rtl;">
-          ${formattedText}
-        </div>
-        ${item.source ? `<div style="font-size: 12px; color: var(--green); text-align: left; font-weight: 700;">📚 ${item.source}</div>` : ''}
-        
-        <!-- زر مشاركة بطاقة دعوية خفيفة -->
-        <button onclick="shareLibraryItem('${item.title}', '${item.text}')" class="mode-btn" style="margin-top:12px; padding:4px 10px; font-size:11px; display:inline-block; width:auto; border-radius:6px;">🔗 مشاركة</button>
+      <div class="zekr-card" style="border-right:3px solid var(--gold); padding:16px; margin-bottom:12px; background:var(--card); border-radius:14px;">
+        <div class="zekr-title" style="color:var(--gold); font-weight:700; margin-bottom:12px;">✨ ${item.title}</div>
+        <div style="text-align:justify; direction:rtl;">${formattedText}</div>
+        <button onclick="shareLibraryItem('${item.title}', '${item.text}')" style="margin-top:12px; padding:5px 15px; border-radius:6px;">🔗 مشاركة</button>
       </div>
     `;
   }).join('');
 }
+
 
 
 // دالة التحقق من إجابات الاختبارات القصيرة
