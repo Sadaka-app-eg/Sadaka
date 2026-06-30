@@ -867,10 +867,12 @@ const islamicLibraryData = {
 };
 let currentQuizIndex = 0; // متغير لتتبع السؤال الحالي
 
+alert("الملف شغال!");
+
 // دالة العرض الموحدة والنهائية
 function switchSubContent(subCat) {
   // 1. تفعيل الزر المختار
-  alert("القسم المختار: " + subCat);
+  
 
   const buttons = document.querySelectorAll('.cat-btn');
   buttons.forEach(btn => btn.classList.remove('active'));
