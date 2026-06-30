@@ -1793,11 +1793,15 @@ function azkarAudioEnded() {
     ];
     const hijri = data.data.date.hijri;
     document.getElementById('hijriDate').textContent = `${hijri.day} ${hijri.month.ar} ${hijri.year}`;
-   // صب التاريخ الميلادي المرتب تلقائياً تحت الهجري
-const dateReadable = data.data.date.gregorian;
+   // توليد التاريخ الميلادي الحالي باللغة العربية بالملي
+const today = new Date();
+const options = { year: 'numeric', month: 'long', day: 'numeric' };
+const gregorianAr = today.toLocaleDateString('ar-EG', options);
+
 if (document.getElementById('gregorianDate')) {
-  document.getElementById('gregorianDate').textContent = `${dateReadable.day} ${dateReadable.month.en} ${dateReadable.year}`;
+  document.getElementById('gregorianDate').textContent = gregorianAr;
 }
+
 
     const now = today.getHours()*60 + today.getMinutes();
     document.getElementById('prayerTimes').innerHTML = prayers.map(p => {
