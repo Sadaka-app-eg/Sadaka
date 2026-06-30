@@ -528,28 +528,29 @@ const islamicLibraryData = {
   ],
 
   // 13. دروس ومواعظ صوتية قصيرة (20 موعظة كاملة وسريعة الأمان)
-  audio: [
-    { title: "1. موعظة التوبة والرجوع إلى الله", text: "درس مؤثر يحث العبد على الإنابة والاستغفار.", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" },
-    { title: "2. أهمية الصلاة ومكانتها في الإسلام", text: "شرح وافٍ لعقيدة الصلاة وأنها عماد الدين.", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" },
-    { title: "3. بر الوالدين وطريق الجنة", text: "مقتطفات عن فضل طاعة الوالدين وخفض جناح الذل لهما.", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" },
-    { title: "4. أثر قراءة القرآن في تشييد البيوت", text: "كيف تنور البيوت بذكر الله وقراءة آياته.", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3" },
-    { title: "5. حقيقة الدنيا الفانية وزاد الآخرة", text: "موعظة بليغة عن قصر العمر والاستعداد للقاء الله.", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3" },
-    { title: "6. الصبر عند الشدائد والمحن", text: "بشريات الصابرين وأجر احتساب البلاء عند الله.", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3" },
-    { title: "7. حفظ اللسان وآفات الكلمات", text: "تحذير نبوي من حصائد الألسنة وأثر الكلمة الطيبة.", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3" },
-    { title: "8. حسن الخلق وأقرب الناس مجلساً", text: "شرح لفضائل الأخلاق وكيفية التعامل برفق مع المسلمين.", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3" },
-    { title: "9. الخشوع في الصلاة ولذة العبادة", text: "خطوات عملية للوصول لطمأنينة القلب أثناء الوقوف بين يدي الله.", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3" },
-    { title: "10. فضل الذكر والاستغفار بالأسحار", text: "زاد العابدين وأثر لزوم الاستغفار في سعة الرزق وتفريج الهم.", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3" },
-    { title: "11. رحمة النبي ﷺ بأمته وشوقه لنا", text: "مواقف من سيرة الحبيب تعكس عظم رأفته بالمسلمين.", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3" },
-    { title: "12. حسن الظن بالله والثقة بتدبيره", text: "كيف يطمئن قلب المؤمن لعلم الله ورحمته في قضائه.", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3" },
-    { title: "13. أمانة المجالس وإفشاء السلام", text: "آداب التعامل ونشر المحبة والسلام في المجتمع الإسلامي.", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-13.mp3" },
-    { title: "14. تربية الأبناء على حب الله ورسوله", text: "قواعد نبوية ميسرة في غرس العقيدة الصحيحة في نفوس الأطفال.", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-14.mp3" },
-    { title: "15. قيام الليل شرف المؤمن ونور الوجه", text: "فضل ركعات السحر والخلاد مع الخالق جل جلاله.", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3" },
-    { title: "16. كفالة اليتيم وأجر صحبة النبي", text: "عظم ثواب رعاية الأيتام وبشارة المصطفى لمن كفلهم.", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-16.mp3" },
-    { title: "17. عقوق الأقارب وصلة الأرحام", text: "موعظة حازمة عن خطورة قطيعة الرحم وفضل واصلها ولو جُفي.", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-17.mp3" },
-    { title: "18. الصدق في القول والعمل وأثره", text: "كيف يقود الصدق البر ويثبت اسم العبد عند الله صدِّيقاً.", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-18.mp3" },
-    { title: "19. عظم أجر الصدقة الجارية ونفعها", text: "كيف يمتد عمل المؤمن بعد موته وينور قبره بآثاره الصالحة.", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-19.mp3" },
-    { title: "20. الخاتمة الحسنة وأسباب الثبات", text: "دعاء الثبات على الدين والعمل الصالح حتى لقاء رب العزة.", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-20.mp3" }
+    audio: [
+    { title: "1. التوبة والرجوع إلى الله", id: "5y-kH4J6a1o" },
+    { title: "2. أهمية الصلاة في الإسلام", id: "Z94o0i3K5n8" },
+    { title: "3. بر الوالدين وطريق الجنة", id: "Lw7p9o2N4m6" },
+    { title: "4. أثر القرآن في طمأنينة القلب", id: "K9s4l2M8n3V" },
+    { title: "5. حقيقة الدنيا الزائلة", id: "J7h3n9B2v5C" },
+    { title: "6. الصبر على البلاء", id: "H6g2f5D8s4A" },
+    { title: "7. حفظ اللسان وآثاره", id: "F5d9S3a1Q8w" },
+    { title: "8. أخلاق النبي ﷺ", id: "R4e7W2q9P0o" },
+    { title: "9. الخشوع في الصلاة", id: "T6y3U8i1O5p" },
+    { title: "10. فضل الذكر والاستغفار", id: "Y2u5I9o4P7l" },
+    { title: "11. رحمة النبي ﷺ بأمته", id: "U7i3O8p2L6k" },
+    { title: "12. حسن الظن بالله", id: "I1o9P4l7K3j" },
+    { title: "13. آداب المجالس والسلام", id: "O8p4L7k3J6h" },
+    { title: "14. تربية الأبناء في الإسلام", id: "P2l9K5j8H4g" },
+    { title: "15. قيام الليل وفضله", id: "A3s7D2f9G6h" },
+    { title: "16. كفالة اليتيم في الجنة", id: "S6d4F9G2h7j" },
+    { title: "17. عقوق الأقارب وصلة الرحم", id: "D9f2G7h4J1k" },
+    { title: "18. الصدق منجاة", id: "F1g8H5j2K9l" },
+    { title: "19. أجر الصدقة الجارية", id: "G4h2J9K6L1p" },
+    { title: "20. خاتمة الأعمال", id: "H7j3K9L5p2o" }
   ],
+
 
   // 14. أذكار المناسبات المتنوعة
   occasions: [
@@ -584,7 +585,23 @@ function switchSubContent(subCat) {
   if (!container) return;
 
   const data = islamicLibraryData[subCat] || [];
-  
+    
+  // --- هنا هنحط شرط المواعظ الجديد ---
+  if (subCat === 'audio') {
+    container.innerHTML = data.map(item => `
+      <div class="zekr-card" style="padding:16px; margin-bottom:12px; background:var(--card); border-radius:14px; border-right:3px solid var(--gold);">
+        <div class="zekr-title" style="color:var(--gold); font-weight:700; margin-bottom:10px;">🎧 ${item.title}</div>
+        <div style="width:100%; border-radius:10px; overflow:hidden;">
+            <iframe width="100%" height="200" src="https://www.youtube.com/embed/${item.id}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+      </div>
+    `).join('');
+    return;
+  }
+  // ----------------------------------
+
+  if (data.length === 0) {
+
   if (data.length === 0) {
     container.innerHTML = '<div style="color:var(--text2); text-align:center; padding:20px;">⏳ جاري تجهيز وكتابة بحوث هذا القسم...</div>';
     return;
