@@ -799,6 +799,7 @@ const islamicLibraryData = {
     }
   ]
 };
+let currentQuizIndex = 0; // متغير لتتبع السؤال الحالي
 
 // دالة العرض الموحدة والنهائية
 function switchSubContent(subCat) {
@@ -844,21 +845,12 @@ function switchSubContent(subCat) {
   }
 
   // 5. عرض الاختبارات (Quiz)
+    // الكويز الجديد بالزرار (يتم استدعاء الدالة فقط)
   if (subCat === 'quiz') {
-    container.innerHTML = data.map((q, idx) => `
-      <div class="zekr-card" style="border-right:3px solid var(--green); padding:16px; margin-bottom:12px; background:var(--card); border-radius:14px;">
-        <div class="zekr-title" style="color:var(--gold); font-weight:700; margin-bottom:8px;">🧠 ${q.title}</div>
-        <div style="font-size:16px; margin-bottom:12px; color:var(--text); font-weight:bold;">${q.question}</div>
-        <div style="display:grid; gap:8px;">
-          ${q.options.map((opt, oIdx) => `
-            <button onclick="checkQuizAnswer(${idx}, ${oIdx}, ${q.answer})" id="qbtn_${idx}_${oIdx}" class="mode-btn" style="text-align:right; padding:10px; width:100%; background:rgba(0,0,0,0.15); border:1px solid var(--border); border-radius:8px;">${opt}</button>
-          `).join('')}
-        </div>
-        <div id="qans_${idx}" style="margin-top:10px; font-weight:bold;"></div>
-      </div>
-    `).join('');
+    renderQuizQuestion(); 
     return;
   }
+
 
   // 6. العرض القياسي (مقالات، أحاديث، سير)
   container.innerHTML = data.map((item, idx) => {
@@ -883,28 +875,61 @@ function switchSubContent(subCat) {
     `;
   }).join('');
 }
+// دوال الاختبار الجديدة
+function renderQuizQuestion() {
+  const container = document.getElementById('islamicCardsContainer');
+  const data = islamicLibraryData.quiz;
+  const q = data[currentQuizIndex];
+
+  container.innerHTML = `
+    <div class="zekr-card" style="padding:20px; background:var(--card); border-radius:16px;">
+      <div style="color:var(--gold); font-weight:700; margin-bottom:10px;">سؤال ${currentQuizIndex + 1} من ${data.length}</div>
+      <div style="font-size:18px; margin-bottom:15px;">${q.question}</div>
+      <div style="display:grid; gap:10px;">
+        ${q.options.map((opt, oIdx) => `
+          <button onclick="checkQuizAnswer(${oIdx}, ${q.answer})" id="qbtn_${oIdx}" class="mode-btn" style="padding:12px; border:1px solid var(--border); border-radius:8px;">${opt}</button>
+        `).join('')}
+      </div>
+      <div id="qans" style="margin-top:15px;"></div>
+      <button id="nextBtn" onclick="nextQuestion()" style="display:none; margin-top:15px; width:100%; padding:10px; background:var(--gold); border-radius:8px;">السؤال التالي ⇦</button>
+    </div>
+  `;
+}
+
+function nextQuestion() {
+  currentQuizIndex++;
+  if (currentQuizIndex < islamicLibraryData.quiz.length) {
+    renderQuizQuestion();
+  } else {
+    document.getElementById('islamicCardsContainer').innerHTML = '<h3 style="text-align:center;">انتهى الاختبار، بارك الله فيك!</h3>';
+  }
+}
 
 
 // دالة التحقق من إجابات الاختبارات القصيرة
-function checkQuizAnswer(qIdx, selectedIdx, correctIdx) {
-  const ansDiv = document.getElementById('qans_' + qIdx);
-  if (!ansDiv) return;
+function checkQuizAnswer(selectedIdx, correctIdx) {
+  const ansDiv = document.getElementById('qans');
+  const data = islamicLibraryData.quiz[currentQuizIndex];
   
-  const data = islamicLibraryData.quiz[qIdx];
-  data.options.forEach((_, oIdx) => {
-    document.getElementById(`qbtn_${qIdx}_${oIdx}`).style.background = 'rgba(0,0,0,0.15)';
-  });
+  // تعطيل الأزرار بعد الاختيار
+  document.querySelectorAll('button[id^="qbtn_"]').forEach(btn => btn.disabled = true);
 
-  const selectedBtn = document.getElementById(`qbtn_${qIdx}_${selectedIdx}`);
   if (selectedIdx === correctIdx) {
-    selectedBtn.style.background = 'rgba(76, 175, 80, 0.3)';
-    ansDiv.innerHTML = '<span style="color:#4caf50;">✓ إجابة صحيحة، بارك الله فيك!</span>';
+    document.getElementById(`qbtn_${selectedIdx}`).style.background = 'rgba(76, 175, 80, 0.3)';
+    ansDiv.innerHTML = `
+      <div style="color:#4caf50; font-weight:bold;">✓ إجابة صحيحة!</div>
+      <div style="margin-top:10px; padding:10px; background:rgba(76,175,80,0.1); border-right:3px solid #4caf50;">
+        <strong>الدليل:</strong> ${data.dalil}
+      </div>`;
   } else {
-    selectedBtn.style.background = 'rgba(244, 67, 54, 0.3)';
-    document.getElementById(`qbtn_${qIdx}_${correctIdx}`).style.background = 'rgba(76, 175, 80, 0.3)';
-    ansDiv.innerHTML = '<span style="color:#f44336;">✕ إجابة خاطئة، حاول مرة أخرى.</span>';
+    document.getElementById(`qbtn_${selectedIdx}`).style.background = 'rgba(244, 67, 54, 0.3)';
+    document.getElementById(`qbtn_${correctIdx}`).style.background = 'rgba(76, 175, 80, 0.3)';
+    ansDiv.innerHTML = '<span style="color:#f44336; font-weight:bold;">✕ إجابة خاطئة.</span>';
   }
+  
+  document.getElementById('nextBtn').style.display = 'block';
 }
+
 
 // دالة تشغيل الصوتيات داخل المكتبة العلمية
 let libAudio = new Audio();
