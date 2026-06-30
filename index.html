@@ -455,6 +455,17 @@ body.hide-controls #quran {
 .asma2-doaa{font-size:14px;color:var(--text);font-family:'Amiri',serif;}
 .asma2-card.expanded .asma2-fadl,
 .asma2-card.expanded .asma2-details{display:block;}
+ .wird-card{background:var(--card);border-radius:15px;padding:16px;border:1px solid var(--border);border-right:3px solid var(--gold);}
+.wird-title{font-size:14px;color:var(--gold);margin-bottom:8px;font-family:'Amiri',serif;}
+.wird-surahs{font-size:15px;color:var(--text);line-height:1.8;font-family:'Amiri',serif;}
+.wird-pages{font-size:12px;color:var(--text2);margin-top:8px;}
+.khatma-surah-item{background:var(--card);border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:10px;border:1px solid var(--border);}
+.khatma-surah-item.completed{border-color:rgba(76,175,80,0.4);background:rgba(76,175,80,0.05);}
+.khatma-check{width:26px;height:26px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#4caf50;font-weight:700;flex-shrink:0;}
+.khatma-check.checked{background:#4caf50;border-color:#4caf50;color:#fff;}
+.khatma-surah-info{flex:1;}
+.khatma-surah-name{font-size:15px;font-weight:700;font-family:'Amiri',serif;}
+.khatma-surah-pages{font-size:11px;color:var(--text2);}
 </style>
 </head>
 <body>
@@ -525,6 +536,7 @@ body.hide-controls button:not(.mushaf-page button) {
   <div class="tab" onclick="showPage('favPage',this)">⭐ المفضلة</div>
  <div class="tab" onclick="showPage('awkat',this)">🕌 المواقيت</div>
  <div class="tab" onclick="showPage('asma2',this)">✨ أسماء الله</div>
+ <div class="tab" onclick="showPage('khatma',this)">📿 الختمة</div>
 </div>
 
 <!-- HOME -->
@@ -646,6 +658,40 @@ body.hide-controls button:not(.mushaf-page button) {
 
   </div>
   <div id="prayerTimes" style="display:grid;gap:10px;"></div>
+</div>
+ <!-- ASMA2 -->
+<div class="page" id="asma2">
+  <input class="asma2-search-box" placeholder="🔍 ابحث باسم أو رقم..." oninput="filterAsma2(this.value)">
+  <div id="asma2List"></div>
+</div>
+
+<!-- KHATMA -->
+<div class="page" id="khatma">
+  <div id="khatmaSetup">
+    <div style="background:var(--card);border-radius:20px;padding:20px;border:1px solid var(--border);text-align:center;margin-bottom:14px;">
+      <div style="font-size:16px;color:var(--gold);font-family:'Amiri',serif;margin-bottom:14px;">📿 ابدأ خطة ختم القرآن</div>
+      <div style="display:grid;gap:10px;">
+        <button onclick="startKhatma(30)" class="cat-btn" style="padding:12px;">ختمة في شهر (30 يوم)</button>
+        <button onclick="startKhatma(60)" class="cat-btn" style="padding:12px;">ختمة في شهرين (60 يوم)</button>
+        <button onclick="startKhatma(90)" class="cat-btn" style="padding:12px;">ختمة في 3 شهور (90 يوم)</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="khatmaDisplay" style="display:none;">
+    <div style="background:var(--card);border-radius:20px;padding:20px;border:1px solid var(--border);margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <span style="color:var(--gold);font-family:'Amiri',serif;font-size:15px;">📊 تقدمك</span>
+        <span id="khatmaProgressText" style="color:var(--gold);font-weight:700;font-size:18px;"></span>
+      </div>
+      <div class="tasbeh-progress"><div id="khatmaProgressBar" class="tasbeh-bar" style="width:0%"></div></div>
+      <div id="khatmaStats" style="font-size:12px;color:var(--text2);margin-top:12px;line-height:2;font-family:'Amiri',serif;"></div>
+    </div>
+    <div id="todayWird" style="margin-bottom:14px;"></div>
+    <div style="font-size:14px;color:var(--gold);margin-bottom:10px;font-family:'Amiri',serif;">📖 السور</div>
+    <div id="completedSurahs" style="display:grid;gap:8px;margin-bottom:14px;"></div>
+    <button onclick="resetKhatma()" class="reset-btn" style="width:100%;">↺ إعادة تعيين الختمة</button>
+  </div>
 </div>
 <!-- FAVORITES -->
 <div class="page" id="favPage">
