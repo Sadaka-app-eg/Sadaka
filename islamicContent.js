@@ -78,17 +78,20 @@ const islamicLibraryData = {
   // 13. دروس ومواعظ صوتية قصيرة
     // 13. دروس ومواعظ صوتية قصيرة (روابط مواعظ حقيقية وثابتة)
   audio: [
+    // 13. دروس ومواعظ صوتية قصيرة (روابط مفتوحة الأمان وسريعة)
+  audio: [
     { 
       title: "موعظة التوبة النصوح", 
       text: "الشيخ نبيل العوضي — مواعظ مؤثرة عن الرجوع إلى الله سبحانه.", 
-      url: "https://download.media.islamway.net/lessons/801/17006/20_Naseha.mp3" 
+      url: "https://archive.org/download/mawa3ez/01.mp3" 
     },
     { 
       title: "أهمية الصلاة في حياة المسلم", 
       text: "الشيخ محمد مختار الشنقيطي — درس قصير يشرح مكانة الصلاة وعقوبة تاركها.", 
-      url: "https://download.media.islamway.net/lessons/310/16231/02_Salah.mp3" 
+      url: "https://archive.org/download/mawa3ez/02.mp3" 
     }
   ],
+
 
 
   // 14. أذكار المناسبات المتنوعة
