@@ -1600,7 +1600,10 @@ function showPage(id, el) {
 
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  
+  if (addToHistory) {
+    window.history.pushState({ pageId: id }, "", "#" + id);
+  }
+                              }
   localStorage.setItem('last_opened_tab', id);
   if(document.getElementById(id)) document.getElementById(id).classList.add('active');
   
@@ -1635,6 +1638,10 @@ function showPage(id, el) {
   updateStats();
 }
 
+// دالة الرجوع للخلف اللي بتستخدم "تاريخ المتصفح"
+function goBack() {
+  window.history.back(); 
+}
 
 
 // ===========================
@@ -2950,6 +2957,16 @@ function playRare(url) {
   audio.src = url;
   audio.play();
 }
+// ده المراقب اللي بيسمع لزرار الرجوع في الموبايل
+window.addEventListener('popstate', (event) => {
+  if (event.state && event.state.pageId) {
+    // لو فيه صفحة في التاريخ، افتحها (بدون إضافة للتاريخ تاني)
+    showPage(event.state.pageId, null, false);
+  } else {
+    // لو مفيش، ارجع للرئيسية
+    showPage('home', null, false);
+  }
+});
 
 </script>
  <script src="asma2.js"></script>
