@@ -1968,10 +1968,49 @@ async function renderQcfPages() {
 
       return `
   <div class="mushaf-page" style="position: relative; width: 100%; max-width: 100%; margin: 0 auto; overflow: hidden;">
-    <img src="${finalSrc}" style="width: 100%; height: auto; object-fit: fill; display: block;" onload="if(typeof loadPageAyatMapping === 'function') loadPageAyatMapping(currentPage)">
-    
-    <div id="ayatOverlayLayer" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: auto; z-index: 10;"></div>
+    <!-- صورة صفحة المصحف الصريحة -->
+    <img src="${finalSrc}" style="width: 100%; height: auto; object-fit: fill; display: block;" onload="
+      (function(imgElement){
+        // الـ id بتاع الصفحة عندك في الكود غالباً i أو pageNo، هنلقط رقم الصفحة الذكي
+        const pNum = typeof pageNumber !== 'undefined' ? pageNumber : (typeof currentPage !== 'undefined' ? currentPage : ${i + 1});
+        const overlay = imgElement.nextElementSibling;
+        if (!overlay) return;
+        overlay.innerHTML = '';
+        
+        fetch('https://api.quran.com/api/v4/quran/images/bwb?page_number=' + pNum)
+          .then(res => res.json())
+          .then(data => {
+            if(!data.images) return;
+            data.images.forEach(word => {
+              if(word.location) {
+                const loc = word.location;
+                const box = document.createElement('div');
+                box.style.position = 'absolute';
+                box.style.top = loc.top + '%';
+                box.style.left = loc.left + '%';
+                box.style.width = loc.width + '%';
+                box.style.height = loc.height + '%';
+                box.style.cursor = 'pointer';
+                box.style.backgroundColor = 'transparent';
+                box.style.transition = 'background-color 0.2s';
+                box.style.zIndex = '999';
+                
+                box.addEventListener('click', (e) => {
+                  e.stopPropagation();
+                  overlay.querySelectorAll('div').forEach(d => d.style.backgroundColor = 'transparent');
+                  box.style.backgroundColor = 'rgba(212, 175, 55, 0.4)';
+                  alert('تم تحديد: السورة ' + word.verse_key.split(':')[0] + ' - الآية ' + word.verse_key.split(':')[1]);
+                });
+                overlay.appendChild(box);
+              }
+            });
+          }).catch(err => console.log(err));
+      })(this)
+    ">
+    <!-- طبقة التحديد الشفافة المباشرة -->
+    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: auto;"></div>
   </div>`;
+
 
     }));
 
