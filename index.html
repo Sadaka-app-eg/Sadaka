@@ -678,6 +678,8 @@ body.hide-controls button:not(.mushaf-page button) {
   <div class="tab" onclick="showPage('quran',this)">📖 القرآن الكريم</div>
   <div class="tab" onclick="showPage('azkar',this)">🤲 الأذكار كاملة</div>
   <div class="tab" onclick="showPage('tasbeh',this)">📿 السبحة الإلكترونية</div>
+   <div class="tab" onclick="showPage('islamicContent',this)">📚 المكتبة العلمية</div>
+
   <div class="tab" onclick="showPage('favPage',this)">⭐ السور المفضلة</div>
   <div class="tab" onclick="showPage('awkat',this)">🕌 مواقيت الصلاة</div>
   <div class="tab" onclick="showPage('asma2',this)">✨ أسماء الله الحسنى</div>
@@ -879,6 +881,36 @@ body.hide-controls button:not(.mushaf-page button) {
       </div>
     </div>
   </div>
+</div>
+<!-- ISLAMIC CONTENT PAGE -->
+<div class="page" id="islamicContent">
+  <div style="text-align: center; margin-bottom: 16px;">
+    <h2 style="color: var(--gold); font-family: 'Amiri', serif; font-size: 22px;">📚 المَكْتَبَةُ العِلْمِيَّةُ الثَّقَافِيَّةُ</h2>
+    <p style="color: var(--text2); font-size: 12px; font-family: 'Amiri', serif;">موسوعة البحوث والمقتطفات الميسرة بالسند الصحيح</p>
+  </div>
+
+  <!-- الـ 16 قسماً المطلوبين بـ Scroll أفقي فخم ومريح بالملي -->
+  <div class="azkar-cats" style="margin-bottom: 16px; overflow-x: auto; display: flex; gap: 8px; padding-bottom: 8px; scrollbar-width: none;">
+    <button class="cat-btn active" id="btn_fiqh" onclick="switchSubContent('fiqh')">⚖️ الفقه الميسر</button>
+    <button class="cat-btn" id="btn_hadith" onclick="switchSubContent('hadith')">💬 أحاديث صحيحة</button>
+    <button class="cat-btn" id="btn_anbiya" onclick="switchSubContent('anbiya')">📜 قصص الأنبياء</button>
+    <button class="cat-btn" id="btn_sahaba" onclick="switchSubContent('sahaba')">👤 سير الصحابة</button>
+    <button class="cat-btn" id="btn_adab" onclick="switchSubContent('adab')">🌿 فوائد وآداب</button>
+    <button class="cat-btn" id="btn_faq" onclick="switchSubContent('faq')">❓ سؤال وجواب</button>
+    <button class="cat-btn" id="btn_aqeedah" onclick="switchSubContent('aqeedah')">🕌 العقيدة</button>
+    <button class="cat-btn" id="btn_seerah" onclick="switchSubContent('seerah')">🕋 السيرة النبوية</button>
+    <button class="cat-btn" id="btn_history" onclick="switchSubContent('history')">📅 في مثل هذا اليوم</button>
+    <button class="cat-btn" id="btn_raqaeq" onclick="switchSubContent('raqaeq')">❤️ رقائق وإيمانيات</button>
+    <button class="cat-btn" id="btn_books" onclick="switchSubContent('books')">📚 تعريف بالكتب</button>
+    <button class="cat-btn" id="btn_scholars" onclick="switchSubContent('scholars')">👤 سير العلماء</button>
+    <button class="cat-btn" id="btn_audio" onclick="switchSubContent('audio')">🎧 مواعظ صوتية</button>
+    <button class="cat-btn" id="btn_occasions" onclick="switchSubContent('occasions')">📌 أذكار المناسبات</button>
+    <button class="cat-btn" id="btn_cards" onclick="switchSubContent('cards')">🧾 بطاقات دعوية</button>
+    <button class="cat-btn" id="btn_quiz" onclick="switchSubContent('quiz')">🧠 اختبارات قصيرة</button>
+  </div>
+
+  <!-- وعاء استقبال كروت وضخ البيانات -->
+  <div id="islamicCardsContainer"></div>
 </div>
 
 <!-- OVERLAY DIMMER -->
@@ -1578,6 +1610,10 @@ function showPage(id, el) {
 
   if(id === 'favPage') renderFav();
   if(id === 'awkat') loadPrayerTimes();
+   if(id === 'islamicContent' && typeof switchSubContent === 'function') {
+    switchSubContent('fiqh');
+  }
+
   updateStats();
 }
 
@@ -2790,5 +2826,7 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
  <script src="asma2.js"></script>
  <script src="khatma.js"></script>
+  <script src="islamicContent.js"></script>
+
 </body>
    </html>
