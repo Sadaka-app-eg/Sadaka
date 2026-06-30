@@ -467,6 +467,51 @@ body.hide-controls #quran {
 .khatma-surah-name{font-size:15px;font-weight:700;font-family:'Amiri',serif;}
 .khatma-surah-pages{font-size:11px;color:var(--text2);}
 </style>
+ <!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getFirestore, doc, setDoc }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCULaDRVQ9SWS07zs2WL3D-ANj-wHeoYWg",
+    authDomain: "sadaka-app-6637e.firebaseapp.com",
+    projectId: "sadaka-app-6637e",
+    storageBucket: "sadaka-app-6637e.firebasestorage.app",
+    messagingSenderId: "425677494061",
+    appId: "1:425677494061:web:0aacb04e72f767ad8925a4",
+    measurementId: "G-WE16D4JC8F"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  window.firebaseAuth = auth;
+  window.firebaseDb = db;
+  window.GoogleAuthProvider = GoogleAuthProvider;
+  window.signInWithPopup = signInWithPopup;
+  window.signOut = signOut;
+
+  onAuthStateChanged(auth, (user) => {
+    const btn = document.getElementById('googleLoginBtn');
+    if (!btn) return;
+    if (user) {
+      btn.textContent = '👤 ' + user.displayName.split(' ')[0];
+      btn.onclick = () => signOut(auth);
+      setDoc(doc(db, "users", user.uid), {
+        name: user.displayName,
+        email: user.email,
+        lastSeen: new Date().toISOString()
+      }, { merge: true });
+    } else {
+      btn.textContent = '🔑 دخول بجوجل';
+      btn.onclick = () => signInWithPopup(auth, new GoogleAuthProvider());
+    }
+  });
+</script>
 </head>
 <body>
 <div id="splashScreen" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #0b120c; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.8s ease, visibility 0.8s;">
@@ -524,7 +569,7 @@ body.hide-controls button:not(.mushaf-page button) {
 
 <div class="header">
   <h1>🌙 صدقة جارية — شيماء سعيد</h1>
-
+<button class="icon-btn" id="googleLoginBtn" style="font-size:11px;width:auto;padding:0 8px;">🔑 دخول</button>
   <button class="icon-btn" onclick="toggleTheme()" id="themeBtn">☀️</button>
 </div>
 
