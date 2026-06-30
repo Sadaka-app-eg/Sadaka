@@ -1337,10 +1337,10 @@ let currentQueueIndex = 0;
 let selectedAyahsQueue = [];
 let activeAyahIndex = null;
 let favorites = JSON.parse(localStorage.getItem('favs_v2') || '[]');
-let tasbehCount = 0;
+let tasbehCount = parseInt(localStorage.getItem('tasbehCount') || '0');
 let tasbehTotal = parseInt(localStorage.getItem('tasbehTotal') || '0');
-let zekrCounts = {};
-let totalAzkar = 0;
+let zekrCounts = JSON.parse(localStorage.getItem('zekrCounts') || '{}');
+let totalAzkar = parseInt(localStorage.getItem('totalAzkar') || '0');
 let pressTimer = null;
 let startX = 0, startY = 0, isScrolling = false;
 let currentPageDots = [];
@@ -1823,6 +1823,8 @@ function countZekr(cat, i, max) {
     document.getElementById('zcard_'+cat+'_'+i).classList.add('done-card');
   }
   updateStats();
+ localStorage.setItem('zekrCounts', JSON.stringify(zekrCounts));
+localStorage.setItem('totalAzkar', totalAzkar);
 }
 
 // ===========================
@@ -1831,6 +1833,7 @@ function countZekr(cat, i, max) {
 function incrementTasbeh() {
   tasbehCount++;
   tasbehTotal++;
+ localStorage.setItem('tasbehCount', tasbehCount);
   localStorage.setItem('tasbehTotal', tasbehTotal);
   const el = document.getElementById('tasbehCount');
   el.textContent = tasbehCount;
