@@ -103,7 +103,7 @@ function renderKhatma() {
       </div>
       <div class="khatma-surah-info">
         <div class="khatma-surah-name">${s.name}</div>
-        <div class="khatma-surah-pages">${toAr(s.ayat)} آية — ${toAr(sPages)} صفحة تقريباً</div>
+         <div class="khatma-surah-pages">${toAr(s.ayat)} آية — ${s.type}</div>
       </div>
       <div style="color:var(--gold);font-size:12px;">${toAr(s.n)}</div>
     </div>`;
