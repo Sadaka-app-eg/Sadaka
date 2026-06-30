@@ -2410,13 +2410,18 @@ function checkAuthAndBlock() {
     .then(({onAuthStateChanged}) => {
       onAuthStateChanged(window.firebaseAuth, (user) => {
         if (user) {
-          const savedName = localStorage.getItem('user_display_name');
-          if (!savedName) {
-            showNameInput(user);
+  import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js")
+    .then(({doc, getDoc}) => {
+      getDoc(doc(window.firebaseDb, "users", user.uid))
+        .then(snap => {
+          if (snap.exists() && snap.data().name) {
+            finishLogin(snap.data().name);
           } else {
-            finishLogin(savedName);
+            showNameInput(user);
           }
-        }
+        });
+    });
+ }
       });
     });
 }
@@ -2451,6 +2456,20 @@ function saveUserName() {
   const name = input ? input.value.trim() : '';
   if (!name) { alert('من فضلك اكتب اسمك'); return; }
   localStorage.setItem('user_display_name', name);
+  
+  // حفظ على Firestore
+  const user = window.firebaseAuth.currentUser;
+  if (user && window.firebaseDb) {
+    import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js")
+      .then(({doc, setDoc}) => {
+        setDoc(doc(window.firebaseDb, "users", user.uid), {
+          name: name,
+          email: user.email,
+          lastSeen: new Date().toISOString()
+        }, { merge: true });
+      });
+  }
+  
   finishLogin(name);
 }
 
