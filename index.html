@@ -1546,6 +1546,21 @@ function toggleMenu() {
 }
 
 // دالة التنقل بين الصفحات مع دعم ملء الشاشة الكاملة والعودة للرئيسية
+
+// دالة فتح وإغلاق المنيو الجانبي بمرونة
+function toggleMenu() {
+  const menu = document.getElementById('tabsMenu');
+  const overlay = document.getElementById('menuOverlay');
+  if (menu && menu.classList.contains('open')) {
+    menu.classList.remove('open');
+    if(overlay) overlay.classList.remove('show');
+  } else {
+    if(menu) menu.classList.add('open');
+    if(overlay) overlay.classList.add('show');
+  }
+}
+
+// دالة التنقل بين الصفحات مع دعم ملء الشاشة الكاملة والعودة للرئيسية
 function showPage(id, el) {
   // إغلاق المنيو الجانبي أوتوماتيكياً فور اختيار أي تبويب
   const menu = document.getElementById('tabsMenu');
@@ -1557,7 +1572,7 @@ function showPage(id, el) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   
   localStorage.setItem('last_opened_tab', id);
-  document.getElementById(id).classList.add('active');
+  if(document.getElementById(id)) document.getElementById(id).classList.add('active');
   
   // تفعيل كلاس التنشيط على العنصر المختار جوه المنيو
   if (el) {
@@ -1565,7 +1580,7 @@ function showPage(id, el) {
   } else {
     const tabs = document.querySelectorAll('.tabs .tab');
     tabs.forEach(t => {
-      if (t.getAttribute('onclick').includes(`'${id}'`)) {
+      if (t.getAttribute('onclick') && t.getAttribute('onclick').includes(`'${id}'`)) {
         t.classList.add('active');
       }
     });
