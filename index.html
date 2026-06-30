@@ -679,7 +679,6 @@ body.hide-controls button:not(.mushaf-page button) {
   <div class="tab" onclick="showPage('azkar',this)">🤲 الأذكار كاملة</div>
   <div class="tab" onclick="showPage('tasbeh',this)">📿 السبحة الإلكترونية</div>
    <div class="tab" onclick="showPage('islamicContent',this)">📚 المكتبة العلمية</div>
-
   <div class="tab" onclick="showPage('favPage',this)">⭐ السور المفضلة</div>
   <div class="tab" onclick="showPage('awkat',this)">🕌 مواقيت الصلاة</div>
   <div class="tab" onclick="showPage('asma2',this)">✨ أسماء الله الحسنى</div>
@@ -899,8 +898,8 @@ body.hide-controls button:not(.mushaf-page button) {
     <button class="cat-btn" id="btn_faq" onclick="switchSubContent('qa')">❓ سؤال وجواب</button>
     <button class="cat-btn" id="btn_aqeedah" onclick="switchSubContent('aqeedah')">🕌 العقيدة</button>
     <button class="cat-btn" id="btn_seerah" onclick="switchSubContent('seerah')">🕋 السيرة النبوية</button>
-    <button class="cat-btn" id="btn_history" onclick="switchSubContent('history')">📅 في مثل هذا اليوم</button>
-    <button class="cat-btn" id="btn_raqaeq" onclick="switchSubContent('raqaeq')">❤️ رقائق وإيمانيات</button>
+    <button onclick="getTodayHijriEvent()">... في مثل هذا اليوم ...</button>
+   <button class="cat-btn" id="btn_raqaeq" onclick="switchSubContent('raqaeq')">❤️ رقائق وإيمانيات</button>
     <button class="cat-btn" id="btn_books" onclick="switchSubContent('books')">📚 تعريف بالكتب</button>
     <button class="cat-btn" id="btn_scholars" onclick="switchSubContent('scholars')">👤 سير العلماء</button>
     <button class="cat-btn" id="btn_audio" onclick="switchSubContent('audio')">🎧 مواعظ صوتية</button>
