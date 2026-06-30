@@ -478,20 +478,13 @@ body.hide-controls #quran {
     }
    /* كود السحر لإخفاء القوائم برمشة عين */
 body.hide-controls .header,
-body.hide-controls .tabs,
-body.hide-controls #quran {
-  /* التعديل الذكي للمظهر */
+body.hide-controls .tabs {
+  display: none !important;
 }
-/* أسهل طريقة لإخفاء عناصر التحكم العلوي والسفلي عندك */
-body.hide-controls .header, 
-body.hide-controls .tabs,
-body.hide-controls [style*="position: fixed"],
-body.hide-controls button:not(.mushaf-page button) {
-  opacity: 0 !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
-  transition: opacity 0.4s ease, visibility 0.4s ease !important;
-}
+body.hide-controls .mode-toggle-row,
+body.hide-controls .audio-bar {
+  display: none !important;
+} 
 /* جعل الحركة ناعمة في الوضع الطبيعي */
 .header, .tabs {
   transition: opacity 0.4s ease, visibility 0.4s ease;
