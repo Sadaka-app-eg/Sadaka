@@ -2861,6 +2861,34 @@ container.innerHTML = `
     container.innerHTML = `<div style="text-align:center; padding:20px;">لا توجد أحداث مسجلة لهذا اليوم الهجري (${day}/${month})، تابعنا غداً!</div>`;
   }
 }
+function openGift() {
+  const box = document.getElementById('gift-box');
+  const text = document.getElementById('gift-text');
+  const result = document.getElementById('gift-result');
+  
+  box.style.transform = "scale(0.8) rotate(10deg)";
+  const today = new Date().getDate();
+  const gift = gifts[today % gifts.length];
+  
+  setTimeout(() => {
+    box.style.display = 'none';
+    text.style.display = 'none';
+    result.style.display = 'block';
+    result.innerHTML = `
+      <div style="color:var(--gold); font-size:12px; margin-bottom:5px;">✨ ${gift.type} اليوم</div>
+      <p style="font-size:16px; line-height:1.6; color:#fff;">${gift.content}</p>
+      <button onclick="location.reload()" style="background:none; border:1px solid var(--gold); color:var(--gold); padding:5px 15px; border-radius:20px; margin-top:10px;">إغلاق</button>
+    `;
+  }, 500);
+}
+
+const gifts = [
+  { type: "دعاء", content: "اللهم إني أسألك علماً نافعاً، ورزقاً طيباً، وعملاً متقبلاً." },
+  { type: "حديث", content: "قال ﷺ: 'من سلك طريقاً يلتمس فيه علماً، سهل الله له به طريقاً إلى الجنة'." },
+  { type: "معلومة", content: "هل تعلم أن صلاة الضحى تعدل 360 صدقة؟" },
+  { type: "قصة", content: "مصعب بن عمير: أول سفير في الإسلام، ضحى بالنعيم في سبيل الله." },
+  { type: "ذكر", content: "سبحان الله وبحمده، عدد خلقه، ورضا نفسه، وزنة عرشه، ومداد كلماته." }
+];
 
 </script>
  <script src="asma2.js"></script>
