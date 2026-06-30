@@ -445,7 +445,16 @@ body.hide-controls #quran {
   height: auto;
   z-index: 1;
 }
-
+.asma2-search-box{width:100%;padding:10px 14px;border-radius:12px;background:var(--bg2);color:var(--text);border:1px solid var(--border);font-size:14px;margin-bottom:12px;font-family:'Amiri',serif;outline:none;}
+.asma2-card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:10px;border:1px solid var(--border);text-align:center;cursor:pointer;transition:all 0.2s;}
+.asma2-num{font-size:11px;color:var(--gold);margin-bottom:4px;font-family:'Amiri',serif;}
+.asma2-name{font-size:24px;font-weight:700;color:var(--gold);font-family:'Amiri Quran',serif;margin-bottom:6px;}
+.asma2-meaning{font-size:13px;color:var(--text2);font-family:'Amiri',serif;}
+.asma2-fadl{display:none;font-size:12px;color:var(--green);margin-top:10px;font-family:'Amiri',serif;border-top:1px solid var(--border);padding-top:10px;}
+.asma2-details{display:none;margin-top:10px;background:rgba(0,0,0,0.15);padding:10px;border-radius:10px;}
+.asma2-doaa{font-size:14px;color:var(--text);font-family:'Amiri',serif;}
+.asma2-card.expanded .asma2-fadl,
+.asma2-card.expanded .asma2-details{display:block;}
 </style>
 </head>
 <body>
@@ -515,6 +524,7 @@ body.hide-controls button:not(.mushaf-page button) {
   <div class="tab" onclick="showPage('tasbeh',this)">📿 السبحة</div>
   <div class="tab" onclick="showPage('favPage',this)">⭐ المفضلة</div>
  <div class="tab" onclick="showPage('awkat',this)">🕌 المواقيت</div>
+ <div class="tab" onclick="showPage('asma2',this)">✨ أسماء الله</div>
 </div>
 
 <!-- HOME -->
