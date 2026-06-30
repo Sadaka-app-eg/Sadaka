@@ -1193,7 +1193,10 @@ function toggleTheme() {
   isDark = !isDark;
   document.body.classList.toggle('light', !isDark);
   document.getElementById('themeBtn').textContent = isDark ? '☀️' : '🌙';
+  // حفظ الاختيار عشان الريفريش
+  localStorage.setItem('theme_choice', isDark ? 'dark' : 'light');
 }
+
 
 
 function showPage(id, el) {
@@ -2047,6 +2050,15 @@ function setupNafahatSystem() {
 
 // تشغيل النظام الذكي تلقائياً عند فتح التطبيق
 document.addEventListener('DOMContentLoaded', () => {
+   // استرجاع الثيم المحفوظ فوراً ومنع العودة للداكن تلقائياً
+  const savedTheme = localStorage.getItem('theme_choice');
+  if (savedTheme === 'light') {
+    isDark = false;
+    document.body.classList.add('light');
+    const themeBtn = document.getElementById('themeBtn');
+    if (themeBtn) themeBtn.textContent = '🌙';
+  }
+
   setupNafahatSystem();
   
   // الكود القديم لتذكر التبويب
