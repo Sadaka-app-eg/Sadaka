@@ -440,12 +440,8 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
     <div class="stat-card"><div class="stat-num" id="statTasbeh">0</div><div class="stat-label">تسبيحة اليوم</div></div>
     <div class="stat-card"><div class="stat-num" id="statAzkar">0</div><div class="stat-label">ذكر اليوم</div></div>
   </div>
- <div class="stat-card">...</div>
-  </div>
-  </div> 
-
-</div> <!-- هذه القفلة الهامة جداً هي التي تغلق حاوية id="home" وتمنع الكارت من الهروب ل باقي الشاشات -->
-
+   </div>
+</div>
 
 <!-- QURAN -->
 <div class="page" id="quran">
@@ -1980,17 +1976,7 @@ function updateStats() {
 }
  // كود استعادة التبويب الأخير تلقائياً بعد التحديث لثبات التطبيق
 // كود استعادة البيانات وتشغيل الدوال عند فتح التطبيق (محدث)
-document.addEventListener('DOMContentLoaded', () => {
-  
-  // ١. تشغيل دالة آية اليوم فوراً عند الفتح
-  displayDailyAyah();
 
-  // ٢. تذكر التبويب الأخير للمستخدم (الكود القديم)
-  const lastTab = localStorage.getItem('last_opened_tab');
-  if (lastTab && document.getElementById(lastTab)) {
-    showPage(lastTab, null);
-  }
-});
 
 // ==========================================
 // كود نفحات اليوم (آية، حديث، وتفسير) الشامل
