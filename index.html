@@ -1627,6 +1627,9 @@ function showPage(id, el) {
   if(id === 'awkat') loadPrayerTimes();
    if(id === 'islamicContent' && typeof switchSubContent === 'function') {
     switchSubContent('fiqh');
+    if(id === 'rareRecitationsPage') {
+    renderRareRecitations();
+    }
   }
 
   updateStats();
