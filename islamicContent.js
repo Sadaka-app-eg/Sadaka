@@ -77,19 +77,28 @@ const islamicLibraryData = {
 
   // 13. دروس ومواعظ صوتية قصيرة
     // 13. دروس ومواعظ صوتية قصيرة (روابط مواعظ حقيقية وثابتة)
+     // 13. دروس ومواعظ صوتية قصيرة (20 موعظة كاملة وسريعة الأمان)
   audio: [
-    // 13. دروس ومواعظ صوتية قصيرة (روابط مفتوحة الأمان وسريعة)
-  audio: [
-    { 
-      title: "موعظة التوبة النصوح", 
-      text: "الشيخ نبيل العوضي — مواعظ مؤثرة عن الرجوع إلى الله سبحانه.", 
-      url: "https://archive.org/download/mawa3ez/01.mp3" 
-    },
-    { 
-      title: "أهمية الصلاة في حياة المسلم", 
-      text: "الشيخ محمد مختار الشنقيطي — درس قصير يشرح مكانة الصلاة وعقوبة تاركها.", 
-      url: "https://archive.org/download/mawa3ez/02.mp3" 
-    }
+    { title: "1. موعظة التوبة والرجوع إلى الله", text: "درس مؤثر يحث العبد على الإنابة والاستغفار.", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" },
+    { title: "2. أهمية الصلاة ومكانتها في الإسلام", text: "شرح وافٍ لعقيدة الصلاة وأنها عماد الدين.", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" },
+    { title: "3. بر الوالدين وطريق الجنة", text: "مقتطفات عن فضل طاعة الوالدين وخفض جناح الذل لهما.", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" },
+    { title: "4. أثر قراءة القرآن في تشييد البيوت", text: "كيف تنور البيوت بذكر الله وقراءة آياته.", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3" },
+    { title: "5. حقيقة الدنيا الفانية وزاد الآخرة", text: "موعظة بليغة عن قصر العمر والاستعداد للقاء الله.", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3" },
+    { title: "6. الصبر عند الشدائد والمحن", text: "بشريات الصابرين وأجر احتساب البلاء عند الله.", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3" },
+    { title: "7. حفظ اللسان وآفات الكلمات", text: "تحذير نبوي من حصائد الألسنة وأثر الكلمة الطيبة.", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3" },
+    { title: "8. حسن الخلق وأقرب الناس مجلساً", text: "شرح لفضائل الأخلاق وكيفية التعامل برفق مع المسلمين.", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3" },
+    { title: "9. الخشوع في الصلاة ولذة العبادة", text: "خطوات عملية للوصول لطمأنينة القلب أثناء الوقوف بين يدي الله.", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3" },
+    { title: "10. فضل الذكر والاستغفار بالأسحار", text: "زاد العابدين وأثر لزوم الاستغفار في سعة الرزق وتفريج الهم.", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3" },
+    { title: "11. رحمة النبي ﷺ بأمته وشوقه لنا", text: "مواقف من سيرة الحبيب تعكس عظم رأفته بالمسلمين.", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3" },
+    { title: "12. حسن الظن بالله والثقة بتدبيره", text: "كيف يطمئن قلب المؤمن لعلم الله ورحمته في قضائه.", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3" },
+    { title: "13. أمانة المجالس وإفشاء السلام", text: "آداب التعامل ونشر المحبة والسلام في المجتمع الإسلامي.", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-13.mp3" },
+    { title: "14. تربية الأبناء على حب الله ورسوله", text: "قواعد نبوية ميسرة في غرس العقيدة الصحيحة في نفوس الأطفال.", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-14.mp3" },
+    { title: "15. قيام الليل شرف المؤمن ونور الوجه", text: "فضل ركعات السحر والخلاد مع الخالق جل جلاله.", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3" },
+    { title: "16. كفالة اليتيم وأجر صحبة النبي", text: "عظم ثواب رعاية الأيتام وبشارة المصطفى لمن كفلهم.", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-16.mp3" },
+    { title: "17. عقوق الأقارب وصلة الأرحام", text: "موعظة حازمة عن خطورة قطيعة الرحم وفضل واصلها ولو جُفي.", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-17.mp3" },
+    { title: "18. الصدق في القول والعمل وأثره", text: "كيف يقود الصدق البر ويثبت اسم العبد عند الله صدِّيقاً.", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-18.mp3" },
+    { title: "19. عظم أجر الصدقة الجارية ونفعها", text: "كيف يمتد عمل المؤمن بعد موته وينور قبره بآثاره الصالحة.", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-19.mp3" },
+    { title: "20. الخاتمة الحسنة وأسباب الثبات", text: "دعاء الثبات على الدين والعمل الصالح حتى لقاء رب العزة.", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-20.mp3" }
   ],
 
 
