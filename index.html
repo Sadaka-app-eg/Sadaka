@@ -445,6 +445,96 @@ body.hide-controls #quran {
   height: auto;
   z-index: 1;
 }
+ /* ستايل المنيو الجانبي المتطور (Drawer) */
+.tabs {
+  position: fixed !important;
+  top: 0 !important;
+  right: -280px !important; /* مخفي تماماً في البداية جهة اليمين */
+  width: 280px !important;
+  height: 100vh !important;
+  background: rgba(11, 18, 12, 0.98) !important;
+  backdrop-filter: blur(15px) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  z-index: 9999 !important;
+  transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  border-left: 1px solid var(--border) !important;
+  overflow-y: auto !important;
+  box-shadow: -5px 0 25px rgba(0,0,0,0.5) !important;
+}
+.light .tabs {
+  background: rgba(247, 244, 235, 0.98) !important;
+}
+.tabs.open {
+  right: 0 !important; /* يفتح بنعومة ع الشاشة */
+}
+
+/* ستايل أزرار المنيو الجانبي */
+.tab {
+  width: 100% !important;
+  padding: 14px 20px !important;
+  text-align: right !important;
+  font-size: 15px !important;
+  color: var(--text) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.03) !important;
+  border-bottom-color: transparent !important;
+  white-space: nowrap !important;
+}
+.tab.active {
+  color: var(--gold) !important;
+  background: rgba(212, 175, 55, 0.1) !important;
+  border-right: 4px solid var(--gold) !important;
+}
+
+/* طبقة التعتيم الخلفية للمنيو */
+.menu-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(0,0,0,0.5);
+  z-index: 9998;
+}
+.menu-overlay.show { display: block; }
+
+/* جعل كل الصفحات ما عدا الرئيسية تفتح بملء الشاشة الكاملة فوراً */
+.page:not(#home).active {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 5000 !important;
+  background: var(--bg) !important;
+  overflow-y: auto !important;
+  padding: 75px 14px 30px !important; /* ترك مساحة علوية لزر العودة */
+}
+
+/* زر العودة السحري المخصص للرئيسية */
+.back-to-home-btn {
+  position: fixed;
+  top: calc(12px + env(safe-area-inset-top));
+  left: 14px;
+  z-index: 6000;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  color: var(--gold);
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-family: 'Amiri', serif;
+  font-size: 13px;
+  font-weight: bold;
+  display: none; /* مخفي في الرئيسية */
+  box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+  transition: all 0.2s;
+}
+.back-to-home-btn:active { transform: scale(0.95); }
+
+/* تفعيل ظهور زر العودة فقط عند الخروج من الرئيسية */
+body.in-subpage .back-to-home-btn {
+  display: block;
+}
+
 .asma2-search-box{width:100%;padding:10px 14px;border-radius:12px;background:var(--bg2);color:var(--text);border:1px solid var(--border);font-size:14px;margin-bottom:12px;font-family:'Amiri',serif;outline:none;}
 .asma2-card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:10px;border:1px solid var(--border);text-align:center;cursor:pointer;transition:all 0.2s;}
 .asma2-num{font-size:11px;color:var(--gold);margin-bottom:4px;font-family:'Amiri',serif;}
@@ -567,22 +657,33 @@ body.hide-controls button:not(.mushaf-page button) {
   <div class="splash-text">صَدَقَةٌ جَارِيَةٌ</div>
 </div>
 
+<!-- زرار العودة السحري للرئيسية - يظهر فقط داخل الصفحات كاملة الشاشة -->
+<button class="back-to-home-btn" onclick="showPage('home', null)">🏠 العودة للرئيسية</button>
+
+<!-- طبقة التعتيم الخلفية لإغلاق المنيو عند الضغط برة -->
+<div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
+
 <div class="header">
+  <!-- زر الثلاث شرط الجديد فوق يمين بالملي -->
+  <button class="icon-btn" onclick="toggleMenu()" style="font-size: 20px; font-weight: bold;">☰</button>
+  
   <h1>🌙 صدقة جارية — شيماء سعيد</h1>
-<button class="icon-btn" id="googleLoginBtn" style="font-size:11px;width:auto;padding:0 8px;">🔑 دخول</button>
   <button class="icon-btn" onclick="toggleTheme()" id="themeBtn">☀️</button>
 </div>
 
-<div class="tabs">
+<!-- تحويل التبويبات إلى منيو جانبي فخم واحترافي -->
+<div class="tabs" id="tabsMenu">
+  <div style="padding: 20px 14px; border-bottom: 1px solid var(--border); color: var(--gold); font-size: 18px; font-weight: bold; text-align: center;">القائمة الرئيسية</div>
   <div class="tab active" onclick="showPage('home',this)">🏠 الرئيسية</div>
-  <div class="tab" onclick="showPage('quran',this)">📖 القرآن</div>
-  <div class="tab" onclick="showPage('azkar',this)">🤲 الأذكار</div>
-  <div class="tab" onclick="showPage('tasbeh',this)">📿 السبحة</div>
-  <div class="tab" onclick="showPage('favPage',this)">⭐ المفضلة</div>
- <div class="tab" onclick="showPage('awkat',this)">🕌 المواقيت</div>
- <div class="tab" onclick="showPage('asma2',this)">✨ أسماء الله</div>
- <div class="tab" onclick="showPage('khatma',this)">📿 الختمة</div>
+  <div class="tab" onclick="showPage('quran',this)">📖 القرآن الكريم</div>
+  <div class="tab" onclick="showPage('azkar',this)">🤲 الأذكار كاملة</div>
+  <div class="tab" onclick="showPage('tasbeh',this)">📿 السبحة الإلكترونية</div>
+  <div class="tab" onclick="showPage('favPage',this)">⭐ السور المفضلة</div>
+  <div class="tab" onclick="showPage('awkat',this)">🕌 مواقيت الصلاة</div>
+  <div class="tab" onclick="showPage('asma2',this)">✨ أسماء الله الحسنى</div>
+  <div class="tab" onclick="showPage('khatma',this)">📿 الختمة المباركة</div>
 </div>
+
 
 <!-- HOME -->
 <div class="page active" id="home">
@@ -1396,19 +1497,37 @@ function toggleTheme() {
 
 
 function showPage(id, el) {
+// دالة فتح وإغلاق المنيو الجانبي بمرونة
+function toggleMenu() {
+  const menu = document.getElementById('tabsMenu');
+  const overlay = document.getElementById('menuOverlay');
+  if (menu.classList.contains('open')) {
+    menu.classList.remove('open');
+    overlay.classList.remove('show');
+  } else {
+    menu.classList.add('open');
+    overlay.classList.add('show');
+  }
+}
+
+// دالة التنقل بين الصفحات مع دعم ملء الشاشة الكاملة والعودة للرئيسية
+function showPage(id, el) {
+  // إغلاق المنيو الجانبي أوتوماتيكياً فور اختيار أي تبويب
+  const menu = document.getElementById('tabsMenu');
+  const overlay = document.getElementById('menuOverlay');
+  if(menu) menu.classList.remove('open');
+  if(overlay) overlay.classList.remove('show');
+
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   
-  // حفظ اسم الصفحة الحالية في ذاكرة المتصفح الدائمة فوراً قبل أي شيء
   localStorage.setItem('last_opened_tab', id);
-
   document.getElementById(id).classList.add('active');
   
-  // إذا مررنا العنصر (el) نقوم بتنشيطه، وإلا سنبحث عنه بواسطة الـ id (للتشغيل التلقائي)
+  // تفعيل كلاس التنشيط على العنصر المختار جوه المنيو
   if (el) {
     el.classList.add('active');
   } else {
-    // كود ذكي لتنشيط التبويب الصحيح بناءً على الصفحة
     const tabs = document.querySelectorAll('.tabs .tab');
     tabs.forEach(t => {
       if (t.getAttribute('onclick').includes(`'${id}'`)) {
@@ -1417,10 +1536,18 @@ function showPage(id, el) {
     });
   }
 
+  // التحكم في وضع ملء الشاشة وظهور زر العودة للرئيسية
+  if (id === 'home') {
+    document.body.classList.remove('in-subpage');
+  } else {
+    document.body.classList.add('in-subpage');
+  }
+
   if(id === 'favPage') renderFav();
   if(id === 'awkat') loadPrayerTimes();
   updateStats();
 }
+
 
 
 // ===========================
