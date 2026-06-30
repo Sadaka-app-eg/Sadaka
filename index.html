@@ -2501,8 +2501,33 @@ function finishLogin(name) {
   }
 }
 
+// تحقق من الدخول عند الريفريش
 window.addEventListener('load', () => {
-  setTimeout(checkAuthAndBlock, 1000);
+  import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js")
+    .then(({onAuthStateChanged}) => {
+      onAuthStateChanged(window.firebaseAuth, (user) => {
+        if (user) {
+          const saved = localStorage.getItem('user_display_name');
+          if (saved) {
+            finishLogin(saved);
+          } else {
+            import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js")
+              .then(({doc, getDoc}) => {
+                getDoc(doc(window.firebaseDb, "users", user.uid))
+                  .then(snap => {
+                    if (snap.exists() && snap.data().name) {
+                      finishLogin(snap.data().name);
+                    } else {
+                      showNameInput(user);
+                    }
+                  });
+              });
+          }
+        } else {
+          checkAuthAndBlock();
+        }
+      });
+    });
 });
 </script>
  <script src="asma2.js"></script>
