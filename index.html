@@ -2382,7 +2382,106 @@ document.addEventListener('DOMContentLoaded', () => {
     showPage(lastTab, null);
   }
 });
+function checkAuthAndBlock() {
+  if (document.getElementById('authOverlay')) return;
 
+  const overlay = document.createElement('div');
+  overlay.id = 'authOverlay';
+  overlay.style.cssText = `
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: #0b120c; z-index: 99999;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    font-family: 'Amiri', serif; padding: 20px;
+  `;
+  overlay.innerHTML = `
+    <div style="font-size:60px;margin-bottom:20px;">🌙</div>
+    <div style="color:#d4af37;font-size:26px;font-weight:700;margin-bottom:8px;">صدقة جارية</div>
+    <div style="color:#9aa79c;font-size:14px;margin-bottom:30px;">شيماء سعيد رحمها الله</div>
+    <button id="googleSignInBtn" onclick="doGoogleSignIn()"
+      style="background:#d4af37;color:#111;border:none;padding:14px 30px;
+      border-radius:25px;font-size:16px;font-family:'Amiri',serif;cursor:pointer;margin-bottom:0;">
+      🔑 دخول بحساب جوجل
+    </button>
+  `;
+  document.body.appendChild(overlay);
+
+  import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js")
+    .then(({onAuthStateChanged}) => {
+      onAuthStateChanged(window.firebaseAuth, (user) => {
+        if (user) {
+          const savedName = localStorage.getItem('user_display_name');
+          if (!savedName) {
+            showNameInput(user);
+          } else {
+            finishLogin(savedName);
+          }
+        }
+      });
+    });
+}
+
+function doGoogleSignIn() {
+  signInWithPopup(window.firebaseAuth, new window.GoogleAuthProvider());
+}
+
+function showNameInput(user) {
+  const overlay = document.getElementById('authOverlay');
+  if (!overlay) return;
+  const firstName = user.displayName ? user.displayName.split(' ')[0] : '';
+  overlay.innerHTML = `
+    <div style="font-size:50px;margin-bottom:15px;">👋</div>
+    <div style="color:#d4af37;font-size:22px;font-weight:700;margin-bottom:8px;">أهلاً بيك!</div>
+    <div style="color:#9aa79c;font-size:13px;margin-bottom:20px;">اكتب اسمك عشان نرحب بيك</div>
+    <input id="userNameInput" type="text" value="${firstName}" placeholder="اسمك هنا..."
+      style="width:100%;max-width:280px;padding:12px 16px;border-radius:15px;
+      border:1px solid #d4af37;background:#121e14;color:#f4f6f4;
+      font-family:'Amiri',serif;font-size:18px;text-align:center;
+      margin-bottom:16px;outline:none;">
+    <button onclick="saveUserName()"
+      style="background:#d4af37;color:#111;border:none;padding:12px 30px;
+      border-radius:25px;font-size:16px;font-family:'Amiri',serif;cursor:pointer;">
+      ✓ ادخل التطبيق
+    </button>
+  `;
+}
+
+function saveUserName() {
+  const input = document.getElementById('userNameInput');
+  const name = input ? input.value.trim() : '';
+  if (!name) { alert('من فضلك اكتب اسمك'); return; }
+  localStorage.setItem('user_display_name', name);
+  finishLogin(name);
+}
+
+function finishLogin(name) {
+  // إزالة الـ overlay
+  const el = document.getElementById('authOverlay');
+  if (el) el.remove();
+
+  // تحديث الهيدر
+  const header = document.querySelector('.header h1');
+  if (header) {
+    header.innerHTML = `🌙 أهلاً <span style="color:#6fbf73">${name}</span>`;
+  }
+
+  // تحديث زرار الدخول
+  const loginBtn = document.getElementById('googleLoginBtn');
+  if (loginBtn) {
+    loginBtn.textContent = '👤 ' + name;
+    loginBtn.onclick = () => {
+      if (confirm('تسجيل خروج؟')) {
+        localStorage.removeItem('user_display_name');
+        window.firebaseAuth.signOut();
+        location.reload();
+      }
+    };
+  }
+}
+
+window.addEventListener('load', () => {
+  setTimeout(checkAuthAndBlock, 1000);
+});
 </script>
  <script src="asma2.js"></script>
  <script src="khatma.js"></script>
