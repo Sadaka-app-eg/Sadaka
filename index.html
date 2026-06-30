@@ -687,6 +687,41 @@ body.hide-controls button:not(.mushaf-page button) {
 
 <!-- HOME -->
 <div class="page active" id="home">
+ <div style="background: var(--card); border-radius: 16px; padding: 16px; margin-top: 14px; border: 1px solid var(--border); border-right: 4px solid var(--green);">
+  <div style="font-family: 'Amiri', serif; font-size: 16px; font-weight: 700; color: var(--gold); margin-bottom: 12px; text-align: center;">🎨 مظهر وتنسيق التطبيق</div>
+  
+  <div style="font-size: 13px; color: var(--text2); margin-bottom: 8px;">اختر ثيماً جاهزاً:</div>
+  <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 14px;">
+    <button class="cat-btn" onclick="applyPresetTheme('darkGreen')" style="padding: 8px 4px; font-size: 11px;">🟢 الروضة الداكن</button>
+    <button class="cat-btn" onclick="applyPresetTheme('royalBlack')" style="padding: 8px 4px; font-size: 11px;">⚫ الأسود الملكي</button>
+    <button class="cat-btn" onclick="applyPresetTheme('lightBeige')" style="padding: 8px 4px; font-size: 11px;">🟡 البيج الدافئ</button>
+    <button class="cat-btn" onclick="applyPresetTheme('deepBlue')" style="padding: 8px 4px; font-size: 11px;">🔵 الأزرق الليلي</button>
+    <button class="cat-btn" onclick="applyPresetTheme('pureWhite')" style="padding: 8px 4px; font-size: 11px;">⚪ الأبيض النقي</button>
+  </div>
+
+  <hr style="border: 0; border-top: 1px dashed var(--border); margin: 12px 0;">
+
+  <div style="font-size: 13px; color: var(--text2); margin-bottom: 8px;">أو اصنع ثيمك الخاص بنفسك بالملي:</div>
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px; font-family: 'Amiri', serif;">
+    <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg2); padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border);">
+      <span>الخلفية الرئيسية:</span>
+      <input type="color" id="customBg" onchange="applyCustomColor('bg', this.value)" style="border:0; background:transparent; width:30px; height:24px; cursor:pointer;">
+    </div>
+    <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg2); padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border);">
+      <span>العناصر والقوائم:</span>
+      <input type="color" id="customBg2" onchange="applyCustomColor('bg2', this.value)" style="border:0; background:transparent; width:30px; height:24px; cursor:pointer;">
+    </div>
+    <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg2); padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border);">
+      <span>اللون الذهبي النوراني:</span>
+      <input type="color" id="customGold" onchange="applyCustomColor('gold', this.value)" style="border:0; background:transparent; width:30px; height:24px; cursor:pointer;">
+    </div>
+    <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg2); padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border);">
+      <span>لون النصوص والكلمات:</span>
+      <input type="color" id="customText" onchange="applyCustomColor('text', this.value)" style="border:0; background:transparent; width:30px; height:24px; cursor:pointer;">
+    </div>
+  </div>
+</div>
+
   <div class="hero">
     <div class="moon">🌙</div>
     <h2>صدقة جارية</h2>
@@ -2670,6 +2705,90 @@ window.addEventListener('load', () => {
       });
     });
 });
+ // مصفوفة الثيمات الـ 5 الجاهزة الفخمة
+const quranThemes = {
+  darkGreen: { bg: '#0b120c', bg2: '#121e14', bg3: '#172719', text: '#f4f6f4', text2: '#9aa79c', gold: '#d4af37', border: 'rgba(212, 175, 55, 0.08)', card: 'rgba(255, 255, 255, 0.03)' },
+  royalBlack: { bg: '#050505', bg2: '#111111', bg3: '#1a1a1a', text: '#ffffff', text2: '#aaaaaa', gold: '#dfb73c', border: 'rgba(255, 255, 255, 0.05)', card: 'rgba(255, 255, 255, 0.02)' },
+  lightBeige: { bg: '#f7f4eb', bg2: '#ede8dc', bg3: '#e2dac9', text: '#2c2212', text2: '#6e614c', gold: '#8b6914', border: 'rgba(139, 105, 20, 0.12)', card: 'rgba(0, 0, 0, 0.03)' },
+  deepBlue: { bg: '#0a1128', bg2: '#001f54', bg3: '#034078', text: '#fefefe', text2: '#8da9c4', gold: '#f4d35e', border: 'rgba(244, 211, 94, 0.1)', card: 'rgba(255, 255, 255, 0.04)' },
+  pureWhite: { bg: '#ffffff', bg2: '#f5f5f5', bg3: '#eeeeee', text: '#111111', text2: '#666666', gold: '#b58900', border: 'rgba(0, 0, 0, 0.06)', card: 'rgba(0, 0, 0, 0.02)' }
+};
+
+// دالة تطبيق ثيم جاهز بالكامل
+function applyPresetTheme(themeKey) {
+  const theme = quranThemes[themeKey];
+  if (!theme) return;
+  
+  const root = document.documentElement;
+  for (const [key, value] of Object.entries(theme)) {
+    root.style.setProperty(`--${key}`, value);
+  }
+  
+  // حفظ نوع الثيم في الكاش
+  localStorage.setItem('active_quran_theme', themeKey);
+  localStorage.removeItem('custom_user_theme'); // مسح الثيم المصنوع يدوياً لو اختار جاهز
+  
+  // تحديث ألوان الـ Inputs على الشاشة لتعكس الاختيار
+  document.getElementById('customBg').value = theme.bg;
+  document.getElementById('customBg2').value = theme.bg2;
+  document.getElementById('customGold').value = theme.gold;
+  document.getElementById('customText').value = theme.text;
+}
+
+// دالة تعديل لون مخصص حتة حتة وحفظه في ثيم المستخدم الخاص
+function applyCustomColor(key, value) {
+  const root = document.documentElement;
+  root.style.setProperty(`--${key}`, value);
+  
+  // توليد بعض التبعيات تلقائياً لتناسق الشكل (مثل الـ bg3 والـ border)
+  if (key === 'bg') {
+    root.style.setProperty('--card', 'rgba(255, 255, 255, 0.03)');
+  }
+  if (key === 'gold') {
+    root.style.setProperty('--border', value + '14'); // إضافة شفافية مئوية للبوردر
+  }
+
+  // سحب الثيم المخصص الحالي وحفظ التعديل الجديد جواه
+  let customTheme = JSON.parse(localStorage.getItem('custom_user_theme') || '{}');
+  customTheme[key] = value;
+  
+  // سد الفراغات لو لسه مغيرش بقية الألوان يدوي
+  if (!customTheme.bg3) customTheme.bg3 = customTheme.bg2 || '#121e14';
+  if (!customTheme.text2) customTheme.text2 = '#9aa79c';
+  if (!customTheme.border) customTheme.border = 'rgba(212, 175, 55, 0.08)';
+  if (!customTheme.card) customTheme.card = 'rgba(255, 255, 255, 0.03)';
+  
+  localStorage.setItem('custom_user_theme', JSON.stringify(customTheme));
+  localStorage.setItem('active_quran_theme', 'custom');
+}
+
+// دالة ذكية لتشغيل الثيم المحفوظ فوراً بمجرد فتح التطبيق منعاً للوميض
+function loadSavedThemeSystem() {
+  const activeType = localStorage.getItem('active_quran_theme') || 'darkGreen';
+  
+  if (activeType === 'custom') {
+    const customTheme = JSON.parse(localStorage.getItem('custom_user_theme') || '{}');
+    const root = document.documentElement;
+    for (const [key, value] of Object.entries(customTheme)) {
+      root.style.setProperty(`--${key}`, value);
+    }
+    // وضع الألوان في الـ Inputs لراحة العين
+    if(document.getElementById('customBg')) {
+      document.getElementById('customBg').value = customTheme.bg || '#0b120c';
+      document.getElementById('customBg2').value = customTheme.bg2 || '#121e14';
+      document.getElementById('customGold').value = customTheme.gold || '#d4af37';
+      document.getElementById('customText').value = customTheme.text || '#f4f6f4';
+    }
+  } else {
+    applyPresetTheme(activeType);
+  }
+}
+
+// تشغيل جلب الثيمات أوتوماتيكياً عند تحميل الصفحة بالكامل
+document.addEventListener('DOMContentLoaded', () => {
+  loadSavedThemeSystem();
+});
+
 </script>
  <script src="asma2.js"></script>
  <script src="khatma.js"></script>
