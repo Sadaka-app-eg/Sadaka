@@ -24,7 +24,15 @@ function startKhatma(days) {
   renderKhatma();
   alert(`✅ تم إنشاء خطتك!\nستختم القرآن في ${days} يوم\nوردك اليومي: ${pagesPerDay} صفحة تقريباً`);
 }
-
+function startCustomKhatma() {
+  const input = document.getElementById('customDaysInput');
+  const days = parseInt(input.value);
+  if(!days || days < 1) {
+    alert('من فضلك اكتب عدد أيام صحيح');
+    return;
+  }
+  startKhatma(days);
+}
 function saveKhatma() {
   localStorage.setItem('khatma_data', JSON.stringify(khatmaData));
 }
