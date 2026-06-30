@@ -429,24 +429,37 @@ body.hide-controls .bookmark-jump-btn {
 
 /* 2. تكبير وتثبيت المصحف ملء الشاشة "فقط وفقط" لما المستخدم يضغط ويخفي القوائم */
 body.hide-controls #quran, 
-body.hide-controls .quran-container, 
-body.hide-controls .mushaf-container, 
-body.hide-controls #quranSlider, 
-body.hide-controls .swiper-container,
-body.hide-controls .slider {
+/* وضع القراءة الكاملة: إخفاء القوائم والأزرار بنعومة تامة */
+body.hide-controls .header, 
+body.hide-controls .tabs,
+body.hide-controls button:not(.mushaf-page button),
+body.hide-controls .audio-player-container,
+body.hide-controls .bookmark-jump-btn {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  transform: translateY(-20px); /* تأثير حركة اختفاء علوية وسفلية ناعمة */
+}
+
+/* تهيئة العناصر لحركة انتقالية فخمة وسلسة */
+.header, .tabs, .bookmark-jump-btn {
+  transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease !important;
+}
+
+/* إجبار حاوية المصحف فقط على ملء الشاشة الكاملة من خلف القوائم */
+#quran {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
   width: 100vw !important;
   height: 100vh !important;
   max-height: 100vh !important;
   max-width: 100vw !important;
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
+  z-index: 1 !important;
   margin: 0 !important;
   padding: 0 !important;
-  z-index: 1000 !important;
-  background: #faf6eb !important;
+  background: #ffffff !important;
 }
-
 
 </style>
 </head>
@@ -2027,12 +2040,10 @@ async function renderQcfPages() {
       }
 
       return `
-  <div class="mushaf-page" style="position: relative; width: 100%; height: 80vh; max-width: 100%; margin: 0 auto; overflow: hidden; background: #faf6eb; display: flex; align-items: center; justify-content: center;">
-    <!-- طبقة التحكم في إخفاء وإظهار القوائم (الخلفية كاملة) -->
+  <div class="mushaf-page" style="position: relative; width: 100vw; height: 100vh; background: #ffffff; display: flex; align-items: center; justify-content: center; overflow: hidden;">
     <div onclick="document.body.classList.toggle('hide-controls')" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: auto; z-index: 5;"></div>
 
-    <!-- صورة صفحة المصحف بأبعادها الأصلية الحقيقية -->
-    <img src="${finalSrc}" style="width: 100%; height: auto; max-height: 100%; object-fit: contain; display: block; margin: 0 auto; position: relative; z-index: 6;" onload="
+    <img src="${finalSrc}" style="width: 100%; height: 100%; object-fit: contain; display: block; position: relative; z-index: 6;" onload="
       (function(imgElement){
         const pNum = typeof pageNumber !== 'undefined' ? pageNumber : (typeof currentPage !== 'undefined' ? currentPage : ${i + 1});
         const overlay = imgElement.nextElementSibling;
@@ -2058,9 +2069,10 @@ async function renderQcfPages() {
                 box.style.zIndex = '99';
                 
                 box.addEventListener('click', (e) => {
-                  e.stopPropagation(); // منع اختفاء القوائم عند تحديد الآية
+                  e.stopPropagation();
                   overlay.querySelectorAll('div').forEach(d => d.style.backgroundColor = 'transparent');
-                  box.style.backgroundColor = 'rgba(212, 175, 55, 0.4)';
+                  box.style.backgroundColor = 'rgba(212, 175, 55, 0.35)';
+                  // هنا نربط التفسير لاحقاً
                   alert('تم تحديد: السورة ' + word.verse_key.split(':')[0] + ' - الآية ' + word.verse_key.split(':')[1]);
                 });
                 overlay.appendChild(box);
@@ -2070,7 +2082,6 @@ async function renderQcfPages() {
       })(this)
     ">
     
-    <!-- طبقة التحديد الشفافة فوق الصورة مباشرة -->
     <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10;"></div>
   </div>`;
 
