@@ -684,6 +684,8 @@ body.hide-controls button:not(.mushaf-page button) {
   <div class="tab" onclick="showPage('asma2',this)">✨ أسماء الله الحسنى</div>
   <div class="tab" onclick="showPage('khatma',this)">📿 الختمة المباركة</div>
    <div class="tab" onclick="showPage('themesPage',this)">🎨 ألوان ومظهر التطبيق</div>
+ <div class="tab" onclick="showPage('rareRecitationsPage',this)">🎧 تلاوات نادرة</div>
+
 
 </div>
 
@@ -860,6 +862,11 @@ body.hide-controls button:not(.mushaf-page button) {
 <div class="page" id="favPage">
   <div id="favContent"></div>
 </div>
+ <div class="page" id="rareRecitationsPage">
+  <h2 style="color:var(--gold); text-align:center; margin-bottom:20px;">🎧 تلاوات نادرة</h2>
+  <div id="rareList" style="display:grid; gap:10px; padding: 10px;"></div>
+</div>
+
 <!-- THEME SETTINGS PAGE -->
 <div class="page" id="themeSettingsPage">
   <div style="text-align: center; margin-bottom: 16px;">
@@ -2888,11 +2895,30 @@ const gifts = [
   { type: "قصة", content: "مصعب بن عمير: أول سفير في الإسلام، ضحى بالنعيم في سبيل الله." },
   { type: "ذكر", content: "سبحان الله وبحمده، عدد خلقه، ورضا نفسه، وزنة عرشه، ومداد كلماته." }
 ];
+function renderRareRecitations() {
+  const container = document.getElementById('rareList');
+  container.innerHTML = rareRecitations.map((item, index) => `
+    <div class="zekr-card" style="display:flex; align-items:center; gap:15px;">
+      <button onclick="playRare('${item.url}')" style="background:var(--gold); border:none; width:40px; height:40px; border-radius:50%;">▶</button>
+      <div>
+        <div style="font-weight:bold; color:var(--text);">${item.name}</div>
+        <div style="font-size:12px; color:var(--text2);">${item.desc}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function playRare(url) {
+  const audio = document.getElementById('audioPlayer'); // ممكن تستخدم نفس المشغل اللي في المصحف
+  audio.src = url;
+  audio.play();
+}
 
 </script>
  <script src="asma2.js"></script>
  <script src="khatma.js"></script>
   <script src="islamicContent.js"></script>
+<script src="rareRecitations.js"></script>
 
 </body>
    </html>
