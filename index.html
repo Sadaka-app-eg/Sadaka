@@ -2427,9 +2427,12 @@ function checkAuthAndBlock() {
 }
 
 function doGoogleSignIn() {
-  signInWithPopup(window.firebaseAuth, new window.GoogleAuthProvider());
+  import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js")
+    .then(({signInWithPopup, GoogleAuthProvider}) => {
+      signInWithPopup(window.firebaseAuth, new GoogleAuthProvider())
+        .catch(err => console.error('خطأ تسجيل الدخول:', err));
+    });
 }
-
 function showNameInput(user) {
   const overlay = document.getElementById('authOverlay');
   if (!overlay) return;
