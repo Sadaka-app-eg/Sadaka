@@ -2035,6 +2035,9 @@ function setupNafahatSystem() {
   document.getElementById('dailyHadithText').textContent = selected.hadith;
   document.getElementById('dailyHadithRawy').textContent = selected.hadithRawy;
   document.getElementById('dailyHadithSharh').textContent = selected.hadithSharh;
+  if(document.getElementById('dailyDoaaText')) {
+    document.getElementById('dailyDoaaText').textContent = selected.doaa;
+  }
 
   // ٣. البحث السحري عن كارت الثلاث نقط وتحويله لزرار يفتح الصفحة
   const allDivs = document.querySelectorAll('div');
