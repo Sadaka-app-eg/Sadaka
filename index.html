@@ -410,6 +410,7 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
 }
 /* كود السحر لإخفاء القوائم وتوسيع المصحف بالملي */
 /* كود السحر لإخفاء القوائم وتوسيع الـ Slider والمصحف بالملي */
+/* 1. إخفاء عناصر التحكم بنعومة فقط عند تفعيل الوضع */
 body.hide-controls .header, 
 body.hide-controls .tabs,
 body.hide-controls button,
@@ -426,13 +427,13 @@ body.hide-controls .bookmark-jump-btn {
   transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
-/* إجبار الحاوية الكبيرة والـ Slider والصفحات على ملء الشاشة بالطول والعرض */
-#quran, 
-.quran-container, 
-.mushaf-container, 
-#quranSlider, 
-.swiper-container,
-.slider {
+/* 2. تكبير وتثبيت المصحف ملء الشاشة "فقط وفقط" لما المستخدم يضغط ويخفي القوائم */
+body.hide-controls #quran, 
+body.hide-controls .quran-container, 
+body.hide-controls .mushaf-container, 
+body.hide-controls #quranSlider, 
+body.hide-controls .swiper-container,
+body.hide-controls .slider {
   width: 100vw !important;
   height: 100vh !important;
   max-height: 100vh !important;
@@ -442,12 +443,7 @@ body.hide-controls .bookmark-jump-btn {
   left: 0 !important;
   margin: 0 !important;
   padding: 0 !important;
-  z-index: 1 !important;
-}
-
-/* تنسيق إضافي لضمان ثبات الصورة في وضع ملء الشاشة */
-body.hide-controls .mushaf-page {
-  height: 100vh !important;
+  z-index: 1000 !important;
   background: #faf6eb !important;
 }
 
