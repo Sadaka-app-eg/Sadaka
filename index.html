@@ -1749,12 +1749,23 @@ function playNextInQueue() {
   const span = document.getElementById(`ayah_${idx}`);
   if(span) { span.classList.add('playing'); span.scrollIntoView({behavior:'smooth',block:'center'}); }
   const audio = document.getElementById('audioPlayer');
-  audio.src = `https://cdn.islamic.network/quran/audio/128/ar.minshawi/${a.globalNumber}.mp3`;
+  
+  // 🎯 الحركة الذكية: تحويل اسم القارئ المختار للمعرف الصحيح الخاص بالآيات في الـ API
+  let reciterApiId = 'ar.minshawi'; // الافتراضي المنشاوي
+  if (currentReciter === 'husary') {
+    reciterApiId = 'ar.husary'; // الحصري
+  } else if (currentReciter === 'afs') {
+    reciterApiId = 'ar.alafasy'; // مشاري العفاسي
+  }
+  
+  // ربط الرابط بالمعرف الذكي المختار فوراً
+  audio.src = `https://cdn.islamic.network/quran/audio/128/${reciterApiId}/${a.globalNumber}.mp3`;
   audio.play();
   isPlaying = true;
   document.getElementById('playBtn').textContent = '⏸';
   document.getElementById('audioStatus').textContent = `يُشغّل الآية ${toAr(a.numberInSurah)}`;
 }
+
 
 function audioEnded() {
   if(isPlayingQueue) { currentQueueIndex++; playNextInQueue(); }
