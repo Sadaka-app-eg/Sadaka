@@ -988,7 +988,21 @@ function switchSubContent(subCat) {
   if (!container) return;
 
   const data = islamicLibraryData[subCat] || [];
-  
+  // أضف هذا الكود بعد سطر 990 مباشرة
+if (subCat === 'qa') {
+  container.innerHTML = `
+    <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-bottom:20px;">
+      <button onclick="renderQA('aqeeda')" class="mode-btn">العقيدة</button>
+      <button onclick="renderQA('fiqh')" class="mode-btn">الفقه</button>
+      <button onclick="renderQA('seerah')" class="mode-btn">السيرة</button>
+      <button onclick="renderQA('quran')" class="mode-btn">القرآن</button>
+      <button onclick="renderQA('sahaba')" class="mode-btn">الصحابة</button>
+    </div>
+    <div id="qaSubContainer"></div>
+  `;
+  return; // نخرج من الدالة هنا لأننا عرضنا الأزرار يدوياً
+}
+
   if (data.length === 0) {
     container.innerHTML = '<div style="color:var(--text2); text-align:center; padding:20px;">⏳ جاري تجهيز وكتابة بحوث هذا القسم...</div>';
     return;
@@ -1039,6 +1053,19 @@ function switchSubContent(subCat) {
       
       <!-- زر مشاركة بطاقة دعوية خفيفة -->
       <button onclick="shareLibraryItem('${item.title}', '${item.text}')" class="mode-btn" style="margin-top:10px; padding:4px 10px; font-size:11px; display:inline-block; width:auto; border-radius:6px;">🔗 مشاركة</button>
+    </div>
+  `).join('');
+}
+function renderQA(subType) {
+  const container = document.getElementById('qaSubContainer');
+  const questions = islamicLibraryData.qa[subType];
+  
+  if (!questions) return;
+
+  container.innerHTML = questions.map(item => `
+    <div class="zekr-card" style="padding:15px; margin:10px 0; background:var(--card); border-radius:14px; border-right:4px solid var(--gold);">
+      <div style="color:var(--gold); font-weight:bold; margin-bottom:8px;">❓ ${item.q}</div>
+      <div style="color:var(--text); line-height:1.7;">✅ ${item.a}</div>
     </div>
   `).join('');
 }
