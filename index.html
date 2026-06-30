@@ -1648,7 +1648,7 @@ function filterSurahs(q) {
 async function openSurah(n, targetAyahNum = null) {
   currentSurah = surahs.find(s => s.n === n);
   const screen = document.getElementById('surahScreen');
- screen.style.display = 'block';
+ 
   screen.classList.add('open');
   document.getElementById('surahScreenTitle').textContent = 'سورة ' + currentSurah.name;
   document.getElementById('favSurahBtn').textContent = favorites.includes('s'+n) ? '⭐' : '🤍';
