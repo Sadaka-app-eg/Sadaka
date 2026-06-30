@@ -1988,8 +1988,12 @@ async function renderQcfPages() {
       }
 
       return `
-  <div class="mushaf-page" style="position: relative; width: 100%; height: 100%; max-width: 100%; margin: 0 auto; overflow: hidden; background: #0b120c; display: flex; align-items: center; justify-content: center;">
-    <img src="${finalSrc}" style="width: 100%; height: auto; max-height: 100vh; object-fit: contain; display: block; margin: 0 auto;" onload="
+  <div class="mushaf-page" style="position: relative; width: 100%; height: 80vh; max-width: 100%; margin: 0 auto; overflow: hidden; background: #faf6eb; display: flex; align-items: center; justify-content: center;">
+    <!-- طبقة التحكم في إخفاء وإظهار القوائم (الخلفية كاملة) -->
+    <div onclick="document.body.classList.toggle('hide-controls')" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: auto; z-index: 5;"></div>
+
+    <!-- صورة صفحة المصحف بأبعادها الأصلية الحقيقية -->
+    <img src="${finalSrc}" style="width: 100%; height: auto; max-height: 100%; object-fit: contain; display: block; margin: 0 auto; position: relative; z-index: 6;" onload="
       (function(imgElement){
         const pNum = typeof pageNumber !== 'undefined' ? pageNumber : (typeof currentPage !== 'undefined' ? currentPage : ${i + 1});
         const overlay = imgElement.nextElementSibling;
@@ -2015,7 +2019,7 @@ async function renderQcfPages() {
                 box.style.zIndex = '99';
                 
                 box.addEventListener('click', (e) => {
-                  e.stopPropagation();
+                  e.stopPropagation(); // منع اختفاء القوائم عند تحديد الآية
                   overlay.querySelectorAll('div').forEach(d => d.style.backgroundColor = 'transparent');
                   box.style.backgroundColor = 'rgba(212, 175, 55, 0.4)';
                   alert('تم تحديد: السورة ' + word.verse_key.split(':')[0] + ' - الآية ' + word.verse_key.split(':')[1]);
@@ -2027,7 +2031,8 @@ async function renderQcfPages() {
       })(this)
     ">
     
-    <div onclick="document.body.classList.toggle('hide-controls')" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: auto; z-index: 5;"></div>
+    <!-- طبقة التحديد الشفافة فوق الصورة مباشرة -->
+    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10;"></div>
   </div>`;
 
 
