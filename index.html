@@ -411,21 +411,6 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
 /* كود السحر لإخفاء القوائم وتوسيع المصحف بالملي */
 /* كود السحر لإخفاء القوائم وتوسيع الـ Slider والمصحف بالملي */
 /* 1. إخفاء عناصر التحكم بنعومة فقط عند تفعيل الوضع */
-body.hide-controls .header, 
-body.hide-controls .tabs,
-body.hide-controls button,
-body.hide-controls .audio-player-container,
-body.hide-controls [style*="position: fixed"],
-body.hide-controls .bookmark-jump-btn {
-  opacity: 0 !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
-  transition: opacity 0.3s ease, visibility 0.3s ease !important;
-}
-
-.header, .tabs, .bookmark-jump-btn {
-  transition: opacity 0.3s ease, visibility 0.3s ease;
-}
 
 /* 2. تكبير وتثبيت المصحف ملء الشاشة "فقط وفقط" لما المستخدم يضغط ويخفي القوائم */
 body.hide-controls #quran, 
