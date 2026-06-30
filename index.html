@@ -2582,7 +2582,7 @@ function setupNafahatSystem() {
 // تشغيل الكود فور فتح التطبيق
 document.addEventListener('DOMContentLoaded', () => {
   
-  // 👇 التايمر الجديد: إخفاء شاشة الترحيب بنعومة بعد 5 ثواني بالظبط
+  // 👇 التايمر الجديد: إخفاء شاشة الترحيب بنعومة بعد 2 ثواني بالظبط
   setTimeout(() => {
     const splash = document.getElementById('splashScreen');
     if (splash) {
@@ -2590,7 +2590,7 @@ document.addEventListener('DOMContentLoaded', () => {
       splash.style.visibility = 'hidden';
       setTimeout(() => splash.remove(), 800); // حذفها تماماً من الذاكرة بعد ما تختفي
     }
-  }, 5000); // 5000 مللي ثانية تعادل 5 ثواني كاملة
+  }, 2000); // 2000 مللي ثانية تعادل 2 ثواني كاملة
 
   // بقية الكود القديم بتاع استرجاع الثيم والتبويب زي ما هو تحت...
 
