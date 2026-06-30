@@ -621,23 +621,51 @@ function switchSubContent(subCat) {
     return;
   }
 
-  // العرض القياسي الفخم لبقية الأقسام والمقالات
-  container.innerHTML = data.map((item, idx) => `
-    <div class="zekr-card" style="border-right: 3px solid var(--gold); padding: 16px; margin-bottom: 12px; background: var(--card); border-radius: 14px; position:relative;">
-      <!-- زر حفظ في المفضلة الخاصة بالمكتبة -->
-      <button onclick="toggleLibraryFav('${subCat}', ${idx}, this)" style="position:absolute; left:12px; top:12px; background:transparent; border:none; cursor:pointer; font-size:16px;">
-        ${checkLibFav(subCat, idx) ? '⭐' : '🤍'}
-      </button>
-      
-      <div class="zekr-title" style="font-size: 15px; color: var(--gold); font-weight: 700; margin-bottom: 8px; padding-left:25px;">✨ ${item.title}</div>
-      <div class="zekr-text" style="font-size: 16px; line-height: 2.1; text-align: justify; color: var(--text); font-family: 'Amiri', serif; margin-bottom: 6px; direction: rtl;">${item.text}</div>
-      ${item.source ? `<div style="font-size: 12px; color: var(--green); text-align: left; font-weight: 700;">📚 ${item.source}</div>` : ''}
-      
-      <!-- زر مشاركة بطاقة دعوية خفيفة -->
-      <button onclick="shareLibraryItem('${item.title}', '${item.text}')" class="mode-btn" style="margin-top:10px; padding:4px 10px; font-size:11px; display:inline-block; width:auto; border-radius:6px;">🔗 مشاركة</button>
-    </div>
-  `).join('');
+    // العرض القياسي الفخم لبقية الأقسام والمقالات (مع فصل وتلوين الشرح المبسط للحديث)
+  container.innerHTML = data.map((item, idx) => {
+    let formattedText = item.text;
+
+    // إذا كنا في قسم الأحاديث وهناك شرح مبسط مسبوق باللمبة
+    if (subCat === 'hadith' && item.text.includes('💡')) {
+      let parts = item.text.split('💡');
+      let hadithBody = parts[0].trim();
+      let sharhBody = parts[1].trim();
+
+      formattedText = `
+        <div class="hadith-text-body" style="color: var(--text); font-size: 16px; line-height: 2.2; margin-bottom: 14px;">
+          ${hadithBody}
+        </div>
+        <div class="hadith-sharh-box" style="background: rgba(255, 193, 7, 0.06); border-right: 3px solid var(--gold); padding: 12px; border-radius: 8px; margin-top: 10px; font-size: 14px; line-height: 1.8;">
+          <span style="color: var(--gold); font-weight: bold; display: block; margin-bottom: 4px;">💡 الشرح المبسط:</span>
+          <span style="color: var(--text2); font-style: italic;">${sharhBody.replace('الشرح المبسط:', '')}</span>
+        </div>
+      `;
+    } else {
+      // بقية الأقسام تعرض بشكل طبيعي منسق
+            // بقية الأقسام تعرض بشكل طبيعي منسق
+      formattedText = `<div style="color: var(--text); font-size: 16px; line-height: 2.1;">${item.text}</div>`;
+    }
+
+    return `
+      <div class="zekr-card" style="border-right: 3px solid var(--gold); padding: 16px; margin-bottom: 12px; background: var(--card); border-radius: 14px; position:relative;">
+        <!-- زر حفظ في المفضلة الخاصة بالمكتبة -->
+        <button onclick="toggleLibraryFav('${subCat}', ${idx}, this)" style="position:absolute; left:12px; top:12px; background:transparent; border:none; cursor:pointer; font-size:16px;">
+          ${checkLibFav(subCat, idx) ? '⭐' : '🤍'}
+        </button>
+        
+        <div class="zekr-title" style="font-size: 15px; color: var(--gold); font-weight: 700; margin-bottom: 12px; padding-left:25px;">✨ ${item.title}</div>
+        <div class="zekr-text" style="text-align: justify; font-family: 'Amiri', serif; margin-bottom: 6px; direction: rtl;">
+          ${formattedText}
+        </div>
+        ${item.source ? `<div style="font-size: 12px; color: var(--green); text-align: left; font-weight: 700;">📚 ${item.source}</div>` : ''}
+        
+        <!-- زر مشاركة بطاقة دعوية خفيفة -->
+        <button onclick="shareLibraryItem('${item.title}', '${item.text}')" class="mode-btn" style="margin-top:12px; padding:4px 10px; font-size:11px; display:inline-block; width:auto; border-radius:6px;">🔗 مشاركة</button>
+      </div>
+    `;
+  }).join('');
 }
+
 
 // دالة التحقق من إجابات الاختبارات القصيرة
 function checkQuizAnswer(qIdx, selectedIdx, correctIdx) {
