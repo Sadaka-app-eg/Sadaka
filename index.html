@@ -408,6 +408,25 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
   opacity: 1; /* يرجع واضح تماماً أول ما تلمسه */
   background: rgba(212, 175, 55, 0.9); /* ترجع الخلفية الذهبية القوية */
 }
+/* كود السحر لإخفاء القوائم وتوسيع المصحف بالملي */
+body.hide-controls .header, 
+body.hide-controls .tabs,
+body.hide-controls button,
+body.hide-controls .audio-player-container,
+body.hide-controls [style*="position: fixed"],
+body.hide-controls .bookmark-jump-btn {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  transition: opacity 0.3s ease, visibility 0.3s ease !important;
+}
+.header, .tabs, .bookmark-jump-btn {
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+#quran {
+  height: 100vh !important;
+  max-height: 100vh !important;
+}
 
 </style>
 </head>
