@@ -1453,7 +1453,8 @@ function switchSubContent(subCat) {
     return;
   }
 
-        if (subCat === 'audio') {
+        
+    cont  if (subCat === 'audio') {
     container.innerHTML = data.map((item, idx) => `
       <div class="zekr-card" style="border-right: 3px solid var(--gold); padding: 16px; margin-bottom: 12px; background: var(--card); border-radius: 14px; position:relative;">
         
@@ -1472,12 +1473,13 @@ function switchSubContent(subCat) {
           </div>
         ` : ''}
         
-        <!-- زر مشاركة ذكي ياخد الموعظة والحل بتاعها علطول -->
-        <button onclick="shareLibraryItem('${item.title}', '${item.text} ${item.problem ? '\n\n' + item.problem : ''}')" class="mode-btn" style="margin-top:10px; padding:4px 10px; font-size:11px; display:inline-block; width:auto; border-radius:6px;">🔗 مشاركة الموعظة</button>
+        <!-- التعديل السحري هنا: استدعاء ذكي برقم الكارت والقسم لمنع تعليق علامات الاقتباس -->
+        <button onclick="shareLibraryItemByIndex('${subCat}', ${idx})" class="mode-btn" style="margin-top:10px; padding:4px 10px; font-size:11px; display:inline-block; width:auto; border-radius:6px;">🔗 مشاركة الموعظة</button>
       </div>
     `).join('');
     return;
   }
+
 
 
 
@@ -1500,12 +1502,16 @@ function switchSubContent(subCat) {
 }
 
 // دالة الوسيط الجديدة لحل مشكلة الاقتباسات نهائياً
+// دالة الوسيط الجديدة لحل مشكلة الاقتباسات وجلب النص والحل معاً
 function shareLibraryItemByIndex(cat, idx) {
   const item = islamicLibraryData[cat][idx];
   if (item) {
-    shareLibraryItem(item.title, item.text);
+    // دمج الموعظة مع فقرة إيه المشكلة لو كانت موجودة لتبهر الناس في المشاركة
+    const fullText = item.text + (item.problem ? "\n\n" + item.problem : "");
+    shareLibraryItem(item.title, fullText);
   }
 }
+
 
 function renderQA(subType) {
   const container = document.getElementById('qaSubContainer');
