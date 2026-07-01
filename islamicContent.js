@@ -1577,12 +1577,7 @@ seerah: [
 
 // دالة العرض الذكية والتقليب بين الـ 16 قسماً بالملي
 
-  
-  
-
-  
-       
-function switchSubContent(subCat) {
+ function switchSubContent(subCat) {
   // إزالة الكلاس النشط من جميع الأزرار لتنظيف التنسيق
   const buttons = document.querySelectorAll('.cat-btn');
   buttons.forEach(btn => btn.classList.remove('active'));
@@ -1635,7 +1630,6 @@ function switchSubContent(subCat) {
     container.innerHTML = data.map((item, idx) => `
       <div class="zekr-card" style="border-right: 3px solid var(--gold); padding: 16px; margin-bottom: 12px; background: var(--card); border-radius: 14px; position:relative;">
         
-        <!-- زر حفظ في المفضلة -->
         <button onclick="toggleLibraryFav('${subCat}', ${idx}, this)" style="position:absolute; left:12px; top:12px; background:transparent; border:none; cursor:pointer; font-size:16px;">
           ${checkLibFav(subCat, idx) ? '⭐' : '🤍'}
         </button>
@@ -1643,48 +1637,79 @@ function switchSubContent(subCat) {
         <div class="zekr-title" style="font-size: 15px; color: var(--gold); font-weight: 700; margin-bottom: 8px; padding-left:25px;">✨ ${item.title}</div>
         <div class="zekr-text" style="font-size: 16px; line-height: 2.1; text-align: justify; color: var(--text); font-family: 'Amiri', serif; margin-bottom: 6px; direction: rtl;">${item.text}</div>
         
-        <!-- فقرة إيه المشكلة الفخمة والموسعة -->
         ${item.problem ? `
           <div style="background: rgba(212, 175, 55, 0.05); border-right: 3px solid #c5a059; border-radius: 8px; padding: 12px; margin-top: 12px; margin-bottom: 10px; font-family: 'Amiri', serif; text-align: justify; direction: rtl;">
             <div style="white-space: pre-line; font-size: 14px; line-height: 1.9; color: var(--text2);">${item.problem}</div>
           </div>
         ` : ''}
         
-        <!-- الحسم هنا: بنمرر الـ idx والـ cat ونلغي أي تداخل قديم -->
         <button onclick="shareLibraryItemByIndex('audio', ${idx})" class="mode-btn" style="margin-top:10px; padding:4px 10px; font-size:11px; display:inline-block; width:auto; border-radius:6px;">🔗 مشاركة الموعظة</button>
       </div>
     `).join('');
     return;
   }
 
-  // 🎯 العرض القياسي الفخم لبقية الأقسام والمقالات والسيرة المحدثة بالملي
-  container.innerHTML = data.map((item, idx) => `
-    <div class="zekr-card" style="border-right: 3px solid var(--gold); padding: 16px; margin-bottom: 12px; background: var(--card); border-radius: 14px; position:relative;">
-      <button onclick="toggleLibraryFav('${subCat}', ${idx}, this)" style="position:absolute; left:12px; top:12px; background:transparent; border:none; cursor:pointer; font-size:16px;">
-        ${checkLibFav(subCat, idx) ? '⭐' : '🤍'}
-      </button>
-      
-      <div class="zekr-title" style="font-size: 15px; color: var(--gold); font-weight: 700; margin-bottom: 8px; padding-left:25px;">✨ ${item.title}</div>
-      <div class="zekr-text" style="font-size: 16px; line-height: 2.1; text-align: justify; color: var(--text); font-family: 'Amiri', serif; margin-bottom: 6px; direction: rtl;">${item.text}</div>
-      
-      <!-- 📖 طباعة بوكس الدليل الشرعي المستقل والـ <small> للسيرة النبوية تلقائياً -->
-      ${item.dalil ? `
+  // 🎯 العرض القياسي الذكي والمطور لمنع تداخل الشروح والأحاديث
+  container.innerHTML = data.map((item, idx) => {
+    let mainText = item.text || "";
+    let extraBoxHtml = "";
+
+    // 1. لو الكارت جاي من السيرة وجواه متغير dalil جاهز ومفصول
+    if (item.dalil) {
+      extraBoxHtml = `
         <div class="dalil-box" style="background: rgba(212, 175, 55, 0.05); padding: 14px; border-radius: 12px; border-right: 4px solid #8b6914; margin-top: 14px; margin-bottom: 10px; text-align: justify; direction: rtl;">
           <strong style="color: #8b6914; font-size: 13px; display: block; margin-bottom: 6px;">📖 الدليل الشرعي والتوثيق:</strong>
-          <span style="font-size: 14.5px; line-height: 1.8; color: var(--text); font-style: italic;">
-            ${item.dalil}
-          </span>
+          <span style="font-size: 14.5px; line-height: 1.8; color: var(--text); font-style: italic;">${item.dalil}</span>
         </div>
-      ` : ''}
+      `;
+    } 
+    // 2. معالجة ذكية ديناميكية: لو النص القديم جواه علامة "الشرح المفصل" (زي الأحاديث)
+    else if (mainText.includes("💡 الشرح المفصل:")) {
+      const parts = mainText.split("💡 الشرح المفصل:");
+      mainText = parts[0].trim(); // عزل الحديث الشريف بالأعلى فقط
+      const explanation = parts[1].trim(); // عزل الشرح بالأسفل داخل البوكس لوحده
 
-      ${item.source ? `<div style="font-size: 12px; color: var(--green); text-align: left; font-weight: 700; margin-top: 8px;">📚 ${item.source}</div>` : ''}
-      
-      <!-- استدعاء ذكي برقم العنصر والـ القسم لمنع قفلة علامات الاقتباس -->
-      <button onclick="shareLibraryItemByIndex('${subCat}', ${idx})" class="mode-btn" style="margin-top:10px; padding:4px 10px; font-size:11px; display:inline-block; width:auto; border-radius:6px;">🔗 مشاركة</button>
-    </div>
-  `).join('');
+      extraBoxHtml = `
+        <div class="explanation-box" style="background: rgba(212, 175, 55, 0.03); padding: 14px; border-radius: 12px; border-right: 4px solid #c5a059; margin-top: 14px; margin-bottom: 10px; text-align: justify; direction: rtl;">
+          <strong style="color: #c5a059; font-size: 13px; display: block; margin-bottom: 6px;">💡 الشرح والفوائد المستفادة:</strong>
+          <span style="font-size: 14.5px; line-height: 1.8; color: var(--text2);">${explanation}</span>
+        </div>
+      `;
+    }
+    // 3. لو الكارت جواه متغير إضافي للشرح جاهز باسم problem
+    else if (item.problem) {
+      extraBoxHtml = `
+        <div class="problem-box" style="background: rgba(212, 175, 55, 0.05); padding: 14px; border-radius: 12px; border-right: 4px solid #8b6914; margin-top: 14px; margin-bottom: 10px; text-align: justify; direction: rtl;">
+          <span style="font-size: 14.5px; line-height: 1.8; color: var(--text2);">${item.problem}</span>
+        </div>
+      `;
+    }
+
+    return `
+      <div class="zekr-card" style="border-right: 3px solid var(--gold); padding: 16px; margin-bottom: 12px; background: var(--card); border-radius: 14px; position:relative;">
+        <button onclick="toggleLibraryFav('${subCat}', ${idx}, this)" style="position:absolute; left:12px; top:12px; background:transparent; border:none; cursor:pointer; font-size:16px;">
+          ${checkLibFav(subCat, idx) ? '⭐' : '🤍'}
+        </button>
+        
+        <div class="zekr-title" style="font-size: 15px; color: var(--gold); font-weight: 700; margin-bottom: 8px; padding-left:25px;">✨ ${item.title}</div>
+        <div class="zekr-text" style="font-size: 16px; line-height: 2.1; text-align: justify; color: var(--text); font-family: 'Amiri', serif; margin-bottom: 6px; direction: rtl;">${mainText}</div>
+        
+        ${extraBoxHtml}
+
+        ${item.source ? `<div style="font-size: 12px; color: var(--green); text-align: left; font-weight: 700; margin-top: 8px;">📚 ${item.source}</div>` : ''}
+        
+        <button onclick="shareLibraryItemByIndex('${subCat}', ${idx})" class="mode-btn" style="margin-top:10px; padding:4px 10px; font-size:11px; display:inline-block; width:auto; border-radius:6px;">🔗 مشاركة</button>
+      </div>
+    `;
+  }).join('');
 }
+ 
+  
 
+  
+       
+      
+        
 // دالة الوسيط المطورة لضبط حجم الاستوري واستبعاد الكلام الطويل في المواعظ والـ داليل الشرعي
 function shareLibraryItemByIndex(cat, idx) {
   const item = islamicLibraryData[cat][idx];
