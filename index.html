@@ -2970,6 +2970,31 @@ function closeShareModal() {
   document.getElementById('share-modal').style.display = 'none';
 }
 
+function shareAsText() {
+  // 1. بنجيب النص والعنوان اللي التطبيق حفظهم لما المستخدم داس على الكارت
+  if (!currentShareTitle || !currentShareText) {
+    alert("عفواً، لم يتم تحديد النص بشكل صحيح.");
+    return;
+  }
+
+  // 2. بننسق النص بشكل فخم وجاهز للمشاركة
+  const fullText = `📚 *${currentShareTitle}*\n\n${currentShareText}\n\n• من المكتبة العلمية لتطبيق صدقة جارية •`;
+
+  // 3. بنفتح قائمة المشاركة الرسمية بتاعة الموبايل
+  if (navigator.share) {
+    navigator.share({
+      title: currentShareTitle,
+      text: fullText
+    }).then(() => {
+      closeShareModal(); // بنقفل القائمة بعد ما يشارك بنجاح
+    }).catch(err => console.log("تم إلغاء المشاركة أو حدث خطأ", err));
+  } else {
+    // لو المتصفح مش بيدعم المشاركة الرسمية، بنسخها له تلقائي
+    navigator.clipboard.writeText(fullText);
+    alert('تم نسخ نص الفائدة بنجاح! يمكنك لصقها الآن في أي مكان. ✓');
+    closeShareModal();
+  }
+}
 
 </script>
  <script src="asma2.js"></script>
