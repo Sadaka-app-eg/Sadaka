@@ -2804,10 +2804,7 @@ const quranThemes = {
 
 // دالة تطبيق ثيم جاهز بالكامل
 
-
-// دالة تعديل لون مخصص حتة حتة وحفظه في ثيم المستخدم الخاص
-
-// دالة تطبيق ثيم جاهز بالكامل (معدلة ومؤمنة بالملي على قد الـ HTML بتاعك)
+// دالة تطبيق ثيم جاهز بالكامل (النسخة الموسعة الشاملة)
 function applyPresetTheme(themeKey) {
   const theme = quranThemes[themeKey];
   if (!theme) return;
@@ -2820,32 +2817,53 @@ function applyPresetTheme(themeKey) {
   localStorage.setItem('active_quran_theme', themeKey);
   localStorage.removeItem('custom_user_theme');
   
-  // تحديث الـ Inputs الموجودة فقط في الـ HTML منعاً لأي قفلة
+  // تحديث قيم الـ Inputs في الشاشة لتتطابق مع الثيم الجاهز
   const inputBg = document.getElementById('customBg');
+  const inputBg2 = document.getElementById('customBg2');
   const inputText = document.getElementById('customText');
+  const inputText2 = document.getElementById('customText2');
+  const inputGold = document.getElementById('customGold');
+  const inputCard = document.getElementById('customCard');
 
   if (inputBg) inputBg.value = theme.bg;
+  if (inputBg2) inputBg2.value = theme.bg2;
   if (inputText) inputText.value = theme.text;
+  if (inputText2) inputText2.value = theme.text2;
+  if (inputGold) inputGold.value = theme.gold;
+  if (inputCard) inputCard.value = theme.bg2; // تقريب لوني للرسم
 }
 
 // دالة تعديل لون مخصص حتة حتة وحفظه في ثيم المستخدم الخاص
 function applyCustomColor(key, value) {
   const root = document.documentElement;
-  root.style.setProperty(`--${key}`, value);
   
-  // توليد بعض التبعيات تلقائياً لتناسق الشكل
+  if (key === 'cardColor') {
+    // لو غير لون الكروت، بنحطها بشفافية فخمة
+    root.style.setProperty('--card', value);
+  } else {
+    root.style.setProperty(`--${key}`, value);
+  }
+  
+  // ضبط تلقائي للبوردرات والـ bg3 بناءً على اختيارات المستخدم
   if (key === 'bg') {
-    root.style.setProperty('--card', 'rgba(255, 255, 255, 0.03)');
-    root.style.setProperty('--bg2', value); // تأمين الخلفية الثانية
-    root.style.setProperty('--bg3', value); // تأمين الخلفية الثالثة
+    root.style.setProperty('--bg3', value);
+  }
+  if (key === 'gold') {
+    root.style.setProperty('--border', value + '14'); // بوردر شفاف ذهبي ناعم
   }
 
   let customTheme = JSON.parse(localStorage.getItem('custom_user_theme') || '{}');
-  customTheme[key] = value;
   
-  // سد الفراغات
-  if (!customTheme.bg2) customTheme.bg2 = customTheme.bg || '#0b120c';
+  if (key === 'cardColor') {
+    customTheme['card'] = value;
+  } else {
+    customTheme[key] = value;
+  }
+  
+  // سد الفراغات لضمان الاستقرار الكلي للثيم المخصص
+  if (!customTheme.bg2) customTheme.bg2 = customTheme.bg || '#121e14';
   if (!customTheme.bg3) customTheme.bg3 = customTheme.bg || '#0b120c';
+  if (!customTheme.text) customTheme.text = '#f4f6f4';
   if (!customTheme.text2) customTheme.text2 = '#9aa79c';
   if (!customTheme.gold) customTheme.gold = '#d4af37';
   if (!customTheme.border) customTheme.border = 'rgba(212, 175, 55, 0.08)';
@@ -2867,14 +2885,24 @@ function loadSavedThemeSystem() {
     }
     
     const inputBg = document.getElementById('customBg');
+    const inputBg2 = document.getElementById('customBg2');
     const inputText = document.getElementById('customText');
+    const inputText2 = document.getElementById('customText2');
+    const inputGold = document.getElementById('customGold');
+    const inputCard = document.getElementById('customCard');
 
     if (inputBg) inputBg.value = customTheme.bg || '#0b120c';
+    if (inputBg2) inputBg2.value = customTheme.bg2 || '#121e14';
     if (inputText) inputText.value = customTheme.text || '#f4f6f4';
+    if (inputText2) inputText2.value = customTheme.text2 || '#9aa79c';
+    if (inputGold) inputGold.value = customTheme.gold || '#d4af37';
+    if (inputCard) inputCard.value = customTheme.card || '#121e14';
   } else {
     applyPresetTheme(activeType);
   }
 }
+
+
 
 function getTodayHijriEvent() {
   const container = document.getElementById('islamicCardsContainer');
