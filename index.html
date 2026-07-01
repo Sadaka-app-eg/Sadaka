@@ -3319,6 +3319,68 @@ window.finishLogin = function(name) { if(typeof window.realFinishLogin === 'func
       if (typeof checkAuthAndBlock === 'function') checkAuthAndBlock();
     }
   });
+ // 🚀 1. دالة تسجيل الـ Service Worker وطلب صلاحية الإشعارات
+function initNotificationSystem() {
+  if ('serviceWorker' in navigator && 'Notification' in window) {
+    
+    navigator.serviceWorker.register('/Sadaka/sw.js') // تأكد من المسار الصحيح للملف عندك
+    .then((reg) => {
+      console.log('تم تسجيل عامل الخدمة بنجاح!');
+
+      // فحص إذا كان إذن الإشعارات مفعلاً مسبقاً أو يحتاج لطلب
+      if (Notification.permission === 'default') {
+        Notification.requestPermission().then((permission) => {
+          if (permission === 'granted') {
+            askUserForReminderInterval(reg);
+          }
+        });
+      } else if (Notification.permission === 'granted') {
+        // لو وافق قبل كدة، بنخليه يختار المدة أو نثبتها
+        askUserForReminderInterval(reg);
+      }
+    }).catch(err => console.error('خطأ في تسجيل الـ Service Worker:', err));
+  }
+}
+
+// ⏱️ 2. دالة سؤال المستخدم عن المدة وإرسالها فوراً للخلفية تلقائياً
+function askUserForReminderInterval(registration) {
+  // بنعرض نافذة اختيار مبدئية شيك ومبسطة للمستخدم (تقدر تطورها لـ Modal في الـ UI بعدين)
+  // سألناه يدخل المدة بالدقائق
+  let minutesInput = prompt("✨ تم تفعيل الإشعارات بنجاح!\nتحب يجيلك إشعار تذكيري كل كم دقيقة؟\n(مثال: اكتب 60 لتذكير كل ساعة، أو 5 لتذكير سريع):", "60");
+  
+  let minutes = parseInt(minutesInput);
+
+  // التأكد من أن المستخدم أدخل رقماً صحيحاً
+  if (!isNaN(minutes) && minutes > 0) {
+    
+    // التأكد من أن الـ Service Worker نشط وجاهز لاستقبال الرسائل
+    if (registration.active) {
+      registration.active.postMessage({
+        type: 'SET_INTERVAL',
+        minutes: minutes
+      });
+      alert(`🎯 تم ضبط التذكير التلقائي بنجاح! سيصلك ذكر مبارك كل ${minutes} دقيقة.`);
+    } else {
+      // حالة احتياطية لو الـ sw لسه بيعمل التفعيل لأول مرة
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        navigator.serviceWorker.controller.postMessage({
+          type: 'SET_INTERVAL',
+          minutes: minutes
+        });
+      });
+    }
+    
+  } else {
+    alert("⚠️ لم يتم إدخال مدة صحيحة، تم تفعيل التذكير على المدة الافتراضية (60 دقيقة).");
+  }
+}
+
+// 💥 تشغيل المنظومة تلقائياً عند فتح التطبيق واستقرار الواجهة
+document.addEventListener('DOMContentLoaded', () => {
+  // تأخير بسيط لمدة ثانية لراحة العين وضمان تحميل كامل عناصر الـ DOM
+  setTimeout(initNotificationSystem, 1000);
+});
+
 </script>
 
 </body>
