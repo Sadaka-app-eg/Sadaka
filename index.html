@@ -1742,7 +1742,7 @@ document.getElementById('mushafSlider').scrollLeft = 0;
       pagesDict[a.page].push({...a, originalIndex: i});
     });
 
-    const pageNums = Object.keys(pagesDict);
+    window.pageNums = Object.keys(pagesDict);
     let sliderHtml = '';
 
     pageNums.forEach((pageNum, pageIndex) => {
@@ -1778,13 +1778,7 @@ document.getElementById('mushafSlider').scrollLeft = 0;
 
     document.getElementById('mushafSlider').innerHTML = sliderHtml;
 
-    if (pageNums.length > 1) {
-      const dotsHtml = pageNums.map((_, i) =>
-        `<div class="page-dot ${i===0?'active':''}" id="dot_${i}"></div>`
-      ).join('');
-      document.getElementById('pageDots').innerHTML = dotsHtml;
-
-        const slider = document.getElementById('mushafSlider');
+     const slider = document.getElementById('mushafSlider');
 
 // متغيرات ذكية لمراقبة حركة الصباع بدقة ومنع التكرار
 let isSwitchingSurah = false;
@@ -1792,9 +1786,9 @@ let touchStartX = 0;
 
 // 1. تحديث الـ Dots الأساسية بتاعتك أثناء التمرير العادي
 slider.addEventListener('scroll', () => {
-  if (!pageNums || pageNums.length === 0) return;
+  if (!window.pageNums || window.pageNums.length === 0) return;
   const idx = Math.abs(Math.round(slider.scrollLeft / window.innerWidth));
-  pageNums.forEach((_, i) => {
+  window.pageNums.forEach((_, i) => {
     const d = document.getElementById('dot_' + idx);
     if (d) d.classList.add('active');
     pageNums.forEach((_, j) => {
@@ -1813,18 +1807,18 @@ slider.addEventListener('touchstart', (e) => {
 
 // 3. السحر كله هنا: حساب اتجاه السحبة الفعلي عند رفع صباعك من على الشاشة
 slider.addEventListener('touchend', (e) => {
-  if (isSwitchingSurah || !pageNums || pageNums.length === 0) return;
+  if (isSwitchingSurah || !window.pageNums || window.pageNums.length === 0) return;
   
   const touchEndX = e.changedTouches[0].screenX;
   const swipeDistance = touchEndX - touchStartX; // فرق المسافة بين بداية ونهاية السحبة
   const idx = Math.abs(Math.round(slider.scrollLeft / window.innerWidth));
 
-  // 🎯 في الـ RTL (تطبيقك): 
-  // السحب من اليمين لِلْيَسَار (صباعك بيتحرك شمال يعني المسافة سالبة) = تقدم للامام (من الفاتحة للبقرة)
-  // السحب من اليسار لِلْيَمِين (صباعك بيتحرك يمين يعني المسافة موجبة) = رجوع للخلف (من البقرة للفاتحة)
+  // 🎯 في الـ RTL:
+  // السحب لليسار (صباعك بيتحرك شمال يعني swipeDistance سالب) = تقدم للامام (من الفاتحة للبقرة)
+  // السحب لليمين (صباعك بيتحرك يمين يعني swipeDistance موجب) = رجوع للخلف (من البقرة للفاتحة)
 
-  // 🔥 شرط الانتقال للسورة التالية: واقف في آخر صفحة وسحبت لليسار (swipeDistance < -30)
-  if (idx === pageNums.length - 1 && swipeDistance < -30 && currentSurah.n < 114) {
+  // 🔥 شرط الانتقال للسورة التالية: واقف في آخر صفحة (idx === window.pageNums.length - 1) وسحبت لليسار
+  if (idx === window.pageNums.length - 1 && swipeDistance < -40 && currentSurah.n < 114) {
     isSwitchingSurah = true;
     const nextSurahNum = currentSurah.n + 1;
     stopAudio();
@@ -1832,8 +1826,8 @@ slider.addEventListener('touchend', (e) => {
     setTimeout(() => { isSwitchingSurah = false; }, 1000);
   }
 
-  // 🔥 شرط العودة للسورة السابقة: واقف في أول صفحة وسحبت لليمين (swipeDistance > 30)
-  if (idx === 0 && swipeDistance > 30 && currentSurah.n > 1) {
+  // 🔥 شرط العودة للسورة السابقة: واقف في أول صفحة (idx === 0) وسحبت لليمين
+  if (idx === 0 && swipeDistance > 40 && currentSurah.n > 1) {
     isSwitchingSurah = true;
     const prevSurahNum = currentSurah.n - 1;
     stopAudio();
@@ -1850,7 +1844,7 @@ slider.addEventListener('touchend', (e) => {
     setTimeout(() => { isSwitchingSurah = false; }, 1000);
   }
 }, {passive: true});
-  
+
 
 
     }
