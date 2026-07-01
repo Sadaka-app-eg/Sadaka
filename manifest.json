@@ -3,9 +3,10 @@
   "short_name": "صدقة جارية",
   "start_url": "/Sadaka/index.html",
   "scope": "/Sadaka/",
-  "display": "standalone",
+  "display": "fullscreen",
+
       "background_color": "#000000",
-    "theme_color": "#000000",
+    "theme_color": "#1a1a2e",
 
   "lang": "ar",
   "icons": [
