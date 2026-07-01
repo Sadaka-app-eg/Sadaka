@@ -1454,7 +1454,7 @@ function switchSubContent(subCat) {
   }
 
         
-     if (subCat === 'audio') {
+       if (subCat === 'audio') {
     container.innerHTML = data.map((item, idx) => `
       <div class="zekr-card" style="border-right: 3px solid var(--gold); padding: 16px; margin-bottom: 12px; background: var(--card); border-radius: 14px; position:relative;">
         
@@ -1473,12 +1473,13 @@ function switchSubContent(subCat) {
           </div>
         ` : ''}
         
-        <!-- التعديل السحري هنا: استدعاء ذكي برقم الكارت والقسم لمنع تعليق علامات الاقتباس -->
-        <button onclick="shareLibraryItemByIndex('${subCat}', ${idx})" class="mode-btn" style="margin-top:10px; padding:4px 10px; font-size:11px; display:inline-block; width:auto; border-radius:6px;">🔗 مشاركة الموعظة</button>
+        <!-- الحسم هنا: بنمرر الـ idx والـ cat ونلغي أي تداخل قديم -->
+        <button onclick="shareLibraryItemByIndex('audio', ${idx})" class="mode-btn" style="margin-top:10px; padding:4px 10px; font-size:11px; display:inline-block; width:auto; border-radius:6px;">🔗 مشاركة الموعظة</button>
       </div>
     `).join('');
     return;
   }
+
 
 
 
@@ -1503,15 +1504,16 @@ function switchSubContent(subCat) {
 
 // دالة الوسيط الجديدة لحل مشكلة الاقتباسات نهائياً
 // دالة الوسيط المطورة لضبط حجم الاستوري واستبعاد الكلام الطويل في المواعظ
+
 function shareLibraryItemByIndex(cat, idx) {
   const item = islamicLibraryData[cat][idx];
   if (item) {
     if (cat === 'audio') {
-      // لو في قسم المواعظ، بناخد العنوان والـ problem بس عشان الصورة تطلع فخمة ومتناسقة
+      // إجبار الرسام على أخذ الـ problem والحل فقط واستبعاد النص الطويل تماماً
       const cleanProblem = item.problem ? item.problem : item.text;
       shareLibraryItem(item.title, cleanProblem);
     } else {
-      // لبقية الأقسام (فقه، أحاديث، إلخ) بتشتغل طبيعي جداً بالدمج المعتاد
+      // بقية الأقسام تشتغل طبيعي بالدمج
       const fullText = item.text + (item.problem ? "\n\n" + item.problem : "");
       shareLibraryItem(item.title, fullText);
     }
