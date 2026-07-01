@@ -3180,7 +3180,16 @@ async function shareAsImage() {
 }
 
 
-  
+  // كود تأمين ظهور الترحيب والاسم بعد إخفاء الـ Splash واستقرار الثيمات
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    const savedName = localStorage.getItem('user_display_name');
+    if (savedName && typeof finishLogin === 'function') {
+      finishLogin(savedName);
+    }
+  }, 2200); // خليناها 2.2 ثانية عشان تطلع بالملي أول ما الشاشة السوداء تفتح
+});
+
 
 </script>
  <script src="asma2.js"></script>
