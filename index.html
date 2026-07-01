@@ -1689,6 +1689,8 @@ function filterSurahs(q) {
 // ===========================
  // تعديل السطر الأول للدالة ليصبح هكذا
 
+
+  // 1️⃣ أولاً: دالة فتح السورة وبناء الصفحات (نظيفة وبدون تداخل أحداث)
 async function openSurah(n, targetAyahNum = null) {
   currentSurah = surahs.find(s => s.n === n);
   const screen = document.getElementById('surahScreen');
@@ -1697,10 +1699,8 @@ async function openSurah(n, targetAyahNum = null) {
   document.getElementById('surahScreenTitle').textContent = 'سورة ' + currentSurah.name;
   document.getElementById('favSurahBtn').textContent = favorites.includes('s'+n) ? '⭐' : '🤍';
   
-  // شيلنا دالة fitPageText من هنا تماماً عشان نلغي التحكم العشوائي في الخط
   document.getElementById('mushafSlider').innerHTML = '<div style="width:100%;text-align:center;padding:50px;color:#8b6914;font-family:Amiri,serif;font-size:18px;">⏳ جاري تحميل السورة...</div>';
   
-  // إظهار الوقف لو موجود
   const bm = JSON.parse(localStorage.getItem('quran_bookmark') || 'null');
   if(bm && bm.surah === n) {
     setTimeout(() => {
@@ -1725,8 +1725,9 @@ async function openSurah(n, targetAyahNum = null) {
   try {
     const r = await fetch(`https://api.alquran.cloud/v1/surah/${n}/editions/quran-uthmani,ar.muyassar`);
     const d = await r.json();
-window.pageNums = []; 
-document.getElementById('mushafSlider').scrollLeft = 0;
+    
+    window.pageNums = []; 
+    document.getElementById('mushafSlider').scrollLeft = 0;
 
     currentAyahsData = d.data[0].ayahs.map((a, i) => ({
       text: a.text,
@@ -1745,8 +1746,7 @@ document.getElementById('mushafSlider').scrollLeft = 0;
     window.pageNums = Object.keys(pagesDict);
     let sliderHtml = '';
 
-    pageNums.forEach((pageNum, pageIndex) => {
-      // إعطاء أبعاد ثابتة ومريحة للـ مصفح بيج ليسمح بالـ scroll الطبيعي للأسفل والخط الواضح
+    window.pageNums.forEach((pageNum, pageIndex) => {
       sliderHtml += `<div class="mushaf-page" id="mpage_${pageNum}" style="flex:0 0 100vw; width:100vw; padding:20px 24px 40px; overflow-y:auto; font-size:25px; line-height:2.4; word-spacing:4px; text-align:justify; text-justify:inter-word;">`;
 
       if (pageIndex === 0) {
@@ -1763,7 +1763,7 @@ document.getElementById('mushafSlider').scrollLeft = 0;
           txt = txt.replace(/^بِسْمِ[\s\S]+?الرَّحِيمِ\s*/, '');
         }
         return `<span class="ayah-span" id="ayah_${a.originalIndex}"
-        onclick="handleAyahClick(${a.originalIndex})"
+          onclick="handleAyahClick(${a.originalIndex})"
           oncontextmenu="event.preventDefault();"
           onmousedown="startPress(event,${a.originalIndex})"
           ontouchstart="startPress(event,${a.originalIndex})"
@@ -1778,20 +1778,47 @@ document.getElementById('mushafSlider').scrollLeft = 0;
 
     document.getElementById('mushafSlider').innerHTML = sliderHtml;
 
-     const slider = document.getElementById('mushafSlider');
+    if (window.pageNums.length > 1) {
+      document.getElementById('pageDots').innerHTML = window.pageNums.map((_, i) =>
+        `<div class="page-dot ${i===0?'active':''}" id="dot_${i}"></div>`
+      ).join('');
+    }
 
-// متغيرات ذكية لمراقبة حركة الصباع بدقة ومنع التكرار
+    if (targetAyahNum !== null) {
+      setTimeout(() => {
+        const targetIdx = currentAyahsData.findIndex(a => a.numberInSurah === targetAyahNum);
+        if (targetIdx !== -1) {
+          const el = document.getElementById('ayah_' + targetIdx);
+          if (el) {
+            const ayahPage = currentAyahsData[targetIdx].page;
+            const pageEl = document.getElementById('mpage_' + ayahPage);
+            if (pageEl) pageEl.scrollIntoView({ behavior: 'auto' });
+            el.style.background = 'rgba(255,215,0,0.3)';
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => { el.style.background = ''; }, 2500);
+          }
+        }
+      }, 600);
+    }
+
+  } catch(e) {
+    console.error(e);
+    document.getElementById('mushafSlider').innerHTML = '<div style="width:100%;text-align:center;padding:50px;color:#8b6914;font-family:Amiri,serif;font-size:18px;">تحتاج اتصال بالإنترنت 🌐</div>';
+  }
+}
+
+// 2️⃣ ثانياً: الأحداث المستقلة برة الدالة (مستقرة وجلوبال للأبد)
 let isSwitchingSurah = false;
 let touchStartX = 0;
 
-// 1. تحديث الـ Dots الأساسية بتاعتك أثناء التمرير العادي
-slider.addEventListener('scroll', () => {
+document.getElementById('mushafSlider').addEventListener('scroll', () => {
   if (!window.pageNums || window.pageNums.length === 0) return;
+  const slider = document.getElementById('mushafSlider');
   const idx = Math.abs(Math.round(slider.scrollLeft / window.innerWidth));
   window.pageNums.forEach((_, i) => {
     const d = document.getElementById('dot_' + idx);
     if (d) d.classList.add('active');
-    pageNums.forEach((_, j) => {
+    window.pageNums.forEach((_, j) => {
       if (j !== idx) {
         const od = document.getElementById('dot_' + j);
         if (od) od.classList.remove('active');
@@ -1800,24 +1827,19 @@ slider.addEventListener('scroll', () => {
   });
 }, {passive: true});
 
-// 2. لقط نقطة بداية لمس الشاشة بصباعك
-slider.addEventListener('touchstart', (e) => {
+document.getElementById('mushafSlider').addEventListener('touchstart', (e) => {
   touchStartX = e.changedTouches[0].screenX;
 }, {passive: true});
 
-// 3. السحر كله هنا: حساب اتجاه السحبة الفعلي عند رفع صباعك من على الشاشة
-slider.addEventListener('touchend', (e) => {
+document.getElementById('mushafSlider').addEventListener('touchend', (e) => {
   if (isSwitchingSurah || !window.pageNums || window.pageNums.length === 0) return;
   
+  const slider = document.getElementById('mushafSlider');
   const touchEndX = e.changedTouches[0].screenX;
-  const swipeDistance = touchEndX - touchStartX; // فرق المسافة بين بداية ونهاية السحبة
+  const swipeDistance = touchEndX - touchStartX; 
   const idx = Math.abs(Math.round(slider.scrollLeft / window.innerWidth));
 
-  // 🎯 في الـ RTL:
-  // السحب لليسار (صباعك بيتحرك شمال يعني swipeDistance سالب) = تقدم للامام (من الفاتحة للبقرة)
-  // السحب لليمين (صباعك بيتحرك يمين يعني swipeDistance موجب) = رجوع للخلف (من البقرة للفاتحة)
-
-  // 🔥 شرط الانتقال للسورة التالية: واقف في آخر صفحة (idx === window.pageNums.length - 1) وسحبت لليسار
+  // الانتقال للسورة التالية (سحب لليسار)
   if (idx === window.pageNums.length - 1 && swipeDistance < -40 && currentSurah.n < 114) {
     isSwitchingSurah = true;
     const nextSurahNum = currentSurah.n + 1;
@@ -1826,17 +1848,15 @@ slider.addEventListener('touchend', (e) => {
     setTimeout(() => { isSwitchingSurah = false; }, 1000);
   }
 
-  // 🔥 شرط العودة للسورة السابقة: واقف في أول صفحة (idx === 0) وسحبت لليمين
+  // العودة للسورة السابقة (سحب لليمين)
   if (idx === 0 && swipeDistance > 40 && currentSurah.n > 1) {
     isSwitchingSurah = true;
     const prevSurahNum = currentSurah.n - 1;
     stopAudio();
-    
     openSurah(prevSurahNum).then(() => {
       setTimeout(() => {
         const prevSlider = document.getElementById('mushafSlider');
         if (prevSlider) {
-          // دفع السلايدر لآخر صفحة في السورة السابقة أوتوماتيكياً متوافق مع الـ RTL
           prevSlider.scrollLeft = -prevSlider.scrollWidth;
         }
       }, 400);
@@ -1845,9 +1865,7 @@ slider.addEventListener('touchend', (e) => {
   }
 }, {passive: true});
 
-
-
-    }
+  
 
     if (targetAyahNum !== null) {
       setTimeout(() => {
