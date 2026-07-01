@@ -1454,7 +1454,7 @@ function switchSubContent(subCat) {
   }
 
         
-    cont  if (subCat === 'audio') {
+     if (subCat === 'audio') {
     container.innerHTML = data.map((item, idx) => `
       <div class="zekr-card" style="border-right: 3px solid var(--gold); padding: 16px; margin-bottom: 12px; background: var(--card); border-radius: 14px; position:relative;">
         
