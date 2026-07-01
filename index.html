@@ -2780,29 +2780,6 @@ const quranThemes = {
 
 // دالة تطبيق ثيم جاهز بالكامل
 
-function applyPresetTheme(themeKey) {
-  const theme = quranThemes[themeKey];
-  if (!theme) return;
-  
-  const root = document.documentElement;
-  for (const [key, value] of Object.entries(theme)) {
-    root.style.setProperty(`--${key}`, value);
-  }
-  
-  localStorage.setItem('active_quran_theme', themeKey);
-  localStorage.removeItem('custom_user_theme');
-  
-  // التحقق الآمن بالملي منعاً للانهيار 👇
-  const inputBg = document.getElementById('customBg');
-  const inputBg2 = document.getElementById('customBg2');
-  const inputGold = document.getElementById('customGold');
-  const inputText = document.getElementById('customText');
-
-  if (inputBg) inputBg.value = theme.bg;
-  if (inputBg2) inputBg2.value = theme.bg2;
-  if (inputGold) inputGold.value = theme.gold;
-  if (inputText) inputText.value = theme.text;
-}
 
 // دالة تعديل لون مخصص حتة حتة وحفظه في ثيم المستخدم الخاص
 function applyCustomColor(key, value) {
