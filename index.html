@@ -2151,26 +2151,38 @@ function toggleMushafNight() {
   
   if (mushafNight) {
     // 🌙 وضع المصحف الداكن (أسود وذهبي فخم)
+    
+    // 1. إصلاح النص العثماني: خلفية داكنة + خط ذهبي فاتح مقروء
     pages.forEach(p => {
-      p.style.background = '#0b120c'; // خلفية داكنة فخمة متناسقة مع التطبيق
+      p.style.background = '#0b120c'; 
+      p.style.color = '#f0d090'; // لون الخط العثماني في الوضع الليلي
     });
     
-    // قلب ألوان صورة المصحف لأسود بالملي
+    // 2. إصلاح المصحف المصور: عكس الألوان
     qcfImages.forEach(img => {
       img.style.filter = 'invert(1) hue-rotate(180deg) brightness(1.05) contrast(1.1)';
     });
     
+    // 3. إصلاح الحافة البيضاء السفلية: صبغ خلفية الشاشة بالكامل بالأسود
+    document.getElementById('surahScreen').style.background = '#0b120c';
+    
     if (btn) btn.textContent = '☀️';
   } else {
     // ☀️ وضع المصحف الفاتح (الأبيض الكلاسيكي الأصلي)
+    
+    // 1. إرجاع النص العثماني لطبيعته: خلفية عاجي + خط أسود
     pages.forEach(p => {
-      p.style.background = '#fbf7ed'; // اللون العاجي المريح للأصل
+      p.style.background = '#fbf7ed'; 
+      p.style.color = '#1a1105'; // لون الخط العثماني في الوضع الفاتح
     });
     
-    // إعادة الصورة لأصلها الأبيض النقي
+    // 2. إرجاع المصحف المصور لأصله
     qcfImages.forEach(img => {
       img.style.filter = 'none';
     });
+    
+    // 3. إرجاع خلفية الشاشة الأساسية للون العاجي
+    document.getElementById('surahScreen').style.background = '#fbf7ed';
     
     if (btn) btn.textContent = '🌙';
   }
