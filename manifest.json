@@ -1,22 +1,20 @@
 {
-  "name": "صدقة جارية عن شيماء سعيد",
-  "short_name": "صدقة جارية",
+  "name": "أثر - صدقة جارية",
+  "short_name": "أثر",
   "start_url": "/Sadaka/index.html",
   "scope": "/Sadaka/",
   "display": "fullscreen",
-
-      "background_color": "#000000",
-    "theme_color": "#1a1a2e",
-
+  "background_color": "#0a0a0a",
+  "theme_color": "#111111",
   "lang": "ar",
   "icons": [
     {
-      "src": "https://img.icons8.com/emoji/192/crescent-moon-emoji.png",
+      "src": "icon.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "https://img.icons8.com/emoji/512/crescent-moon-emoji.png",
+      "src": "icon.png",
       "sizes": "512x512",
       "type": "image/png"
     }
