@@ -1576,6 +1576,12 @@ seerah: [
 
 
 // دالة العرض الذكية والتقليب بين الـ 16 قسماً بالملي
+
+  
+  
+
+  
+       
 function switchSubContent(subCat) {
   // إزالة الكلاس النشط من جميع الأزرار لتنظيف التنسيق
   const buttons = document.querySelectorAll('.cat-btn');
@@ -1625,8 +1631,7 @@ function switchSubContent(subCat) {
     return;
   }
 
-        
-       if (subCat === 'audio') {
+  if (subCat === 'audio') {
     container.innerHTML = data.map((item, idx) => `
       <div class="zekr-card" style="border-right: 3px solid var(--gold); padding: 16px; margin-bottom: 12px; background: var(--card); border-radius: 14px; position:relative;">
         
@@ -1652,12 +1657,7 @@ function switchSubContent(subCat) {
     return;
   }
 
-
-
-
-
-
-  // العرض القياسي الفخم لبقية الأقسام والمقالات (تم تعديل استدعاء المشاركة هنا بالملي)
+  // 🎯 العرض القياسي الفخم لبقية الأقسام والمقالات والسيرة المحدثة بالملي
   container.innerHTML = data.map((item, idx) => `
     <div class="zekr-card" style="border-right: 3px solid var(--gold); padding: 16px; margin-bottom: 12px; background: var(--card); border-radius: 14px; position:relative;">
       <button onclick="toggleLibraryFav('${subCat}', ${idx}, this)" style="position:absolute; left:12px; top:12px; background:transparent; border:none; cursor:pointer; font-size:16px;">
@@ -1666,7 +1666,18 @@ function switchSubContent(subCat) {
       
       <div class="zekr-title" style="font-size: 15px; color: var(--gold); font-weight: 700; margin-bottom: 8px; padding-left:25px;">✨ ${item.title}</div>
       <div class="zekr-text" style="font-size: 16px; line-height: 2.1; text-align: justify; color: var(--text); font-family: 'Amiri', serif; margin-bottom: 6px; direction: rtl;">${item.text}</div>
-      ${item.source ? `<div style="font-size: 12px; color: var(--green); text-align: left; font-weight: 700;">📚 ${item.source}</div>` : ''}
+      
+      <!-- 📖 طباعة بوكس الدليل الشرعي المستقل والـ <small> للسيرة النبوية تلقائياً -->
+      ${item.dalil ? `
+        <div class="dalil-box" style="background: rgba(212, 175, 55, 0.05); padding: 14px; border-radius: 12px; border-right: 4px solid #8b6914; margin-top: 14px; margin-bottom: 10px; text-align: justify; direction: rtl;">
+          <strong style="color: #8b6914; font-size: 13px; display: block; margin-bottom: 6px;">📖 الدليل الشرعي والتوثيق:</strong>
+          <span style="font-size: 14.5px; line-height: 1.8; color: var(--text); font-style: italic;">
+            ${item.dalil}
+          </span>
+        </div>
+      ` : ''}
+
+      ${item.source ? `<div style="font-size: 12px; color: var(--green); text-align: left; font-weight: 700; margin-top: 8px;">📚 ${item.source}</div>` : ''}
       
       <!-- استدعاء ذكي برقم العنصر والـ القسم لمنع قفلة علامات الاقتباس -->
       <button onclick="shareLibraryItemByIndex('${subCat}', ${idx})" class="mode-btn" style="margin-top:10px; padding:4px 10px; font-size:11px; display:inline-block; width:auto; border-radius:6px;">🔗 مشاركة</button>
@@ -1674,23 +1685,26 @@ function switchSubContent(subCat) {
   `).join('');
 }
 
-// دالة الوسيط الجديدة لحل مشكلة الاقتباسات نهائياً
-// دالة الوسيط المطورة لضبط حجم الاستوري واستبعاد الكلام الطويل في المواعظ
-
+// دالة الوسيط المطورة لضبط حجم الاستوري واستبعاد الكلام الطويل في المواعظ والـ داليل الشرعي
 function shareLibraryItemByIndex(cat, idx) {
   const item = islamicLibraryData[cat][idx];
   if (item) {
     if (cat === 'audio') {
-      // إجبار الرسام على أخذ الـ problem والحل فقط واستبعاد النص الطويل تماماً
       const cleanProblem = item.problem ? item.problem : item.text;
       shareLibraryItem(item.title, cleanProblem);
     } else {
-      // بقية الأقسام تشتغل طبيعي بالدمج
-      const fullText = item.text + (item.problem ? "\n\n" + item.problem : "");
-      shareLibraryItem(item.title, fullText);
+      // دمج النص مع الدليل الشرعي البديل لو وُجد عشان يروح في المشاركة كامل وموثق
+      // لتنقية نصوص الـ <small> عشان تتبعت كـ نص سادة في الواتساب أو الماسنجر
+      let textToShare = item.text;
+      if (item.dalil) {
+        let cleanDalil = item.dalil.replace(/<small>/g, ' (').replace(/<\/small>/g, ')');
+        textToShare += "\n\n📖 الدليل والتوثيق:\n" + cleanDalil;
+      }
+      shareLibraryItem(item.title, textToShare);
     }
   }
 }
+
 
 
 
