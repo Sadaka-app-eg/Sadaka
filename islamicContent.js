@@ -1502,15 +1502,22 @@ function switchSubContent(subCat) {
 }
 
 // دالة الوسيط الجديدة لحل مشكلة الاقتباسات نهائياً
-// دالة الوسيط الجديدة لحل مشكلة الاقتباسات وجلب النص والحل معاً
+// دالة الوسيط المطورة لضبط حجم الاستوري واستبعاد الكلام الطويل في المواعظ
 function shareLibraryItemByIndex(cat, idx) {
   const item = islamicLibraryData[cat][idx];
   if (item) {
-    // دمج الموعظة مع فقرة إيه المشكلة لو كانت موجودة لتبهر الناس في المشاركة
-    const fullText = item.text + (item.problem ? "\n\n" + item.problem : "");
-    shareLibraryItem(item.title, fullText);
+    if (cat === 'audio') {
+      // لو في قسم المواعظ، بناخد العنوان والـ problem بس عشان الصورة تطلع فخمة ومتناسقة
+      const cleanProblem = item.problem ? item.problem : item.text;
+      shareLibraryItem(item.title, cleanProblem);
+    } else {
+      // لبقية الأقسام (فقه، أحاديث، إلخ) بتشتغل طبيعي جداً بالدمج المعتاد
+      const fullText = item.text + (item.problem ? "\n\n" + item.problem : "");
+      shareLibraryItem(item.title, fullText);
+    }
   }
 }
+
 
 
 function renderQA(subType) {
