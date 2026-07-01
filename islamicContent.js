@@ -1530,14 +1530,17 @@ function playLibraryAudio(url, btn) {
 }
 
 // دالة مشاركة الفوائد والمقالات بسهولة
+// المتغيرات دي هتشيل الكلام اللي المستخدم داس عليه مؤقتاً
+let currentShareTitle = "";
+let currentShareText = "";
+
 function shareLibraryItem(title, text) {
-  const fullText = `📚 *${title}*\n\n${text}\n\n• من المكتبة العلمية لتطبيق صدقة جارية •`;
-  if(navigator.share) {
-    navigator.share({ title: title, text: fullText });
-  } else {
-    navigator.clipboard.writeText(fullText);
-    alert('تم نسخ نص الفائدة لمشاركتها كبطاقة دعوية! ✓');
-  }
+  // 1. بنحفظ العنوان والنص بتوع الكارت اللي اتداس عليه
+  currentShareTitle = title;
+  currentShareText = text;
+  
+  // 2. بنفتح القائمة اللي فيها الخيارين (صورة أو نص)
+  openShareModal();
 }
 
 // دوال تسيير المفضلة الخاصة بالمكتبة العلمية (Bookmark)
