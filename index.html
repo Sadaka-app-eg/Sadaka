@@ -727,6 +727,12 @@ body.hide-controls button:not(.mushaf-page button) {
   <option value="husary">الحصري</option>
   <option value="afs">مشاري العفاسي</option>
        <option value="frs_a">فارس عباد</option>
+       <option value="basit">عبد الباسط عبد الصمد</option>
+<option value="maher">ماهر المعيقلي</option>
+<option value="ajm">أحمد العجمي</option>
+<option value="shrim">سعود الشريم</option>
+<option value="dosr">ياسر الدوسري</option>
+
       </select>
       <div class="audio-status" id="audioStatus">اضغط تشغيل • اضغط مطولًا على آية للخيارات</div>
     </div>
@@ -2051,6 +2057,12 @@ const reciterUrls = {
   'husary': `https://server13.mp3quran.net/husr/${num3}.mp3`,
   'afs': `https://server8.mp3quran.net/afs/${num3}.mp3`,
  'frs_a': `https://server8.mp3quran.net/frs_a/${num3}.mp3` // 👈 ضيف السطر ده هنا بالملي
+   'basit': `https://server7.mp3quran.net/basit/${num3}.mp3`,
+  'maher': `https://server12.mp3quran.net/maher/${num3}.mp3`,
+  'ajm': `https://server10.mp3quran.net/ajm/${num3}.mp3`,
+  'shrim': `https://server7.mp3quran.net/shrim/${num3}.mp3`,
+  'dosr': `https://server11.mp3quran.net/yasser/${num3}.mp3`
+
 };
 
 audio.src = reciterUrls[currentReciter];
@@ -2085,6 +2097,17 @@ if (currentReciter === 'husary') {
   reciterApiId = 'ar.alafasy'; // مشاري العفاسي
 } else if (currentReciter === 'frs_a') {
   reciterApiId = 'ar.faresabbad'; // فارس عباد
+}
+else if (currentReciter === 'basit') {
+  reciterApiId = 'ar.abdulsamad';
+} else if (currentReciter === 'maher') {
+  reciterApiId = 'ar.mahermuaiqly';
+} else if (currentReciter === 'ajm') {
+  reciterApiId = 'ar.ahmedajamy';
+} else if (currentReciter === 'shrim') {
+  reciterApiId = 'ar.saoodshuraym';
+} else if (currentReciter === 'dosr') {
+  reciterApiId = 'ar.yasseraddussari';
 }
 
 
