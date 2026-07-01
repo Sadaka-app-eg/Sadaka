@@ -1725,6 +1725,8 @@ async function openSurah(n, targetAyahNum = null) {
   try {
     const r = await fetch(`https://api.alquran.cloud/v1/surah/${n}/editions/quran-uthmani,ar.muyassar`);
     const d = await r.json();
+window.pageNums = []; 
+document.getElementById('mushafSlider').scrollLeft = 0;
 
     currentAyahsData = d.data[0].ayahs.map((a, i) => ({
       text: a.text,
@@ -1782,15 +1784,15 @@ async function openSurah(n, targetAyahNum = null) {
       ).join('');
       document.getElementById('pageDots').innerHTML = dotsHtml;
 
-           const slider = document.getElementById('mushafSlider');
+        const slider = document.getElementById('mushafSlider');
 
 // متغيرات ذكية لمراقبة حركة الصباع بدقة ومنع التكرار
 let isSwitchingSurah = false;
 let touchStartX = 0;
-let touchEndX = 0;
 
 // 1. تحديث الـ Dots الأساسية بتاعتك أثناء التمرير العادي
 slider.addEventListener('scroll', () => {
+  if (!pageNums || pageNums.length === 0) return;
   const idx = Math.abs(Math.round(slider.scrollLeft / window.innerWidth));
   pageNums.forEach((_, i) => {
     const d = document.getElementById('dot_' + idx);
@@ -1811,23 +1813,27 @@ slider.addEventListener('touchstart', (e) => {
 
 // 3. السحر كله هنا: حساب اتجاه السحبة الفعلي عند رفع صباعك من على الشاشة
 slider.addEventListener('touchend', (e) => {
-  if (isSwitchingSurah) return;
+  if (isSwitchingSurah || !pageNums || pageNums.length === 0) return;
   
-  touchEndX = e.changedTouches[0].screenX;
+  const touchEndX = e.changedTouches[0].screenX;
   const swipeDistance = touchEndX - touchStartX; // فرق المسافة بين بداية ونهاية السحبة
   const idx = Math.abs(Math.round(slider.scrollLeft / window.innerWidth));
 
-  // 🔥 شرط الانتقال للسورة التالية: واقف في آخر صفحة وسحبت سحبة صريحة لليسار
-  if (idx === pageNums.length - 1 && swipeDistance < -60 && currentSurah.n < 114) {
+  // 🎯 في الـ RTL (تطبيقك): 
+  // السحب من اليمين لِلْيَسَار (صباعك بيتحرك شمال يعني المسافة سالبة) = تقدم للامام (من الفاتحة للبقرة)
+  // السحب من اليسار لِلْيَمِين (صباعك بيتحرك يمين يعني المسافة موجبة) = رجوع للخلف (من البقرة للفاتحة)
+
+  // 🔥 شرط الانتقال للسورة التالية: واقف في آخر صفحة وسحبت لليسار (swipeDistance < -30)
+  if (idx === pageNums.length - 1 && swipeDistance < -30 && currentSurah.n < 114) {
     isSwitchingSurah = true;
     const nextSurahNum = currentSurah.n + 1;
     stopAudio();
     openSurah(nextSurahNum);
-    setTimeout(() => { isSwitchingSurah = false; }, 800);
+    setTimeout(() => { isSwitchingSurah = false; }, 1000);
   }
 
-  // 🔥 شرط العودة للسورة السابقة: واقف في أول صفحة وسحبت سحبة صريحة لليمين
-  if (idx === 0 && swipeDistance > 60 && currentSurah.n > 1) {
+  // 🔥 شرط العودة للسورة السابقة: واقف في أول صفحة وسحبت لليمين (swipeDistance > 30)
+  if (idx === 0 && swipeDistance > 30 && currentSurah.n > 1) {
     isSwitchingSurah = true;
     const prevSurahNum = currentSurah.n - 1;
     stopAudio();
@@ -1836,14 +1842,16 @@ slider.addEventListener('touchend', (e) => {
       setTimeout(() => {
         const prevSlider = document.getElementById('mushafSlider');
         if (prevSlider) {
-          // دفع السلايدر لآخر صفحة في السورة السابقة أوتوماتيكياً
+          // دفع السلايدر لآخر صفحة في السورة السابقة أوتوماتيكياً متوافق مع الـ RTL
           prevSlider.scrollLeft = -prevSlider.scrollWidth;
         }
-      }, 300);
+      }, 400);
     });
-    setTimeout(() => { isSwitchingSurah = false; }, 800);
+    setTimeout(() => { isSwitchingSurah = false; }, 1000);
   }
 }, {passive: true});
+  
+
 
     }
 
