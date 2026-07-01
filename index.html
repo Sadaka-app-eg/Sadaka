@@ -3323,7 +3323,8 @@ window.finishLogin = function(name) { if(typeof window.realFinishLogin === 'func
 function initNotificationSystem() {
   if ('serviceWorker' in navigator && 'Notification' in window) {
     
-    navigator.serviceWorker.register('/Sadaka/sw.js') // تأكد من المسار الصحيح للملف عندك
+    navigator.serviceWorker.register('sw.js')
+ // تأكد من المسار الصحيح للملف عندك
     .then((reg) => {
       console.log('تم تسجيل عامل الخدمة بنجاح!');
 
