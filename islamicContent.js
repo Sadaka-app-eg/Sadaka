@@ -1453,19 +1453,32 @@ function switchSubContent(subCat) {
     return;
   }
 
-      if (subCat === 'audio') {
+        if (subCat === 'audio') {
     container.innerHTML = data.map((item, idx) => `
-      <div class="zekr-card" style="border-right:3px solid var(--gold); padding:16px; margin-bottom:12px; background:var(--card); border-radius:14px; display:flex; align-items:center; justify-content:space-between;">
-        <div>
-          <div class="zekr-title" style="font-weight:700; color:var(--gold); margin-bottom:4px;">🎧 ${item.title}</div>
-          <div style="font-size:13px; color:var(--text2);">موعظة إيمانية مؤثرة تشرح الصدر</div>
-        </div>
-        <!-- السحر هنا: الزرار هيفتح الفيديو في صفحة جديدة على يوتيوب الأصلي عشان يشتغل غصب عنه -->
-        <a href="https://www.youtube.com/watch?v=${item.id}" target="_blank" class="play-btn" style="width:36px; height:36px; font-size:14px; background:var(--gold); color:#111; border:none; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; text-decoration:none;">▶</a>
+      <div class="zekr-card" style="border-right: 3px solid var(--gold); padding: 16px; margin-bottom: 12px; background: var(--card); border-radius: 14px; position:relative;">
+        
+        <!-- زر حفظ في المفضلة -->
+        <button onclick="toggleLibraryFav('${subCat}', ${idx}, this)" style="position:absolute; left:12px; top:12px; background:transparent; border:none; cursor:pointer; font-size:16px;">
+          ${checkLibFav(subCat, idx) ? '⭐' : '🤍'}
+        </button>
+        
+        <div class="zekr-title" style="font-size: 15px; color: var(--gold); font-weight: 700; margin-bottom: 8px; padding-left:25px;">✨ ${item.title}</div>
+        <div class="zekr-text" style="font-size: 16px; line-height: 2.1; text-align: justify; color: var(--text); font-family: 'Amiri', serif; margin-bottom: 6px; direction: rtl;">${item.text}</div>
+        
+        <!-- فقرة إيه المشكلة الفخمة والموسعة -->
+        ${item.problem ? `
+          <div style="background: rgba(212, 175, 55, 0.05); border-right: 3px solid #c5a059; border-radius: 8px; padding: 12px; margin-top: 12px; margin-bottom: 10px; font-family: 'Amiri', serif; text-align: justify; direction: rtl;">
+            <div style="white-space: pre-line; font-size: 14px; line-height: 1.9; color: var(--text2);">${item.problem}</div>
+          </div>
+        ` : ''}
+        
+        <!-- زر مشاركة ذكي ياخد الموعظة والحل بتاعها علطول -->
+        <button onclick="shareLibraryItem('${item.title}', '${item.text} ${item.problem ? '\n\n' + item.problem : ''}')" class="mode-btn" style="margin-top:10px; padding:4px 10px; font-size:11px; display:inline-block; width:auto; border-radius:6px;">🔗 مشاركة الموعظة</button>
       </div>
     `).join('');
     return;
   }
+
 
 
 
@@ -1484,16 +1497,6 @@ function switchSubContent(subCat) {
       <button onclick="shareLibraryItemByIndex('${subCat}', ${idx})" class="mode-btn" style="margin-top:10px; padding:4px 10px; font-size:11px; display:inline-block; width:auto; border-radius:6px;">🔗 مشاركة</button>
     </div>
   `).join('');
-}
-// دالة فتح مشغل المواعظ الصوتية
-
-
-// دالة إغلاق مشغل المواعظ وقطع الصوت فوراً
-function closeAudioModal() {
-  const audioModal = document.getElementById('libAudioModal');
-  const iframe = document.getElementById('libAudioPlayerIframe');
-  if (audioModal) audioModal.style.display = 'none';
-  if (iframe) iframe.src = ''; // تفريغ الرابط عشان الصوت يقف فوراً وميفضلش شغال في الخلفية
 }
 
 // دالة الوسيط الجديدة لحل مشكلة الاقتباسات نهائياً
