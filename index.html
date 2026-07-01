@@ -1782,13 +1782,13 @@ async function openSurah(n, targetAyahNum = null) {
       ).join('');
       document.getElementById('pageDots').innerHTML = dotsHtml;
 
-            const slider = document.getElementById('mushafSlider');
+           const slider = document.getElementById('mushafSlider');
 
 // متغيرات لمنع تكرار فتح السور أثناء السحب السريع
 let isSwitchingSurah = false;
 
 slider.addEventListener('scroll', () => {
-  // حساب الصفحة الحالية لتحديث الـ Dots
+  // حساب مؤشر الصفحة الحالية بدقة (من 0 إلى عدد الصفحات - 1)
   const idx = Math.abs(Math.round(slider.scrollLeft / window.innerWidth));
   
   pageNums.forEach((_, i) => {
@@ -1802,15 +1802,14 @@ slider.addEventListener('scroll', () => {
     });
   });
 
-  // 🎯 جسر الانتقال التلقائي الذكي بين السور (متوافق مع RTL)
+  // 🎯 جسر الانتقال التلقائي بين السور (فقط وحصرياً عند أطراف السورة)
   if (isSwitchingSurah) return;
 
-  // في حالة الـ RTL، الـ scrollLeft بيبدأ من الصفر (أقصى اليمين) وينزل بالسالب
-  // فالسحب لليسار بيخلي القيمة أقل من الصفر، والسحب لليمين بيخلي القيمة موجبة
   const currentScroll = slider.scrollLeft;
+  const maxScrollLeft = slider.scrollWidth - slider.clientWidth;
 
-  // 1. الانتقال للسورة التالية (عند السحب لليسار - قيم سالبة في الـ RTL)
-  if (currentScroll < -40 && currentSurah.n < 114) {
+  // 1. الانتقال للسورة التالية: يجب أن يكون المستخدم في "آخر صفحة" (idx === pageNums.length - 1) ويسحب لليسار بزيادة
+  if (idx === pageNums.length - 1 && currentScroll < -(maxScrollLeft + 40) && currentSurah.n < 114) {
     isSwitchingSurah = true;
     const nextSurahNum = currentSurah.n + 1;
     stopAudio();
@@ -1818,26 +1817,25 @@ slider.addEventListener('scroll', () => {
     setTimeout(() => { isSwitchingSurah = false; }, 800);
   }
   
-  // 2. العودة للسورة السابقة (عند السحب لليمين - قيم موجبة في الـ RTL)
-  if (currentScroll > 40 && currentSurah.n > 1) {
+  // 2. العودة للسورة السابقة: يجب أن يكون المستخدم في "أول صفحة" (idx === 0) ويسحب لليمين بزيادة (القيمة بالموجب في الـ RTL)
+  if (idx === 0 && currentScroll > 40 && currentSurah.n > 1) {
     isSwitchingSurah = true;
     const prevSurahNum = currentSurah.n - 1;
     stopAudio();
     
-    // فتح السورة السابقة
     openSurah(prevSurahNum).then(() => {
       setTimeout(() => {
         const prevSlider = document.getElementById('mushafSlider');
         if (prevSlider) {
-          // دفع السلايدر لأقصى اليمين في السورة السابقة
-          prevSlider.scrollLeft = prevSlider.scrollWidth;
+          // دفع السلايدر لآخر صفحة في السورة السابقة أوتوماتيكياً
+          prevSlider.scrollLeft = -prevSlider.scrollWidth;
         }
       }, 300);
     });
     setTimeout(() => { isSwitchingSurah = false; }, 800);
   }
 }, {passive: true});
-      }
+    }
 
     if (targetAyahNum !== null) {
       setTimeout(() => {
