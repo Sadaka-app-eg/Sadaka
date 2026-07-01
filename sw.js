@@ -45,7 +45,6 @@ function scheduleReminder() {
     try {
       await self.registration.showNotification(pick.title, {
         body: pick.body,
-        icon: 'https://img.icons8.com/emoji/192/crescent-moon-emoji.png',
         vibrate: [200, 100, 200],
         tag: 'zekr-reminder',
         renotify: true
