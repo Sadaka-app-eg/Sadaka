@@ -2782,28 +2782,7 @@ const quranThemes = {
 
 
 // دالة تعديل لون مخصص حتة حتة وحفظه في ثيم المستخدم الخاص
-function applyCustomColor(key, value) {
-  const root = document.documentElement;
-  root.style.setProperty(`--${key}`, value);
-  
-  // توليد بعض التبعيات تلقائياً لتناسق الشكل (مثل الـ bg3 والـ border)
-  if (key === 'bg') {
-    root.style.setProperty('--card', 'rgba(255, 255, 255, 0.03)');
-  }
-  if (key === 'gold') {
-    root.style.setProperty('--border', value + '14'); // إضافة شفافية مئوية للبوردر
-  }
 
-  // سحب الثيم المخصص الحالي وحفظ التعديل الجديد جواه
-  let customTheme = JSON.parse(localStorage.getItem('custom_user_theme') || '{}');
-  customTheme[key] = value;
-  
-  // سد الفراغات لو لسه مغيرش بقية الألوان يدوي
-  if (!customTheme.bg3) customTheme.bg3 = customTheme.bg2 || '#121e14';
-  if (!customTheme.text2) customTheme.text2 = '#9aa79c';
-  if (!customTheme.border) customTheme.border = 'rgba(212, 175, 55, 0.08)';
-  if (!customTheme.card) customTheme.card = 'rgba(255, 255, 255, 0.03)';
-}
 // دالة تطبيق ثيم جاهز بالكامل (معدلة ومؤمنة بالملي على قد الـ HTML بتاعك)
 function applyPresetTheme(themeKey) {
   const theme = quranThemes[themeKey];
