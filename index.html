@@ -2779,6 +2779,7 @@ const quranThemes = {
 };
 
 // دالة تطبيق ثيم جاهز بالكامل
+
 function applyPresetTheme(themeKey) {
   const theme = quranThemes[themeKey];
   if (!theme) return;
@@ -2788,15 +2789,19 @@ function applyPresetTheme(themeKey) {
     root.style.setProperty(`--${key}`, value);
   }
   
-  // حفظ نوع الثيم في الكاش
   localStorage.setItem('active_quran_theme', themeKey);
-  localStorage.removeItem('custom_user_theme'); // مسح الثيم المصنوع يدوياً لو اختار جاهز
+  localStorage.removeItem('custom_user_theme');
   
-  // تحديث ألوان الـ Inputs على الشاشة لتعكس الاختيار
-  document.getElementById('customBg').value = theme.bg;
-  document.getElementById('customBg2').value = theme.bg2;
-  document.getElementById('customGold').value = theme.gold;
-  document.getElementById('customText').value = theme.text;
+  // التحقق الآمن بالملي منعاً للانهيار 👇
+  const inputBg = document.getElementById('customBg');
+  const inputBg2 = document.getElementById('customBg2');
+  const inputGold = document.getElementById('customGold');
+  const inputText = document.getElementById('customText');
+
+  if (inputBg) inputBg.value = theme.bg;
+  if (inputBg2) inputBg2.value = theme.bg2;
+  if (inputGold) inputGold.value = theme.gold;
+  if (inputText) inputText.value = theme.text;
 }
 
 // دالة تعديل لون مخصص حتة حتة وحفظه في ثيم المستخدم الخاص
@@ -2827,6 +2832,7 @@ function applyCustomColor(key, value) {
 }
 
 // دالة ذكية لتشغيل الثيم المحفوظ فوراً بمجرد فتح التطبيق منعاً للوميض
+
 function loadSavedThemeSystem() {
   const activeType = localStorage.getItem('active_quran_theme') || 'darkGreen';
   
@@ -2836,22 +2842,22 @@ function loadSavedThemeSystem() {
     for (const [key, value] of Object.entries(customTheme)) {
       root.style.setProperty(`--${key}`, value);
     }
-    // وضع الألوان في الـ Inputs لراحة العين
-    if(document.getElementById('customBg')) {
-      document.getElementById('customBg').value = customTheme.bg || '#0b120c';
-      document.getElementById('customBg2').value = customTheme.bg2 || '#121e14';
-      document.getElementById('customGold').value = customTheme.gold || '#d4af37';
-      document.getElementById('customText').value = customTheme.text || '#f4f6f4';
-    }
+    
+    // التحقق الآمن بالملي منعاً للانهيار 👇
+    const inputBg = document.getElementById('customBg');
+    const inputBg2 = document.getElementById('customBg2');
+    const inputGold = document.getElementById('customGold');
+    const inputText = document.getElementById('customText');
+
+    if (inputBg) inputBg.value = customTheme.bg || '#0b120c';
+    if (inputBg2) inputBg2.value = customTheme.bg2 || '#121e14';
+    if (inputGold) inputGold.value = customTheme.gold || '#d4af37';
+    if (inputText) inputText.value = customTheme.text || '#f4f6f4';
   } else {
     applyPresetTheme(activeType);
   }
 }
 
-// تشغيل جلب الثيمات أوتوماتيكياً عند تحميل الصفحة بالكامل
-document.addEventListener('DOMContentLoaded', () => {
-  loadSavedThemeSystem();
-});
 function getTodayHijriEvent() {
   const container = document.getElementById('islamicCardsContainer');
   
