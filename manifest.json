@@ -4,8 +4,9 @@
   "start_url": "/Sadaka/index.html",
   "scope": "/Sadaka/",
   "display": "standalone",
-  "background_color": "#1a1a2e",
-  "theme_color": "#ffd700",
+      "background_color": "#000000",
+    "theme_color": "#000000",
+
   "lang": "ar",
   "icons": [
     {
