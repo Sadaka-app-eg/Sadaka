@@ -726,6 +726,7 @@ body.hide-controls button:not(.mushaf-page button) {
   <option value="minsh">المنشاوي</option>
   <option value="husary">الحصري</option>
   <option value="afs">مشاري العفاسي</option>
+       <option value="frs_a">فارس عباد</option>
       </select>
       <div class="audio-status" id="audioStatus">اضغط تشغيل • اضغط مطولًا على آية للخيارات</div>
     </div>
@@ -2048,8 +2049,10 @@ const num3 = String(num).padStart(3, '0');
 const reciterUrls = {
   'minsh': `https://server10.mp3quran.net/minsh/${num3}.mp3`,
   'husary': `https://server13.mp3quran.net/husr/${num3}.mp3`,
-  'afs': `https://server8.mp3quran.net/afs/${num3}.mp3`
+  'afs': `https://server8.mp3quran.net/afs/${num3}.mp3`,
+ 'frs_a': `https://server8.mp3quran.net/frs_a/${num3}.mp3` // 👈 ضيف السطر ده هنا بالملي
 };
+
 audio.src = reciterUrls[currentReciter];
       
       audio.play();
@@ -2077,9 +2080,14 @@ function playNextInQueue() {
   let reciterApiId = 'ar.minshawi'; // الافتراضي المنشاوي
   if (currentReciter === 'husary') {
     reciterApiId = 'ar.husary'; // الحصري
-  } else if (currentReciter === 'afs') {
-    reciterApiId = 'ar.alafasy'; // مشاري العفاسي
-  }
+  } // ابحث عن شرط مشاري وضيف شرط فارس عباد تحته علطول
+else if (currentReciter === 'afs') {
+  reciterApiId = 'ar.alafasy'; // مشاري العفاسي
+} 
+else if (currentReciter === 'frs_a') {
+  reciterApiId = 'ar.faresabbad'; // 👈 ضيف السطرين دول هنا بالظبط لآيات فارس عباد
+}
+
   
   // ربط الرابط بالمعرف الذكي المختار فوراً
   audio.src = `https://cdn.islamic.network/quran/audio/128/${reciterApiId}/${a.globalNumber}.mp3`;
