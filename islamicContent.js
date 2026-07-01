@@ -594,7 +594,7 @@ const islamicLibraryData = {
 
   ],
                   
-  const fiqhData = [
+  fiqh: [
   // ============ كتاب الطهارة ============
   {
     book: "كتاب الطهارة",
