@@ -2934,12 +2934,32 @@ const gifts = [
 
 // جعل دالة التشغيل عالمية لتراها الملفات الخارجية فوراً
 window.playRare = function(url) {
-  const audio = document.getElementById('audioPlayer'); // تأكد من الـ ID الصحيح لمشغل الصوت عندك
-  if (audio) {
-    audio.src = url;
-    audio.play().catch(err => console.log("خطأ في تشغيل الصوت:", err));
+  const audio = document.getElementById('audioPlayer');
+  if (!audio) {
+    alert("ملمحش مشغل الصوت في الصفحة يا هندسة!");
+    return;
   }
+  
+  // إيقاف أي تلاوة شغالة الأول وتفريغ الكاش
+  audio.pause();
+  audio.src = "";
+  
+  // كسر حماية الروابط الخارجية
+  audio.crossOrigin = "anonymous";
+  audio.src = url;
+  
+  // التشغيل الفوري الذكي
+  audio.play()
+    .then(() => {
+      console.log("🚀 التلاوة النادرة اشتغلت بنجاح!");
+    })
+    .catch(err => {
+      console.error("أزمة في تشغيل الصوت:", err);
+      // حل بديل لو المتصفح مبلّك المشغل الرئيسي: فتح الرابط في حتة تانية
+      window.open(url, '_blank');
+    });
 };
+
 
 
 // دالة بتفتح القائمة
