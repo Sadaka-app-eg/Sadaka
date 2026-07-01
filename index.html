@@ -2060,7 +2060,8 @@ const reciterUrls = {
   'basit': `https://server7.mp3quran.net/basit/${num3}.mp3`,
   'maher': `https://server12.mp3quran.net/maher/${num3}.mp3`,
   'ajm': `https://server10.mp3quran.net/ajm/${num3}.mp3`,
-  'shrim': `https://server7.mp3quran.net/shrim/${num3}.mp3`,
+  // امسح سطر الشريم القديم وحط السيرفر السريع ده:
+'shrim': `https://server2.mp3quran.net/shrim/${num3}.mp3`,
   'dosr': `https://server11.mp3quran.net/yasser/${num3}.mp3`
 };
 
@@ -2092,23 +2093,23 @@ function playNextInQueue() {
   let reciterApiId = 'ar.minshawi'; // الافتراضي المنشاوي
 
 if (currentReciter === 'husary') {
-  reciterApiId = 'ar.husary'; // الحصري
+  reciterApiId = 'ar.husary';
 } else if (currentReciter === 'afs') {
-  reciterApiId = 'ar.alafasy'; // مشاري العفاسي
+  reciterApiId = 'ar.alafasy';
 } else if (currentReciter === 'frs_a') {
-  reciterApiId = 'ar.faresabbad'; // فارس عباد
-}
-else if (currentReciter === 'basit') {
-  reciterApiId = 'ar.abdulsamad';
+  reciterApiId = 'ar.faresabbad';
+} else if (currentReciter === 'basit') {
+  reciterApiId = 'ar.abdulbasitmurattal'; // النسخة المرتلة الصافية لعبد الباسط
 } else if (currentReciter === 'maher') {
   reciterApiId = 'ar.mahermuaiqly';
 } else if (currentReciter === 'ajm') {
   reciterApiId = 'ar.ahmedajamy';
 } else if (currentReciter === 'shrim') {
-  reciterApiId = 'ar.saoodshuraym';
+  reciterApiId = 'ar.shuraym'; // 👈 التعديل السحري: المعرف المختصر المعتمد للشريم
 } else if (currentReciter === 'dosr') {
   reciterApiId = 'ar.yasseraddussari';
 }
+
 
 
   
