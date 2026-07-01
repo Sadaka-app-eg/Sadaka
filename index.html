@@ -2932,11 +2932,15 @@ const gifts = [
 
 
 
-function playRare(url) {
-  const audio = document.getElementById('audioPlayer'); // ممكن تستخدم نفس المشغل اللي في المصحف
-  audio.src = url;
-  audio.play();
-}
+// جعل دالة التشغيل عالمية لتراها الملفات الخارجية فوراً
+window.playRare = function(url) {
+  const audio = document.getElementById('audioPlayer'); // تأكد من الـ ID الصحيح لمشغل الصوت عندك
+  if (audio) {
+    audio.src = url;
+    audio.play().catch(err => console.log("خطأ في تشغيل الصوت:", err));
+  }
+};
+
 
 // دالة بتفتح القائمة
 function openShareModal() {
