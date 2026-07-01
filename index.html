@@ -2950,30 +2950,33 @@ function playRare(url) {
   audio.play();
 }
 // المستوى الثاني: عرض أبواب كتاب معين
-function renderFiqhAbwab(bookIdx) {
-  const container = document.getElementById('islamicCardsContainer');
+function renderFiqhLibrary() {
+  const container = document.getElementById('fiqh-library');
   if (!container) return;
 
-  const bookObj = fiqhData[bookIdx];
-  if (!bookObj) return;
-
-  container.innerHTML = `
-    <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
-      <button onclick="renderFiqhBooks()" class="mode-btn" style="width:auto; padding:6px 12px; font-size:13px;">‹ رجوع للكتب</button>
-      <span style="font-weight:700; color:var(--gold); font-size:16px;">${bookObj.icon} ${bookObj.book}</span>
-    </div>
-    <div id="fiqhAbwabList"></div>
-  `;
-
-  const listEl = document.getElementById('fiqhAbwabList');
-  listEl.innerHTML = bookObj.abwab.map((babObj, abIdx) => `
-    <div class="zekr-card fiqh-bab-card" onclick="renderFiqhMasail(${bookIdx}, ${abIdx})"
-         style="cursor:pointer; border-right:3px solid var(--green); padding:14px; margin-bottom:10px; background:var(--card); border-radius:12px; display:flex; align-items:center; justify-content:space-between;">
-      <span style="font-weight:600; color:var(--text); font-size:14px;">${babObj.bab}</span>
-      <span style="color:var(--text2); font-size:12px;">${babObj.masail.length} مسائل ›</span>
+  const data = islamicLibraryData.fiqh; // البيانات من الكود بتاعك
+  
+  container.innerHTML = data.map((book, index) => `
+    <div style="margin-bottom:20px; border:1px solid var(--gold); border-radius:10px; padding:15px;">
+      <h3 onclick="toggleTopic(${index})" style="cursor:pointer; color:var(--gold);">
+        ${book.icon} ${book.book} ▾
+      </h3>
+      <div id="topics-${index}" style="display:none; padding-right:20px;">
+        ${book.abwab.map(bab => `
+          <div style="margin-top:10px; font-weight:bold; color:#fff;">${bab.bab}</div>
+          ${bab.masail.map(masala => `
+            <div onclick="showDetail('${masala.title}', '${masala.text}')" 
+                 style="padding:8px; border-bottom:1px solid #333; cursor:pointer; color:#ccc;">
+              • ${masala.title}
+            </div>
+          `).join('')}
+        `).join('')}
+      </div>
     </div>
   `).join('');
 }
+
+
 
 // المستوى الثالث: عرض مسائل باب معين (أكورديون قابل للطي)
 function renderFiqhMasail(bookIdx, babIdx) {
