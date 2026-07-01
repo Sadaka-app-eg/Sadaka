@@ -14,6 +14,9 @@ self.addEventListener('fetch', e => {
   );
 });
 
+// ==========================================
+// ⏰ منظومة التذكير الدوري المتجدد (بالترتيب وبدون تكرار)
+// ==========================================
 const REMINDERS = [
   { title:'🤲 صلِّ على النبي ﷺ', body:'اللهم صل وسلم وبارك على نبينا محمد' },
   { title:'🌟 أستغفر الله', body:'أستغفر الله العظيم وأتوب إليه' },
@@ -24,8 +27,10 @@ const REMINDERS = [
 ];
 
 let timerId = null; 
-let reminderMinutes = 60;
+let reminderMinutes = 60; // المدة الافتراضية ساعة
+let currentZikrIdx = 0;   // العداد السحري لتتبع الذكر الحالي
 
+// الإستماع للأوامر الجاية من الـ index.html لتعديل الوقت
 self.addEventListener('message', e => {
   if(e.data && e.data.type === 'SET_INTERVAL') {
     reminderMinutes = e.data.minutes;
@@ -38,13 +43,18 @@ self.addEventListener('message', e => {
   }
 });
 
+// دالة الجدولة الدورية الذكية
 function scheduleReminder() {
+  if (reminderMinutes === 0) return;
+
   timerId = setTimeout(async () => {
-    if(reminderMinutes === 0) return;
-    const pick = REMINDERS[Math.floor(Math.random() * REMINDERS.length)];
+    // 1. اختيار الذكر الحالي بناءً على العداد (بالترتيب)
+    const pick = REMINDERS[currentZikrIdx];
+    
     try {
       await self.registration.showNotification(pick.title, {
         body: pick.body,
+        icon: 'icon.png',
         vibrate: [200, 100, 200],
         tag: 'zekr-reminder',
         renotify: true
@@ -52,6 +62,11 @@ function scheduleReminder() {
     } catch (err) {
       console.log('Notification error:', err);
     }
+
+    // 2. 🔥 الانتقال للذكر التالي والعودة للصفر تلقائياً لو وصلنا لآخر المصفوفة
+    currentZikrIdx = (currentZikrIdx + 1) % REMINDERS.length;
+
+    // 3. إعادة استدعاء الدالة عشان تفضل الحلقة شغالة إلى ما لا نهاية
     scheduleReminder(); 
-  }, reminderMinutes * 60 * 1000);
+  }, reminderMinutes * 60 * 1000); // تحويل الدقائق لملي ثانية
 }
