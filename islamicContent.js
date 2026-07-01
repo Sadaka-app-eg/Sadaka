@@ -1448,19 +1448,20 @@ function switchSubContent(subCat) {
     return;
   }
 
-    if (subCat === 'audio') {
+      if (subCat === 'audio') {
     container.innerHTML = data.map((item, idx) => `
       <div class="zekr-card" style="border-right:3px solid var(--gold); padding:16px; margin-bottom:12px; background:var(--card); border-radius:14px; display:flex; align-items:center; justify-content:space-between;">
         <div>
           <div class="zekr-title" style="font-weight:700; color:var(--gold); margin-bottom:4px;">🎧 ${item.title}</div>
           <div style="font-size:13px; color:var(--text2);">موعظة إيمانية مؤثرة تشرح الصدر</div>
         </div>
-        <!-- تعديل الاستدعاء ليمرر الـ id بتاع اليوتيوب مباشرة -->
-        <button onclick="openAudioModal('${item.id}', '${item.title}')" class="play-btn" style="width:36px; height:36px; font-size:14px; background:var(--gold); color:#111; border:none; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;">▶</button>
+        <!-- السحر هنا: الزرار هيفتح الفيديو في صفحة جديدة على يوتيوب الأصلي عشان يشتغل غصب عنه -->
+        <a href="https://www.youtube.com/watch?v=${item.id}" target="_blank" class="play-btn" style="width:36px; height:36px; font-size:14px; background:var(--gold); color:#111; border:none; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; text-decoration:none;">▶</a>
       </div>
     `).join('');
     return;
   }
+
 
 
   // العرض القياسي الفخم لبقية الأقسام والمقالات (تم تعديل استدعاء المشاركة هنا بالملي)
@@ -1480,32 +1481,7 @@ function switchSubContent(subCat) {
   `).join('');
 }
 // دالة فتح مشغل المواعظ الصوتية
-function openAudioModal(videoId, title) {
-  // 1. التحقق من وجود السينما المنبثقة في الصفحة، لو مش موجودة بنصنعها فوراً
-  let audioModal = document.getElementById('libAudioModal');
-  if (!audioModal) {
-    audioModal = document.createElement('div');
-    audioModal.id = 'libAudioModal';
-    audioModal.className = 'modal-overlay';
-    audioModal.style.cssText = "display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.85); z-index:9999; align-items:center; justify-content:center; padding:20px;";
-    audioModal.innerHTML = `
-      <div class="modal" style="background:var(--bg2); border-radius:20px; padding:20px; max-width:450px; width:100%; border:1px solid var(--border); text-align:center;">
-        <h3 id="libAudioModalTitle" style="color:var(--gold); margin-bottom:15px; font-family:'Amiri', serif;">🎧 مشغل المواعظ</h3>
-        <div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:12px; background:#000;">
-          <iframe id="libAudioPlayerIframe" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-        </div>
-        <button class="modal-close" onclick="closeAudioModal()" style="width:100%; padding:11px; background:var(--gold); color:#111; border:none; border-radius:12px; cursor:pointer; font-weight:700; margin-top:15px; font-size:14px;">إغلاق المشغل</button>
-      </div>
-    `;
-    document.body.appendChild(audioModal);
-  }
 
-  // 2. ضخ رابط الفيديو المختار وتشغيل السينما بنعومة
-  document.getElementById('libAudioModalTitle').textContent = `🎧 ${title}`;
-  // استخدام التضمين السريع لليوتيوب بنمط يعزل المشتتات
-  document.getElementById('libAudioPlayerIframe').src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
-  audioModal.style.display = 'flex';
-}
 
 // دالة إغلاق مشغل المواعظ وقطع الصوت فوراً
 function closeAudioModal() {
