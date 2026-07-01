@@ -1753,6 +1753,7 @@ async function openSurah(n, targetAyahNum = null) {
           txt = txt.replace(/^بِسْمِ[\s\S]+?الرَّحِيمِ\s*/, '');
         }
         return `<span class="ayah-span" id="ayah_${a.originalIndex}"
+        onclick="handleAyahClick(${a.originalIndex})"
           oncontextmenu="event.preventDefault();"
           onmousedown="startPress(event,${a.originalIndex})"
           ontouchstart="startPress(event,${a.originalIndex})"
@@ -1888,18 +1889,59 @@ function actionTafseer() {
   document.getElementById('tafseerModal').classList.add('show');
 }
 
+// متغيرات عالمية للتحكم في وضع التحديد الذكي
+window.isPickingEndAyah = false;
+window.firstSelectedAyahIndex = null;
+
 function actionSelect() {
   closeActionMenu();
-  const idx = activeAyahIndex;
+  const idx = activeAyahIndex; // الآية الأولى اللي ضغط عليها مطولاً
+  
+  // تثبيت آية البداية وتفعيل الوضع الذكي
+  window.firstSelectedAyahIndex = idx;
+  window.isPickingEndAyah = true;
+  
+  // تنظيف أي تحديد قديم وتظليل آية البداية فوراً
+  selectedAyahsQueue = [idx];
+  document.querySelectorAll('.ayah-span').forEach(el => el.classList.remove('selected'));
   const span = document.getElementById(`ayah_${idx}`);
-  if(selectedAyahsQueue.includes(idx)) {
-    selectedAyahsQueue = selectedAyahsQueue.filter(i=>i!==idx);
-    span.classList.remove('selected');
-  } else {
-    selectedAyahsQueue.push(idx);
-    selectedAyahsQueue.sort((a,b)=>a-b);
-    span.classList.add('selected');
+  if (span) span.classList.add('selected');
+  
+  // تحديث شريط الحالة تحت ليوجه المستخدم بوضوح وبخط بارز
+  const statusEl = document.getElementById('audioStatus');
+  if (statusEl) {
+    statusEl.innerHTML = `<span style="color:var(--gold); font-weight:bold; animation: blink 1.5s infinite;">اضغط الآن (ضغطة عادية) على آية النهاية التي تريد التوقف عندها 🏁</span>`;
   }
+  
+  // إظهار زر إلغاء التحديد لو حب يتراجع
+  document.getElementById('clearSelBtn').style.display = 'block';
+}
+
+function handleAyahClick(idx) {
+  // لو مش في وضع انتظار آية النهاية، اضغط عادي ولا كأن حاجة حصلت
+  if (!window.isPickingEndAyah || window.firstSelectedAyahIndex === null) return;
+  
+  const start = Math.min(window.firstSelectedAyahIndex, idx);
+  const end = Math.max(window.firstSelectedAyahIndex, idx);
+  
+  // تصفير المصفوفة القديمة وملؤها بالنطاق الكامل فوراً
+  selectedAyahsQueue = [];
+  document.querySelectorAll('.ayah-span').forEach(el => el.classList.remove('selected'));
+  
+  for (let i = start; i <= end; i++) {
+    selectedAyahsQueue.push(i);
+    const span = document.getElementById(`ayah_${i}`);
+    if (span) span.classList.add('selected');
+  }
+  
+  // ترتيب المصفوفة لضمان التتابع الصحيح في الصوت
+  selectedAyahsQueue.sort((a, b) => a - b);
+  
+  // إنهاء الوضع الذكي وتصفير المتغيرات بنجاح
+  window.isPickingEndAyah = false;
+  window.firstSelectedAyahIndex = null;
+  
+  // تحديث شريط الحالة النهائي بالعدد المظبوط للآيات
   updateAudioStatus();
 }
 
