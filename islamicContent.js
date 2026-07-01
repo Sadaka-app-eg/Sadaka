@@ -1397,6 +1397,7 @@ fiqh: [
 
 };
 
+
 // دالة العرض الذكية والتقليب بين الـ 16 قسماً بالملي
 function switchSubContent(subCat) {
   // إزالة الكلاس النشط من جميع الأزرار لتنظيف التنسيق
@@ -1411,27 +1412,26 @@ function switchSubContent(subCat) {
   if (!container) return;
 
   const data = islamicLibraryData[subCat] || [];
-  // أضف هذا الكود بعد سطر 990 مباشرة
-if (subCat === 'qa') {
-  container.innerHTML = `
-    <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-bottom:20px;">
-      <button onclick="renderQA('aqeeda')" class="mode-btn">العقيدة</button>
-      <button onclick="renderQA('fiqh')" class="mode-btn">الفقه</button>
-      <button onclick="renderQA('seerah')" class="mode-btn">السيرة</button>
-      <button onclick="renderQA('quran')" class="mode-btn">القرآن</button>
-      <button onclick="renderQA('sahaba')" class="mode-btn">الصحابة</button>
-    </div>
-    <div id="qaSubContainer"></div>
-  `;
-  return; // نخرج من الدالة هنا لأننا عرضنا الأزرار يدوياً
-}
+
+  if (subCat === 'qa') {
+    container.innerHTML = `
+      <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-bottom:20px;">
+        <button onclick="renderQA('aqeeda')" class="mode-btn">العقيدة</button>
+        <button onclick="renderQA('fiqh')" class="mode-btn">الفقه</button>
+        <button onclick="renderQA('seerah')" class="mode-btn">السيرة</button>
+        <button onclick="renderQA('quran')" class="mode-btn">القرآن</button>
+        <button onclick="renderQA('sahaba')" class="mode-btn">الصحابة</button>
+      </div>
+      <div id="qaSubContainer"></div>
+    `;
+    return;
+  }
 
   if (data.length === 0) {
     container.innerHTML = '<div style="color:var(--text2); text-align:center; padding:20px;">⏳ جاري تجهيز وكتابة بحوث هذا القسم...</div>';
     return;
   }
 
-  // معالجة عرض اختبارات الـ Quiz لو المستخدم اختارها
   if (subCat === 'quiz') {
     container.innerHTML = data.map((q, idx) => `
       <div class="zekr-card" style="border-right:3px solid var(--green); padding:16px; margin-bottom:12px; background:var(--card); border-radius:14px;">
@@ -1448,7 +1448,6 @@ if (subCat === 'qa') {
     return;
   }
 
-  // معالجة عرض الدروس الصوتية لو تم اختيارها
   if (subCat === 'audio') {
     container.innerHTML = data.map(item => `
       <div class="zekr-card" style="border-right:3px solid var(--gold); padding:16px; margin-bottom:12px; background:var(--card); border-radius:14px; display:flex; align-items:center; justify-content:space-between;">
@@ -1462,10 +1461,9 @@ if (subCat === 'qa') {
     return;
   }
 
-  // العرض القياسي الفخم لبقية الأقسام والمقالات
+  // العرض القياسي الفخم لبقية الأقسام والمقالات (تم تعديل استدعاء المشاركة هنا بالملي)
   container.innerHTML = data.map((item, idx) => `
     <div class="zekr-card" style="border-right: 3px solid var(--gold); padding: 16px; margin-bottom: 12px; background: var(--card); border-radius: 14px; position:relative;">
-      <!-- زر حفظ في المفضلة الخاصة بالمكتبة -->
       <button onclick="toggleLibraryFav('${subCat}', ${idx}, this)" style="position:absolute; left:12px; top:12px; background:transparent; border:none; cursor:pointer; font-size:16px;">
         ${checkLibFav(subCat, idx) ? '⭐' : '🤍'}
       </button>
@@ -1474,11 +1472,20 @@ if (subCat === 'qa') {
       <div class="zekr-text" style="font-size: 16px; line-height: 2.1; text-align: justify; color: var(--text); font-family: 'Amiri', serif; margin-bottom: 6px; direction: rtl;">${item.text}</div>
       ${item.source ? `<div style="font-size: 12px; color: var(--green); text-align: left; font-weight: 700;">📚 ${item.source}</div>` : ''}
       
-      <!-- زر مشاركة بطاقة دعوية خفيفة -->
-      <button onclick="shareLibraryItem('${item.title}', '${item.text}')" class="mode-btn" style="margin-top:10px; padding:4px 10px; font-size:11px; display:inline-block; width:auto; border-radius:6px;">🔗 مشاركة</button>
+      <!-- استدعاء ذكي برقم العنصر والـ القسم لمنع قفلة علامات الاقتباس -->
+      <button onclick="shareLibraryItemByIndex('${subCat}', ${idx})" class="mode-btn" style="margin-top:10px; padding:4px 10px; font-size:11px; display:inline-block; width:auto; border-radius:6px;">🔗 مشاركة</button>
     </div>
   `).join('');
 }
+
+// دالة الوسيط الجديدة لحل مشكلة الاقتباسات نهائياً
+function shareLibraryItemByIndex(cat, idx) {
+  const item = islamicLibraryData[cat][idx];
+  if (item) {
+    shareLibraryItem(item.title, item.text);
+  }
+}
+
 function renderQA(subType) {
   const container = document.getElementById('qaSubContainer');
   const questions = islamicLibraryData.qa[subType];
