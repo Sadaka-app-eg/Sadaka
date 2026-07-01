@@ -2827,12 +2827,55 @@ function applyCustomColor(key, value) {
   if (!customTheme.border) customTheme.border = 'rgba(212, 175, 55, 0.08)';
   if (!customTheme.card) customTheme.card = 'rgba(255, 255, 255, 0.03)';
   
+// دالة تطبيق ثيم جاهز بالكامل (معدلة ومؤمنة بالملي على قد الـ HTML بتاعك)
+function applyPresetTheme(themeKey) {
+  const theme = quranThemes[themeKey];
+  if (!theme) return;
+  
+  const root = document.documentElement;
+  for (const [key, value] of Object.entries(theme)) {
+    root.style.setProperty(`--${key}`, value);
+  }
+  
+  localStorage.setItem('active_quran_theme', themeKey);
+  localStorage.removeItem('custom_user_theme');
+  
+  // تحديث الـ Inputs الموجودة فقط في الـ HTML منعاً لأي قفلة
+  const inputBg = document.getElementById('customBg');
+  const inputText = document.getElementById('customText');
+
+  if (inputBg) inputBg.value = theme.bg;
+  if (inputText) inputText.value = theme.text;
+}
+
+// دالة تعديل لون مخصص حتة حتة وحفظه في ثيم المستخدم الخاص
+function applyCustomColor(key, value) {
+  const root = document.documentElement;
+  root.style.setProperty(`--${key}`, value);
+  
+  // توليد بعض التبعيات تلقائياً لتناسق الشكل
+  if (key === 'bg') {
+    root.style.setProperty('--card', 'rgba(255, 255, 255, 0.03)');
+    root.style.setProperty('--bg2', value); // تأمين الخلفية الثانية
+    root.style.setProperty('--bg3', value); // تأمين الخلفية الثالثة
+  }
+
+  let customTheme = JSON.parse(localStorage.getItem('custom_user_theme') || '{}');
+  customTheme[key] = value;
+  
+  // سد الفراغات
+  if (!customTheme.bg2) customTheme.bg2 = customTheme.bg || '#0b120c';
+  if (!customTheme.bg3) customTheme.bg3 = customTheme.bg || '#0b120c';
+  if (!customTheme.text2) customTheme.text2 = '#9aa79c';
+  if (!customTheme.gold) customTheme.gold = '#d4af37';
+  if (!customTheme.border) customTheme.border = 'rgba(212, 175, 55, 0.08)';
+  if (!customTheme.card) customTheme.card = 'rgba(255, 255, 255, 0.03)';
+  
   localStorage.setItem('custom_user_theme', JSON.stringify(customTheme));
   localStorage.setItem('active_quran_theme', 'custom');
 }
 
-// دالة ذكية لتشغيل الثيم المحفوظ فوراً بمجرد فتح التطبيق منعاً للوميض
-
+// دالة تشغيل الثيم المحفوظ فوراً بمجرد فتح التطبيق
 function loadSavedThemeSystem() {
   const activeType = localStorage.getItem('active_quran_theme') || 'darkGreen';
   
@@ -2843,15 +2886,10 @@ function loadSavedThemeSystem() {
       root.style.setProperty(`--${key}`, value);
     }
     
-    // التحقق الآمن بالملي منعاً للانهيار 👇
     const inputBg = document.getElementById('customBg');
-    const inputBg2 = document.getElementById('customBg2');
-    const inputGold = document.getElementById('customGold');
     const inputText = document.getElementById('customText');
 
     if (inputBg) inputBg.value = customTheme.bg || '#0b120c';
-    if (inputBg2) inputBg2.value = customTheme.bg2 || '#121e14';
-    if (inputGold) inputGold.value = customTheme.gold || '#d4af37';
     if (inputText) inputText.value = customTheme.text || '#f4f6f4';
   } else {
     applyPresetTheme(activeType);
