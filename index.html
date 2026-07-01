@@ -2744,14 +2744,14 @@ function saveUserName() {
 }
 
 function finishLogin(name) {
-  // إزالة الـ overlay
+  // إزالة طبقة التعتيم لو موجودة
   const el = document.getElementById('authOverlay');
   if (el) el.remove();
 
-  // تحديث الهيدر
-  const header = document.querySelector('.header h1');
-  if (header) {
-    header.innerHTML = `🌙 أهلاً <span style="color:#6fbf73">${name}</span>`;
+  // تحديث الهيدر بالاسم بطريقة آمنة لا تطير مع الثيمات
+  const headerTitle = document.querySelector('.header h1');
+  if (headerTitle) {
+    headerTitle.innerHTML = `🌙 أهلاً <span style="color:var(--green)">${name}</span>`;
   }
 
   // تحديث زرار الدخول
@@ -2874,6 +2874,12 @@ function applyCustomColor(key, value) {
   
   localStorage.setItem('custom_user_theme', JSON.stringify(customTheme));
   localStorage.setItem('active_quran_theme', 'custom');
+ // حطه برضه في آخر دالة applyPresetTheme عشان الاسم ميتمسحش لما تقلب بين الألوان:
+const savedName = localStorage.getItem('user_display_name');
+if (savedName) {
+  finishLogin(savedName);
+}
+
 }
 
 // دالة تشغيل الثيم المحفوظ فوراً بمجرد فتح التطبيق
@@ -2903,6 +2909,12 @@ function loadSavedThemeSystem() {
   } else {
     applyPresetTheme(activeType);
   }
+ // حط السطر ده في آخر دالة loadSavedThemeSystem من جوة قبل قوس الإغلاق بتاعها:
+const savedName = localStorage.getItem('user_display_name');
+if (savedName) {
+  finishLogin(savedName);
+}
+
 }
 
 
