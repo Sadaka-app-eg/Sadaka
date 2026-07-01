@@ -38,8 +38,8 @@ window.renderRareRecitations = function() {
 
   container.innerHTML = window.rareRecitations.map((item, index) => `
     <div style="background:var(--card); border-radius:15px; padding:15px; border:1px solid var(--border); display:flex; align-items:center; gap:15px; margin-bottom:10px;">
-      <button onclick="playRare('${item.url}')" style="background:var(--gold); border:none; width:45px; height:45px; border-radius:50%; color:#111; font-size:20px; cursor:pointer; display:flex; align-items:center; justify-content:center;">▶</button>
-      <div style="flex:1; text-align:right; direction:rtl;">
+      <button onclick="window.playRare('${item.url}')" ...>▶</button>
+  <div style="flex:1; text-align:right; direction:rtl;">
         <div style="font-weight:bold; color:var(--text); font-family:'Amiri',serif; font-size:16px;">${item.name}</div>
         <div style="font-size:12px; color:var(--text2); font-family:'Amiri',serif; margin-top:4px;">${item.desc}</div>
       </div>
