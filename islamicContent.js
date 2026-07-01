@@ -1864,8 +1864,8 @@ seerah: [
       `;
     } 
     // 2. معالجة ذكية ديناميكية: لو النص القديم جواه علامة "الشرح المفصل" (زي الأحاديث)
-    else if (mainText.includes("💡 الشرح المفصل:")) {
-      const parts = mainText.split("💡 الشرح المفصل:");
+    else if (mainText.includes("الشرح المفصل:")) {
+  const parts = mainText.split(/💡?\s*الشرح المفصل:/);
       mainText = parts[0].trim(); // عزل الحديث الشريف بالأعلى فقط
       const explanation = parts[1].trim(); // عزل الشرح بالأسفل داخل البوكس لوحده
 
