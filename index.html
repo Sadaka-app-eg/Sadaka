@@ -2949,6 +2949,30 @@ function playRare(url) {
   audio.src = url;
   audio.play();
 }
+<div id="share-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; align-items:center; justify-content:center;">
+  <div style="background:#1a1a1a; padding:25px; border-radius:20px; text-align:center; width:80%; border:2px solid #c5a059;">
+    <h3 style="color:#c5a059; margin-bottom:20px;">اختر طريقة المشاركة</h3>
+    
+    <button onclick="shareAsText()" style="width:100%; padding:15px; margin-bottom:10px; background:#333; color:white; border:none; border-radius:10px; cursor:pointer;">
+      مشاركة كنص 📝
+    </button>
+    
+    <button onclick="shareAsImage()" style="width:100%; padding:15px; background:#c5a059; color:black; border:none; border-radius:10px; cursor:pointer;">
+      مشاركة كصورة ✨
+    </button>
+    
+    <button onclick="closeShareModal()" style="margin-top:20px; background:transparent; border:none; color:#ff6b6b; cursor:pointer;">إلغاء</button>
+  </div>
+</div>
+// دالة بتفتح القائمة
+function openShareModal() {
+  document.getElementById('share-modal').style.display = 'flex';
+}
+
+// دالة بتقفل القائمة
+function closeShareModal() {
+  document.getElementById('share-modal').style.display = 'none';
+}
 
 
 </script>
