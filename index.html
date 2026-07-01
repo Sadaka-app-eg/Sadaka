@@ -1691,6 +1691,8 @@ function filterSurahs(q) {
 
 
   // 1️⃣ أولاً: دالة فتح السورة وبناء الصفحات (نظيفة وبدون تداخل أحداث)
+
+// 1️⃣ أولاً: دالة فتح السورة وبناء الصفحات (نظيفة ومستقرة)
 async function openSurah(n, targetAyahNum = null) {
   currentSurah = surahs.find(s => s.n === n);
   const screen = document.getElementById('surahScreen');
@@ -1807,66 +1809,75 @@ async function openSurah(n, targetAyahNum = null) {
   }
 }
 
-// 2️⃣ ثانياً: الأحداث المستقلة برة الدالة (مستقرة وجلوبال للأبد)
+// 2️⃣ ثانياً: ربط أحداث السحب بأمان كامل يمنع شلل التطبيق (Global & Safe)
 let isSwitchingSurah = false;
 let touchStartX = 0;
 
-document.getElementById('mushafSlider').addEventListener('scroll', () => {
-  if (!window.pageNums || window.pageNums.length === 0) return;
+// دالة تأمين للربط الفوري للأحداث بدون Errors
+function initMushafSwipeEvents() {
   const slider = document.getElementById('mushafSlider');
-  const idx = Math.abs(Math.round(slider.scrollLeft / window.innerWidth));
-  window.pageNums.forEach((_, i) => {
-    const d = document.getElementById('dot_' + idx);
-    if (d) d.classList.add('active');
-    window.pageNums.forEach((_, j) => {
-      if (j !== idx) {
-        const od = document.getElementById('dot_' + j);
-        if (od) od.classList.remove('active');
-      }
-    });
-  });
-}, {passive: true});
+  if (!slider) return; // حماية صريحة: لو مش موجود برة، اطلع فوراً ومتبوظش باقي التطبيق
 
-document.getElementById('mushafSlider').addEventListener('touchstart', (e) => {
-  touchStartX = e.changedTouches[0].screenX;
-}, {passive: true});
-
-document.getElementById('mushafSlider').addEventListener('touchend', (e) => {
-  if (isSwitchingSurah || !window.pageNums || window.pageNums.length === 0) return;
-  
-  const slider = document.getElementById('mushafSlider');
-  const touchEndX = e.changedTouches[0].screenX;
-  const swipeDistance = touchEndX - touchStartX; 
-  const idx = Math.abs(Math.round(slider.scrollLeft / window.innerWidth));
-
-  // الانتقال للسورة التالية (سحب لليسار)
-  if (idx === window.pageNums.length - 1 && swipeDistance < -40 && currentSurah.n < 114) {
-    isSwitchingSurah = true;
-    const nextSurahNum = currentSurah.n + 1;
-    stopAudio();
-    openSurah(nextSurahNum);
-    setTimeout(() => { isSwitchingSurah = false; }, 1000);
-  }
-
-  // العودة للسورة السابقة (سحب لليمين)
-  if (idx === 0 && swipeDistance > 40 && currentSurah.n > 1) {
-    isSwitchingSurah = true;
-    const prevSurahNum = currentSurah.n - 1;
-    stopAudio();
-    openSurah(prevSurahNum).then(() => {
-      setTimeout(() => {
-        const prevSlider = document.getElementById('mushafSlider');
-        if (prevSlider) {
-          prevSlider.scrollLeft = -prevSlider.scrollWidth;
+  // حدث الـ Scroll لتحديث الـ Dots
+  slider.addEventListener('scroll', () => {
+    if (!window.pageNums || window.pageNums.length === 0) return;
+    const idx = Math.abs(Math.round(slider.scrollLeft / window.innerWidth));
+    window.pageNums.forEach((_, i) => {
+      const d = document.getElementById('dot_' + idx);
+      if (d) d.classList.add('active');
+      window.pageNums.forEach((_, j) => {
+        if (j !== idx) {
+          const od = document.getElementById('dot_' + j);
+          if (od) od.classList.remove('active');
         }
-      }, 400);
+      });
     });
-    setTimeout(() => { isSwitchingSurah = false; }, 1000);
-  }
-}, {passive: true});
-         }
-  
+  }, {passive: true});
 
+  // حدث Touchstart لالتقاط بداية السحبة
+  slider.addEventListener('touchstart', (e) => {
+    touchStartX = e.changedTouches[0].screenX;
+  }, {passive: true});
+
+  // حدث Touchend لمعالجة السحب والقلب التلقائي بين السور
+  slider.addEventListener('touchend', (e) => {
+    if (isSwitchingSurah || !window.pageNums || window.pageNums.length === 0) return;
+    
+    const touchEndX = e.changedTouches[0].screenX;
+    const swipeDistance = touchEndX - touchStartX; 
+    const idx = Math.abs(Math.round(slider.scrollLeft / window.innerWidth));
+
+    // شرط الانتقال للسورة التالية (سحب لليسار في الـ RTL)
+    if (idx === window.pageNums.length - 1 && swipeDistance < -40 && currentSurah.n < 114) {
+      isSwitchingSurah = true;
+      const nextSurahNum = currentSurah.n + 1;
+      stopAudio();
+      openSurah(nextSurahNum);
+      setTimeout(() => { isSwitchingSurah = false; }, 1000);
+    }
+
+    // شرط العودة للسورة السابقة (سحب لليمين في الـ RTL)
+    if (idx === 0 && swipeDistance > 40 && currentSurah.n > 1) {
+      isSwitchingSurah = true;
+      const prevSurahNum = currentSurah.n - 1;
+      stopAudio();
+      openSurah(prevSurahNum).then(() => {
+        setTimeout(() => {
+          const prevSlider = document.getElementById('mushafSlider');
+          if (prevSlider) {
+            prevSlider.scrollLeft = -prevSlider.scrollWidth;
+          }
+        }, 400);
+      });
+      setTimeout(() => { isSwitchingSurah = false; }, 1000);
+    }
+  }, {passive: true});
+}
+
+// استدعاء دالة التفعيل الآمنة فور تحميل الـ DOM للتطبيق
+document.addEventListener('DOMContentLoaded', initMushafSwipeEvents);
+
+   
     if (targetAyahNum !== null) {
       setTimeout(() => {
         const targetIdx = currentAyahsData.findIndex(a => a.numberInSurah === targetAyahNum);
