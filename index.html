@@ -712,6 +712,14 @@ body.hide-controls button:not(.mushaf-page button) {
   <button class="mode-btn" id="modeQcf" onclick="switchMode('qcf')">📖 مصحف</button>
    </div>
   <div class="audio-bar">
+   <div class="seekbar-container" style="width: 100%; display: flex; flex-direction: column; gap: 4px; padding: 4px 14px; background: var(--bg2); border-bottom: 1px solid var(--border);">
+  <div style="display: flex; justify-content: space-between; align-items: center; direction: ltr; font-size: 11px; color: var(--text2); font-family: monospace;">
+    <span id="audioCurrentTime">00:00</span>
+    <span id="audioTotalTime">00:00</span>
+  </div>
+  <input type="range" id="audioSeekbar" value="0" min="0" max="100" step="0.1" style="width: 100%; accent-color: var(--gold); cursor: pointer; height: 4px; border-radius: 2px;">
+</div>
+
     <button class="play-btn" id="playBtn" onclick="toggleAudio()">▶</button>
     <div class="audio-info">
       <select id="reciterSelect" onchange="changeReciter()" style="background:var(--bg2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:4px 8px;font-family:'Amiri',serif;font-size:12px;">
@@ -1978,6 +1986,47 @@ function closeModals() {
 // ===========================
 // Audio
 // ===========================
+ // دالة مساعدة لتنسيق الوقت بالدقائق والثواني (00:00)
+function formatAudioTime(seconds) {
+  if (isNaN(seconds)) return "00:00";
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+// ربط أحداث مشغل الصوت بالشريط والعدادات تلقائياً
+document.addEventListener('DOMContentLoaded', () => {
+  const audio = document.getElementById('audioPlayer');
+  const seekbar = document.getElementById('audioSeekbar');
+  const currentTimeEl = document.getElementById('audioCurrentTime');
+  const totalTimeEl = document.getElementById('audioTotalTime');
+
+  if (audio && seekbar) {
+    // 1. تحديث الشريط والعداد أثناء تشغيل الصوت تلقائياً
+    audio.addEventListener('timeupdate', () => {
+      if (!isNaN(audio.duration) && audio.duration > 0) {
+        const pct = (audio.currentTime / audio.duration) * 100;
+        seekbar.value = pct;
+        if (currentTimeEl) currentTimeEl.textContent = formatAudioTime(audio.currentTime);
+        if (totalTimeEl) totalTimeEl.textContent = formatAudioTime(audio.duration);
+      }
+    });
+
+    // 2. تحديث الوقت الإجمالي بمجرد تحميل ملف الصوت
+    audio.addEventListener('loadedmetadata', () => {
+      if (totalTimeEl) totalTimeEl.textContent = formatAudioTime(audio.duration);
+    });
+
+    // 3. السحر كله هنا: لقط سحب الشريط وتغيير وقت الصوت فوراً (تقديم وتأخير)
+    seekbar.addEventListener('input', () => {
+      if (!isNaN(audio.duration) && audio.duration > 0) {
+        const targetTime = (seekbar.value / 100) * audio.duration;
+        audio.currentTime = targetTime;
+      }
+    });
+  }
+});
+
 function toggleAudio() {
   if(!currentSurah) return;
   const audio = document.getElementById('audioPlayer');
