@@ -4598,16 +4598,25 @@ let phoneConfirmationResult = null;
 
 // دالة بدء إرسال الرسالة النصية للهاتف
 window.doPhoneSignIn = function() {
-  const phoneInput = document.getElementById('userPhoneInput');
-  let phoneNumber = phoneInput ? phoneInput.value.trim() : '';
-// لو المستخدم بدأ الرقم بـ 0 ومش كاتب +، الكود هيحط له +20 تلقائياً
-if (phoneNumber.startsWith('0')) {
-  phoneNumber = '+2' + phoneNumber;
-}
-  if (!phoneNumber.startsWith('+')) {
-    alert('من فضلك اكتب الرقم مسبوقاً بكود الدولة وعلامة + (مثال: +2010xxxxxxxx)');
-    return;
+    const phoneInput = document.getElementById('userPhoneInput');
+  let rawPhone = phoneInput ? phoneInput.value.trim() : '';
+
+  // تنظيف الرقم من أي علامات زائد أو مسافات عشان نعيد صياغته صح
+  rawPhone = rawPhone.replace('+', '');
+
+  // لو المستخدم بدأ الرقم بـ 0 (زي 011...) هنشيل الصفر الأولاني فوراً
+  if (rawPhone.startsWith('0')) {
+    rawPhone = rawPhone.substring(1);
   }
+
+  // لو المستخدم كتب كود مصر 20 في الأول (زي 2011...) هنشيله عشان ما يتكررش
+  if (rawPhone.startsWith('20')) {
+    rawPhone = rawPhone.substring(2);
+  }
+
+  // التركيبة الدولية الصحيحة والنظيفة اللي جوجل بيعشقها لمصر
+  const phoneNumber = '+20' + rawPhone;
+
 
   // تشغيل الكابتشا
   window.setupRecaptcha();
