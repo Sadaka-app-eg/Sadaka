@@ -1706,10 +1706,10 @@ function filterSurahs(q) {
  // تعديل السطر الأول للدالة ليصبح هكذا
 
 async function openSurah(n, targetAyahNum = null) {
- 
   currentSurah = surahs.find(s => s.n === n);
- localStorage.setItem('last_active_surah', n); // حفظ رقم السورة
-  const screen = document.getElementById('surahScreen');
+  localStorage.setItem('last_active_surah', n);
+  localStorage.setItem('surah_screen_open', '1'); // ← ضيف السطر ده
+   const screen = document.getElementById('surahScreen');
  
   screen.classList.add('open');
   document.getElementById('surahScreenTitle').textContent = 'سورة ' + currentSurah.name;
@@ -1802,8 +1802,9 @@ async function openSurah(n, targetAyahNum = null) {
 
       const slider = document.getElementById('mushafSlider');
       slider.addEventListener('scroll', () => {
-        const idx = Math.round(slider.scrollLeft / window.innerWidth);
-        pageNums.forEach((_, i) => {
+  const idx = Math.round(slider.scrollLeft / window.innerWidth);
+  localStorage.setItem('last_page_index', idx); // ← يحفظ آخر صفحة واقف عليها
+       pageNums.forEach((_, i) => {
           const d = document.getElementById('dot_'+idx); // تم تصحيح الـ index ليعتمد على التمرير الفعلي
           if(d) d.classList.add('active');
           pageNums.forEach((_, j) => {
@@ -1843,9 +1844,9 @@ async function openSurah(n, targetAyahNum = null) {
 
 function closeSurah() {
   document.getElementById('surahScreen').classList.remove('open');
+  localStorage.setItem('surah_screen_open', '0'); // ← ضيف السطر ده
   stopAudio();
 }
-
 function toggleFavSurah() {
   if(!currentSurah) return;
   const key = 's'+currentSurah.n;
@@ -2826,7 +2827,20 @@ function updateStats() {
 // كود استعادة البيانات وتشغيل الدوال عند فتح التطبيق (محدث)
 
 
+function restoreLastState() {
+  const wasOpen = localStorage.getItem('surah_screen_open') === '1';
+  const lastSurah = localStorage.getItem('last_active_surah');
+  const lastMode = localStorage.getItem('last_mode') || 'nass';
 
+  if (wasOpen && lastSurah) {
+    setTimeout(async () => {
+      await openSurah(parseInt(lastSurah));
+      if (lastMode === 'qcf') {
+        setTimeout(() => switchMode('qcf'), 500);
+      }
+    }, 1000);
+  }
+}
 
 // دالة ذكية لإنشاء الصفحة وزرار الضغط تلقائياً في الـ HTML بدون ما تدور عليهم
 function setupNafahatSystem() {
@@ -2867,20 +2881,8 @@ function setupNafahatSystem() {
     `;
     document.body.appendChild(nafahatDiv);
   }
-function restoreLastState() {
-  const lastSurah = localStorage.getItem('last_active_surah');
-  const lastMode = localStorage.getItem('last_mode') || 'nass';
 
-  if (lastSurah) {
-    // ننتظر ثانية عشان التطبيق يحمل البيانات
-    setTimeout(async () => {
-      await openSurah(parseInt(lastSurah));
-      if (lastMode === 'qcf') {
-        setTimeout(() => switchMode('qcf'), 500);
-      }
-    }, 1000);
-  }
-}
+
 
 // ضيف السطر ده جوه الـ DOMContentLoaded
 // restoreLastState();
