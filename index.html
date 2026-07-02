@@ -4607,32 +4607,33 @@ window.setupRecaptcha = function() {
 // متغير عالمي لحفظ نتيجة الإرسال المؤقتة
 let phoneConfirmationResult = null;
 
-// دالة بدء إرسال الرسالة النصية للهاتف
-window.doPhoneSignIn = function() {
-    const phoneInput = document.getElementById('userPhoneInput');
-  let rawPhone = phoneInput ? phoneInput.value.trim() : '';
+// دالة بدء إرسال الرسالة النصية للهات
+        window.doPhoneSignIn = function() {
+  const phoneInput = document.getElementById('userPhoneInput');
+  if (!phoneInput || !phoneInput.value) {
+    alert("من فضلك اكتب رقم الهاتف");
+    return;
+  }
+  
+  // تنظيف كامل: بيشيل أي حاجة مش رقم
+  let rawPhone = phoneInput.value.replace(/\D/g, '');
 
-  // تنظيف الرقم من أي علامات زائد أو مسافات عشان نعيد صياغته صح
-  rawPhone = rawPhone.replace('+', '');
-
-  // لو المستخدم بدأ الرقم بـ 0 (زي 011...) هنشيل الصفر الأولاني فوراً
-  if (rawPhone.startsWith('0')) {
+  // لو الرقم بيبدأ بـ 20 (كود مصر) شيله عشان هنحط الـ +20 مكانه ونضمن التوحيد
+  if (rawPhone.startsWith('20')) {
+    rawPhone = rawPhone.substring(2);
+  } else if (rawPhone.startsWith('0')) {
+    // لو بيبدأ بصفر، شيل الصفر
     rawPhone = rawPhone.substring(1);
   }
 
-  // لو المستخدم كتب كود مصر 20 في الأول (زي 2011...) هنشيله عشان ما يتكررش
-  if (rawPhone.startsWith('20')) {
-    rawPhone = rawPhone.substring(2);
-  }
-
-  // التركيبة الدولية الصحيحة والنظيفة اللي جوجل بيعشقها لمصر
+  // الصيغة النهائية الدولية: +20 + الرقم بعد التنظيف
   const phoneNumber = '+20' + rawPhone;
-
 
   // تشغيل الكابتشا
   window.setupRecaptcha();
   const appVerifier = window.recaptchaVerifier;
   const sendBtn = document.getElementById('sendOtpBtn');
+  
   sendBtn.textContent = "⏳ جاري الإرسال...";
   sendBtn.disabled = true;
 
@@ -4642,60 +4643,19 @@ window.doPhoneSignIn = function() {
       sendBtn.textContent = "📱 إعادة إرسال الكود";
       sendBtn.disabled = false;
 
-      // إظهار نافذة منبثقة يكتب فيها الـ OTP المكون من 6 أرقام
       const code = prompt("تم إرسال كود التحقق في رسالة نصية، أدخله هنا:");
       if (code) {
         window.verifyPhoneCode(code);
       }
     })
     .catch((error) => {
-      console.error("خطأ أثناء إرسال الرسالة:", error);
-      alert("فشل إرسال الرسالة النصية. تأكد من صحة الرقم ومطابقته لكود الدولة.");
+      console.error("خطأ Firebase:", error);
+      alert("فشل الإرسال: " + error.message);
       sendBtn.textContent = "📱 إرسال كود التحقق";
       sendBtn.disabled = false;
     });
 };
 
-// دالة مطابقة الكود اللي المستخدم كتبه مع سيرفر جوجل وتأكيد الدخو
-
-    window.realFinishLogin = function(name) {
-  // 1. إزالة طبقة الحجب فوراً
-  const el = document.getElementById('authOverlay');
-  if (el) {
-    el.style.display = 'none'; // إخفاء مرئي
-    el.remove(); // مسح كامل من الصفحة
-  }
-
-  // 2. تحديث الهيدر العلوي بكلمة الترحيب
-  const headerTitle = document.querySelector('.header h1');
-  if (headerTitle) {
-    headerTitle.innerHTML = `🌙 أهلاً <span style="color:var(--green)">${name}</span>`;
-  }
-
-  // 3. تحديث زر تسجيل الدخول الجانبي (لو موجود)
-  const loginBtn = document.getElementById('googleLoginBtn');
-  if (loginBtn) {
-    loginBtn.textContent = '👤 ' + name;
-    loginBtn.onclick = () => {
-      if (confirm('هل ترغب في تسجيل الخروج؟')) {
-        localStorage.removeItem('user_display_name');
-        if (window.firebaseAuth) {
-          window.firebaseAuth.signOut().then(() => location.reload());
-        } else {
-          location.reload();
-        }
-      }
-    };
-  }
-
-  // 4. 🚀 الانتقال التلقائي للرئيسية بدون ريفريش
-  if (typeof showPage === 'function') {
-    showPage('home', null);
-  } else {
-    // حل احتياطي في حال تأخر تحميل الدوال
-    window.location.reload();
-  }
-};
 
 // الربط الاحتياطي لضمان عملها من أي مكان في الكود
 window.finishLogin = window.realFinishLogin;
