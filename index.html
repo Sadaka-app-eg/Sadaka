@@ -737,7 +737,7 @@ body.hide-controls button:not(.mushaf-page button) {
       <div class="audio-status" id="audioStatus">اضغط تشغيل • اضغط مطولًا على آية للخيارات</div>
     </div>
     <button class="clear-sel-btn" id="clearSelBtn" onclick="clearSelection()" style="display:none">✕ إلغاء</button>
-    <audio id="audioPlayer" onended="audioEnded()"></audio>
+    <audio id="audioPlayer" ></audio>
   </div>
   <div class="mushaf-pages-wrap">
     <div class="mushaf-slider" id="mushafSlider"></div>
@@ -2160,7 +2160,27 @@ audio.src = reciterUrls[currentReciter];
       isPlaying = true;
       document.getElementById('playBtn').textContent = '⏸';
       document.getElementById('audioStatus').textContent = `يُشغّل الآية ${toAr(a.numberInSurah)} ${window.ayahRepeatCount > 1 ? `(تكرار ١ من ${toAr(window.ayahRepeatCount)})` : ""}`;
+     // تفعيل التحكم في الوسائط لجعل الصوت يستمر في الخلفية
+if ('mediaSession' in navigator) {
+  navigator.mediaSession.metadata = new MediaMetadata({
+    title: `الآية ${currentAyahsData[idx].numberInSurah}`,
+    artist: "صدقة جارية عن شيماء سعيد",
+    album: "القرآن الكريم"
+  });
+
+  navigator.mediaSession.setActionHandler('nexttrack', () => {
+    currentQueueIndex++;
+    playNextInQueue();
+  });
+  
+  navigator.mediaSession.setActionHandler('pause', () => {
+    document.getElementById('audioPlayer').pause();
+    isPlaying = false;
+  });
+}
+
     })
+   
     .catch(error => {
       console.error("أزمة تفرير بروميس الصوت:", error);
       // في حال حدوث خطأ الانتقال السريع AbortError نمتص الصدمة ولا يتجمد التطبيق
@@ -2169,45 +2189,41 @@ audio.src = reciterUrls[currentReciter];
 
 
         
-
-
+let isProcessingEnd = false; // لمنع التكرار المزدوج
 
 function audioEnded() {
+  // منع تنفيذ الدالة مرتين في نفس اللحظة
+  if (isProcessingEnd) return;
+  isProcessingEnd = true;
+
   if (isPlayingQueue) {
-    // 🔍 فحص هل الآية الحالية تكررت بالعدد المطلوب أم لا؟
     if (window.currentAyahRepeatProgress < window.ayahRepeatCount) {
-      // زيادة العداد وإعادة تشغيل نفس الآية مجدداً
       window.currentAyahRepeatProgress++;
       
       const idx = selectedAyahsQueue[currentQueueIndex];
       const a = currentAyahsData[idx];
-      
-      // تحديث واجهة المستخدم فوراً ليعرف القارئ كم تكرر
       document.getElementById('audioStatus').textContent = `تكرار (${toAr(window.currentAyahRepeatProgress)} من ${toAr(window.ayahRepeatCount)}) للآية ${toAr(a.numberInSurah)}`;
       
       const audio = document.getElementById('audioPlayer');
-      audio.currentTime = 0; // تصفير وقت الملف الحالي لإجبار المتصفح على البدء من جديد
-      
-      // إعادة تشغيل الصوت بأمان مع معالجة الوعود
-      audio.play()
-        .catch(e => {
-          console.error("خطأ أثناء تكرار الآية، جاري المحاولة برابط جديد:", e);
-          // في حال حدوث أي خطأ في الـ Buffer، نعيد استدعاء التشغيل النظيف
-          playNextInQueue();
-        });
+      audio.currentTime = 0;
+      audio.play().then(() => { isProcessingEnd = false; }); // فتح القفل بعد نجاح التشغيل
     } else {
-      // الآية أخذت حقها بالكامل في التكرار -> ننتقل للآية التالية في الطابور
-      window.currentAyahRepeatProgress = 1; // تصفير عداد الآية القادمة
+      window.currentAyahRepeatProgress = 1;
       currentQueueIndex++;
+      isProcessingEnd = false; // فتح القفل قبل نداء التالي
       playNextInQueue();
     }
   } else {
-    // تشغيل عادي لسورة كاملة وانتهت
+    isProcessingEnd = false;
     isPlaying = false;
     document.getElementById('playBtn').textContent = '▶';
-    document.getElementById('audioStatus').textContent = 'انتهت التلاوة 🌙';
   }
 }
+
+
+
+ 
+
 
 
 
