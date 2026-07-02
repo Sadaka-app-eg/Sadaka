@@ -2090,37 +2090,64 @@ function playNextInQueue() {
   const audio = document.getElementById('audioPlayer');
   
   // 🎯 الحركة الذكية: تحويل اسم القارئ المختار للمعرف الصحيح الخاص بالآيات في الـ API
-  let reciterApiId = 'ar.minshawi'; // الافتراضي المنشاوي
-
-if (currentReciter === 'husary') {
-  reciterApiId = 'ar.husary';
-} else if (currentReciter === 'afs') {
-  reciterApiId = 'ar.alafasy';
-} else if (currentReciter === 'frs_a') {
-  reciterApiId = 'ar.faresabbad'; 
-} else if (currentReciter === 'basit') {
-  reciterApiId = 'ar.abdulbasitmujawwad'; // 👈 تحويل لنسخة التجويد المفتوحة الصلاحيات
-} else if (currentReciter === 'maher') {
-  reciterApiId = 'ar.mahermuaiqly';
-} else if (currentReciter === 'ajm') {
-  reciterApiId = 'ar.ahmedajamy';
-} else if (currentReciter === 'shrim') {
-  reciterApiId = 'ar.shuraym'; // 👈 المعرف المفتوح والمضمون للشريم
-} else if (currentReciter === 'dosr') {
-  reciterApiId = 'ar.yasseraddussari'; // 👈 المعرف المفتوح للدوسري
+  // 🎯 1. إيقاف الصّوت الحالي تماماً وتفريغ العمليات المعلقة لمنع التداخل
+if (audio) {
+    audio.pause();
+    // اختياري: إذا كنت تستخدم أحداث مثل onended، يفضل إزالتها هنا لمنع التداخل أثناء التنقل السريع
 }
 
+// 🎯 2. تجهيز تركيبة أرقام السورة والآية (مثال: 001001) لـ EveryAyah
+const surahNum = String(currentSurah.n).padStart(3, '0');
+const ayahNum = String(a.numberInSurah).padStart(3, '0');
+const fileKey = `${surahNum}${ayahNum}`;
 
+// 🟢 أولاً: تحديد الرابط بناءً على القارئ والسيرفر المناسب
+let audioSource = '';
 
+switch (currentReciter) {
+    case 'shrim':
+        audioSource = `https://www.everyayah.com/data/Saood_ash-Shuraym_128kbps/${fileKey}.mp3`;
+        break;
+    case 'frs_a':
+        audioSource = `https://www.everyayah.com/data/Fares_Abbad_64kbps/${fileKey}.mp3`;
+        break;
+    case 'dosr':
+        audioSource = `https://www.everyayah.com/data/Yasser_Ad-Dussary_128kbps/${fileKey}.mp3`;
+        break;
+    case 'basit':
+        // تعديل الرابط ليكون مضموناً ومطابقاً لتركيبة الـ 6 أرقام على EveryAyah
+        audioSource = `https://www.everyayah.com/data/Abdul_Basit_Murattal_192kbps/${fileKey}.mp3`;
+        break;
+    default:
+        // 🔵 ثانياً: باقي الشيوخ على سيرفر Islamic.Network بالرقم العالمي الموحد
+        let reciterApiId = 'ar.minshawi'; // الافتراضي المنشاوي
+        if (currentReciter === 'husary') reciterApiId = 'ar.husary';
+        else if (currentReciter === 'afs') reciterApiId = 'ar.alafasy';
+        else if (currentReciter === 'maher') reciterApiId = 'ar.mahermuaiqly';
+        else if (currentReciter === 'ajm') reciterApiId = 'ar.ahmedajamy';
 
-  
-  // ربط الرابط بالمعرف الذكي المختار فوراً
-  audio.src = `https://cdn.islamic.network/quran/audio/128/${reciterApiId}/${a.globalNumber}.mp3`;
-  audio.play();
-  isPlaying = true;
-  document.getElementById('playBtn').textContent = '⏸';
-  document.getElementById('audioStatus').textContent = `يُشغّل الآية ${toAr(a.numberInSurah)}`;
+        audioSource = `https://cdn.islamic.network/quran/audio/128/${reciterApiId}/${a.globalNumber}.mp3`;
+        break;
 }
+
+// 🎯 3. إسناد الرابط الجديد
+audio.src = audioSource;
+
+// 🚀 4. تشغيل الصوت بأمان مع معالجة الوعود (Promises) لمنع أخطاء المتصفح
+audio.play()
+    .then(() => {
+        // تم التشغيل بنجاح -> تحديث واجهة المستخدم
+        isPlaying = true;
+        document.getElementById('playBtn').textContent = '⏸';
+        document.getElementById('audioStatus').textContent = `يُشغّل الآية ${toAr(a.numberInSurah)}`;
+    })
+    .catch((error) => {
+        console.error("خطأ أثناء تشغيل الصوت:", error);
+        document.getElementById('audioStatus').textContent = "فشل تشغيل الصوت، جاري إعادة المحاولة...";
+        isPlaying = false;
+        document.getElementById('playBtn').textContent = '▶️';
+    });
+
 
 
 function audioEnded() {
