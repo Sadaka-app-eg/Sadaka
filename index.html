@@ -101,7 +101,7 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
 .surah-type{font-size:11px;color:var(--gold);}
 
 /* ===== SURAH SCREEN (FULL PAGE MUSHAF) ===== */
-.surah-screen{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:var(--mushaf-bg);z-index:300;flex-direction:column;}
+.surah-screen{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:var(--mushaf-bg);z-index:999999 !important;flex-direction:column;}
 .surah-screen.open{display:flex;}
 .surah-header{background:var(--bg2);padding:10px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);flex-shrink:0;}
 .back-btn{background:var(--card);border:1px solid var(--border);color:var(--text);width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;}
