@@ -79,3 +79,156 @@ function selectVcVideo(url, element) {
 document.addEventListener('DOMContentLoaded', () => {
   setTimeout(initVideoCreatorSystem, 1500);
 });
+// ==========================================
+// 3. دالة الرسم المستمر وتحديث شاشة المعاينة الفورية (Live Rendering)
+// ==========================================
+function updateVideoPreview() {
+  const canvas = document.getElementById('videoCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const video = document.getElementById('bgVideoSource');
+
+  // أ. تنظيف الكانفاس ورسم لون أسود كخلفية احتياطية
+  ctx.fillStyle = "#000000";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  // ب. لو الفيديو شغال وجاهز، ارسم الفريم الحالي ليغطي الكانفاس بالكامل
+  if (video && !video.paused && video.readyState >= 2) {
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  } else {
+    // خلفية داكنة تجميلية في حالة التوقف
+    ctx.fillStyle = "rgba(11, 18, 12, 0.9)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+
+  // ج. طبقة تعتيم سينمائية ناعمة (Overlay) عشان النصوص البيضاء والذهبية تنطق وتبان
+  ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // د. قراءة التخصيصات الحالية من عناصر الـ HTML
+  const fontChoice = document.getElementById('vcFontSelect').value;
+  const textColor = document.getElementById('vcTextColor').value;
+  const hasLogo = document.getElementById('vcLogoToggle').checked;
+
+  const surahEl = document.getElementById('vcSurahSelect');
+  if (surahEl && surahEl.options[surahEl.selectedIndex]) {
+    vcSurahName = surahEl.options[surahEl.selectedIndex].text.split('سورة ')[1];
+  }
+  
+  if (!vcUserUploadedAudio) {
+    const reciterEl = document.getElementById('vcReciterSelect');
+    vcReciterName = reciterEl.options[reciterEl.selectedIndex].text;
+  }
+
+  // هـ. رسم اسم السورة أعلى اليمين بخط ذهبي وقور
+  ctx.fillStyle = "rgba(212, 175, 55, 0.9)";
+  ctx.font = "bold 32px 'Amiri', serif";
+  ctx.textAlign = "right";
+  ctx.direction = "rtl";
+  ctx.fillText(`📊 سورة ${vcSurahName}`, canvas.width - 40, 70);
+
+  // و. رسم اسم القارئ أسفل اليسار بخفوت مريح للعين
+  ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+  ctx.font = "28px 'Amiri', serif";
+  ctx.textAlign = "left";
+  ctx.direction = "ltr";
+  ctx.fillText(`🎙️ ${vcReciterName}`, 40, canvas.height - 70);
+
+  // ز. رسم شعار "أثر" الصغير في زاوية الفيديو اختيارياً
+  if (hasLogo) {
+    ctx.fillStyle = "rgba(212, 175, 55, 0.4)";
+    ctx.font = "bold 24px 'Amiri', serif";
+    ctx.textAlign = "left";
+    ctx.direction = "rtl";
+    ctx.fillText("✨ أثر", 40, 65);
+  }
+
+  // ح. رسم وتأطير الآيات الكريمة في منتصف الشاشة مع ميزة تفنيط الأسطر تلقائياً
+  ctx.fillStyle = textColor;
+  ctx.font = `bold 42px ${fontChoice}`;
+  ctx.textAlign = "center";
+  ctx.direction = "rtl";
+  
+  wrapText(ctx, vcCurrentAyahText, canvas.width / 2, canvas.height / 2 - 40, 640, 65);
+}
+
+// ==========================================
+// 4. دالة مساعدة لتقطيع النصوص لأسطر (Auto-Wrap) وضبطها في المنتصف العمودي
+// ==========================================
+function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+  const words = text.split(' ');
+  let line = '';
+  let lines = [];
+
+  for (let n = 0; n < words.length; n++) {
+    let testLine = line + words[n] + ' ';
+    let metrics = ctx.measureText(testLine);
+    if (metrics.width > maxWidth && n > 0) {
+      lines.push(line);
+      line = words[n] + ' ';
+    } else {
+      line = testLine;
+    }
+  }
+  lines.push(line);
+
+  // حساب الارتفاع الكلي للأسطر لسنترتها عمودياً بالملي
+  y = y - ((lines.length - 1) * lineHeight) / 2;
+
+  for (let k = 0; k < lines.length; k++) {
+    ctx.fillText(lines[k], x, y);
+    y += lineHeight;
+  }
+}
+
+// ==========================================
+// 5. دالة مفتاح تشغيل وإيقاف حلقة الأنيميشن (Animation Loop) للمعاينة
+// ==========================================
+function toggleVideoPreviewPlay() {
+  const video = document.getElementById('bgVideoSource');
+  const btn = document.getElementById('vcPlayBtn');
+  
+  if (vcIsPlaying) {
+    vcIsPlaying = false;
+    if (video) video.pause();
+    if (btn) btn.textContent = "▶ تشغيل المعاينة";
+    cancelAnimationFrame(vcAnimationId);
+  } else {
+    vcIsPlaying = true;
+    if (video) video.play().catch(e => console.log(e));
+    if (btn) btn.textContent = "⏸ إيقاف المعاينة";
+    
+    // إطلاق اللووب الرندري لطلب الفريمات باستمرار من المتصفح دون تهنيج
+    function renderLoop() {
+      if (!vcIsPlaying) return;
+      updateVideoPreview();
+      vcAnimationId = requestAnimationFrame(renderLoop);
+    }
+    vcAnimationId = requestAnimationFrame(renderLoop);
+    
+    // نص افتراضي يظهر فوراً عند بدء المعاينة لأول مرة
+    vcCurrentAyahText = "﴿ ذَٰلِكَ الْكِتَابُ Lَا رَيْبَ ۛ فِيهِ ۛ هُدًى لِّلْمُتَّقِينَ ﴾";
+  }
+}
+
+// دالة معالجة رفع الصوت الخارجي لتجهيز المسار
+function handleUserAudioUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  vcUserUploadedAudio = URL.createObjectURL(file);
+  document.getElementById('userAudioStatus').style.display = 'block';
+  document.getElementById('vcReciterSelect').disabled = true;
+  vcReciterName = "صوت خارجي مخصص";
+  
+  const audio = document.getElementById('audioTrackSource');
+  if (audio) {
+    audio.src = vcUserUploadedAudio;
+    audio.load();
+  }
+  updateVideoPreview();
+}
+
+function loadVcAyahs() {
+  updateVideoPreview();
+}
