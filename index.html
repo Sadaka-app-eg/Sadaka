@@ -3579,15 +3579,26 @@ function saveUserName() {
 // دالة تسجيل الدخول والترحيب بالاسم (النسخة الكاملة والمؤمنة Global)
 // ==========================================
 window.realFinishLogin = function(name) {
-  // 1. إزالة طبقة الحجب أو التعتيم الخاصة بالدخول فوراً
+  // 1. إزالة طبقة الحجب فوراً من الشاشة بدون انتظار
   const el = document.getElementById('authOverlay');
-  if (el) el.remove();
+  if (el) {
+    el.style.display = 'none'; // إخفاء فوري
+    el.remove(); // مسح من الـ DOM
+  }
 
-  // 2. تحديث الهيدر العلوي بكلمة الترحيب والاسم باللون الأخضر الفخم
+  // 2. تحديث الهيدر العلوي بكلمة الترحيب
   const headerTitle = document.querySelector('.header h1');
   if (headerTitle) {
     headerTitle.innerHTML = `🌙 أهلاً <span style="color:var(--green)">${name}</span>`;
   }
+
+  // 3. 🚀 السحر هنا: توجيه التطبيق لعرض الصفحة الرئيسية فوراً بدون ريفريش
+  if (typeof showPage === 'function') {
+    showPage('home', null);
+  }
+
+  // ... سيب باقي كود الزرار الجانبي (loginBtn) تحتها زي ما هو
+
 
   // 3. تحديث زرار جوجل الجانبي ليعرض اسم المستخدم مع ميزة تسجيل الخروج الآمن
   const loginBtn = document.getElementById('googleLoginBtn');
@@ -4645,34 +4656,49 @@ window.doPhoneSignIn = function() {
     });
 };
 
-// دالة مطابقة الكود اللي المستخدم كتبه مع سيرفر جوجل وتأكيد الدخول
-window.verifyPhoneCode = function(code) {
-  if (!phoneConfirmationResult) return;
+// دالة مطابقة الكود اللي المستخدم كتبه مع سيرفر جوجل وتأكيد الدخو
 
-  phoneConfirmationResult.confirm(code)
-    .then((result) => {
-      const user = result.user;
-      
-      // فحص هل الاسم مسجل مسبقاً في الـ فلو لـ Firestore
-      import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js")
-        .then(({doc, getDoc}) => {
-          getDoc(doc(db, "users", user.uid)).then(snap => {
-            if (snap.exists() && snap.data().name) {
-              localStorage.setItem('user_display_name', snap.data().name);
-              if (typeof finishLogin === 'function') finishLogin(snap.data().name);
-            } else {
-              // لو جديد يطلب منه كتابة اسمه للترحيب
-              if (typeof showNameInput === 'function') showNameInput(user);
-            }
-          });
-        });
-    })
-    .catch((error) => {
-      console.error("الكود المكتوب غير صحيح:", error);
-      alert("كود التحقق غير صحيح أو انتهت صلاحيته، حاول مجدداً.");
-    });
+    window.realFinishLogin = function(name) {
+  // 1. إزالة طبقة الحجب فوراً
+  const el = document.getElementById('authOverlay');
+  if (el) {
+    el.style.display = 'none'; // إخفاء مرئي
+    el.remove(); // مسح كامل من الصفحة
+  }
+
+  // 2. تحديث الهيدر العلوي بكلمة الترحيب
+  const headerTitle = document.querySelector('.header h1');
+  if (headerTitle) {
+    headerTitle.innerHTML = `🌙 أهلاً <span style="color:var(--green)">${name}</span>`;
+  }
+
+  // 3. تحديث زر تسجيل الدخول الجانبي (لو موجود)
+  const loginBtn = document.getElementById('googleLoginBtn');
+  if (loginBtn) {
+    loginBtn.textContent = '👤 ' + name;
+    loginBtn.onclick = () => {
+      if (confirm('هل ترغب في تسجيل الخروج؟')) {
+        localStorage.removeItem('user_display_name');
+        if (window.firebaseAuth) {
+          window.firebaseAuth.signOut().then(() => location.reload());
+        } else {
+          location.reload();
+        }
+      }
+    };
+  }
+
+  // 4. 🚀 الانتقال التلقائي للرئيسية بدون ريفريش
+  if (typeof showPage === 'function') {
+    showPage('home', null);
+  } else {
+    // حل احتياطي في حال تأخر تحميل الدوال
+    window.location.reload();
+  }
 };
 
+// الربط الاحتياطي لضمان عملها من أي مكان في الكود
+window.finishLogin = window.realFinishLogin;
 
    
   
