@@ -1939,14 +1939,16 @@ function actionSelect() {
   document.getElementById('clearSelBtn').style.display = 'block';
 }
 
+// متغيرات عالمية جديدة للتحكم في التكرار
+window.ayahRepeatCount = 1; // الافتراضي تعمل مرة واحدة
+window.currentAyahRepeatProgress = 1;
+
 function handleAyahClick(idx) {
-  // لو مش في وضع انتظار آية النهاية، اضغط عادي ولا كأن حاجة حصلت
   if (!window.isPickingEndAyah || window.firstSelectedAyahIndex === null) return;
   
   const start = Math.min(window.firstSelectedAyahIndex, idx);
   const end = Math.max(window.firstSelectedAyahIndex, idx);
   
-  // تصفير المصفوفة القديمة وملؤها بالنطاق الكامل فوراً
   selectedAyahsQueue = [];
   document.querySelectorAll('.ayah-span').forEach(el => el.classList.remove('selected'));
   
@@ -1956,16 +1958,27 @@ function handleAyahClick(idx) {
     if (span) span.classList.add('selected');
   }
   
-  // ترتيب المصفوفة لضمان التتابع الصحيح في الصوت
   selectedAyahsQueue.sort((a, b) => a - b);
   
-  // إنهاء الوضع الذكي وتصفير المتغيرات بنجاح
   window.isPickingEndAyah = false;
   window.firstSelectedAyahIndex = null;
   
-  // تحديث شريط الحالة النهائي بالعدد المظبوط للآيات
-  updateAudioStatus();
+  // 🔥 السحر هنا: سؤال المستخدم عن عدد مرات التكرار فوراً بعد تحديد النطاق
+  setTimeout(() => {
+    let repeatInput = prompt("🔂 تريد تكرار كل آية كم مرة؟\n(اكتب 1 للتشغيل العادي بدون تكرار):", "3");
+    let repeatNum = parseInt(repeatInput);
+    
+    if (!isNaN(repeatNum) && repeatNum > 0) {
+      window.ayahRepeatCount = repeatNum;
+    } else {
+      window.ayahRepeatCount = 1; // الافتراضي لو كنسل أو كتب غلط
+    }
+    
+    window.currentAyahRepeatProgress = 1; // تصفير عداد البداية
+    updateAudioStatus();
+  }, 200);
 }
+
 
 function actionShare() {
   closeActionMenu();
@@ -1985,13 +1998,15 @@ function updateAudioStatus() {
   const n = selectedAyahsQueue.length;
   const clearBtn = document.getElementById('clearSelBtn');
   if(n > 0) {
-    document.getElementById('audioStatus').textContent = `تم تحديد ${toAr(n)} آية للتشغيل`;
+    let repeatTxt = window.ayahRepeatCount > 1 ? ` [تكرار: ${toAr(window.ayahRepeatCount)} مرات]` : "";
+    document.getElementById('audioStatus').textContent = `تم تحديد ${toAr(n)} آية للتشغيل${repeatTxt}`;
     clearBtn.style.display = 'block';
   } else {
     document.getElementById('audioStatus').textContent = 'اضغط تشغيل • اضغط مطولًا على آية للخيارات';
     clearBtn.style.display = 'none';
   }
 }
+
 
 function closeModals() {
   document.getElementById('tafseerModal').classList.remove('show');
@@ -2157,6 +2172,9 @@ function playNextInQueue() {
         isPlaying = true;
         document.getElementById('playBtn').textContent = '⏸';
         // دعم وجود دالة toAr أو طباعة الرقم مباشرة لو لم تكن موجودة
+     // أضف هذا السطر أو عدله داخل دالة playNextInQueue() وتحديداً عند سطر تحديث الـ audioStatus:
+document.getElementById('audioStatus').textContent = `يُشغّل الآية ${toAr(a.numberInSurah)} ${window.ayahRepeatCount > 1 ? `(تكرار ١ من ${toAr(window.ayahRepeatCount)})` : ""}`;
+
         const ayahTextNum = typeof toAr === 'function' ? toAr(a.numberInSurah) : a.numberInSurah;
         document.getElementById('audioStatus').textContent = `يُشغّل الآية ${ayahTextNum}`;
     })
@@ -2178,9 +2196,32 @@ function playNextInQueue() {
 
 
 function audioEnded() {
-  if(isPlayingQueue) { currentQueueIndex++; playNextInQueue(); }
-  else { isPlaying=false; document.getElementById('playBtn').textContent='▶'; document.getElementById('audioStatus').textContent='انتهت التلاوة 🌙'; }
+  if (isPlayingQueue) {
+    // 🔍 فحص هل الآية الحالية تكررت بالعدد المطلوب أم لا؟
+    if (window.currentAyahRepeatProgress < window.ayahRepeatCount) {
+      // زيادة العداد وإعادة تشغيل نفس الآية مجدداً
+      window.currentAyahRepeatProgress++;
+      
+      const idx = selectedAyahsQueue[currentQueueIndex];
+      const a = currentAyahsData[idx];
+      document.getElementById('audioStatus').textContent = `تكرار (${toAr(window.currentAyahRepeatProgress)} من ${toAr(window.ayahRepeatCount)}) للآية ${toAr(a.numberInSurah)}`;
+      
+      const audio = document.getElementById('audioPlayer');
+      audio.currentTime = 0; // إرجاع الصوت للبداية
+      audio.play().catch(e => console.log("خطأ تكرار:", e));
+    } else {
+      // الآية أخذت حقها بالكامل في التكرار -> ننتقل للآية التالية
+      window.currentAyahRepeatProgress = 1; // تصفير عداد الآية القادمة
+      currentQueueIndex++;
+      playNextInQueue();
+    }
+  } else {
+    isPlaying = false;
+    document.getElementById('playBtn').textContent = '▶';
+    document.getElementById('audioStatus').textContent = 'انتهت التلاوة 🌙';
+  }
 }
+
 
 function stopAudio() {
   const audio = document.getElementById('audioPlayer');
