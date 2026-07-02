@@ -2098,100 +2098,77 @@ audio.src = reciterUrls[currentReciter];
   }
 }
 
-function playNextInQueue() {
-  // 1. التحقق من نهاية الطابور
-  if(currentQueueIndex >= selectedAyahsQueue.length) {
+ function playNextInQueue() {
+  // تصفير وإيقاف الصّوت الحالي لمنع التداخل والتعليق عند النقل
+  const audio = document.getElementById('audioPlayer');
+  if (audio) {
+    audio.pause();
+    audio.removeAttribute('src');
+    audio.load();
+  }
+
+  if (currentQueueIndex >= selectedAyahsQueue.length) {
     stopAudio();
     document.getElementById('audioStatus').textContent = 'انتهت تلاوة الآيات المحددة 🌙';
     return;
   }
-  
+
   const idx = selectedAyahsQueue[currentQueueIndex];
   const a = currentAyahsData[idx];
   
-  // تحديث واجهة المستخدم (الآية الحالية)
+  // تحديث تمييز الآية النشطة في الـ UI
   document.querySelectorAll('.ayah-span').forEach(el => el.classList.remove('playing'));
   const span = document.getElementById(`ayah_${idx}`);
-  if(span) { 
+  if (span) { 
     span.classList.add('playing'); 
-    span.scrollIntoView({behavior:'smooth', block:'center'}); 
+    span.scrollIntoView({ behavior: 'smooth', block: 'center' }); 
   }
-  
-  const audio = document.getElementById('audioPlayer');
-  if (!audio) return; // حماية في حال عدم وجود عنصر الصوت في الـ DOM
 
-  // 🎯 1. إيقاف الصوت الحالي وتفريغ الأحداث السابقة تماماً لمنع التداخل
-  audio.pause();
-  audio.onended = null; // تنظيف الحدث القديم فوراً
-
-  // 🎯 2. تجهيز تركيبة أرقام السورة والآية لـ EveryAyah
-  // تأكد من أن currentSurah معرفة وتملك خاصية n
+  // 🎯 تجهيز تركيبات أرقام الآيات للسيرفرات المحدثة الجديدة
   const surahNum = String(currentSurah.n).padStart(3, '0');
   const ayahNum = String(a.numberInSurah).padStart(3, '0');
   const fileKey = `${surahNum}${ayahNum}`;
 
   let audioSource = '';
 
-  switch (currentReciter) {
-    case 'shrim':
-        audioSource = `https://www.everyayah.com/data/Saood_ash-Shuraym_128kbps/${fileKey}.mp3`;
-        break;
-    case 'frs_a':
-        audioSource = `https://www.everyayah.com/data/Fares_Abbad_64kbps/${fileKey}.mp3`;
-        break;
-    case 'dosr':
-        audioSource = `https://www.everyayah.com/data/Yasser_Ad-Dussary_128kbps/${fileKey}.mp3`;
-        break;
-    case 'basit':
-        audioSource = `https://www.everyayah.com/data/Abdul_Basit_Murattal_192kbps/${fileKey}.mp3`;
-        break;
-    default:
-        let reciterApiId = 'ar.minshawi'; 
-        if (currentReciter === 'husary') reciterApiId = 'ar.husary';
-        else if (currentReciter === 'afs') reciterApiId = 'ar.alafasy';
-        else if (currentReciter === 'maher') reciterApiId = 'ar.mahermuaiqly';
-        else if (currentReciter === 'ajm') reciterApiId = 'ar.ahmedajamy';
+  // 🟢 أولاً: تشغيل القراء الذين تم ضبطهم على السيرفرات المفتوحة التحديثية
+  if (currentReciter === 'shrim') {
+    audioSource = `https://www.everyayah.com/data/Saood_ash-Shuraym_128kbps/${fileKey}.mp3`;
+  } else if (currentReciter === 'frs_a') {
+    audioSource = `https://www.everyayah.com/data/Fares_Abbad_64kbps/${fileKey}.mp3`;
+  } else if (currentReciter === 'dosr') {
+    audioSource = `https://www.everyayah.com/data/Yasser_Ad-Dussary_128kbps/${fileKey}.mp3`;
+  } else if (currentReciter === 'basit') {
+    audioSource = `https://www.everyayah.com/data/Abdul_Basit_Murattal_192kbps/${fileKey}.mp3`; // نسخة EveryAyah المستقرة والمطابقة للـ fileKey
+  } 
+  // 🔵 ثانياً: باقي الشيوخ على سيرفر Islamic.Network بالرقم العالمي
+  else {
+    let reciterApiId = 'ar.minshawi'; // الافتراضي المنشاوي
+    if (currentReciter === 'husary') reciterApiId = 'ar.husary';
+    else if (currentReciter === 'afs') reciterApiId = 'ar.alafasy';
+    else if (currentReciter === 'maher') reciterApiId = 'ar.mahermuaiqly';
+    else if (currentReciter === 'ajm') reciterApiId = 'ar.ahmedajamy';
 
-        // تأكد أن globalNumber موجود في كائن الآية، أو استبدله بـ a.number
-        audioSource = `https://cdn.islamic.network/quran/audio/128/${reciterApiId}/${a.globalNumber || a.number}.mp3`;
-        break;
+    audioSource = `https://cdn.islamic.network/quran/audio/128/${reciterApiId}/${a.globalNumber}.mp3`;
   }
 
-  // 🎯 3. إسناد الرابط الجديد
+  // إسناد الرابط الجديد والتشغيل الآمن
   audio.src = audioSource;
-
-  // 🎯 4. ربط حدث انتهاء الصوت للانتقال التلقائي للآية التالية
-  audio.onended = function() {
-      currentQueueIndex++; // زيادة المؤشر هنا بعد اكتمال تشغيل الآية الحالية بنجاح
-      playNextInQueue();   // استدعاء الدالة مجدداً للآية التالية
-  };
-
-  // 🚀 5. تشغيل الصوت بأمان مع معالجة الوعود
+  
   audio.play()
     .then(() => {
-        isPlaying = true;
-        document.getElementById('playBtn').textContent = '⏸';
-        // دعم وجود دالة toAr أو طباعة الرقم مباشرة لو لم تكن موجودة
-     // أضف هذا السطر أو عدله داخل دالة playNextInQueue() وتحديداً عند سطر تحديث الـ audioStatus:
-document.getElementById('audioStatus').textContent = `يُشغّل الآية ${toAr(a.numberInSurah)} ${window.ayahRepeatCount > 1 ? `(تكرار ١ من ${toAr(window.ayahRepeatCount)})` : ""}`;
-
-        const ayahTextNum = typeof toAr === 'function' ? toAr(a.numberInSurah) : a.numberInSurah;
-        document.getElementById('audioStatus').textContent = `يُشغّل الآية ${ayahTextNum}`;
+      isPlaying = true;
+      document.getElementById('playBtn').textContent = '⏸';
+      document.getElementById('audioStatus').textContent = `يُشغّل الآية ${toAr(a.numberInSurah)} ${window.ayahRepeatCount > 1 ? `(تكرار ١ من ${toAr(window.ayahRepeatCount)})` : ""}`;
     })
-    .catch((error) => {
-        console.error("خطأ أثناء تشغيل الصوت:", error);
-        document.getElementById('audioStatus').textContent = "فشل تشغيل الصوت، جاري التخطّي للآية التالية...";
-        isPlaying = false;
-        document.getElementById('playBtn').textContent = '▶️';
-        
-        // ذكاء اصطناعي: إذا فشل تشغيل الآية الحالية (رابط مكسور مثلاً)، لا تجعل التطبيق يقف.
-        // انتظر 3 ثوانٍ ثم انتقل للآية التالية تلقائياً.
-        setTimeout(() => {
-            currentQueueIndex++;
-            playNextInQueue();
-        }, 3000);
+    .catch(error => {
+      console.error("أزمة تفرير بروميس الصوت:", error);
+      // في حال حدوث خطأ الانتقال السريع AbortError نمتص الصدمة ولا يتجمد التطبيق
     });
 }
+
+
+        
 
 
 
@@ -2204,23 +2181,34 @@ function audioEnded() {
       
       const idx = selectedAyahsQueue[currentQueueIndex];
       const a = currentAyahsData[idx];
+      
+      // تحديث واجهة المستخدم فوراً ليعرف القارئ كم تكرر
       document.getElementById('audioStatus').textContent = `تكرار (${toAr(window.currentAyahRepeatProgress)} من ${toAr(window.ayahRepeatCount)}) للآية ${toAr(a.numberInSurah)}`;
       
       const audio = document.getElementById('audioPlayer');
-      audio.currentTime = 0; // إرجاع الصوت للبداية
-      audio.play().catch(e => console.log("خطأ تكرار:", e));
+      audio.currentTime = 0; // تصفير وقت الملف الحالي لإجبار المتصفح على البدء من جديد
+      
+      // إعادة تشغيل الصوت بأمان مع معالجة الوعود
+      audio.play()
+        .catch(e => {
+          console.error("خطأ أثناء تكرار الآية، جاري المحاولة برابط جديد:", e);
+          // في حال حدوث أي خطأ في الـ Buffer، نعيد استدعاء التشغيل النظيف
+          playNextInQueue();
+        });
     } else {
-      // الآية أخذت حقها بالكامل في التكرار -> ننتقل للآية التالية
+      // الآية أخذت حقها بالكامل في التكرار -> ننتقل للآية التالية في الطابور
       window.currentAyahRepeatProgress = 1; // تصفير عداد الآية القادمة
       currentQueueIndex++;
       playNextInQueue();
     }
   } else {
+    // تشغيل عادي لسورة كاملة وانتهت
     isPlaying = false;
     document.getElementById('playBtn').textContent = '▶';
     document.getElementById('audioStatus').textContent = 'انتهت التلاوة 🌙';
   }
 }
+
 
 
 function stopAudio() {
@@ -2267,6 +2255,9 @@ document.getElementById('azkarAudioStatus').textContent = 'اضغط للاستم
   }).join('');
 }
 document.addEventListener('DOMContentLoaded', () => {
+ // حط السطر ده داخل DOMContentLoaded لضمان الربط والتشغيل الفوري
+document.getElementById('audioPlayer').addEventListener('ended', audioEnded);
+
   showAzkar('sabah', document.querySelector('.cat-btn'));
 });
 
