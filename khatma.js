@@ -5,6 +5,7 @@ let khatmaData = JSON.parse(localStorage.getItem('khatma_data') || 'null');
 const TOTAL_PAGES = 604;
 // رقم الصفحة الحقيقي اللي تبدأ فيها كل سورة (مصحف المدينة 604 صفحة)
 const surahStartPages = [1,2,50,77,106,128,151,177,187,208,221,235,249,255,262,267,282,293,305,312,322,332,342,350,359,367,377,385,396,404,411,415,418,428,434,440,446,453,458,467,477,483,489,496,499,502,507,511,515,518,520,523,526,528,531,534,537,542,545,547,549,551,553,554,556,558,560,562,564,566,568,570,572,574,575,577,578,580,582,583,585,586,587,587,589,590,591,591,592,593,594,595,596,597,598,599,600,600,601,601,602,602,602,603,603,603,604,604,604,604];
+
 function startKhatma(days) {
   const startDate = new Date();
   const endDate = new Date();
@@ -25,6 +26,7 @@ function startKhatma(days) {
   renderKhatma();
   alert(`✅ تم إنشاء خطتك!\nستختم القرآن في ${days} يوم\nوردك اليومي: ${pagesPerDay} صفحة تقريباً`);
 }
+
 function startCustomKhatma() {
   const input = document.getElementById('customDaysInput');
   const days = parseInt(input.value);
@@ -34,6 +36,7 @@ function startCustomKhatma() {
   }
   startKhatma(days);
 }
+
 function saveKhatma() {
   localStorage.setItem('khatma_data', JSON.stringify(khatmaData));
 }
@@ -52,6 +55,8 @@ function renderKhatma() {
   if(!khatmaData) {
     setupEl.style.display = 'block';
     displayEl.style.display = 'none';
+    // تأمين جلب النصيحة في وضع الإنشاء
+    setTimeout(showRandomMemoTip, 50);
     return;
   }
 
@@ -107,7 +112,6 @@ function renderKhatma() {
 
   let allSurahsHtml = surahs.map(s => {
     const isCompleted = khatmaData.completedSurahs.includes(s.n);
-    const sPages = estimateSurahPages(s.ayat);
     return `<div class="khatma-surah-item ${isCompleted ? 'completed' : ''}">
       <div class="khatma-check ${isCompleted ? 'checked' : ''}" onclick="toggleKhatmaSurah(${s.n})">
         ${isCompleted ? '✓' : ''}
@@ -152,9 +156,6 @@ function resetKhatma() {
   renderKhatma();
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  renderKhatma();
-});
 // مصفوفة نصائح وفضائل الحفظ المتجددة
 const memoTipsAndVirtues = [
   "💡 نصيحة للحفظ: خصص وقتاً ثابتاً كل يوم (مثل بعد الفجر) فالعقل يكون أصفى والبركة أعم، وثبت مصحفاً واحداً لترتبط ذاكرتك البصرية بأماكن الآيات.",
@@ -170,7 +171,6 @@ function showRandomMemoTip() {
   const tipEl = document.getElementById('memoTipText');
   if (tipEl) {
     const randomTip = memoTipsAndVirtues[Math.floor(Math.random() * memoTipsAndVirtues.length)];
-    // تلوين الكلمة الأولى (نصيحة / فضل / خطوة) باللون الذهبي
     tipEl.innerHTML = randomTip.replace(/^(.*?:)/, '<strong style="color:var(--gold)">$1</strong>');
   }
 }
@@ -189,15 +189,11 @@ function calculateMemoPlan() {
     return;
   }
 
-  // حساب أسابيع الخطة وخصم أيام الإجازات
   const weeks = totalDays / 7;
   const totalOffDays = Math.floor(weeks * offDaysPerWeek);
   const activeDays = totalDays - totalOffDays;
-
-  // المصحف 604 صفحة، نحسب المقدار اليومي
   const pagesPerDay = (604 / activeDays);
   
-  // تحويل الرقم لنص مفهوم للمستخدم
   let targetText = "";
   if (pagesPerDay <= 0.5) targetText = "نصف صفحة يومياً";
   else if (pagesPerDay <= 1) targetText = "صفحة واحدة يومياً";
@@ -207,7 +203,6 @@ function calculateMemoPlan() {
   else if (pagesPerDay <= 20) targetText = "جزء كامل (20 صفحة) يومياً";
   else targetText = Math.ceil(pagesPerDay) + " صفحات يومياً";
 
-  // إخفاء الفورم وعرض النتيجة
   document.getElementById('memoSetupForm').style.display = 'none';
   const resultDiv = document.getElementById('memoPlanResult');
   resultDiv.style.display = 'block';
@@ -224,14 +219,29 @@ function calculateMemoPlan() {
   `;
 }
 
-// دالة إعادة تعيين الخطة للبدء من جديد
 function resetMemoPlan() {
   document.getElementById('memoSetupForm').style.display = 'block';
   document.getElementById('memoPlanResult').style.display = 'none';
   document.getElementById('memoPlanResult').innerHTML = '';
 }
 
-// تشغيل النصيحة العشوائية عند تحميل الصفحة
+// تشغيل عند تحميل وتثبيت العناصر المدمجة بالترتيب الصحيح
 document.addEventListener('DOMContentLoaded', () => {
+  renderKhatma();
   showRandomMemoTip();
+  
+  // إصلاح المظهر برمجياً لمنع خروج الخانة رقم 1 خارج شاشة الموبايل تماماً
+  const memoForm = document.getElementById('memoSetupForm');
+  if(memoForm) {
+    const row = memoForm.querySelector('div[style*="display:flex"]');
+    if(row) {
+      row.style.flexDirection = 'column';
+      row.style.gap = '10px';
+      const inputs = row.querySelectorAll('input');
+      inputs.forEach(input => {
+        input.style.width = '100%';
+        input.style.maxWidth = '100%';
+      });
+    }
+  }
 });
