@@ -3505,32 +3505,8 @@ function selectMood(mood) {
   }
 }
 
-function selectMood(mood) {
-  document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('active'));
-  const btn = document.getElementById('mood_' + mood);
-  if (btn) btn.classList.add('active');
 
-  const data = moodContent[mood];
-  const container = document.getElementById('moodResultContainer');
-  if (!data || !container) return;
-
-  container.innerHTML = `
-    <div class="mood-result-card">
-      <div class="mood-result-title">${data.title}</div>
-      <div class="mood-result-ayah">${data.ayah}</div>
-      <div class="mood-result-hadith">${data.hadith}</div>
-      <div class="mood-result-msg">${data.msg}</div>
-    </div>
-  `;
-
-  if (mood === 'depressed') {
-    container.innerHTML += `
-      <div style="text-align:center;margin-top:10px;font-size:11px;color:var(--text2);line-height:1.8;">
-        هذا الموضوع حساس، ولو حسّيت إن الأمر تعدى مجرد "يوم صعب"، لا تتردد في التحدث مع شخص تثق فيه أو مختص نفسي.
-      </div>
-    `;
-  }
-}
+  
 // ============================
 // نظام الإشعارات المخصص
 // ============================
