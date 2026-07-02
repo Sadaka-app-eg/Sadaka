@@ -75,8 +75,11 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
 .page.active{display:block;}
 
 /* ===== HOME ===== */
-.hero{text-align:center;padding:28px 16px;background:linear-gradient(135deg,rgba(255,215,0,0.08),rgba(76,175,80,0.05));border-radius:20px;border:1px solid rgba(255,215,0,0.2);margin-bottom:14px;}
-.hero .moon{font-size:56px;margin-bottom:12px;animation:float 3s ease-in-out infinite;}
+.hero{text-align:center;padding:28px 16px;background:linear-gradient(135deg,rgba(255,215,0,0.08),rgba(76,175,80,0.05));border-radius:20px;border:1px solid rgba(255,215,0,0.2);margin-bottom:14px;background-size:cover;background-position:center;position:relative;transition:background-image 0.4s ease;}
+.hero.has-bg-image::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.55);border-radius:20px;z-index:0;}
+.hero.has-bg-image .moon, .hero.has-bg-image h2, .hero.has-bg-image .name, .hero.has-bg-image .ayah{position:relative;z-index:1;}
+.hero.has-bg-image h2, .hero.has-bg-image .name{color:#fff !important;text-shadow:0 2px 8px rgba(0,0,0,0.6);}
+.hero.has-bg-image .ayah{background:rgba(0,0,0,0.35) !important;color:#fff !important;}.hero .moon{font-size:56px;margin-bottom:12px;animation:float 3s ease-in-out infinite;}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
 .hero h2{font-size:20px;color:var(--gold);font-family:'Amiri',serif;}
 .hero .name{font-size:26px;font-weight:700;margin:10px 0;color:var(--text);font-family:'Amiri',serif;}
@@ -607,6 +610,13 @@ body.in-subpage .back-to-home-btn {
 .answer-time-item .at-title{font-size:14px;font-weight:700;color:var(--text);font-family:'Amiri',serif;}
 .answer-time-item .at-desc{font-size:11px;color:var(--text2);margin-top:4px;margin-right:30px;font-family:'Amiri',serif;}
 .answer-time-item .at-time{font-size:11px;color:var(--gold);margin-top:4px;margin-right:30px;font-family:'Amiri',serif;}
+  .bg-picker-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:10px;}
+.bg-picker-item{position:relative;border-radius:14px;overflow:hidden;height:90px;cursor:pointer;border:2px solid var(--border);transition:all 0.2s;background-size:cover;background-position:center;}
+.bg-picker-item.active{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold);}
+.bg-picker-item .bg-label{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,0.75));color:#fff;font-size:11px;padding:6px 8px 5px;font-family:'Amiri',serif;text-align:center;}
+.bg-picker-item .bg-check{position:absolute;top:6px;left:6px;width:22px;height:22px;border-radius:50%;background:var(--gold);color:#111;display:none;align-items:center;justify-content:center;font-size:12px;font-weight:700;}
+.bg-picker-item.active .bg-check{display:flex;}
+.bg-picker-item.none-option{background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--text2);font-family:'Amiri',serif;}
 </style>  
 
  
@@ -704,7 +714,7 @@ body.hide-controls button:not(.mushaf-page button) {
 <!-- HOME -->
 <div class="page active" id="home">
   
-  <div class="hero">
+  <div class="hero" id="homeHeroCard">
     <div class="moon">🌙</div>
     <h2>صدقة جارية</h2>
     <div class="name">شيماء سعيد</div>
@@ -984,7 +994,15 @@ body.hide-controls button:not(.mushaf-page button) {
 
     </div>
   </div>
+
+  <div style="background: var(--card); border-radius: 16px; padding: 16px; border: 1px solid var(--border); border-right: 4px solid var(--gold); margin-top: 14px;">
+    <div style="font-size: 13px; color: var(--text2); margin-bottom: 4px;">🖼️ خلفية الشاشة الرئيسية</div>
+    <div style="font-size: 11px; color: var(--text2); margin-bottom: 6px;">اختر خلفية تظهر خلف بطاقة "صدقة جارية" في الرئيسية</div>
+    <div class="bg-picker-grid" id="bgPickerGrid"></div>
+  </div>
 </div>
+
+<!-- ISLAMIC CONTENT PAGE -->
 
 <!-- ISLAMIC CONTENT PAGE -->
 <div class="page" id="islamicContent">
@@ -3080,7 +3098,66 @@ if (document.readyState === 'loading') {
 } else {
   startSilentPreFetch();
 }
+// ============================
+// خلفيات الشاشة الرئيسية
+// ============================
+const homeBackgrounds = [
+  { id: 'none', label: 'بدون خلفية', url: null },
+  { id: 'nabawi', label: 'المسجد النبوي', url: 'https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?q=80&w=800&auto=format&fit=crop' },
+  { id: 'haram', label: 'المسجد الحرام', url: 'https://images.unsplash.com/photo-1519817650390-64a93db51149?q=80&w=800&auto=format&fit=crop' },
+  { id: 'aqsa', label: 'المسجد الأقصى', url: 'https://images.unsplash.com/photo-1591620704046-cf76ba0f0d10?q=80&w=800&auto=format&fit=crop' },
+  { id: 'blueMosque', label: 'المسجد الأزرق', url: 'https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?q=80&w=800&auto=format&fit=crop' },
+  { id: 'sheikhZayed', label: 'جامع الشيخ زايد', url: 'https://images.unsplash.com/photo-1512632578888-169bbbc64f33?q=80&w=800&auto=format&fit=crop' },
+  { id: 'nightSky', label: 'سماء ليلية هادئة', url: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=800&auto=format&fit=crop' },
+  { id: 'desert', label: 'صحراء عند الغروب', url: 'https://images.unsplash.com/photo-1509316785289-025f5b846b35?q=80&w=800&auto=format&fit=crop' },
+  { id: 'mountains', label: 'جبال شاهقة', url: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=800&auto=format&fit=crop' },
+  { id: 'calm', label: 'هدوء وسكينة', url: 'https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?q=80&w=800&auto=format&fit=crop' }
+];
 
+function renderBgPicker() {
+  const grid = document.getElementById('bgPickerGrid');
+  if (!grid) return;
+  const activeId = localStorage.getItem('home_bg_choice') || 'none';
+
+  grid.innerHTML = homeBackgrounds.map(bg => {
+    if (bg.id === 'none') {
+      return `<div class="bg-picker-item none-option ${activeId === 'none' ? 'active' : ''}" onclick="selectHomeBg('none')">
+        <div class="bg-check">✓</div>
+        <div>🚫 بدون خلفية</div>
+      </div>`;
+    }
+    return `<div class="bg-picker-item ${activeId === bg.id ? 'active' : ''}" style="background-image:url('${bg.url}')" onclick="selectHomeBg('${bg.id}')">
+      <div class="bg-check">✓</div>
+      <div class="bg-label">${bg.label}</div>
+    </div>`;
+  }).join('');
+}
+
+function selectHomeBg(id) {
+  localStorage.setItem('home_bg_choice', id);
+  applyHomeBg(id);
+  renderBgPicker();
+}
+
+function applyHomeBg(id) {
+  const hero = document.getElementById('homeHeroCard');
+  if (!hero) return;
+  const bg = homeBackgrounds.find(b => b.id === id);
+
+  if (!bg || !bg.url) {
+    hero.style.backgroundImage = '';
+    hero.classList.remove('has-bg-image');
+  } else {
+    hero.style.backgroundImage = `url('${bg.url}')`;
+    hero.classList.add('has-bg-image');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  renderBgPicker();
+  const savedBg = localStorage.getItem('home_bg_choice') || 'none';
+  applyHomeBg(savedBg);
+});
 function updateStats() {
   document.getElementById('statTasbeh').textContent = tasbehCount;
   document.getElementById('statAzkar').textContent = totalAzkar;
