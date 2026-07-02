@@ -347,10 +347,10 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
 .fav-empty .icon{font-size:50px;margin-bottom:15px;}
 
 /* ===== ACTION SHEET ===== */
-.overlay-dimmer{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:550;}
-.overlay-dimmer.show{display:block;}
-.action-sheet{position:fixed;bottom:-100%;left:0;right:0;background:var(--bg2);padding:20px;border-radius:20px 20px 0 0;box-shadow:0 -5px 30px rgba(0,0,0,0.4);z-index:600;transition:bottom 0.3s cubic-bezier(.2,.8,.3,1);border-top:1px solid var(--border);}
-.action-sheet.show{bottom:0;}
+.overlay-dimmer{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:1000001;}
+  .overlay-dimmer.show{display:block;}
+.action-sheet{position:fixed;bottom:-100%;left:0;right:0;background:var(--bg2);padding:20px;border-radius:20px 20px 0 0;box-shadow:0 -5px 30px rgba(0,0,0,0.4);z-index:1000002;transition:bottom 0.3s cubic-bezier(.2,.8,.3,1);border-top:1px solid var(--border);}
+  .action-sheet.show{bottom:0;}
 .action-title{font-size:14px;color:var(--gold);margin-bottom:14px;text-align:center;border-bottom:1px solid var(--border);padding-bottom:10px;font-family:'Amiri',serif;}
 .action-ayah-preview{font-size:16px;color:var(--text2);text-align:center;margin-bottom:14px;font-family:'Amiri Quran',serif;line-height:1.8;direction:rtl;max-height:80px;overflow:hidden;}
 .action-btn{width:100%;padding:12px 16px;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:12px;margin-bottom:8px;cursor:pointer;font-size:14px;text-align:right;display:flex;align-items:center;gap:10px;font-family:'Amiri',serif;transition:background 0.2s;}
@@ -358,7 +358,7 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
 .action-cancel{background:transparent;border:1px solid rgba(255,100,100,0.3);color:#ff6b6b;}
 
 /* ===== MODALS ===== */
-.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.75);z-index:700;align-items:center;justify-content:center;padding:20px;}
+  .modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.75);z-index:1000003;align-items:center;justify-content:center;padding:20px;}
 .modal-overlay.show{display:flex;}
 .modal{background:var(--bg2);border-radius:20px;padding:22px;max-width:420px;width:100%;border:1px solid var(--border);max-height:85vh;overflow-y:auto;}
 .modal h3{color:var(--gold);margin-bottom:12px;font-size:16px;font-family:'Amiri',serif;}
