@@ -3481,6 +3481,27 @@ function checkAuthAndBlock() {
       border-radius:25px;font-size:16px;font-family:'Amiri',serif;cursor:pointer;margin-bottom:0;">
       🔑 دخول بحساب جوجل
     </button>
+    <div style="color: #9aa79c; font-size: 14px; margin: 15px 0;">أو سجل دخولك عبر الموبايل:</div>
+
+<div id="phoneAuthBox" style="width: 100%; max-width: 280px; text-align: center;">
+  <!-- خانة إدخال رقم الهاتف -->
+  <input id="userPhoneInput" type="tel" placeholder="+201xxxxxxxxx"
+    style="width:100%; padding:12px 16px; border-radius:15px;
+    border:1px solid #d4af37; background:#121e14; color:#f4f6f4;
+    font-family:'sans-serif'; font-size:16px; text-align:center;
+    margin-bottom:12px; outline:none;">
+    
+  <!-- زر إرسال الـ OTP -->
+  <button id="sendOtpBtn" onclick="doPhoneSignIn()"
+    style="background:transparent; color:#d4af37; border:1px solid #d4af37; padding:10px 24px;
+    border-radius:25px; font-size:14px; font-family:'Amiri',serif; cursor:pointer; width: 100%;">
+    📱 إرسال كود التحقق
+  </button>
+
+  <!-- حاوية الكابتشا المخفية المطلوبة أمنياً من جوجل -->
+  <div id="recaptcha-container" style="margin-top: 10px;"></div>
+</div>
+
   `;
   document.body.appendChild(overlay);
 
@@ -4513,8 +4534,8 @@ document.addEventListener('DOMContentLoaded', () => {
   window.finishLogin = function(name) { if(typeof window.realFinishLogin === 'function') window.realFinishLogin(name); };
 
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
-    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInWithPhoneNumber, RecaptchaVerifier }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   import { getFirestore, doc, setDoc, getDoc }
     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
@@ -4563,7 +4584,83 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  
+  // لقط حاوية الكابتشا وتجهيزها صامتاً في الخلفية بدون إزعاج المستخدم
+window.setupRecaptcha = function() {
+  if (!window.recaptchaVerifier) {
+    window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+      'size': 'invisible'
+    });
+  }
+};
+
+// متغير عالمي لحفظ نتيجة الإرسال المؤقتة
+let phoneConfirmationResult = null;
+
+// دالة بدء إرسال الرسالة النصية للهاتف
+window.doPhoneSignIn = function() {
+  const phoneInput = document.getElementById('userPhoneInput');
+  const phoneNumber = phoneInput ? phoneInput.value.trim() : '';
+
+  if (!phoneNumber.startsWith('+')) {
+    alert('من فضلك اكتب الرقم مسبوقاً بكود الدولة وعلامة + (مثال: +2010xxxxxxxx)');
+    return;
+  }
+
+  // تشغيل الكابتشا
+  window.setupRecaptcha();
+  const appVerifier = window.recaptchaVerifier;
+  const sendBtn = document.getElementById('sendOtpBtn');
+  sendBtn.textContent = "⏳ جاري الإرسال...";
+  sendBtn.disabled = true;
+
+  signInWithPhoneNumber(auth, phoneNumber, appVerifier)
+    .then((confirmationResult) => {
+      phoneConfirmationResult = confirmationResult;
+      sendBtn.textContent = "📱 إعادة إرسال الكود";
+      sendBtn.disabled = false;
+
+      // إظهار نافذة منبثقة يكتب فيها الـ OTP المكون من 6 أرقام
+      const code = prompt("تم إرسال كود التحقق في رسالة نصية، أدخله هنا:");
+      if (code) {
+        window.verifyPhoneCode(code);
+      }
+    })
+    .catch((error) => {
+      console.error("خطأ أثناء إرسال الرسالة:", error);
+      alert("فشل إرسال الرسالة النصية. تأكد من صحة الرقم ومطابقته لكود الدولة.");
+      sendBtn.textContent = "📱 إرسال كود التحقق";
+      sendBtn.disabled = false;
+    });
+};
+
+// دالة مطابقة الكود اللي المستخدم كتبه مع سيرفر جوجل وتأكيد الدخول
+window.verifyPhoneCode = function(code) {
+  if (!phoneConfirmationResult) return;
+
+  phoneConfirmationResult.confirm(code)
+    .then((result) => {
+      const user = result.user;
+      
+      // فحص هل الاسم مسجل مسبقاً في الـ فلو لـ Firestore
+      import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js")
+        .then(({doc, getDoc}) => {
+          getDoc(doc(db, "users", user.uid)).then(snap => {
+            if (snap.exists() && snap.data().name) {
+              localStorage.setItem('user_display_name', snap.data().name);
+              if (typeof finishLogin === 'function') finishLogin(snap.data().name);
+            } else {
+              // لو جديد يطلب منه كتابة اسمه للترحيب
+              if (typeof showNameInput === 'function') showNameInput(user);
+            }
+          });
+        });
+    })
+    .catch((error) => {
+      console.error("الكود المكتوب غير صحيح:", error);
+      alert("كود التحقق غير صحيح أو انتهت صلاحيته، حاول مجدداً.");
+    });
+};
+
 
    
   
