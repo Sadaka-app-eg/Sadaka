@@ -1,9 +1,9 @@
-// دالة التحكم في تبديل الإذاعات وتحديث الإطار (iframe)
 function changeRadio(radioType, element) {
   const iframe = document.getElementById('radioIframe');
+  const statusMsg = document.getElementById('radioStatusMsg');
   if (!iframe) return;
 
-  // 1. إعادة تهيئة شكل كل الأزرار عشان الزرار النشط بس ينور بالدهبي
+  // 1. إعادة تهيئة شكل كل الأزرار
   const buttons = document.querySelectorAll('.radio-btn');
   buttons.forEach(btn => {
     btn.style.background = '#222';
@@ -11,19 +11,40 @@ function changeRadio(radioType, element) {
     btn.style.border = '1px solid var(--border)';
   });
 
-  // 2. تلوين الزرار اللي ضغطت عليه حالياً
+  // 2. تلوين الزرار الحالي
   element.style.background = 'var(--gold)';
   element.style.color = '#111';
   element.style.border = 'none';
 
-  // 3. تغيير رابط الإطار بناءً على اختيارك والروابط الشغالة المضمونة
+  // تنظيف الرسائل السابقة وإيقاف أي صوت خارجي
+  if (statusMsg) statusMsg.innerHTML = "";
+
+  // 3. التوزيع البرمجي الصحيح والمضمون 100%
   if (radioType === 'cairo') {
-    iframe.src = "https://stream.radiojar.com/8s5u5tpdtwzuv";
+    // القاهرة بث صوتي مباشر: هنخفي الـ iframe ونعرض مشغل صوت شيك ونظيف جوه الصندوق
+    iframe.style.display = "none";
+    iframe.src = ""; 
+    
+    if (statusMsg) {
+      statusMsg.innerHTML = `
+        <div style="text-align:center; padding:40px 10px;">
+          <p style="color:var(--gold); font-size:16px; margin-bottom:15px;">📻 جاري تشغيل بث إذاعة القاهرة المباشر...</p>
+          <audio src="https://stream.radiojar.com/8s5u5tpdtwzuv" controls autoplay style="width:100%; max-width:280px; accent-color:var(--gold);"></audio>
+        </div>
+      `;
+    }
   } else if (radioType === 'makkah') {
+    iframe.style.display = "block";
     iframe.src = "https://surahquran.com/Radio-Quran-Saudi.html";
   } else if (radioType === 'riyadh') {
+    iframe.style.display = "block";
     iframe.src = "https://makkahlive.org/radio/quran-saudi";
   } else if (radioType === 'heweny') {
-    iframe.src = "https://zeno.fm/radio/radio-abo-ashak-alheweny/";
+    iframe.style.display = "none";
+    iframe.src = "";
+    window.open("https://zeno.fm/radio/radio-abo-ashak-alheweny/", "_blank");
+    if (statusMsg) {
+      statusMsg.innerHTML = `<p style="color: var(--text2); font-size: 14px;">جاري تشغيل إذاعة الشيخ الحويني في نافذة خارجية... 📻</p>`;
+    }
   }
 }
