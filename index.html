@@ -1556,6 +1556,7 @@ let mushafMode = 'nass'; // 'nass' أو 'qcf'
 let qcfFontsLoaded = {};
 
 function switchMode(mode) {
+ localStorage.setItem('last_mode', mode); // حفظ المود (عثماني أم مصحف)
   mushafMode = mode;
   document.getElementById('modeNass').classList.toggle('active', mode === 'nass');
   document.getElementById('modeQcf').classList.toggle('active', mode === 'qcf');
@@ -1704,6 +1705,7 @@ function filterSurahs(q) {
  // تعديل السطر الأول للدالة ليصبح هكذا
 
 async function openSurah(n, targetAyahNum = null) {
+ localStorage.setItem('last_active_surah', n); // حفظ رقم السورة
   currentSurah = surahs.find(s => s.n === n);
   const screen = document.getElementById('surahScreen');
  
@@ -2863,6 +2865,23 @@ function setupNafahatSystem() {
     `;
     document.body.appendChild(nafahatDiv);
   }
+function restoreLastState() {
+  const lastSurah = localStorage.getItem('last_active_surah');
+  const lastMode = localStorage.getItem('last_mode') || 'nass';
+
+  if (lastSurah) {
+    // ننتظر ثانية عشان التطبيق يحمل البيانات
+    setTimeout(async () => {
+      await openSurah(parseInt(lastSurah));
+      if (lastMode === 'qcf') {
+        setTimeout(() => switchMode('qcf'), 500);
+      }
+    }, 1000);
+  }
+}
+
+// ضيف السطر ده جوه الـ DOMContentLoaded
+// restoreLastState();
 
   // ٢. صب البيانات اليومية داخل الشاشة الجديدة
   const dayOfMonth = new Date().getDate();
@@ -2914,7 +2933,9 @@ document.addEventListener('DOMContentLoaded', () => {
   if (lastTab && document.getElementById(lastTab)) {
     showPage(lastTab, null);
   }
+ restoreLastState(); 
 });
+ 
 function checkAuthAndBlock() {
   if (document.getElementById('authOverlay')) return;
 
