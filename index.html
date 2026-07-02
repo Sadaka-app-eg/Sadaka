@@ -1556,8 +1556,9 @@ let mushafMode = 'nass'; // 'nass' أو 'qcf'
 let qcfFontsLoaded = {};
 
 function switchMode(mode) {
- localStorage.setItem('last_mode', mode); // حفظ المود (عثماني أم مصحف)
+ 
   mushafMode = mode;
+ localStorage.setItem('last_mode', mode); // حفظ المود (عثماني أم مصحف)
   document.getElementById('modeNass').classList.toggle('active', mode === 'nass');
   document.getElementById('modeQcf').classList.toggle('active', mode === 'qcf');
   
@@ -1705,8 +1706,9 @@ function filterSurahs(q) {
  // تعديل السطر الأول للدالة ليصبح هكذا
 
 async function openSurah(n, targetAyahNum = null) {
- localStorage.setItem('last_active_surah', n); // حفظ رقم السورة
+ 
   currentSurah = surahs.find(s => s.n === n);
+ localStorage.setItem('last_active_surah', n); // حفظ رقم السورة
   const screen = document.getElementById('surahScreen');
  
   screen.classList.add('open');
