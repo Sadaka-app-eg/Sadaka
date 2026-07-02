@@ -4599,8 +4599,11 @@ let phoneConfirmationResult = null;
 // دالة بدء إرسال الرسالة النصية للهاتف
 window.doPhoneSignIn = function() {
   const phoneInput = document.getElementById('userPhoneInput');
-  const phoneNumber = phoneInput ? phoneInput.value.trim() : '';
-
+  let phoneNumber = phoneInput ? phoneInput.value.trim() : '';
+// لو المستخدم بدأ الرقم بـ 0 ومش كاتب +، الكود هيحط له +20 تلقائياً
+if (phoneNumber.startsWith('0')) {
+  phoneNumber = '+2' + phoneNumber;
+}
   if (!phoneNumber.startsWith('+')) {
     alert('من فضلك اكتب الرقم مسبوقاً بكود الدولة وعلامة + (مثال: +2010xxxxxxxx)');
     return;
