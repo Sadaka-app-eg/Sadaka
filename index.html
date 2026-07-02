@@ -589,6 +589,16 @@ body.in-subpage .back-to-home-btn {
 .mood-advice-list li .num{color:var(--gold);font-weight:700;flex-shrink:0;}
 .mood-dua-box{background:rgba(212,175,55,0.08);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;margin-top:10px;}
 .mood-dua-box .dua-txt{font-size:17px;line-height:2;color:var(--gold);font-family:'Amiri',serif;font-weight:700;}
+  .qibla-card{background:var(--card);border-radius:20px;padding:20px;border:1px solid var(--border);text-align:center;margin-bottom:14px;}
+.qibla-compass-wrap{position:relative;width:220px;height:220px;margin:16px auto;}
+.qibla-compass-bg{width:100%;height:100%;border-radius:50%;background:radial-gradient(circle,var(--bg2) 0%,var(--bg3) 100%);border:3px solid var(--gold);position:relative;transition:transform 0.3s ease-out;}
+.qibla-north-label{position:absolute;top:8px;left:50%;transform:translateX(-50%);color:var(--text2);font-size:11px;font-family:'Amiri',serif;}
+.qibla-kaaba-icon{position:absolute;top:-14px;left:50%;transform:translateX(-50%);font-size:28px;transition:transform 0.3s ease-out;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.4));}
+.qibla-arrow{position:absolute;top:50%;left:50%;width:4px;height:90px;background:linear-gradient(to top,var(--gold),transparent);transform-origin:bottom center;transform:translate(-50%,-100%);transition:transform 0.3s ease-out;}
+.qibla-center-dot{position:absolute;top:50%;left:50%;width:10px;height:10px;background:var(--gold);border-radius:50%;transform:translate(-50%,-50%);}
+.qibla-degree-text{font-size:32px;font-weight:700;color:var(--gold);font-family:'Amiri',serif;margin-top:8px;}
+.qibla-status-text{font-size:13px;color:var(--text2);margin-top:6px;font-family:'Amiri',serif;}
+.qibla-enable-btn{background:var(--gold);color:#111;border:none;padding:12px 28px;border-radius:20px;cursor:pointer;font-size:14px;font-family:'Amiri',serif;font-weight:700;margin-top:10px;}
 </style>  
 
  
@@ -826,7 +836,30 @@ body.hide-controls button:not(.mushaf-page button) {
    <div id="gregorianDate" style="font-size: 13px; color: var(--gold); margin-top: 4px; font-family: 'Amiri', serif;"></div>
 
   </div>
-  <div id="prayerTimes" style="display:grid;gap:10px;"></div>
+  <div id="prayerTimes" style="display:grid;gap:10px;margin-bottom:16px;"></div>
+
+  <div class="qibla-card">
+    <div style="font-size:14px;color:var(--gold);font-family:'Amiri',serif;margin-bottom:4px;">🧭 اتجاه القبلة</div>
+    <div style="font-size:11px;color:var(--text2);margin-bottom:10px;">وجّه موبايلك أفقياً واتّبع اتجاه الكعبة</div>
+
+    <div id="qiblaPermissionView">
+      <button class="qibla-enable-btn" onclick="enableQibla()">🧭 تفعيل البوصلة</button>
+      <div class="qibla-status-text" id="qiblaPermStatus"></div>
+    </div>
+
+    <div id="qiblaCompassView" style="display:none;">
+      <div class="qibla-compass-wrap">
+        <div class="qibla-compass-bg" id="qiblaCompassBg">
+          <div class="qibla-north-label">N</div>
+        </div>
+        <div class="qibla-kaaba-icon" id="qiblaKaabaIcon">🕋</div>
+        <div class="qibla-arrow" id="qiblaArrow"></div>
+        <div class="qibla-center-dot"></div>
+      </div>
+      <div class="qibla-degree-text" id="qiblaDegreeText">--°</div>
+      <div class="qibla-status-text" id="qiblaStatusText">جاري تحديد اتجاه القبلة...</div>
+    </div>
+  </div>
 </div>
  <!-- ASMA2 -->
 <div class="page" id="asma2">
@@ -2564,6 +2597,113 @@ function azkarAudioEnded() {
   document.getElementById('azkarPlayBtn').textContent = '▶';
   document.getElementById('azkarAudioStatus').textContent = 'انتهت التلاوة 🌙';
    }
+ // ============================
+// اتجاه القبلة
+// ============================
+const KAABA_LAT = 21.4225;
+const KAABA_LNG = 39.8262;
+let qiblaAngle = null;
+let deviceHeading = 0;
+let qiblaWatchId = null;
+
+function calculateQiblaAngle(lat, lng) {
+  const lat1 = lat * Math.PI / 180;
+  const lat2 = KAABA_LAT * Math.PI / 180;
+  const deltaLng = (KAABA_LNG - lng) * Math.PI / 180;
+
+  const y = Math.sin(deltaLng) * Math.cos(lat2);
+  const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(deltaLng);
+  let bearing = Math.atan2(y, x) * 180 / Math.PI;
+  bearing = (bearing + 360) % 360;
+  return bearing;
+}
+
+function enableQibla() {
+  const statusEl = document.getElementById('qiblaPermStatus');
+
+  if (!navigator.geolocation) {
+    statusEl.textContent = 'الموقع غير مدعوم على جهازك 😔';
+    return;
+  }
+
+  statusEl.textContent = 'جاري تحديد موقعك...';
+
+  navigator.geolocation.getCurrentPosition(async (pos) => {
+    qiblaAngle = calculateQiblaAngle(pos.coords.latitude, pos.coords.longitude);
+
+    // طلب إذن حساس الاتجاه (ضروري في iOS 13+)
+    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+      try {
+        const permission = await DeviceOrientationEvent.requestPermission();
+        if (permission !== 'granted') {
+          statusEl.textContent = 'محتاجين إذن البوصلة عشان تشتغل 🙏';
+          return;
+        }
+      } catch (e) {
+        statusEl.textContent = 'حصلت مشكلة في إذن البوصلة';
+        return;
+      }
+    }
+
+    document.getElementById('qiblaPermissionView').style.display = 'none';
+    document.getElementById('qiblaCompassView').style.display = 'block';
+    startQiblaCompass();
+
+  }, (err) => {
+    statusEl.textContent = 'محتاجين إذن الموقع عشان نحدد اتجاه القبلة 📍';
+  }, { enableHighAccuracy: true });
+}
+
+function startQiblaCompass() {
+  const handler = (event) => {
+    let heading;
+    if (event.webkitCompassHeading !== undefined) {
+      heading = event.webkitCompassHeading; // iOS
+    } else if (event.alpha !== null) {
+      heading = 360 - event.alpha; // Android
+    } else {
+      return;
+    }
+    deviceHeading = heading;
+    updateQiblaDisplay();
+  };
+
+  if ('ondeviceorientationabsolute' in window) {
+    window.addEventListener('deviceorientationabsolute', handler);
+  } else {
+    window.addEventListener('deviceorientation', handler);
+  }
+}
+
+function updateQiblaDisplay() {
+  if (qiblaAngle === null) return;
+
+  const compassBg = document.getElementById('qiblaCompassBg');
+  const kaabaIcon = document.getElementById('qiblaKaabaIcon');
+  const arrow = document.getElementById('qiblaArrow');
+  const degreeText = document.getElementById('qiblaDegreeText');
+  const statusText = document.getElementById('qiblaStatusText');
+
+  // دوران الخلفية عكس اتجاه الجهاز (يحاكي بوصلة حقيقية)
+  compassBg.style.transform = `rotate(${-deviceHeading}deg)`;
+
+  // اتجاه القبلة بالنسبة للشمال الحقيقي، مطروح منه اتجاه الجهاز
+  const relativeAngle = (qiblaAngle - deviceHeading + 360) % 360;
+  kaabaIcon.style.transform = `translateX(-50%) rotate(${relativeAngle}deg) translateY(0)`;
+  kaabaIcon.style.transformOrigin = '50% 124px';
+  arrow.style.transform = `translate(-50%,-100%) rotate(${relativeAngle}deg)`;
+
+  degreeText.textContent = Math.round(qiblaAngle) + '°';
+
+  const diff = Math.abs(relativeAngle > 180 ? 360 - relativeAngle : relativeAngle);
+  if (diff < 8) {
+    statusText.textContent = '✅ أنت متجه الآن نحو القبلة';
+    statusText.style.color = '#4caf50';
+  } else {
+    statusText.textContent = 'وجّه موبايلك حتى يستقر السهم لأعلى';
+    statusText.style.color = 'var(--text2)';
+  }
+ }
  async function loadPrayerTimes() {
   const today = new Date();
   const d = today.getDate();
