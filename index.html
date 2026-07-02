@@ -2859,58 +2859,79 @@ const timeStr = `${h12}:${String(min).padStart(2,'0')} ${ampm}`;
  }
   // يجب تعريف المتغير خارج الدالة ليحتفظ بقيمته بين الاستدعاءات
 let searchTimeout; 
-
 async function globalSearch(q) {
-  if (typeof filterSurahs === 'function') {
-    filterSurahs(q);
-  }
-
-  const resultsDiv = document.getElementById('ayahSearchResults');
-  
-  // 1. رفعنا الحد الأدنى لـ 3 أحرف حتى لا يبحث عن "ال" أو "من" ويجلب نتائج عشوائية
+  // لو مفيش بحث، رجع لستة السور الطبيعية ونظف شاشة البحث
   if (!q || q.trim().length < 3) {
+    document.getElementById('surahList').style.display = 'grid';
+    const resultsDiv = document.getElementById('ayahSearchResults');
     resultsDiv.style.display = 'none';
     resultsDiv.innerHTML = '';
+    if (typeof filterSurahs === 'function') filterSurahs('');
     return;
   }
 
+  const resultsDiv = document.getElementById('ayahSearchResults');
   clearTimeout(searchTimeout);
 
   searchTimeout = setTimeout(async () => {
     try {
       resultsDiv.style.display = 'block';
-      resultsDiv.innerHTML = '<div style="color:var(--gold);padding:10px;font-size:13px;font-family:Amiri,serif;">⏳ جاري البحث...</div>';
+      // إخفاء القائمة العادية عشان هنعرض الترتيب الجديد المدمج
+      document.getElementById('surahList').style.display = 'none';
+      resultsDiv.innerHTML = '<div style="color:var(--gold);padding:10px;font-size:13px;font-family:Amiri,serif;">⏳ جاري جمع السور والآيات...</div>';
 
-      // 2. استخدام quran-simple-clean لضمان مطابقة الكلمات النظيفة تماماً
+      // 1. فلترة السور اللي مطابقة لكلمة البحث
+      const matchedSurahs = surahs.filter(s => s.name.includes(q.trim()));
+
+      // 2. جلب الآيات المطابقة من السيرفر
       const secureUrl = `https://api.alquran.cloud/v1/search/${encodeURIComponent(q.trim())}/all/quran-simple-clean`;
-      
       const response = await fetch(secureUrl);
       const data = await response.json();
 
+      let html = '';
+
+      // أولاً: لو لقى سور مطابقة لاسم البحث، هيعرضها هي الأول فوق ككروت كبيرة
+      if (matchedSurahs.length > 0) {
+        html += `<div style="color:var(--gold);font-size:14px;margin-bottom:10px;font-family:Amiri,serif;font-weight:bold;">📖 السور المطابقة للبحث:</div>`;
+        html += matchedSurahs.map(s => `
+          <div class="surah-item" onclick="openSurah(${s.n})" style="margin-bottom:12px; background: rgba(212,175,55,0.05); border: 1px solid var(--gold);">
+            <div class="surah-num">${s.n}</div>
+            <div class="surah-info">
+              <div class="surah-name" style="color:var(--gold);">${s.name}</div>
+              <div class="surah-details">${s.ayat} آية — ${s.type}</div>
+            </div>
+            <div class="surah-type">⭐</div>
+          </div>
+        `).join('');
+      }
+
+      // ثانياً: يعرض تحتها لستة الآيات اللي جت فيها الكلمة دي بشكل منفصل وموضح فيه اسم السورة ورقم الآية
       if (data.code === 200 && data.data && data.data.matches && data.data.matches.length > 0) {
         const sorted = data.data.matches.sort((a, b) => a.number - b.number);
-        
         const matches = sorted.slice(0, 200);
 
-        let html = `<div style="color:var(--gold);font-size:13px;margin-bottom:8px;font-family:Amiri,serif;">📖 نتائج البحث المحددة (${toAr(data.data.matches.length)})</div>`;
+        html += `<div style="color:var(--gold);font-size:14px;margin-top:20px;margin-bottom:10px;font-family:Amiri,serif;font-weight:bold;">✨ الآيات التي وردت فيها الكلمة (${toAr(data.data.matches.length)}):</div>`;
         
         html += matches.map(m => `
-          <div class="surah-item" onclick="openSurah(${m.surah.number},${m.numberInSurah})" style="border-right:3px solid var(--gold);margin-bottom:8px;display:block;padding:14px;cursor:pointer;">
+          <div class="surah-item" onclick="openSurah(${m.surah.number},${m.numberInSurah})" style="border-right:3px solid var(--green);margin-bottom:8px;display:block;padding:14px;cursor:pointer;">
             <div style="font-size:17px;line-height:2;color:var(--text);font-family:'Amiri Quran',serif;text-align:justify;">${m.text}</div>
             <div style="color:var(--gold);margin-top:6px;font-size:12px;font-family:Amiri,serif;">سورة ${m.surah.name.replace(/^سُورَةُ\s*/, '').trim()} — الآية ${toAr(m.numberInSurah)}</div>
-
           </div>`).join('');
-
-        resultsDiv.innerHTML = html;
-      } else {
-        resultsDiv.innerHTML = '<div style="color:var(--text2);padding:10px;font-size:12px;font-family:Amiri,serif;">لم نعثر على نتائج دقيقة 🕊️</div>';
       }
+
+      // لو ملحش يلاقي لا سور ولا آيات
+      if (matchedSurahs.length === 0 && (!data.data || !data.data.matches || data.data.matches.length === 0)) {
+        html = '<div style="color:var(--text2);padding:10px;font-size:12px;font-family:Amiri,serif;">لم نعثر على نتائج دقيقة 🕊️</div>';
+      }
+
+      resultsDiv.innerHTML = html;
     } catch (e) {
       console.error("Search Fail:", e);
       resultsDiv.innerHTML = '<div style="color:var(--text2);padding:10px;font-size:12px;font-family:Amiri,serif;">تحتاج اتصال بالإنترنت 🌐</div>';
     }
-  }, 600); // زيادة مهلة الكتابة قليلاً لراحة المستخدم
+  }, 600);
 }
+
 
 // دالة فرعية يتم استدعاؤها تلقائياً عند تمام تحميل صورة الصفحة
 async function loadPageWordsOverlay(imgElement, pageNum) {
