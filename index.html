@@ -1167,6 +1167,7 @@ body.hide-controls button:not(.mushaf-page button) {
   </div>
 </div>
 <!-- 🎬 صفحة إنشاء الفيديو (REELS CREATOR) -->
+    <!-- videoCreatorPage START -->
 <div class="page" id="videoCreatorPage" style="max-width: 100vw !important; overflow-x: hidden !important; padding: 14px !important;">
   
   <style>
@@ -1184,8 +1185,8 @@ body.hide-controls button:not(.mushaf-page button) {
   </style>
 
   <div style="text-align: center; margin-bottom: 16px;">
-    <h2 style="color: var(--gold); font-family: 'Amiri', serif; font-size: 22px;">🎬 صَانِعُ مَقَاطِعِ الرِّيلْزِ الإِسْلَامِيَّةِ</h2>
-    <p style="color: var(--text2); font-size: 12px;">اصنع فيديو دعوي احترافي بآياتك المفضلة</p>
+    <h2 style="color: var(--gold); font-family: 'Amiri', serif; font-size: 22px;">🎬 صانع مقاطع الريلز</h2>
+    <p style="color: var(--text2); font-size: 12px;">اصنع فيديو دعوي مخصص</p>
   </div>
 
   <div style="display: flex; justify-content: center; margin-bottom: 16px;">
@@ -1204,7 +1205,7 @@ body.hide-controls button:not(.mushaf-page button) {
     </div>
 
     <div>
-      <label style="font-size: 13px; color: var(--gold); display: block; margin-bottom: 6px;">🎙️ 2. اختيار مصدر الصوت وتلاوة الآيات:</label>
+      <label style="font-size: 13px; color: var(--gold); display: block; margin-bottom: 6px;">🎙️ 2. اختيار مصدر الصوت:</label>
       <div style="display: flex; gap: 8px; margin-bottom: 8px;">
         <select id="vcReciterSelect" onchange="updateVideoPreview()" style="flex: 1; padding: 10px; border-radius: 10px; background: var(--bg2); color: var(--text); border: 1px solid var(--border); font-family: 'Amiri', serif;">
           <option value="minsh">المنشاوي (مرتل)</option>
@@ -1215,7 +1216,7 @@ body.hide-controls button:not(.mushaf-page button) {
         <button onclick="document.getElementById('vcUserAudioInput').click()" class="cat-btn" style="background: var(--bg3); border-color: var(--border); font-size: 12px; white-space: nowrap;">➕ أضف ملف صوتي</button>
         <input type="file" id="vcUserAudioInput" accept="audio/*" onchange="handleUserAudioUpload(event)" style="display: none;">
       </div>
-      <div id="userAudioStatus" style="font-size: 11px; color: var(--green); text-align: right; display: none;">✓ تم رفع ملفك الصوتي بنجاح</div>
+      <div id="userAudioStatus" style="font-size: 11px; color: var(--green); text-align: right; display: none;">✓ تم رفع ملف الصوت</div>
     </div>
 
     <div>
@@ -1223,20 +1224,20 @@ body.hide-controls button:not(.mushaf-page button) {
       <div style="display: flex; gap: 6px; align-items: center;">
         <select id="vcSurahSelect" onchange="loadVcAyahs()" style="flex: 2; padding: 10px; border-radius: 10px; background: var(--bg2); color: var(--text); border: 1px solid var(--border); font-family: 'Amiri', serif;">
         </select>
-        <input type="number" id="vcAyahStart" placeholder="من آية" min="1" value="1" onchange="loadVcAyahs()" style="flex: 1; padding: 10px; border-radius: 10px; background: var(--bg2); color: var(--text); border: 1px solid var(--border); text-align: center; font-size: 12px;">
-        <input type="number" id="vcAyahEnd" placeholder="إلى آية" min="1" value="5" onchange="loadVcAyahs()" style="flex: 1; padding: 10px; border-radius: 10px; background: var(--bg2); color: var(--text); border: 1px solid var(--border); text-align: center; font-size: 12px;">
+        <input type="number" id="vcAyahStart" placeholder="من" min="1" value="1" onchange="loadVcAyahs()" style="flex: 1; padding: 10px; border-radius: 10px; background: var(--bg2); color: var(--text); border: 1px solid var(--border); text-align: center; font-size: 12px;">
+        <input type="number" id="vcAyahEnd" placeholder="إلى" min="1" value="5" onchange="loadVcAyahs()" style="flex: 1; padding: 10px; border-radius: 10px; background: var(--bg2); color: var(--text); border: 1px solid var(--border); text-align: center; font-size: 12px;">
       </div>
     </div>
 
     <div>
-      <label style="font-size: 13px; color: var(--gold); display: block; margin-bottom: 6px;">✨ 4. تخصيص مظهر وتنسيق النصوص:</label>
+      <label style="font-size: 13px; color: var(--gold); display: block; margin-bottom: 6px;">✨ 4. تخصيص المظهر:</label>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px;">
         <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg2); padding: 8px; border-radius: 8px;">
           <span>نوع الخط:</span>
           <select id="vcFontSelect" onchange="updateVideoPreview()" style="background:transparent; color:var(--text); border:none; outline:none; font-family:'Amiri', serif;">
             <option value="'Amiri Quran', serif">مصحف عثماني</option>
-            <option value="'Amiri', serif">خط أميري فخم</option>
-            <option value="sans-serif">خط بسيط حديث</option>
+            <option value="'Amiri', serif">خط أميري</option>
+            <option value="sans-serif">خط بسيط</option>
           </select>
         </div>
         <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg2); padding: 8px; border-radius: 8px;">
@@ -1244,26 +1245,28 @@ body.hide-controls button:not(.mushaf-page button) {
           <input type="color" id="vcTextColor" value="#ffffff" onchange="updateVideoPreview()" style="border:0; background:transparent; width:30px; height:22px; cursor:pointer;">
         </div>
         <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg2); padding: 8px; border-radius: 8px;">
-          <span>شعار "أثر":</span>
+          <span>شعار أثر:</span>
           <input type="checkbox" id="vcLogoToggle" checked onchange="updateVideoPreview()" style="accent-color: var(--gold);">
         </div>
         <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg2); padding: 8px; border-radius: 8px;">
-          <span>دقة التصدير:</span>
+          <span>الدقة:</span>
           <select id="vcResolutionSelect" style="background:transparent; color:var(--text); border:none; outline:none;">
-            <option value="720">720p (سريع)</option>
-            <option value="1080">1080p (FHD)</option>
+            <option value="720">720p</option>
+            <option value="1080">1080p</option>
           </select>
         </div>
       </div>
     </div>
 
     <div style="display: flex; gap: 8px; margin-top: 6px;">
-      <button onclick="toggleVideoPreviewPlay()" id="vcPlayBtn" class="cat-btn" style="flex: 1; padding: 12px; background: var(--bg3); color: var(--gold); font-weight: bold;">▶ تشغيل المعاينة</button>
-      <button onclick="generateFinalVideo()" class="cat-btn" style="flex: 2; padding: 12px; background: var(--green); color: #fff; border-color: var(--green); font-weight: bold;">🎬 إنشاء وتحميل الفيديو الآن</button>
+      <button onclick="toggleVideoPreviewPlay()" id="vcPlayBtn" class="cat-btn" style="flex: 1; padding: 12px; background: var(--bg3); color: var(--gold); font-weight: bold;">▶ تشغيل</button>
+      <button onclick="generateFinalVideo()" class="cat-btn" style="flex: 2; padding: 12px; background: var(--green); color: #fff; border-color: var(--green); font-weight: bold;">🎬 إنشاء وتحميل</button>
     </div>
-    <div id="vcExportStatus" style="font-size: 12px; color: var(--gold); text-align: center; display: none; font-weight: bold;">⏳ جاري معالجة وتركيب ريلز آياتك... يرجى عدم إغلاق التطبيق</div>
+    <div id="vcExportStatus" style="font-size: 12px; color: var(--gold); text-align: center; display: none; font-weight: bold;">⏳ جاري معالجة الفيديو... يرجى الانتظار</div>
   </div>
 </div>
+<!-- videoCreatorPage END -->
+
       
 
 <!-- OVERLAY DIMMER -->
