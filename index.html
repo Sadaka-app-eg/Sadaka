@@ -560,7 +560,15 @@ body.in-subpage .back-to-home-btn {
 .khatma-surah-info{flex:1;}
 .khatma-surah-name{font-size:15px;font-weight:700;font-family:'Amiri',serif;}
 .khatma-surah-pages{font-size:11px;color:var(--text2);}
-</style>
+
+.notif-item{background:var(--bg2);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;border:1px solid var(--border);cursor:pointer;transition:all 0.2s;}
+.notif-item.selected{border-color:var(--gold);background:rgba(212,175,55,0.1);}
+.notif-item .notif-check{width:20px;height:20px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:#111;}
+.notif-item.selected .notif-check{background:var(--gold);border-color:var(--gold);}
+.notif-item .notif-txt{font-size:14px;font-family:'Amiri',serif;line-height:1.7;}
+.notif-remove-btn{background:transparent;border:none;color:#ff6b6b;font-size:16px;cursor:pointer;padding:4px 8px;}
+</style>  
+
  
 
 </head>
@@ -942,7 +950,49 @@ body.hide-controls button:not(.mushaf-page button) {
   <!-- وعاء استقبال كروت وضخ البيانات -->
   <div id="islamicCardsContainer"></div>
 </div>
+<!-- NOTIFICATIONS PAGE -->
+<div class="page" id="notifPage">
+  <div style="text-align:center;margin-bottom:16px;">
+    <h2 style="color:var(--gold);font-family:'Amiri',serif;font-size:22px;">🔔 الإشعارات والتذكيرات</h2>
+    <p style="color:var(--text2);font-size:12px;">اختر الأذكار اللي تحب تتذكر بيها، وحدد كل قد إيه</p>
+  </div>
 
+  <div style="background:var(--card);border-radius:16px;padding:16px;border:1px solid var(--border);margin-bottom:14px;">
+    <div style="font-size:13px;color:var(--gold);margin-bottom:10px;font-family:'Amiri',serif;">اختر الأذكار (اضغط للتحديد):</div>
+    <div id="notifPresetsList" style="display:grid;gap:8px;"></div>
+    <div style="display:flex;gap:8px;margin-top:10px;">
+      <button class="cat-btn" onclick="selectAllNotifPresets()" style="flex:1;">✔️ تحديد الكل</button>
+      <button class="cat-btn" onclick="clearAllNotifPresets()" style="flex:1;">✕ إلغاء الكل</button>
+    </div>
+  </div>
+
+  <div style="background:var(--card);border-radius:16px;padding:16px;border:1px solid var(--border);margin-bottom:14px;">
+    <div style="font-size:13px;color:var(--gold);margin-bottom:10px;font-family:'Amiri',serif;">➕ أضف ذكرك الخاص:</div>
+    <textarea id="customNotifText" placeholder="اكتب الذكر أو الدعاء هنا..." style="width:100%;min-height:60px;padding:10px;border-radius:10px;background:var(--bg2);color:var(--text);border:1px solid var(--border);font-family:'Amiri',serif;font-size:14px;resize:vertical;outline:none;"></textarea>
+    <button class="cat-btn" onclick="addCustomNotif()" style="width:100%;margin-top:8px;background:var(--gold);color:#111;border-color:var(--gold);">➕ إضافة للقائمة</button>
+    <div id="customNotifList" style="display:grid;gap:8px;margin-top:10px;"></div>
+  </div>
+
+  <div style="background:var(--card);border-radius:16px;padding:16px;border:1px solid var(--border);margin-bottom:14px;">
+    <div style="font-size:13px;color:var(--gold);margin-bottom:10px;font-family:'Amiri',serif;">⏱️ طريقة الظهور:</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <button class="mode-btn active" id="notifModeSeq" onclick="setNotifMode('sequential')" style="flex:1;">بالترتيب</button>
+      <button class="mode-btn" id="notifModeRandom" onclick="setNotifMode('random')" style="flex:1;">🎲 عشوائي</button>
+    </div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:8px;font-family:'Amiri',serif;">كرر التذكير كل:</div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <input type="number" id="notifIntervalValue" value="1" min="1" style="flex:1;padding:10px;border-radius:10px;background:var(--bg2);color:var(--text);border:1px solid var(--border);text-align:center;font-family:'Amiri',serif;outline:none;">
+      <select id="notifIntervalUnit" style="flex:1;padding:10px;border-radius:10px;background:var(--bg2);color:var(--text);border:1px solid var(--border);font-family:'Amiri',serif;outline:none;">
+        <option value="minutes">دقيقة</option>
+        <option value="hours" selected>ساعة</option>
+      </select>
+    </div>
+  </div>
+
+  <button onclick="activateNotifications()" style="width:100%;background:var(--gold);color:#111;border:none;padding:14px;border-radius:14px;font-family:'Amiri',serif;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:10px;">🔔 تفعيل الإشعارات</button>
+  <button onclick="deactivateNotifications()" style="width:100%;background:transparent;border:1px solid rgba(255,100,100,0.4);color:#ff6b6b;padding:12px;border-radius:14px;font-family:'Amiri',serif;font-size:14px;cursor:pointer;">🔕 إيقاف كل الإشعارات</button>
+  <div id="notifStatusMsg" style="text-align:center;margin-top:10px;font-size:12px;color:var(--text2);"></div>
+</div>
 <!-- OVERLAY DIMMER -->
 <div class="overlay-dimmer" id="overlayDimmer" onclick="closeActionMenu()"></div>
 
@@ -1659,7 +1709,7 @@ function showPage(id, el) {
 
     if(id === 'favPage') renderFav();
   if(id === 'awkat') loadPrayerTimes();
-  
+  if(id === 'notifPage') { renderNotifPresets(); renderCustomNotifList(); }
   // تشغيل المكتبة العلمية بشكل مستقل
   if(id === 'islamicContent' && typeof switchSubContent === 'function') {
     switchSubContent('fiqh');
@@ -3256,7 +3306,165 @@ const gifts = [
 ];
  
 
+// ============================
+// نظام الإشعارات المخصص
+// ============================
+const notifPresets = [
+  { id: 'p1', text: 'سُبْحَانَ اللهِ وَبِحَمْدِهِ' },
+  { id: 'p2', text: 'لَا إِلَهَ إِلَّا اللهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ' },
+  { id: 'p3', text: 'اللَّهُمَّ صَلِّ وَسَلِّمْ وَبَارِكْ عَلَى نَبِيِّنَا مُحَمَّدٍ' },
+  { id: 'p4', text: '﴿ فَاذْكُرُونِي أَذْكُرْكُمْ وَاشْكُرُوا لِي وَلَا تَكْفُرُونِ ﴾' },
+  { id: 'p5', text: 'أَسْتَغْفِرُ اللهَ العَظِيمَ وَأَتُوبُ إِلَيْهِ' },
+  { id: 'p6', text: '﴿ أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ ﴾' },
+  { id: 'p7', text: 'حَسْبِيَ اللهُ لَا إِلَهَ إِلَّا هُوَ عَلَيْهِ تَوَكَّلْتُ' },
+  { id: 'p8', text: '﴿ وَمَن يَتَّقِ اللَّهَ يَجْعَل لَّهُ مَخْرَجًا ﴾' },
+  { id: 'p9', text: 'لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللهِ الْعَلِيِّ الْعَظِيمِ' },
+  { id: 'p10', text: 'اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَفْوَ وَالْعَافِيَةَ فِي الدُّنْيَا وَالْآخِرَةِ' }
+];
 
+let notifSelected = JSON.parse(localStorage.getItem('notif_selected') || '[]');
+let notifCustomList = JSON.parse(localStorage.getItem('notif_custom') || '[]');
+let notifMode = localStorage.getItem('notif_mode') || 'sequential';
+
+function renderNotifPresets() {
+  const el = document.getElementById('notifPresetsList');
+  if (!el) return;
+  el.innerHTML = notifPresets.map(p => `
+    <div class="notif-item ${notifSelected.includes(p.id) ? 'selected' : ''}" onclick="toggleNotifPreset('${p.id}')">
+      <div class="notif-check">${notifSelected.includes(p.id) ? '✓' : ''}</div>
+      <div class="notif-txt">${p.text}</div>
+    </div>
+  `).join('');
+}
+
+function renderCustomNotifList() {
+  const el = document.getElementById('customNotifList');
+  if (!el) return;
+  if (notifCustomList.length === 0) { el.innerHTML = ''; return; }
+  el.innerHTML = notifCustomList.map((c, i) => `
+    <div class="notif-item selected">
+      <div class="notif-check">✓</div>
+      <div class="notif-txt" style="flex:1;">${c}</div>
+      <button class="notif-remove-btn" onclick="removeCustomNotif(${i})">✕</button>
+    </div>
+  `).join('');
+}
+
+function toggleNotifPreset(id) {
+  if (notifSelected.includes(id)) notifSelected = notifSelected.filter(x => x !== id);
+  else notifSelected.push(id);
+  localStorage.setItem('notif_selected', JSON.stringify(notifSelected));
+  renderNotifPresets();
+}
+
+function selectAllNotifPresets() {
+  notifSelected = notifPresets.map(p => p.id);
+  localStorage.setItem('notif_selected', JSON.stringify(notifSelected));
+  renderNotifPresets();
+}
+
+function clearAllNotifPresets() {
+  notifSelected = [];
+  localStorage.setItem('notif_selected', JSON.stringify(notifSelected));
+  renderNotifPresets();
+}
+
+function addCustomNotif() {
+  const ta = document.getElementById('customNotifText');
+  const txt = ta.value.trim();
+  if (!txt) { alert('اكتب الذكر الأول 🙏'); return; }
+  notifCustomList.push(txt);
+  localStorage.setItem('notif_custom', JSON.stringify(notifCustomList));
+  ta.value = '';
+  renderCustomNotifList();
+}
+
+function removeCustomNotif(i) {
+  notifCustomList.splice(i, 1);
+  localStorage.setItem('notif_custom', JSON.stringify(notifCustomList));
+  renderCustomNotifList();
+}
+
+function setNotifMode(mode) {
+  notifMode = mode;
+  localStorage.setItem('notif_mode', mode);
+  document.getElementById('notifModeSeq').classList.toggle('active', mode === 'sequential');
+  document.getElementById('notifModeRandom').classList.toggle('active', mode === 'random');
+}
+
+function getSelectedNotifTexts() {
+  const fromPresets = notifPresets.filter(p => notifSelected.includes(p.id)).map(p => p.text);
+  return [...fromPresets, ...notifCustomList];
+}
+
+function activateNotifications() {
+  const items = getSelectedNotifTexts();
+  const statusEl = document.getElementById('notifStatusMsg');
+
+  if (items.length === 0) {
+    statusEl.style.color = '#ff6b6b';
+    statusEl.textContent = 'اختار ذكر واحد على الأقل الأول ⚠️';
+    return;
+  }
+
+  const value = parseInt(document.getElementById('notifIntervalValue').value) || 60;
+  const unit = document.getElementById('notifIntervalUnit').value;
+  const minutes = unit === 'hours' ? value * 60 : value;
+
+  if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+    statusEl.style.color = '#ff6b6b';
+    statusEl.textContent = 'المتصفح ده مش بيدعم الإشعارات 😔';
+    return;
+  }
+
+  Notification.requestPermission().then(permission => {
+    if (permission !== 'granted') {
+      statusEl.style.color = '#ff6b6b';
+      statusEl.textContent = 'محتاج تسمح بالإشعارات عشان تشتغل 🙏';
+      return;
+    }
+    navigator.serviceWorker.register('sw.js').then(reg => {
+      const sendConfig = () => {
+        const target = reg.active || navigator.serviceWorker.controller;
+        if (target) {
+          target.postMessage({
+            type: 'SET_NOTIF_CONFIG',
+            intervalMinutes: minutes,
+            mode: notifMode,
+            items: items
+          });
+        }
+      };
+      if (reg.active) sendConfig();
+      else navigator.serviceWorker.ready.then(sendConfig);
+
+      localStorage.setItem('notif_active', '1');
+      statusEl.style.color = '#4caf50';
+      statusEl.textContent = `✅ تم التفعيل — هيجيلك تذكير كل ${value} ${unit === 'hours' ? 'ساعة' : 'دقيقة'} من ${items.length} ذكر`;
+    }).catch(() => {
+      statusEl.style.color = '#ff6b6b';
+      statusEl.textContent = 'حصلت مشكلة في تسجيل خدمة الإشعارات 😔';
+    });
+  });
+}
+
+function deactivateNotifications() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.ready.then(reg => {
+      if (reg.active) reg.active.postMessage({ type: 'CLEAR_NOTIF_CONFIG' });
+    });
+  }
+  localStorage.setItem('notif_active', '0');
+  const statusEl = document.getElementById('notifStatusMsg');
+  statusEl.style.color = 'var(--text2)';
+  statusEl.textContent = '🔕 تم إيقاف الإشعارات';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  renderNotifPresets();
+  renderCustomNotifList();
+  setNotifMode(notifMode);
+});
 
 // جعل دالة التشغيل عالمية لتراها الملفات الخارجية فوراً
 window.playRare = function(url) {
@@ -3510,56 +3718,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 🚀 1. دالة تسجيل الـ Service Worker وطلب صلاحية الإشعارات
-  window.initNotificationSystem = function() {
-    if ('serviceWorker' in navigator && 'Notification' in window) {
-      navigator.serviceWorker.register('sw.js')
-      .then((reg) => {
-        console.log('تم تسجيل عامل الخدمة بنجاح!');
-        if (Notification.permission === 'default') {
-          Notification.requestPermission().then((permission) => {
-            if (permission === 'granted') {
-              askUserForReminderInterval(reg);
-            }
-          });
-        } else if (Notification.permission === 'granted') {
-          askUserForReminderInterval(reg);
-        }
-      }).catch(err => console.error('خطأ في تسجيل الـ Service Worker:', err));
-    }
-  }
+  
 
-  // ⏱️ 2. دالة سؤال المستخدم عن المدة وإرسالها فوراً للخلفية تلقائياً
-  function askUserForReminderInterval(registration) {
-    let minutesInput = prompt("✨ تم تفعيل الإشعارات بنجاح!\nتحب يجيلك إشعار تذكيري كل كم دقيقة؟\n(مثال: اكتب 60 لتذكير كل ساعة، أو 5 لتذكير سريع):", "60");
-    let minutes = parseInt(minutesInput);
-
-    if (!isNaN(minutes) && minutes > 0) {
-      if (registration.active) {
-        registration.active.postMessage({
-          type: 'SET_INTERVAL',
-          minutes: minutes
-        });
-        alert(`🎯 تم ضبط التذكير التلقائي بنجاح! سيصلك ذكر مبارك كل ${minutes} دقيقة.`);
-      } else {
-        navigator.serviceWorker.addEventListener('controllerchange', () => {
-          if (navigator.serviceWorker.controller) {
-            navigator.serviceWorker.controller.postMessage({
-              type: 'SET_INTERVAL',
-              minutes: minutes
-            });
-          }
-        });
-      }
-    } else {
-      alert("⚠️ لم يتم إدخال مدة صحيحة، تم تفعيل التذكير على المدة الافتراضية (60 دقيقة).");
-    }
-  }
-
-  // تشغيل المنظومة تلقائياً عند فتح التطبيق واستقرار الواجهة
-  document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(window.initNotificationSystem, 1500);
-  });
+   
+  
 </script>
 
 </body>
