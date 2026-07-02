@@ -2860,7 +2860,10 @@ const timeStr = `${h12}:${String(min).padStart(2,'0')} ${ampm}`;
   // يجب تعريف المتغير خارج الدالة ليحتفظ بقيمته بين الاستدعاءات
 let searchTimeout; 
 async function globalSearch(q) {
-  // لو مفيش بحث، رجع لستة السور الطبيعية ونظف شاشة البحث
+  // 1. إيقاف فوري لأي بحث قديم شغال في الخلفية لمنع التداخل تماماً
+  clearTimeout(searchTimeout);
+
+  // 2. لو المستخدم مسح الكلام أو كتب أقل من 3 حروف، نرجع كل حاجة لأصلها فوراً
   if (!q || q.trim().length < 3) {
     document.getElementById('surahList').style.display = 'grid';
     const resultsDiv = document.getElementById('ayahSearchResults');
@@ -2871,26 +2874,22 @@ async function globalSearch(q) {
   }
 
   const resultsDiv = document.getElementById('ayahSearchResults');
-  clearTimeout(searchTimeout);
 
+  // الـ Timeout بيبدأ هنا بعد التأكد إن فيه كلمة حقيقية مكتوبة
   searchTimeout = setTimeout(async () => {
     try {
       resultsDiv.style.display = 'block';
-      // إخفاء القائمة العادية عشان هنعرض الترتيب الجديد المدمج
       document.getElementById('surahList').style.display = 'none';
       resultsDiv.innerHTML = '<div style="color:var(--gold);padding:10px;font-size:13px;font-family:Amiri,serif;">⏳ جاري جمع السور والآيات...</div>';
 
-      // 1. فلترة السور اللي مطابقة لكلمة البحث
       const matchedSurahs = surahs.filter(s => s.name.includes(q.trim()));
 
-      // 2. جلب الآيات المطابقة من السيرفر
       const secureUrl = `https://api.alquran.cloud/v1/search/${encodeURIComponent(q.trim())}/all/quran-simple-clean`;
       const response = await fetch(secureUrl);
       const data = await response.json();
 
       let html = '';
 
-      // أولاً: لو لقى سور مطابقة لاسم البحث، هيعرضها هي الأول فوق ككروت كبيرة
       if (matchedSurahs.length > 0) {
         html += `<div style="color:var(--gold);font-size:14px;margin-bottom:10px;font-family:Amiri,serif;font-weight:bold;">📖 السور المطابقة للبحث:</div>`;
         html += matchedSurahs.map(s => `
@@ -2905,7 +2904,6 @@ async function globalSearch(q) {
         `).join('');
       }
 
-      // ثانياً: يعرض تحتها لستة الآيات اللي جت فيها الكلمة دي بشكل منفصل وموضح فيه اسم السورة ورقم الآية
       if (data.code === 200 && data.data && data.data.matches && data.data.matches.length > 0) {
         const sorted = data.data.matches.sort((a, b) => a.number - b.number);
         const matches = sorted.slice(0, 200);
@@ -2919,7 +2917,6 @@ async function globalSearch(q) {
           </div>`).join('');
       }
 
-      // لو ملحش يلاقي لا سور ولا آيات
       if (matchedSurahs.length === 0 && (!data.data || !data.data.matches || data.data.matches.length === 0)) {
         html = '<div style="color:var(--text2);padding:10px;font-size:12px;font-family:Amiri,serif;">لم نعثر على نتائج دقيقة 🕊️</div>';
       }
