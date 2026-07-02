@@ -902,28 +902,32 @@ body.hide-controls button:not(.mushaf-page button) {
       </div>
     </div> <!-- السطر 891 الحالي عندك (قفلة كارت الختمة القديم) -->
 
-    <!-- 🧠 حط كود قسم خطة الحفظ والمراجعة الجديد هنا بالظبط تحت قفلة الكارت القديم -->
-    <div style="background:var(--card);border-radius:20px;padding:20px;border:1px solid var(--border);text-align:center;margin-top:20px; border-right: 4px solid var(--green);">
+        <!-- 🧠 قسم خطة الحفظ والمراجعة الجديد المؤمّن 100% -->
+    <div style="background:var(--card);border-radius:20px;padding:20px;border:1px solid var(--border);text-align:center;margin-top:20px; border-right: 4px solid var(--green); width: 100%;">
       <div style="font-size:16px;color:var(--green);font-family:'Amiri',serif;margin-bottom:10px;font-weight:bold;">🧠 خطة الحفظ والمراجعة</div>
       <p style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.6;">حدد مدة الختمة وأيام إجازتك الأسبوعية لنرسم لك خطتك بدقة</p>
 
-      <!-- خانات إدخال الخطة -->
-      <div id="memoSetupForm">
-        <div style="display:flex;gap:8px;margin-bottom:10px;">
-          <input type="number" id="memoTotalDays" placeholder="المدة (مثال: 365 يوم)" min="30" style="flex:1;padding:12px;border-radius:12px;background:var(--bg2);color:var(--text);border:1px solid var(--border);font-family:'Amiri',serif;font-size:13px;text-align:center;outline:none;">
-          <input type="number" id="memoOffDays" placeholder="إجازة أسبوعية (أيام)" min="0" max="4" value="1" style="flex:1;padding:12px;border-radius:12px;background:var(--bg2);color:var(--text);border:1px solid var(--border);font-family:'Amiri',serif;font-size:13px;text-align:center;outline:none;">
+      <!-- خانات إدخال الخطة مرتبة عمودياً بالملي لمنع الخروج عن الشاشة -->
+      <div id="memoSetupForm" style="width: 100%;">
+        <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:12px; width:100%;">
+          <input type="number" id="memoTotalDays" placeholder="المدة (مثال: 365 يوم)" min="30" style="width:100%; padding:12px;border-radius:12px;background:var(--bg2);color:var(--text);border:1px solid var(--border);font-family:'Amiri',serif;font-size:13px;text-align:center;outline:none;">
+          <input type="number" id="memoOffDays" placeholder="إجازة أسبوعية (مثال: 1 يوم)" min="0" max="4" value="1" style="width:100%; padding:12px;border-radius:12px;background:var(--bg2);color:var(--text);border:1px solid var(--border);font-family:'Amiri',serif;font-size:13px;text-align:center;outline:none;">
         </div>
         <button onclick="calculateMemoPlan()" class="cat-btn" style="width:100%;padding:12px 20px;background:var(--green);color:#fff;border-color:var(--green);font-size:15px;font-weight:bold;">احسب خطتي الآن</button>
       </div>
 
       <!-- نتيجة الخطة بعد الحساب (مخفية في البداية) -->
-      <div id="memoPlanResult" style="display:none; background: rgba(0,0,0,0.15); padding: 15px; border-radius: 12px; margin-top: 15px; border: 1px dashed var(--green);"></div>
+      <div id="memoPlanResult" style="display:none; background: rgba(0,0,0,0.15); padding: 15px; border-radius: 12px; margin-top: 15px; border: 1px dashed var(--green); width: 100%;"></div>
 
-      <!-- قسم نصائح وفضائل الحفظ (متجدد) -->
-      <div style="margin-top: 15px; background: rgba(212,175,55,0.1); padding: 12px; border-radius: 12px; font-size: 13px; color: var(--text); border-right: 2px solid var(--gold); text-align: justify; line-height: 1.8;">
-        <span id="memoTipText">جاري تحميل النصيحة...</span>
+      <!-- قسم نصائح وفضائل الحفظ مكتوب كاش لعدم التعليق -->
+      <div style="margin-top: 15px; background: rgba(212,175,55,0.1); padding: 12px; border-radius: 12px; font-size: 13px; color: var(--text); border-right: 2px solid var(--gold); text-align: justify; line-height: 1.8; width: 100%;">
+        <span id="memoTipText"><strong style="color:var(--gold)">💡 نصيحة للحفظ:</strong> خصص وقتاً ثابتاً كل يوم (مثل بعد الفجر) فالعقل يكون أصفى والبركة أعم، وثبت مصحفاً واحداً لترتبط ذاكرتك البصرية بأماكن الآيات.</span>
       </div>
     </div>
+    <!-- 🧠 نهاية قسم الحفظ الجديد -->
+
+            
+      
     <!-- 🧠 نهاية قسم الحفظ الجديد -->
 
   </div> <!-- السطر 892 الحالي عندك (قفلة الـ khatmaSetup الكبيرة) -->
