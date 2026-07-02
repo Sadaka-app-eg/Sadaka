@@ -599,6 +599,14 @@ body.in-subpage .back-to-home-btn {
 .qibla-degree-text{font-size:32px;font-weight:700;color:var(--gold);font-family:'Amiri',serif;margin-top:8px;}
 .qibla-status-text{font-size:13px;color:var(--text2);margin-top:6px;font-family:'Amiri',serif;}
 .qibla-enable-btn{background:var(--gold);color:#111;border:none;padding:12px 28px;border-radius:20px;cursor:pointer;font-size:14px;font-family:'Amiri',serif;font-weight:700;margin-top:10px;}
+  .answer-time-item{background:var(--bg2);border-radius:12px;padding:12px 14px;border:1px solid var(--border);cursor:pointer;transition:all 0.2s;}
+.answer-time-item.selected{border-color:var(--gold);background:rgba(212,175,55,0.1);}
+.answer-time-item .at-top{display:flex;align-items:center;gap:10px;}
+.answer-time-item .at-check{width:20px;height:20px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:#111;}
+.answer-time-item.selected .at-check{background:var(--gold);border-color:var(--gold);}
+.answer-time-item .at-title{font-size:14px;font-weight:700;color:var(--text);font-family:'Amiri',serif;}
+.answer-time-item .at-desc{font-size:11px;color:var(--text2);margin-top:4px;margin-right:30px;font-family:'Amiri',serif;}
+.answer-time-item .at-time{font-size:11px;color:var(--gold);margin-top:4px;margin-right:30px;font-family:'Amiri',serif;}
 </style>  
 
  
@@ -1049,6 +1057,17 @@ body.hide-controls button:not(.mushaf-page button) {
   <button onclick="activateNotifications()" style="width:100%;background:var(--gold);color:#111;border:none;padding:14px;border-radius:14px;font-family:'Amiri',serif;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:10px;">🔔 تفعيل الإشعارات</button>
   <button onclick="deactivateNotifications()" style="width:100%;background:transparent;border:1px solid rgba(255,100,100,0.4);color:#ff6b6b;padding:12px;border-radius:14px;font-family:'Amiri',serif;font-size:14px;cursor:pointer;">🔕 إيقاف كل الإشعارات</button>
   <div id="notifStatusMsg" style="text-align:center;margin-top:10px;font-size:12px;color:var(--text2);"></div>
+
+  <div style="background:var(--card);border-radius:16px;padding:16px;border:1px solid var(--border);margin-top:20px;">
+    <div style="text-align:center;margin-bottom:14px;">
+      <div style="font-size:15px;color:var(--gold);font-family:'Amiri',serif;font-weight:700;">⏰ أوقات إجابة الدعاء</div>
+      <div style="font-size:12px;color:var(--text2);margin-top:4px;">فعّل تذكير تلقائي في أوقات استجابة الدعاء المحسوبة على توقيت القاهرة</div>
+    </div>
+    <div id="answerTimesList" style="display:grid;gap:8px;margin-bottom:12px;"></div>
+    <button onclick="activateAnswerTimes()" style="width:100%;background:var(--gold);color:#111;border:none;padding:12px;border-radius:14px;font-family:'Amiri',serif;font-size:15px;font-weight:700;cursor:pointer;">🔔 تفعيل تذكير أوقات الإجابة</button>
+    <button onclick="deactivateAnswerTimes()" style="width:100%;background:transparent;border:1px solid rgba(255,100,100,0.4);color:#ff6b6b;padding:10px;border-radius:14px;font-family:'Amiri',serif;font-size:13px;cursor:pointer;margin-top:8px;">🔕 إيقاف تذكير أوقات الإجابة</button>
+    <div id="answerTimesStatus" style="text-align:center;margin-top:8px;font-size:12px;color:var(--text2);"></div>
+  </div>
 </div>
 <!-- MOOD PAGE -->
 <div class="page" id="moodPage">
@@ -3805,6 +3824,219 @@ document.addEventListener('DOMContentLoaded', () => {
   renderNotifPresets();
   renderCustomNotifList();
   setNotifMode(notifMode);
+  renderAnswerTimesList();
+});
+
+// ============================
+// أوقات إجابة الدعاء
+// ============================
+const answerTimeOptions = [
+  {
+    id: 'lastThird',
+    title: '🌙 ثلث الليل الأخير',
+    desc: 'وقت ينزل فيه الرب تبارك وتعالى إلى السماء الدنيا',
+  },
+  {
+    id: 'azanIqama',
+    title: '🕌 بين الأذان والإقامة',
+    desc: 'الدعاء بين الأذان والإقامة لا يُرد (عند كل صلاة)',
+  },
+  {
+    id: 'fridayLastHour',
+    title: '🕋 آخر ساعة يوم الجمعة',
+    desc: 'من العصر إلى المغرب يوم الجمعة، فيها ساعة إجابة',
+  }
+];
+
+let answerTimesSelected = JSON.parse(localStorage.getItem('answer_times_selected') || '[]');
+let answerTimesTimers = [];
+
+function renderAnswerTimesList() {
+  const el = document.getElementById('answerTimesList');
+  if (!el) return;
+  el.innerHTML = answerTimeOptions.map(o => `
+    <div class="answer-time-item ${answerTimesSelected.includes(o.id) ? 'selected' : ''}" onclick="toggleAnswerTime('${o.id}')">
+      <div class="at-top">
+        <div class="at-check">${answerTimesSelected.includes(o.id) ? '✓' : ''}</div>
+        <div class="at-title">${o.title}</div>
+      </div>
+      <div class="at-desc">${o.desc}</div>
+      <div class="at-time" id="at_time_${o.id}"></div>
+    </div>
+  `).join('');
+  updateAnswerTimesPreview();
+}
+
+function toggleAnswerTime(id) {
+  if (answerTimesSelected.includes(id)) answerTimesSelected = answerTimesSelected.filter(x => x !== id);
+  else answerTimesSelected.push(id);
+  localStorage.setItem('answer_times_selected', JSON.stringify(answerTimesSelected));
+  renderAnswerTimesList();
+}
+
+async function fetchTodayTimingsForAnswerTimes() {
+  const today = new Date();
+  const d = today.getDate(), m = today.getMonth() + 1, y = today.getFullYear();
+  const r = await fetch(`https://api.aladhan.com/v1/timingsByCity/${d}-${m}-${y}?city=Cairo&country=Egypt&method=5`);
+  const data = await r.json();
+  return data.data.timings;
+}
+
+async function fetchTomorrowFajr() {
+  const tmr = new Date();
+  tmr.setDate(tmr.getDate() + 1);
+  const d = tmr.getDate(), m = tmr.getMonth() + 1, y = tmr.getFullYear();
+  const r = await fetch(`https://api.aladhan.com/v1/timingsByCity/${d}-${m}-${y}?city=Cairo&country=Egypt&method=5`);
+  const data = await r.json();
+  return data.data.timings.Fajr;
+}
+
+function timeStrToDate(timeStr, baseDate) {
+  const [h, m] = timeStr.split(':').map(Number);
+  const d = new Date(baseDate);
+  d.setHours(h, m, 0, 0);
+  return d;
+}
+
+async function computeAnswerTimesTargets() {
+  const targets = [];
+  const timings = await fetchTodayTimingsForAnswerTimes();
+  const now = new Date();
+
+  // 1) ثلث الليل الأخير: من المغرب لليوم الحالي لحد فجر بكرة
+  if (answerTimesSelected.includes('lastThird')) {
+    const maghrib = timeStrToDate(timings.Maghrib, now);
+    const fajrTomorrowStr = await fetchTomorrowFajr();
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const fajr = timeStrToDate(fajrTomorrowStr, tomorrow);
+
+    const totalNightMs = fajr - maghrib;
+    const lastThirdStart = new Date(maghrib.getTime() + (totalNightMs * 2 / 3));
+
+    targets.push({ time: lastThirdStart, title: '🌙 حان وقت ثلث الليل الأخير', body: 'وقت إجابة الدعاء، قم وادعُ ربك فهو أقرب إليك الآن' });
+  }
+
+  // 2) بين الأذان والإقامة: عند كل أذان
+  if (answerTimesSelected.includes('azanIqama')) {
+    ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'].forEach(prayer => {
+      const azanTime = timeStrToDate(timings[prayer], now);
+      if (azanTime > now) {
+        targets.push({ time: azanTime, title: '🕌 حان الآن وقت إجابة الدعاء', body: `الدعاء بين الأذان والإقامة لا يُرد — اغتنم دقائق ${arabicPrayerName(prayer)}` });
+      }
+    });
+  }
+
+  // 3) آخر ساعة جمعة: من العصر للمغرب يوم الجمعة فقط
+  if (answerTimesSelected.includes('fridayLastHour')) {
+    const dayOfWeek = now.getDay(); // 5 = الجمعة
+    if (dayOfWeek === 5) {
+      const asr = timeStrToDate(timings.Asr, now);
+      if (asr > now) {
+        targets.push({ time: asr, title: '🕋 دخلت الآن آخر ساعة يوم الجمعة', body: 'من الأوقات المرجوة لإجابة الدعاء، أكثر من الدعاء حتى المغرب' });
+      }
+    }
+  }
+
+  return targets.filter(t => t.time > now);
+}
+
+function arabicPrayerName(p) {
+  const names = { Fajr: 'الفجر', Dhuhr: 'الظهر', Asr: 'العصر', Maghrib: 'المغرب', Isha: 'العشاء' };
+  return names[p] || p;
+}
+
+function clearAnswerTimesTimers() {
+  answerTimesTimers.forEach(t => clearTimeout(t));
+  answerTimesTimers = [];
+}
+
+async function activateAnswerTimes() {
+  const statusEl = document.getElementById('answerTimesStatus');
+
+  if (answerTimesSelected.length === 0) {
+    statusEl.style.color = '#ff6b6b';
+    statusEl.textContent = 'اختار وقت واحد على الأقل الأول ⚠️';
+    return;
+  }
+
+  if (!('Notification' in window)) {
+    statusEl.style.color = '#ff6b6b';
+    statusEl.textContent = 'المتصفح ده مش بيدعم الإشعارات 😔';
+    return;
+  }
+
+  const permission = await Notification.requestPermission();
+  if (permission !== 'granted') {
+    statusEl.style.color = '#ff6b6b';
+    statusEl.textContent = 'محتاج تسمح بالإشعارات عشان تشتغل 🙏';
+    return;
+  }
+
+  statusEl.style.color = 'var(--text2)';
+  statusEl.textContent = 'جاري حساب الأوقات...';
+
+  clearAnswerTimesTimers();
+
+  try {
+    const targets = await computeAnswerTimesTargets();
+
+    if (targets.length === 0) {
+      statusEl.style.color = 'var(--text2)';
+      statusEl.textContent = 'مفيش أوقات متبقية النهاردة، هتتفعل تلقائي بكرة 🌙';
+    } else {
+      targets.forEach(t => {
+        const delay = t.time - new Date();
+        const timerId = setTimeout(() => {
+          new Notification(t.title, { body: t.body, icon: 'icon.png' });
+        }, delay);
+        answerTimesTimers.push(timerId);
+      });
+
+      statusEl.style.color = '#4caf50';
+      statusEl.textContent = `✅ تم التفعيل — عندك ${toAr(targets.length)} تذكير جاي النهاردة`;
+    }
+
+    localStorage.setItem('answer_times_active', '1');
+    updateAnswerTimesPreview(targets);
+
+  } catch (e) {
+    console.error(e);
+    statusEl.style.color = '#ff6b6b';
+    statusEl.textContent = 'حصلت مشكلة في حساب الأوقات، تحتاج اتصال بالإنترنت 🌐';
+  }
+}
+
+function deactivateAnswerTimes() {
+  clearAnswerTimesTimers();
+  localStorage.setItem('answer_times_active', '0');
+  const statusEl = document.getElementById('answerTimesStatus');
+  statusEl.style.color = 'var(--text2)';
+  statusEl.textContent = '🔕 تم إيقاف تذكير أوقات الإجابة';
+  document.querySelectorAll('[id^="at_time_"]').forEach(el => el.textContent = '');
+}
+
+async function updateAnswerTimesPreview(existingTargets = null) {
+  try {
+    const targets = existingTargets || await computeAnswerTimesTargets();
+    answerTimeOptions.forEach(o => {
+      const el = document.getElementById('at_time_' + o.id);
+      if (!el) return;
+      const match = targets.find(t =>
+        (o.id === 'lastThird' && t.title.includes('ثلث')) ||
+        (o.id === 'azanIqama' && t.title.includes('الأذان')) ||
+        (o.id === 'fridayLastHour' && t.title.includes('الجمعة'))
+      );
+      el.textContent = match ? `⏱️ الساعة ${match.time.getHours()}:${String(match.time.getMinutes()).padStart(2,'0')}` : '';
+    });
+  } catch (e) { /* صامت لو مفيش نت */ }
+}
+
+// إعادة تفعيل التذكيرات تلقائياً لو كانت مفعّلة من قبل وفتح المستخدم التطبيق تاني
+document.addEventListener('DOMContentLoaded', () => {
+  if (localStorage.getItem('answer_times_active') === '1' && answerTimesSelected.length > 0) {
+    setTimeout(() => { activateAnswerTimes(); }, 2000);
+  }
 });
 
 // جعل دالة التشغيل عالمية لتراها الملفات الخارجية فوراً
