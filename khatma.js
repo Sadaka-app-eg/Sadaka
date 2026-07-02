@@ -155,3 +155,83 @@ function resetKhatma() {
 document.addEventListener('DOMContentLoaded', () => {
   renderKhatma();
 });
+// مصفوفة نصائح وفضائل الحفظ المتجددة
+const memoTipsAndVirtues = [
+  "💡 نصيحة للحفظ: خصص وقتاً ثابتاً كل يوم (مثل بعد الفجر) فالعقل يكون أصفى والبركة أعم، وثبت مصحفاً واحداً لترتبط ذاكرتك البصرية بأماكن الآيات.",
+  "✨ فضل القرآن: يُقال لصاحب القرآن اقرأ وارتقِ ورتل كما كنت ترتل في الدنيا، فإن منزلك عند آخر آية تقرؤها. (حديث صحيح)",
+  "💡 نصيحة للمراجعة: مقدار المراجعة يجب أن يكون أكبر من مقدار الحفظ الجديد حتى لا يتفلت ما حفظته.. المراجعة هي سر التثبيت.",
+  "✨ فضل القرآن: خيركم من تعلم القرآن وعلمه.. فكل حرف تحفظه وتتلوه لك به عشر حسنات.",
+  "💡 خطوة عملية: استمع للورد الذي ستحفظه بصوت قارئ متقن عدة مرات قبل البدء في الحفظ لتصحيح النطق وتسهيل الترديد.",
+  "✨ فضل القرآن: القرآن يشفع لأصحابه يوم القيامة، قال ﷺ: «اقرؤوا القرآن فإنه يأتي يوم القيامة شفيعاً لأصحابه»."
+];
+
+// دالة لتغيير النصيحة عشوائياً عند فتح الصفحة
+function showRandomMemoTip() {
+  const tipEl = document.getElementById('memoTipText');
+  if (tipEl) {
+    const randomTip = memoTipsAndVirtues[Math.floor(Math.random() * memoTipsAndVirtues.length)];
+    // تلوين الكلمة الأولى (نصيحة / فضل / خطوة) باللون الذهبي
+    tipEl.innerHTML = randomTip.replace(/^(.*?:)/, '<strong style="color:var(--gold)">$1</strong>');
+  }
+}
+
+// دالة حساب خطة الحفظ وخصم الإجازات
+function calculateMemoPlan() {
+  const totalDays = parseInt(document.getElementById('memoTotalDays').value);
+  const offDaysPerWeek = parseInt(document.getElementById('memoOffDays').value) || 0;
+
+  if (!totalDays || totalDays < 30) {
+    alert("يرجى إدخال مدة لا تقل عن شهر (30 يوم) لتوزيع الحفظ بشكل منطقي.");
+    return;
+  }
+  if (offDaysPerWeek >= 7) {
+    alert("عدد أيام الإجازة غير منطقي يا هندسة!");
+    return;
+  }
+
+  // حساب أسابيع الخطة وخصم أيام الإجازات
+  const weeks = totalDays / 7;
+  const totalOffDays = Math.floor(weeks * offDaysPerWeek);
+  const activeDays = totalDays - totalOffDays;
+
+  // المصحف 604 صفحة، نحسب المقدار اليومي
+  const pagesPerDay = (604 / activeDays);
+  
+  // تحويل الرقم لنص مفهوم للمستخدم
+  let targetText = "";
+  if (pagesPerDay <= 0.5) targetText = "نصف صفحة يومياً";
+  else if (pagesPerDay <= 1) targetText = "صفحة واحدة يومياً";
+  else if (pagesPerDay <= 2) targetText = "صفحتين (وجهين) يومياً";
+  else if (pagesPerDay <= 5) targetText = "ربع حزب (5 صفحات) يومياً";
+  else if (pagesPerDay <= 10) targetText = "نصف جزء (10 صفحات) يومياً";
+  else if (pagesPerDay <= 20) targetText = "جزء كامل (20 صفحة) يومياً";
+  else targetText = Math.ceil(pagesPerDay) + " صفحات يومياً";
+
+  // إخفاء الفورم وعرض النتيجة
+  document.getElementById('memoSetupForm').style.display = 'none';
+  const resultDiv = document.getElementById('memoPlanResult');
+  resultDiv.style.display = 'block';
+  
+  resultDiv.innerHTML = `
+    <div style="color:var(--gold); font-weight:bold; font-size: 15px; margin-bottom: 12px;">✅ خطتك جاهزة للبدء!</div>
+    <div style="color:var(--text); font-size: 13px; line-height: 2.2; text-align: right; direction: rtl;">
+      ⏱️ المدة الكلية: <b>${totalDays}</b> يوم<br>
+      🏖️ إجمالي الإجازات: <b>${totalOffDays}</b> يوم<br>
+      📖 أيام الحفظ الفعلية: <b>${activeDays}</b> يوم<br>
+      🎯 هدفك اليومي للحفظ: <b style="color:var(--green); font-size:15px;">${targetText}</b>
+    </div>
+    <button onclick="resetMemoPlan()" style="margin-top: 14px; background:transparent; border: 1px solid #ff6b6b; color: #ff6b6b; padding: 8px 16px; border-radius: 12px; cursor: pointer; font-family:'Amiri',serif; width: 100%;">تعديل الخطة ↺</button>
+  `;
+}
+
+// دالة إعادة تعيين الخطة للبدء من جديد
+function resetMemoPlan() {
+  document.getElementById('memoSetupForm').style.display = 'block';
+  document.getElementById('memoPlanResult').style.display = 'none';
+  document.getElementById('memoPlanResult').innerHTML = '';
+}
+
+// تشغيل النصيحة العشوائية عند تحميل الصفحة
+document.addEventListener('DOMContentLoaded', () => {
+  showRandomMemoTip();
+});
