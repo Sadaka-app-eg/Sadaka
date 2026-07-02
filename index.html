@@ -782,6 +782,7 @@ body.hide-controls button:not(.mushaf-page button) {
 <option value="ajm">أحمد العجمي</option>
 <option value="shrim">سعود الشريم</option>
 <option value="dosr">ياسر الدوسري</option>
+ <option value="qarafi">عبدالله القرافي</option>      
 
       </select>
       <div class="audio-status" id="audioStatus">اضغط تشغيل • اضغط مطولًا على آية للخيارات</div>
@@ -1733,7 +1734,13 @@ function switchMode(mode) {
         
  
 function changeReciter() {
-  currentReciter = document.getElementById('reciterSelect').value;
+  const newReciter = document.getElementById('reciterSelect').value;
+  if (newReciter === 'qarafi' && selectedAyahsQueue.length > 0) {
+    alert('الشيخ القرافي متاح بالسورة كاملة فقط، لازم تلغي تحديد الآيات الأول 🙏');
+    document.getElementById('reciterSelect').value = currentReciter;
+    return;
+  }
+  currentReciter = newReciter;
   stopAudio();
 }
 
@@ -2065,9 +2072,13 @@ window.isPickingEndAyah = false;
 window.firstSelectedAyahIndex = null;
 
 function actionSelect() {
+  if (currentReciter === 'qarafi') {
+    closeActionMenu();
+    alert('الشيخ القرافي متاح بالسورة كاملة فقط، غيّر القارئ الأول عشان تقدر تحدد آيات معينة 🙏');
+    return;
+  }
   closeActionMenu();
-  const idx = activeAyahIndex; // الآية الأولى اللي ضغط عليها مطولاً
-  
+  const idx = activeAyahIndex; // الآية الأولى اللي ضغط عليها مطولاً  
   // تثبيت آية البداية وتفعيل الوضع الذكي
   window.firstSelectedAyahIndex = idx;
   window.isPickingEndAyah = true;
@@ -2233,9 +2244,9 @@ const reciterUrls = {
   'ajm': `https://server10.mp3quran.net/ajm/${num3}.mp3`,
   // امسح سطر الشريم القديم وحط السيرفر السريع ده:
 'shrim': `https://server7.mp3quran.net/shur/${num3}.mp3`,
-  'dosr': `https://server11.mp3quran.net/yasser/${num3}.mp3`
+  'dosr': `https://server11.mp3quran.net/yasser/${num3}.mp3`,
+  'qarafi': `https://server16.mp3quran.net/download/a_alqrafi/Rewayat-Hafs-A-n-Assem/${num3}.mp3`
 };
-
 
 audio.src = reciterUrls[currentReciter];
       
