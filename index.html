@@ -2100,28 +2100,46 @@ if (id === 'settingsPage') {
 // ===========================
 // Surah List
 // ===========================
-// =========================================================================
-// نظام التلافي والتحكم بالضغط المطول لأسباب النزول وتدبر السلف
+      // =========================================================================
+// نظام تفادي التداخل أثناء السكرول والتحكم بالضغط المطول لأسباب النزول
 // =========================================================================
 let longPressTimer;
 let isLongPressAction = false;
+let pointerStartX = 0;
+let pointerStartY = 0;
 
-window.handleSurahTouchStart = function(surahId, surahName) {
+window.handleSurahTouchStart = function(event, surahId, surahName) {
   isLongPressAction = false;
+  
+  // حفظ إحداثيات نقطة اللمس الأولى بدقة لمنع تداخل السكرول
+  pointerStartX = event.clientX || (event.touches && event.touches[0].clientX) || 0;
+  pointerStartY = event.clientY || (event.touches && event.touches[0].clientY) || 0;
+
   longPressTimer = setTimeout(() => {
     isLongPressAction = true;
     if(navigator.vibrate) navigator.vibrate(50); // اهتزاز خفيف للتأكيد
     window.showSurahInsightsModal(surahId, surahName);
-  }, 700); // 700 مللي ثانية لاعتبارها ضغطة مطولة
+  }, 650); // وقت مثالي للضغطة المطولة
+};
+
+window.handleSurahTouchMove = function(event) {
+  // لو المستخدم بيعمل سكرول وحرك إصبعه مسافة، نلغي التايمر فوراً وميفتحش أسباب النزول
+  const currentX = event.clientX || (event.touches && event.touches[0].clientX) || 0;
+  const currentY = event.clientY || (event.touches && event.touches[0].clientY) || 0;
+  
+  if (Math.abs(currentX - pointerStartX) > 10 || Math.abs(currentY - pointerStartY) > 10) {
+    clearTimeout(longPressTimer);
+  }
 };
 
 window.handleSurahTouchEnd = function(surahId) {
   clearTimeout(longPressTimer);
   if (!isLongPressAction) {
-    // لو ضغطة عادية عادية تفتح المصحف الأصلي المعتمد في تطبيقك
+    // فتح المصحف العادي فقط لو كانت لمسة سريعة بدون سكرول
     openSurah(surahId);
   }
 };
+
 // دالة توليد وضخ نافذة أسباب النزول والتدبر المنبثقة التبويبية
 window.showSurahInsightsModal = function(surahId, surahName) {
   const data = window.quranInsights[surahId];
@@ -2178,11 +2196,12 @@ window.showSurahInsightsModal = function(surahId, surahName) {
   document.body.insertAdjacentHTML('beforeend', modalHTML);
 };
 
-// الدالة المعدلة بالملي لرسم السور لتستقبل الأحداث الجديدة للموبايل والكمبيوتر
+// الدالة المحدثة بالملي لرسم السور لاستقبال لوجيك الحركة (onpointermove) ومنع السكرول
 function renderSurahs(list) {
   document.getElementById('surahList').innerHTML = list.map(s => `
     <div class="surah-item" 
-         onpointerdown="window.handleSurahTouchStart(${s.n}, '${s.name}')" 
+         onpointerdown="window.handleSurahTouchStart(event, ${s.n}, '${s.name}')" 
+         onpointermove="window.handleSurphTouchMove ? window.handleSurphTouchMove(event) : window.handleSurahTouchMove(event)"
          onpointerup="window.handleSurahTouchEnd(${s.n})"
          style="user-select: none; -webkit-user-select: none;">
       <div class="surah-num">${s.n}</div>
