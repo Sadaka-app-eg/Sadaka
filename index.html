@@ -707,6 +707,8 @@ body.hide-controls button:not(.mushaf-page button) {
  <div class="tab" onclick="showPage('rareRecitationsPage',this)">🎧 تلاوات نادرة</div>
  <div class="tab" onclick="showPage('notifPage',this)">🔔 الإشعارات والتذكيرات</div>
   <div class="tab" onclick="showPage('moodPage',this)">💭 حالتي اليوم</div>
+   <div class="tab" onclick="showPage('videoCreatorPage',this)">🎬 إنشاء فيديو (Reels)</div>
+
  <div class="tab" onclick="showPage('radioPage',this)">📻 الإذاعات المباشرة</div> <!-- ضيف السطر ده هنا -->
 
 </div>
@@ -1159,6 +1161,102 @@ body.hide-controls button:not(.mushaf-page button) {
       style="width: 100%; height: 100%; border: none;"
       title="البث المباشر للإذاعة">
     </iframe>
+  </div>
+</div>
+<!-- 🎬 صفحة إنشاء الفيديو (REELS CREATOR) -->
+<div class="page" id="videoCreatorPage">
+  <div style="text-align: center; margin-bottom: 16px;">
+    <h2 style="color: var(--gold); font-family: 'Amiri', serif; font-size: 22px;">🎬 صَانِعُ مَقَاطِعِ الرِّيلْزِ الإِسْلَامِيَّةِ</h2>
+    <p style="color: var(--text2); font-size: 12px;">اصنع فيديو دعوي احترافي بآياتك المفضلة وصوتك أو صوت قارئك المختار</p>
+  </div>
+
+  <!-- صندوق المعاينة الحية الفوري (أبعاد الريلز 9:16) -->
+  <div style="display: flex; justify-content: center; margin-bottom: 16px;">
+    <div style="position: relative; width: 280px; height: 497px; border-radius: 16px; overflow: hidden; border: 2px solid var(--gold); box-shadow: 0 4px 20px rgba(0,0,0,0.4); background: #000;">
+      <!-- الكانفاس السحري للرسم والدمج الفعلي -->
+      <canvas id="videoCanvas" width="720" height="1280" style="width: 100%; height: 100%; object-fit: contain;"></canvas>
+      
+      <!-- عناصر تشغيل مخفية برمجياً تستخدم كمصادر للرسم والصوت فقط -->
+      <video id="bgVideoSource" loop muted crossorigin="anonymous" style="display:none;"></video>
+      <audio id="audioTrackSource" crossorigin="anonymous" style="display:none;"></audio>
+    </div>
+  </div>
+
+  <!-- خيارات التحكم وتصميم الريلز -->
+  <div style="background: var(--card); border-radius: 16px; padding: 16px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 14px;">
+    
+    <!-- 1. الفيديوهات الخلفية -->
+    <div>
+      <label style="font-size: 13px; color: var(--gold); display: block; margin-bottom: 6px;">🌊 1. اختر فيديو الخلفية:</label>
+      <div id="videoTemplateGrid" style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none;">
+        <!-- بيتحقن الـ 20 فيديو هنا تلقائياً من الـ js -->
+      </div>
+    </div>
+
+    <!-- 2. مصدر الصوت -->
+    <div>
+      <label style="font-size: 13px; color: var(--gold); display: block; margin-bottom: 6px;">🎙️ 2. اختيار مصدر الصوت وتلاوة الآيات:</label>
+      <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+        <select id="vcReciterSelect" onchange="updateVideoPreview()" style="flex: 1; padding: 10px; border-radius: 10px; background: var(--bg2); color: var(--text); border: 1px solid var(--border); font-family: 'Amiri', serif;">
+          <option value="minsh">المنشاوي (مرتل)</option>
+          <option value="husary">الحصري (مرتل)</option>
+          <option value="afs">مشاري العفاسي</option>
+          <option value="basit">عبد الباسط عبد الصمد</option>
+        </select>
+        <button onclick="document.getElementById('vcUserAudioInput').click()" class="cat-btn" style="background: var(--bg3); border-color: var(--border); font-size: 12px; white-space: nowrap;">➕ أضف ملف صوتي</button>
+        <input type="file" id="vcUserAudioInput" accept="audio/*" onchange="handleUserAudioUpload(event)" style="display: none;">
+      </div>
+      <div id="userAudioStatus" style="font-size: 11px; color: var(--green); text-align: right; display: none;">✓ تم رفع ملفك الصوتي المخصص بنجاح</div>
+    </div>
+
+    <!-- 3. اختيار السورة ونطاق الآيات -->
+    <div>
+      <label style="font-size: 13px; color: var(--gold); display: block; margin-bottom: 6px;">📖 3. حدد الآيات (بحد أقصى دقيقة ونصف):</label>
+      <div style="display: flex; gap: 6px; align-items: center;">
+        <select id="vcSurahSelect" onchange="loadVcAyahs()" style="flex: 2; padding: 10px; border-radius: 10px; background: var(--bg2); color: var(--text); border: 1px solid var(--border); font-family: 'Amiri', serif;">
+          <!-- بيتحقن هنا السور تلقائياً -->
+        </select>
+        <input type="number" id="vcAyahStart" placeholder="من آية" min="1" value="1" onchange="updateVideoPreview()" style="flex: 1; padding: 10px; border-radius: 10px; background: var(--bg2); color: var(--text); border: 1px solid var(--border); text-align: center; font-size: 12px;">
+        <input type="number" id="vcAyahEnd" placeholder="إلى آية" min="1" value="5" onchange="updateVideoPreview()" style="flex: 1; padding: 10px; border-radius: 10px; background: var(--bg2); color: var(--text); border: 1px solid var(--border); text-align: center; font-size: 12px;">
+      </div>
+    </div>
+
+    <!-- 4. مظهر التنسيق -->
+    <div>
+      <label style="font-size: 13px; color: var(--gold); display: block; margin-bottom: 6px;">✨ 4. تخصيص مظهر وتنسيق النصوص:</label>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg2); padding: 8px; border-radius: 8px;">
+          <span>نوع الخط:</span>
+          <select id="vcFontSelect" onchange="updateVideoPreview()" style="background:transparent; color:var(--text); border:none; outline:none; font-family:'Amiri', serif;">
+            <option value="'Amiri Quran', serif">مصحف عثماني</option>
+            <option value="'Amiri', serif">خط أميري فخم</option>
+            <option value="sans-serif">خط بسيط حديث</option>
+          </select>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg2); padding: 8px; border-radius: 8px;">
+          <span>لون الخط:</span>
+          <input type="color" id="vcTextColor" value="#ffffff" onchange="updateVideoPreview()" style="border:0; background:transparent; width:30px; height:22px; cursor:pointer;">
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg2); padding: 8px; border-radius: 8px;">
+          <span>شعار "أثر":</span>
+          <input type="checkbox" id="vcLogoToggle" checked onchange="updateVideoPreview()" style="accent-color: var(--gold);">
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg2); padding: 8px; border-radius: 8px;">
+          <span>دقة تصدير الفيديو:</span>
+          <select id="vcResolutionSelect" style="background:transparent; color:var(--text); border:none; outline:none;">
+            <option value="720">720p (سريع)</option>
+            <option value="1080">1080p (FHD)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- أزرار المعاينة والتصدير النهائي -->
+    <div style="display: flex; gap: 8px; margin-top: 6px;">
+      <button onclick="toggleVideoPreviewPlay()" id="vcPlayBtn" class="cat-btn" style="flex: 1; padding: 12px; background: var(--bg3); color: var(--gold); font-weight: bold;">▶ تشغيل المعاينة</button>
+      <button onclick="generateFinalVideo()" class="cat-btn" style="flex: 2; padding: 12px; background: var(--green); color: #fff; border-color: var(--green); font-weight: bold;">🎬 إنشاء وتحميل الفيديو الآن</button>
+    </div>
+    <div id="vcExportStatus" style="font-size: 12px; color: var(--gold); text-align: center; display: none; font-weight: bold;">⏳ جاري معالجة وتركيب ريلز آياتك... يرجى عدم إغلاق التطبيق</div>
   </div>
 </div>
 
@@ -4403,7 +4501,8 @@ document.addEventListener('DOMContentLoaded', () => {
  <script src="khatma.js"></script>
   <script src="islamicContent.js"></script>
 <script src="rareRecitations.js"></script>
- <script src="radio.js"></script>
+  <script src="radio.js"></script>
+ <script src="videoCreator.js"></script> <!-- 🎬 استدعاء محرك صانع الفيديو الجديد هنا بالملي -->
 
  <script type="module">
   // الغاء مفعول دالة الـ load القديمة تماماً لكسر حلقة إعادة تسجيل الدخول
