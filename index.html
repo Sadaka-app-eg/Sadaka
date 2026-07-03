@@ -2160,11 +2160,24 @@ async function openSurah(n, targetAyahNum = null) {
 
   try {
     // 🚀 السحر هنا: تحديد معرّف نص الرواية للـ API بناءً على اختيار المستخدم
-    let textEdition = "quran-uthmani"; // الافتراضي لحفص
-    if (window.currentSelectedRoaya === 'warsh') textEdition = "quran-wordbyword"; // أو المعرّف الخاص بنص ورش المدعوم
-    else if (window.currentSelectedRoaya && window.currentSelectedRoaya !== 'hafs') {
-      textEdition = "quran-simple-clean"; // لضمان ثبات رسم باقي الروايات لو الـ Uthmani غير متاح لها تفصيلياً
-    }
+    // استبدل الجزء القديم بتاع الـ textEdition بده:
+let textEdition = "quran-uthmani"; // افتراضي حفص
+const roayaMapping = {
+  'warsh': 'quran-wordbyword',
+  'qaloon': 'quran-simple-clean',
+  'duri': 'quran-simple-clean',
+  'soosi': 'quran-simple-clean',
+  'shuabah': 'quran-simple-clean',
+  'khalaf': 'quran-simple-clean',
+  'kisaee': 'quran-simple-clean',
+  'bazzi': 'quran-simple-clean',
+  'qumbul': 'quran-simple-clean'
+};
+
+if (window.currentSelectedRoaya && roayaMapping[window.currentSelectedRoaya]) {
+    textEdition = roayaMapping[window.currentSelectedRoaya];
+}
+
 
     const secureUrl = `https://api.alquran.cloud/v1/surah/${n}/editions/${textEdition},ar.muyassar`;
     const r = await fetch(secureUrl);
@@ -2570,28 +2583,38 @@ audio.src = reciterUrls[currentReciter];
   const ayahNum = String(a.numberInSurah).padStart(3, '0');
   const fileKey = `${surahNum}${ayahNum}`;
 
-  let audioSource = '';
+  // 🎯 استبدل الجزء الخاص بتحديد الـ audioSource في دالة playNextInQueue بالكود ده:
 
-  // 🟢 أولاً: تشغيل القراء الذين تم ضبطهم على السيرفرات المفتوحة التحديثية
-  if (currentReciter === 'shrim') {
-    audioSource = `https://www.everyayah.com/data/Saood_ash-Shuraym_128kbps/${fileKey}.mp3`;
-  } else if (currentReciter === 'frs_a') {
-    audioSource = `https://www.everyayah.com/data/Fares_Abbad_64kbps/${fileKey}.mp3`;
-  } else if (currentReciter === 'dosr') {
-    audioSource = `https://www.everyayah.com/data/Yasser_Ad-Dussary_128kbps/${fileKey}.mp3`;
-  } else if (currentReciter === 'basit') {
-    audioSource = `https://www.everyayah.com/data/Abdul_Basit_Murattal_192kbps/${fileKey}.mp3`; // نسخة EveryAyah المستقرة والمطابقة للـ fileKey
-  } 
-  // 🔵 ثانياً: باقي الشيوخ على سيرفر Islamic.Network بالرقم العالمي
-  else {
-    let reciterApiId = 'ar.minshawi'; // الافتراضي المنشاوي
-    if (currentReciter === 'husary') reciterApiId = 'ar.husary';
-    else if (currentReciter === 'afs') reciterApiId = 'ar.alafasy';
-    else if (currentReciter === 'maher') reciterApiId = 'ar.mahermuaiqly';
-    else if (currentReciter === 'ajm') reciterApiId = 'ar.ahmedajamy';
+  let audioSource = '';
 
-    audioSource = `https://cdn.islamic.network/quran/audio/128/${reciterApiId}/${a.globalNumber}.mp3`;
-  }
+  // 1. لو الرواية حفص: استخدم سيرفرات الـ 10 قراء بتوعك اللي أنت معرفهم
+  if (window.currentSelectedRoaya === 'hafs') {
+    if (currentReciter === 'shrim') {
+      audioSource = `https://www.everyayah.com/data/Saood_ash-Shuraym_128kbps/${fileKey}.mp3`;
+    } else if (currentReciter === 'frs_a') {
+      audioSource = `https://www.everyayah.com/data/Fares_Abbad_64kbps/${fileKey}.mp3`;
+    } else if (currentReciter === 'dosr') {
+      audioSource = `https://www.everyayah.com/data/Yasser_Ad-Dussary_128kbps/${fileKey}.mp3`;
+    } else if (currentReciter === 'basit') {
+      audioSource = `https://www.everyayah.com/data/Abdul_Basit_Murattal_192kbps/${fileKey}.mp3`;
+    } else {
+      let reciterApiId = 'ar.minshawi';
+      if (currentReciter === 'husary') reciterApiId = 'ar.husary';
+      else if (currentReciter === 'afs') reciterApiId = 'ar.alafasy';
+      else if (currentReciter === 'maher') reciterApiId = 'ar.mahermuaiqly';
+      else if (currentReciter === 'ajm') reciterApiId = 'ar.ahmedajamy';
+      else if (currentReciter === 'qarafi') reciterApiId = 'ar.qarafi';
+      
+      audioSource = `https://cdn.islamic.network/quran/audio/128/${reciterApiId}/${a.globalNumber}.mp3`;
+    }
+  } 
+  // 2. لو أي رواية تانية: استخدم القارئ المخصص للرواية من ملف quranData.js
+  else {
+    const roayaObj = window.quranReadingsData.find(r => r.id === window.currentSelectedRoaya);
+    if (roayaObj && roayaObj.readers[0].apiId) {
+       audioSource = `https://cdn.islamic.network/quran/audio/128/${roayaObj.readers[0].apiId}/${a.globalNumber}.mp3`;
+    }
+ }
 
   // إسناد الرابط الجديد والتشغيل الآمن
   audio.src = audioSource;
