@@ -4530,26 +4530,34 @@ document.addEventListener('DOMContentLoaded', () => {
   window.signOut = signOut;
 
   // فحص حالة المستخدم وجلب الاسم وعرضه فوراً بدون تداخل
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      const savedName = localStorage.getItem('user_display_name');
-      if (savedName) {
-        if (typeof finishLogin === 'function') finishLogin(savedName);
-      } else {
-        getDoc(doc(db, "users", user.uid)).then(snap => {
-          if (snap.exists() && snap.data().name) {
-            localStorage.setItem('user_display_name', snap.data().name);
-            if (typeof finishLogin === 'function') finishLogin(snap.data().name);
-          } else {
-            if (typeof showNameInput === 'function') showNameInput(user);
-          }
-        });
-      }
+  // فحص حالة المستخدم وجلب الاسم وعرضه فوراً بدون تداخل
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    // لو المستخدم مسجل دخول بالفعل بجوجل
+    const savedName = localStorage.getItem('user_display_name');
+    if (savedName) {
+      if (typeof finishLogin === 'function') finishLogin(savedName);
+    } else {
+      // لو أول مرة يسجل ومفيش اسم متسجل محلياً، نجيبه من الفايرستور
+      getDoc(doc(db, "users", user.uid)).then(snap => {
+        if (snap.exists() && snap.data().name) {
+          localStorage.setItem('user_display_name', snap.data().name);
+          if (typeof finishLogin === 'function') finishLogin(snap.data().name);
         } else {
-  // تصفح حر كزائر بدون أي حجب
-  const overlay = document.getElementById('authOverlay');
-  if (overlay) overlay.remove();
-}
+          // لو حسابه جديد خالص وموش اسم، نأخذ الاسم الأول من حساب جوجل بتاعه تلقائياً
+          const firstName = user.displayName ? user.displayName.split(' ')[0] : 'المستخدم';
+          localStorage.setItem('user_display_name', firstName);
+          if (typeof finishLogin === 'function') finishLogin(firstName);
+        }
+      });
+    }
+  } else {
+    // لو مش مسجل، يفتح كزائر طبيعي جداً بدون أي حجب أو شاشات هاتف
+    const overlay = document.getElementById('authOverlay');
+    if (overlay) overlay.remove();
+  }
+});
+
 
 
   
