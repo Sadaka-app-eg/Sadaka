@@ -2122,8 +2122,12 @@ function openActionMenu(index) {
   // تحديث نص زر التحديد
   const isSelected = selectedAyahsQueue.includes(index);
   document.getElementById('selectBtnTxt').textContent = isSelected ? 'إلغاء تحديد هذه الآية' : 'تحديد للتشغيل';
-  document.getElementById('overlayDimmer').classList.add('show');
-  document.getElementById('actionSheet').classList.add('show');
+  const dimmer = document.getElementById('overlayDimmer');
+  const sheet = document.getElementById('actionSheet');
+  dimmer.style.zIndex = '1000001';
+  sheet.style.zIndex = '1000002';
+  dimmer.classList.add('show');
+  sheet.classList.add('show');
 }
 
 function closeActionMenu() {
@@ -2138,9 +2142,10 @@ function actionTafseer() {
   document.getElementById('modalAyahText').textContent = a.text;
   document.getElementById('modalText').textContent = a.tafseer;
   document.getElementById('modalSource').textContent = '📚 المصدر: التفسير الميسر (مجمع الملك فهد)';
-  document.getElementById('tafseerModal').classList.add('show');
+  const modal = document.getElementById('tafseerModal');
+  modal.style.zIndex = '1000003';
+  modal.classList.add('show');
 }
-
 // متغيرات عالمية للتحكم في وضع التحديد الذكي
 window.isPickingEndAyah = false;
 window.firstSelectedAyahIndex = null;
