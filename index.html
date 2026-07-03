@@ -2512,61 +2512,48 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function toggleAudio() {
   if(!currentSurah) return;
-  
-  // تأمين الرواية الافتراضية
-  window.currentSelectedRoaya = window.currentSelectedRoaya || 'hafs';
   const audio = document.getElementById('audioPlayer');
-  
   if(isPlaying) {
     audio.pause();
     isPlaying = false;
     document.getElementById('playBtn').textContent = '▶';
     document.getElementById('audioStatus').textContent = 'متوقف مؤقتًا';
   } else {
-    // 1. لو المستخدم محدد آيات معينة بايده
     if(selectedAyahsQueue.length > 0) {
       isPlayingQueue = true;
       currentQueueIndex = 0;
       playNextInQueue();
-    } 
-    // 2. لو مش محدد آيات وعايز يشغل السورة كلها
-    else {
-      if (window.currentSelectedRoaya === 'hafs') {
-        // لو الرواية حفص: نشغل ملف السورة الكاملة من سيرفرات mp3quran السريعة
-        isPlayingQueue = false;
-        const num = currentSurah.n;
-        const num3 = String(num).padStart(3, '0');
-        const reciterUrls = {
-          'minsh': `https://server10.mp3quran.net/minsh/${num3}.mp3`,
-          'husary': `https://server13.mp3quran.net/husr/${num3}.mp3`,
-          'afs': `https://server8.mp3quran.net/afs/${num3}.mp3`,
-          'frs_a': `https://server8.mp3quran.net/frs_a/${num3}.mp3`,
-          'basit': `https://server7.mp3quran.net/basit/${num3}.mp3`,
-          'maher': `https://server12.mp3quran.net/maher/${num3}.mp3`,
-          'ajm': `https://server10.mp3quran.net/ajm/${num3}.mp3`,
-          'shrim': `https://server7.mp3quran.net/shur/${num3}.mp3`,
-          'dosr': `https://server11.mp3quran.net/yasser/${num3}.mp3`,
-          'qarafi': `https://server16.mp3quran.net/download/a_alqrafi/Rewayat-Hafs-A-n-Assem/${num3}.mp3`
-        };
-        audio.src = reciterUrls[currentReciter];
-        audio.play();
-        isPlaying = true;
-        document.getElementById('playBtn').textContent = '⏸';
-        document.getElementById('audioStatus').textContent = `يُشغّل سورة ${currentSurah.name}`;
-      } else {
-        // لو أي رواية تانية: نحدد كل آيات السورة برمجياً ونشغلها بنظام الـ Queue
-        selectedAyahsQueue = currentAyahsData.map((_, i) => i);
-        isPlayingQueue = true;
-        currentQueueIndex = 0;
-        document.getElementById('audioStatus').textContent = `تجهيز سورة ${currentSurah.name} برواية القارئ المختارة...`;
-        playNextInQueue();
-      }
+    } else {
+      isPlayingQueue = false;
+      const num = currentSurah.n;
+const num3 = String(num).padStart(3, '0');
+
+const reciterUrls = {
+  'minsh': `https://server10.mp3quran.net/minsh/${num3}.mp3`,
+  'husary': `https://server13.mp3quran.net/husr/${num3}.mp3`,
+  'afs': `https://server8.mp3quran.net/afs/${num3}.mp3`,
+  'frs_a': `https://server8.mp3quran.net/frs_a/${num3}.mp3`,
+  'basit': `https://server7.mp3quran.net/basit/${num3}.mp3`,
+  'maher': `https://server12.mp3quran.net/maher/${num3}.mp3`,
+  'ajm': `https://server10.mp3quran.net/ajm/${num3}.mp3`,
+  // امسح سطر الشريم القديم وحط السيرفر السريع ده:
+'shrim': `https://server7.mp3quran.net/shur/${num3}.mp3`,
+  'dosr': `https://server11.mp3quran.net/yasser/${num3}.mp3`,
+  'qarafi': `https://server16.mp3quran.net/download/a_alqrafi/Rewayat-Hafs-A-n-Assem/${num3}.mp3`
+};
+
+audio.src = reciterUrls[currentReciter];
+      
+      audio.play();
+      isPlaying = true;
+      document.getElementById('playBtn').textContent = '⏸';
+      document.getElementById('audioStatus').textContent = `يُشغّل سورة ${currentSurah.name}`;
     }
   }
 }
 
-
-function playNextInQueue() {
+ function playNextInQueue() {
+  // تصفير وإيقاف الصّوت الحالي لمنع التداخل والتعليق عند النقل
   const audio = document.getElementById('audioPlayer');
   if (audio) {
     audio.pause();
@@ -2576,14 +2563,14 @@ function playNextInQueue() {
 
   if (currentQueueIndex >= selectedAyahsQueue.length) {
     stopAudio();
-    document.getElementById('audioStatus').textContent = 'انتهت التلاوة 🌙';
+    document.getElementById('audioStatus').textContent = 'انتهت تلاوة الآيات المحددة 🌙';
     return;
   }
 
   const idx = selectedAyahsQueue[currentQueueIndex];
   const a = currentAyahsData[idx];
   
-  // تظليل الآية اللي شغالة
+  // تحديث تمييز الآية النشطة في الـ UI
   document.querySelectorAll('.ayah-span').forEach(el => el.classList.remove('playing'));
   const span = document.getElementById(`ayah_${idx}`);
   if (span) { 
@@ -2591,49 +2578,78 @@ function playNextInQueue() {
     span.scrollIntoView({ behavior: 'smooth', block: 'center' }); 
   }
 
+  // 🎯 تجهيز تركيبات أرقام الآيات للسيرفرات المحدثة الجديدة
   const surahNum = String(currentSurah.n).padStart(3, '0');
   const ayahNum = String(a.numberInSurah).padStart(3, '0');
   const fileKey = `${surahNum}${ayahNum}`;
 
-  let audioSource = '';
-  window.currentSelectedRoaya = window.currentSelectedRoaya || 'hafs';
+  // 🎯 استبدل الجزء الخاص بتحديد الـ audioSource في دالة playNextInQueue بالكود ده:
 
-  // 1. لو الرواية حفص
-  if (window.currentSelectedRoaya === 'hafs') {
-    if (currentReciter === 'shrim') {
-      audioSource = `https://www.everyayah.com/data/Saood_ash-Shuraym_128kbps/${fileKey}.mp3`;
-    } else if (currentReciter === 'frs_a') {
-      audioSource = `https://www.everyayah.com/data/Fares_Abbad_64kbps/${fileKey}.mp3`;
-    } else if (currentReciter === 'dosr') {
-      audioSource = `https://www.everyayah.com/data/Yasser_Ad-Dussary_128kbps/${fileKey}.mp3`;
-    } else if (currentReciter === 'basit') {
-      audioSource = `https://www.everyayah.com/data/Abdul_Basit_Murattal_192kbps/${fileKey}.mp3`;
-    } else {
-      let reciterApiId = 'ar.minshawi';
-      if (currentReciter === 'husary') reciterApiId = 'ar.husary';
-      else if (currentReciter === 'afs') reciterApiId = 'ar.alafasy';
-      else if (currentReciter === 'maher') reciterApiId = 'ar.mahermuaiqly';
-      else if (currentReciter === 'ajm') reciterApiId = 'ar.ahmedajamy';
-      else if (currentReciter === 'qarafi') reciterApiId = 'ar.qarafi';
-      audioSource = `https://cdn.islamic.network/quran/audio/128/${reciterApiId}/${a.globalNumber}.mp3`;
-    }
-  } 
-  // 2. لو أي رواية تانية
-  else {
-    const roayaObj = window.quranReadingsData.find(r => r.id === window.currentSelectedRoaya);
-    if (roayaObj && roayaObj.readers[0].apiId) {
-       audioSource = `https://cdn.islamic.network/quran/audio/128/${roayaObj.readers[0].apiId}/${a.globalNumber}.mp3`;
-    }
-  }
+  let audioSource = '';
 
+  // 1. لو الرواية حفص: استخدم سيرفرات الـ 10 قراء بتوعك اللي أنت معرفهم
+  if (window.currentSelectedRoaya === 'hafs') {
+    if (currentReciter === 'shrim') {
+      audioSource = `https://www.everyayah.com/data/Saood_ash-Shuraym_128kbps/${fileKey}.mp3`;
+    } else if (currentReciter === 'frs_a') {
+      audioSource = `https://www.everyayah.com/data/Fares_Abbad_64kbps/${fileKey}.mp3`;
+    } else if (currentReciter === 'dosr') {
+      audioSource = `https://www.everyayah.com/data/Yasser_Ad-Dussary_128kbps/${fileKey}.mp3`;
+    } else if (currentReciter === 'basit') {
+      audioSource = `https://www.everyayah.com/data/Abdul_Basit_Murattal_192kbps/${fileKey}.mp3`;
+    } else {
+      let reciterApiId = 'ar.minshawi';
+      if (currentReciter === 'husary') reciterApiId = 'ar.husary';
+      else if (currentReciter === 'afs') reciterApiId = 'ar.alafasy';
+      else if (currentReciter === 'maher') reciterApiId = 'ar.mahermuaiqly';
+      else if (currentReciter === 'ajm') reciterApiId = 'ar.ahmedajamy';
+      else if (currentReciter === 'qarafi') reciterApiId = 'ar.qarafi';
+      
+      audioSource = `https://cdn.islamic.network/quran/audio/128/${reciterApiId}/${a.globalNumber}.mp3`;
+    }
+  } 
+  // 2. لو أي رواية تانية: استخدم القارئ المخصص للرواية من ملف quranData.js
+  else {
+    const roayaObj = window.quranReadingsData.find(r => r.id === window.currentSelectedRoaya);
+    if (roayaObj && roayaObj.readers[0].apiId) {
+       audioSource = `https://cdn.islamic.network/quran/audio/128/${roayaObj.readers[0].apiId}/${a.globalNumber}.mp3`;
+    }
+ }
+
+  // إسناد الرابط الجديد والتشغيل الآمن
   audio.src = audioSource;
-  audio.play().then(() => {
-    isPlaying = true;
-    document.getElementById('playBtn').textContent = '⏸';
-    document.getElementById('audioStatus').textContent = `يُشغّل الآية ${toAr(a.numberInSurah)} ${window.ayahRepeatCount > 1 ? `(تكرار ١ من ${toAr(window.ayahRepeatCount)})` : ""}`;
-  }).catch(err => console.error("مشكلة في تشغيل الآية:", err));
+  
+  audio.play()
+    .then(() => {
+      isPlaying = true;
+      document.getElementById('playBtn').textContent = '⏸';
+      document.getElementById('audioStatus').textContent = `يُشغّل الآية ${toAr(a.numberInSurah)} ${window.ayahRepeatCount > 1 ? `(تكرار ١ من ${toAr(window.ayahRepeatCount)})` : ""}`;
+     // تفعيل التحكم في الوسائط لجعل الصوت يستمر في الخلفية
+if ('mediaSession' in navigator) {
+  navigator.mediaSession.metadata = new MediaMetadata({
+    title: `الآية ${currentAyahsData[idx].numberInSurah}`,
+    artist: "صدقة جارية عن شيماء سعيد",
+    album: "القرآن الكريم"
+  });
+
+  navigator.mediaSession.setActionHandler('nexttrack', () => {
+    currentQueueIndex++;
+    playNextInQueue();
+  });
+  
+  navigator.mediaSession.setActionHandler('pause', () => {
+    document.getElementById('audioPlayer').pause();
+    isPlaying = false;
+  });
 }
+
+    })
    
+    .catch(error => {
+      console.error("أزمة تفرير بروميس الصوت:", error);
+      // في حال حدوث خطأ الانتقال السريع AbortError نمتص الصدمة ولا يتجمد التطبيق
+    });
+}
 
 
         
@@ -3227,54 +3243,69 @@ async function loadPageWordsOverlay(imgElement, pageNum) {
         // الدالة الرئيسية لعرض الصفحات (النسخة المضمونة 100%)
 async function renderQcfPages(targetPageIndex = 0) {
   const slider = document.getElementById('mushafSlider');
-  slider.innerHTML = '<div style="width:100%;text-align:center;padding:50px;color:#8b6914;font-family:Amiri,serif;font-size:18px;">⏳ جاري تحميل صفحات المصحف الشريف بالرواية المختارة...</div>';
+  slider.innerHTML = '<div style="width:100%;text-align:center;padding:50px;color:#8b6914;font-family:Amiri,serif;font-size:18px;">⏳ جاري تحميل صفحات المصحف الشريف...</div>';
   
   try {
-    // جلب بيانات السورة
     const r = await fetch(`https://api.alquran.cloud/v1/surah/${currentSurah.n}`);
     const d = await r.json();
     const pages = [...new Set(d.data.ayahs.map(a => a.page))];
     
-    // تحديد نوع المصحف بناءً على الرواية المختارة
-    let roayaFolder = 'hafs'; // الافتراضي
-    if (window.currentSelectedRoaya === 'warsh') roayaFolder = 'warsh';
-    if (window.currentSelectedRoaya === 'qaloon') roayaFolder = 'qaloon';
-    // ملحوظة: لو عندك روابط تانية لباقي القراءات بتغير اسم الفولدر هنا
+    let quranCache = null;
+    if ('caches' in window) {
+      quranCache = await caches.open('mushaf-images-v1');
+    }
 
-    const imgElements = pages.map((p, i) => {
-      // الرابط الذكي لجلب صفحات ورش أو قالون أو حفص مصورة ومكتوبة بالرسم الصحيح
-      const imageUrl = `https://cdn.myquran.com/img/page/${roayaFolder}/${p}.png`;
+    const imgElements = await Promise.all(pages.map(async (p, i) => {
+      const imageUrl = `https://cdn.myquran.com/img/page/${p}.png`;
+      let finalSrc = imageUrl;
+
+      if (quranCache) {
+        const cachedResponse = await quranCache.match(imageUrl);
+        if (cachedResponse) {
+          finalSrc = imageUrl; 
+        }
+      }
 
       return `
       <div class="mushaf-page" id="qcf_page_container_${i}" style="flex: 0 0 100vw; width: 100vw; height: calc(100vh - 105px); background: var(--bg); display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 0; margin: 0; border: none;">
         <div onclick="document.body.classList.toggle('hide-controls')" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: auto; z-index: 5;"></div>
         
-        <img id="qcf_image_${p}" class="qcf-img" src="${imageUrl}" 
-             style="width: 100%; height: 100%; object-fit: fill; display: block; position: relative; z-index: 6; padding: 0; margin: 0; transition: filter 0.3s;">
+        <img id="qcf_image_${p}" class="qcf-img" src="${finalSrc}" 
+             style="width: 100%; height: 100%; object-fit: fill; display: block; position: relative; z-index: 6; padding: 0; margin: 0; transition: filter 0.3s;" 
+             onload="loadPageWordsOverlay(this, ${p})">
+        
+        <!-- الأوفرلاي الخاص بالكلمات -->
+        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10;"></div>
       </div>`;
-    });
+    }));
 
+    // حقن العناصر مباشرة في الـ DOM
     slider.innerHTML = imgElements.join('');
 
-    // ضبط السكرول والاتجاهات
+    // 🔥 الأمان التام: ندمج التأخير البسيط مع التوجيه الذكي الذي يدعم اتجاه الـ RTL
     setTimeout(() => {
       const targetPage = document.getElementById(`qcf_page_container_${targetPageIndex}`);
       if (targetPage) {
+        // فحص ذكي: هل المتصفح يقرأ السكرول العكسي؟ لضمان العمل على الموبايل والكمبيوتر
         const isRTL = window.getComputedStyle(slider).direction === 'rtl';
         if (isRTL) {
+          // جرب الطرق الثلاثة الشهيرة للمتصفحات في الـ RTL لتضمن التنقل فوراً
           slider.scrollLeft = -targetPage.offsetLeft; 
+          if(slider.scrollLeft === 0) {
+            slider.scrollLeft = slider.scrollWidth - slider.clientWidth - targetPage.offsetLeft;
+          }
         } else {
           slider.scrollLeft = targetPage.offsetLeft;
         }
       }
-    }, 150);
+    }, 150); // مهلة 150ms كافية جداً للمتصفح ليعطي أبعاد حقيقية للـ Pages
 
   } catch(e) {
-    console.error("خطأ جلب صفحات المصحف للرواية:", e);
-    slider.innerHTML = '<div style="text-align:center;padding:50px;color:#8b6914;font-family:Amiri,serif;">تحتاج اتصال بالإنترنت لعرض هذه الرواية مصورة 🌐</div>';
+    console.error("خطأ جلب صفحات المصحف:", e);
+    slider.innerHTML = '<div style="text-align:center;padding:50px;color:#8b6914;font-family:Amiri,serif;">تحتاج اتصال بالإنترنت 🌐</div>';
   }
 }
-                        
+                                    
                       
 
 // دالة جلب خريطة الآيات ورسمها فوق الصفحة بالملي
@@ -4033,33 +4064,24 @@ window.initRoayaSelector = function() {
     
     // حدث الضغط الفعلي على الرواية آية آية
     item.onclick = function(e) {
-  e.stopPropagation();
-  
-  window.currentSelectedRoaya = roaya.id;
-  
-  // تحديث الاسم في الهيدر
-  const nameParts = roaya.name.split(' ');
-  document.getElementById('currentRoayaName').textContent = nameParts[0] + ' ' + (nameParts[1] || ''); 
-  
-  dropdown.style.display = 'none';
-  
-  // تحديث خيارات القراء بناءً على الرواية
-  window.updateReciterSelectOptions(roaya);
-  
-  // 🚀 السحر هنا: لو الرواية مش حفص، حوله أوتوماتيك لوضع المصحف المصور عشان يشوف رسم الرواية صح
-  if (roaya.id !== 'hafs') {
-    mushafMode = 'qcf';
-    document.getElementById('modeQcf').classList.add('active');
-    document.getElementById('modeNass').classList.remove('active');
-    renderQcfPages(0); // رسم صفحات المصحف المصور للرواية الجديدة
-  } else {
-    // لو رجع لحفص رجعه للوضع العادي
-    if (window.currentSurah) {
-      window.openSurah(window.currentSurah.n);
-    }
-  }
-};
-
+      e.stopPropagation(); // منع تداخل الأحداث
+      
+      window.currentSelectedRoaya = roaya.id;
+      
+      // تحديث الاسم الظاهر على الزرار العلوي بالملي
+      const nameParts = roaya.name.split(' ');
+      document.getElementById('currentRoayaName').textContent = nameParts[0] + ' ' + (nameParts[1] || ''); 
+      
+      dropdown.style.display = 'none'; // غلق القائمة بعد الاختيار
+      
+      // تحديث قائمة الشيوخ وعزلهم أو إرجاع الـ 10 بتوعك
+      window.updateReciterSelectOptions(roaya);
+      
+      // إعادة جلب السورة فواً بضبط ونصوص الرواية الجديدة
+      if (window.currentSurah) {
+        window.openSurah(window.currentSurah.n);
+      }
+    };
     
     dropdown.appendChild(item);
   });
