@@ -3493,49 +3493,7 @@ document.addEventListener('DOMContentLoaded', () => {
  restoreLastState(); 
 });
  
-function checkAuthAndBlock() {
-  if (document.getElementById('authOverlay')) return;
 
-  const overlay = document.createElement('div');
-  overlay.id = 'authOverlay';
-  overlay.style.cssText = `
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: #0b120c; z-index: 99999;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    font-family: 'Amiri', serif; padding: 20px;
-  `;
-  overlay.innerHTML = `
-    <div style="font-size:60px;margin-bottom:20px;">🌙</div>
-    <div style="color:#d4af37;font-size:26px;font-weight:700;margin-bottom:8px;">صدقة جارية</div>
-    <div style="color:#9aa79c;font-size:14px;margin-bottom:30px;">شيماء سعيد رحمها الله</div>
-    <button id="googleSignInBtn" onclick="doGoogleSignIn()"
-      style="background:#d4af37;color:#111;border:none;padding:14px 30px;
-      border-radius:25px;font-size:16px;font-family:'Amiri',serif;cursor:pointer;margin-bottom:0;">
-      🔑 دخول بحساب جوجل
-    </button>
-  `;
-  document.body.appendChild(overlay);
-
-  import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js")
-    .then(({onAuthStateChanged}) => {
-      onAuthStateChanged(window.firebaseAuth, (user) => {
-        if (user) {
-  import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js")
-    .then(({doc, getDoc}) => {
-      getDoc(doc(window.firebaseDb, "users", user.uid))
-        .then(snap => {
-          if (snap.exists() && snap.data().name) {
-            finishLogin(snap.data().name);
-          } else {
-            showNameInput(user);
-          }
-        });
-    });
- }
-      });
-    });
-}
 
 function doGoogleSignIn() {
   import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js")
@@ -4588,12 +4546,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
         } else {
-      // إزالة أي تعتيم أو حجب متبقي لفتح التطبيق فوراً كزائر
-      const overlay = document.getElementById('authOverlay');
-      if (overlay) overlay.remove();
-    }
+  // تصفح حر كزائر بدون أي حجب
+  const overlay = document.getElementById('authOverlay');
+  if (overlay) overlay.remove();
+}
 
-  });
 
   
 // دالة تشغيل الدخول بجوجل من زرار الهيدر
