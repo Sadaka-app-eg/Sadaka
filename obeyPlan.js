@@ -36,60 +36,60 @@ window.initObeyPlanPage = function() {
   }
 };
 
-// واجهة إعداد وإنشاء خطة الطاعة (نسخة محدثة ومعدلة بالملي)
+// واجهة إعداد وإنشاء خطة الطاعة (نسخة مصلحة بالملي لمنع خروج زر إضافة)
 function renderObeySetupMode(container) {
   let html = `
-    <div class="obey-welcome-card" style="background:var(--card); border:1px solid var(--border); border-right:4px solid var(--gold); padding:20px; border-radius:16px; margin-bottom:16px; text-align:center;">
+    <div class="obey-welcome-card" style="background:var(--card); border:1px solid var(--border); border-right:4px solid var(--gold); padding:20px; border-radius:16px; margin-bottom:16px; text-align:center; box-sizing:border-box;">
       <div style="font-size:32px; margin-bottom:10px;">🌱</div>
       <p style="font-size:15px; line-height:1.8; color:var(--text); font-family:'Amiri', serif;">ابدأ ببناء برنامجك اليومي. اختر من المهام الجاهزة أو أضف مهامك الخاصة، وحدد مدة الخطة، وسيساعدك "أثر" على متابعة التزامك يومًا بعد يوم.</p>
     </div>
 
     <!-- حاويات المهام الجاهزة المقسمة -->
-    <div style="background:var(--card); border:1px solid var(--border); padding:16px; border-radius:16px; margin-bottom:14px;">
+    <div style="background:var(--card); border:1px solid var(--border); padding:16px; border-radius:16px; margin-bottom:14px; box-sizing:border-box;">
       <div style="font-size:14px; color:var(--gold); font-family:'Amiri', serif; margin-bottom:12px; font-weight:bold;">📋 تخصيص وتحديد مهام خطتك:</div>
   `;
 
   for (const [catKey, catData] of Object.entries(presetObeyTasks)) {
     html += `
       <div style="font-size:13px; color:var(--gold); font-weight:bold; margin-top:10px; margin-bottom:8px; border-bottom:1px dashed var(--border); padding-bottom:4px;">${catData.title}</div>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:10px;">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:10px; box-sizing:border-box;">
     `;
     catData.items.forEach((task, idx) => {
       html += `
-        <button class="cat-btn obey-task-selector" id="preset_task_${catKey}_${idx}" onclick="toggleSelectPresetTask('${task}', 'preset_task_${catKey}_${idx}')" style="padding:10px 6px; font-size:12px; font-family:'Amiri', serif; text-align:center; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">+ ${task}</button>
+        <button class="cat-btn obey-task-selector" id="preset_task_${catKey}_${idx}" onclick="toggleSelectPresetTask('${task}', 'preset_task_${catKey}_${idx}')" style="padding:10px 6px; font-size:12px; font-family:'Amiri', serif; text-align:center; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; box-sizing:border-box;">+ ${task}</button>
       `;
     });
     html += `</div>`;
   }
 
   html += `
-    <!-- إضافة مهمة خاصة مخصصة - تم ضبط التنسيق ليصبح مدمجاً داخل الشاشة تماماً -->
-    <div style="margin-top:14px; border-top:1px solid var(--border); padding-top:12px;">
+    <!-- إضافة مهمة خاصة مخصصة - نظام الـ Grid الصارم المحاذي للشاشة -->
+    <div style="margin-top:14px; border-top:1px solid var(--border); padding-top:12px; box-sizing:border-box;">
       <div style="font-size:13px; color:var(--gold); font-weight:bold; margin-bottom:8px;">➕ مهمة خاصة مخصصة:</div>
-      <div style="display:flex; gap:8px; width:100%; align-items:center;">
-        <input type="text" id="customObeyTaskInput" placeholder="اكتب اسم المهمة الخاصة..." style="flex:1; padding:12px; border-radius:12px; background:var(--bg2); color:var(--text); border:1px solid var(--border); font-family:'Amiri', serif; font-size:14px; outline:none;">
-        <button onclick="addCustomObeyTaskField()" style="padding:12px 20px; background:var(--gold); color:#111; font-weight:bold; border:none; border-radius:12px; font-family:'Amiri', serif; font-size:14px; cursor:pointer; white-space:nowrap; min-width:80px;">إضافة</button>
+      <div style="display:grid; grid-template-columns: 1fr auto; gap:8px; width:100%; align-items:center; box-sizing:border-box;">
+        <input type="text" id="customObeyTaskInput" placeholder="اكتب اسم المهمة الخاصة..." style="width:100%; padding:12px; border-radius:12px; background:var(--bg2); color:var(--text); border:1px solid var(--border); font-family:'Amiri', serif; font-size:14px; outline:none; box-sizing:border-box;">
+        <button onclick="addCustomObeyTaskField()" style="padding:12px 24px; background:var(--gold); color:#111; font-weight:bold; border:none; border-radius:12px; font-family:'Amiri', serif; font-size:14px; cursor:pointer; white-space:nowrap; box-sizing:border-box;">إضافة</button>
       </div>
-      <div id="customObeyTasksList" style="display:flex; flex-direction:column; gap:6px; margin-top:8px;"></div>
+      <div id="customObeyTasksList" style="display:flex; flex-direction:column; gap:6px; margin-top:8px; box-sizing:border-box;"></div>
     </div>
   </div>
 
   <!-- تحديد مدة خطة الطاعة والبداية -->
-  <div style="background:var(--card); border:1px solid var(--border); padding:16px; border-radius:16px; margin-bottom:14px;">
+  <div style="background:var(--card); border:1px solid var(--border); padding:16px; border-radius:16px; margin-bottom:14px; box-sizing:border-box;">
     <div style="font-size:14px; color:var(--gold); font-family:'Amiri', serif; margin-bottom:10px; font-weight:bold;">⏱️ مدة خطة الطاعة:</div>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:10px;">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:10px; box-sizing:border-box;">
       <button class="mode-btn" id="dur_7" onclick="selectObeyDuration(7)">7 أيام</button>
       <button class="mode-btn" id="dur_14" onclick="selectObeyDuration(14)">14 يومًا</button>
       <button class="mode-btn" id="dur_30" onclick="selectObeyDuration(30)">30 يومًا</button>
       <button class="mode-btn" id="dur_100" onclick="selectObeyDuration(100)">100 يوم</button>
     </div>
-    <div style="display:flex; gap:8px; margin-top:8px; align-items:center;">
+    <div style="display:flex; gap:8px; margin-top:8px; align-items:center; box-sizing:border-box;">
       <span style="font-size:12px; color:var(--text2); white-space:nowrap;">مدة مخصصة بالأيام:</span>
-      <input type="number" id="customObeyDurationInput" placeholder="أيام" min="1" oninput="selectObeyDuration('custom')" style="width:100%; padding:8px; border-radius:8px; background:var(--bg2); color:var(--text); border:1px solid var(--border); font-family:'Amiri', serif; font-size:14px; text-align:center; outline:none;">
+      <input type="number" id="customObeyDurationInput" placeholder="أيام" min="1" oninput="selectObeyDuration('custom')" style="width:100%; padding:8px; border-radius:8px; background:var(--bg2); color:var(--text); border:1px solid var(--border); font-family:'Amiri', serif; font-size:14px; text-align:center; outline:none; box-sizing:border-box;">
     </div>
   </div>
 
-  <button onclick="compileAndStartObeyPlan()" style="width:100%; background:var(--gold); color:#111; border:none; padding:14px; border-radius:14px; font-family:'Amiri', serif; font-size:16px; font-weight:700; cursor:pointer; margin-bottom:20px; box-shadow:0 4px 15px rgba(212,175,55,0.25);">🚀 اعتماد وبدء خطة الطاعة</button>
+  <button onclick="compileAndStartObeyPlan()" style="width:100%; background:var(--gold); color:#111; border:none; padding:14px; border-radius:14px; font-family:'Amiri', serif; font-size:16px; font-weight:700; cursor:pointer; margin-bottom:20px; box-shadow:0 4px 15px rgba(212,175,55,0.25); box-sizing:border-box;">🚀 اعتماد وبدء خطة الطاعة</button>
   `;
 
   container.innerHTML = html;
@@ -98,7 +98,6 @@ function renderObeySetupMode(container) {
   selectObeyDuration(7);
 }
 
-// تشغيل وتحديد مهام خطة الطاعة
 window.toggleSelectPresetTask = function(taskName, elementId) {
   const btn = document.getElementById(elementId);
   if (!btn) return;
@@ -147,7 +146,6 @@ window.addCustomObeyTaskField = function() {
   input.value = '';
 };
 
-// تشغيل واعتماد الخطة النهائية وحفظ التواريخ بالملي
 window.compileAndStartObeyPlan = function() {
   if (window.selectedObeyTasks.length === 0) {
     alert("من فضلك اختر مهمة أو طاعة واحدة على الأقل لبناء خطتك ⚠️");
@@ -167,7 +165,6 @@ window.compileAndStartObeyPlan = function() {
   initObeyPlanPage();
 };
 
-// واجهة جدول ومتابعة الخطة اليومية والإحصائيات التفاعلية
 function renderObeyFollowUpMode(container) {
   const totalDays = currentObeyPlan.duration;
   const tasks = currentObeyPlan.tasks;
@@ -181,7 +178,6 @@ function renderObeyFollowUpMode(container) {
       <div id="obeyTodayMotivateBadge" style="font-size:12px; font-weight:bold; font-family:'Amiri', serif;"></div>
     </div>
 
-    <!-- جدول المتابعة الشامل -->
     <div style="width:100%; overflow-x:auto; background:var(--bg2); border-radius:14px; border:1px solid var(--border); margin-bottom:14px;">
       <table style="width:100%; border-collapse:collapse; font-size:13px; font-family:'Amiri', serif; text-align:center; min-width:400px; direction:rtl;">
         <thead>
@@ -266,7 +262,6 @@ window.cycleObeyCellStatus = function(cellKey) {
   calculateAndRenderObeyStats();
 };
 
-// محرك حساب الإحصائيات والتحفيز اليومي الذكي (نسخة محدثة ومصلحة بالملي)
 function calculateAndRenderObeyStats() {
   const totalDays = currentObeyPlan.duration;
   const tasks = currentObeyPlan.tasks;
@@ -328,7 +323,7 @@ function calculateAndRenderObeyStats() {
   document.getElementById('obey_top_task').textContent = taskDoneCounts[maxDoneIdx] > 0 ? tasks[maxDoneIdx] : "--";
   document.getElementById('obey_need_care_task').textContent = taskMissedCounts[maxMissedIdx] > 0 ? tasks[maxMissedIdx] : "--";
 
-  // اللوجيك المعدل والمصلح بالملي: حساب اليوم الحالي التلقائي ومطابقة المهام كاملة
+  // تفعيل التحقق من اكتمال مهام اليوم الحالي بالملي لمنع التهنئة العشوائية
   const todayStr = new Date().toISOString().split('T')[0];
   const startStr = currentObeyPlan.startDate || todayStr;
   const dayDiff = Math.floor((new Date(todayStr) - new Date(startStr)) / (1000 * 60 * 60 * 24)) + 1;
@@ -337,19 +332,16 @@ function calculateAndRenderObeyStats() {
   
   let currentDayDone = 0;
   let currentDayMissed = 0;
-  let currentDayEmpty = 0;
   
   for (let t = 0; t < tasks.length; t++) {
     const status = obeyPlanProgress[`d${currentDayNum}_t${t}`] || '';
     if (status === 'Y') currentDayDone++;
-    else if (status === 'N') currentDayMissed++;
-    else currentDayEmpty++;
+    if (status === 'N') currentDayMissed++;
   }
 
   const motivateBadge = document.getElementById('obeyTodayMotivateBadge');
   if (motivateBadge) {
     if (currentDayDone === tasks.length && tasks.length > 0) {
-      // التهنئة لا تظهر مطلقًا إلا إذا كانت كل مهام هذا اليوم بدون استثناء معلمة بالـ صح الأخضر
       motivateBadge.innerHTML = `<span style="color:var(--green); font-weight:bold;">🎉 أحسنت! أتممت جميع مهام اليوم.</span>`;
     } else if (currentDayMissed > 0) {
       motivateBadge.innerHTML = `<span style="color:var(--gold);">🌿 لا بأس، يوم جديد وفرصة جديدة.</span>`;
