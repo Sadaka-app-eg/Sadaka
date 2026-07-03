@@ -1580,13 +1580,7 @@ const azkarData = {
     },
   ],
   masa: [
-    {
-      title:'دعاء المساء',
-      text:'اللَّهُمَّ بِكَ أَمْسَيْنَا وَبِكَ أَصْبَحْنَا وَبِكَ نَحْيَا وَبِكَ نَمُوتُ وَإِلَيْكَ الْمَصِيرُ',
-      count:1,
-      hadith:'كان النبي ﷺ إذا أمسى قاله',
-      source:'رواه الترمذي'
-    },
+    
     {
       title:'آية الكرسي',
       text:'اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ ۚ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ ۚ لَّهُ مَا فِي السَّمَاوَاتِ وَمَا فِي الْأَرْضِ ۗ مَن ذَا الَّذِي يَشْفَعُ عِندَهُ إِلَّا بِإِذْنِهِ ۚ يَعْلَمُ مَا بَيْنَ أَيْدِيهِمْ وَمَا خَلْفَهُمْ ۖ وَلَا يُحِيطُونَ بِشَيْءٍ مِّنْ عِلْمِهِ إِلَّا بِمَا شَاءَ ۚ وَسِعَ كُرْسِيُّهُ السَّمَاوَاتِ وَالْأَرْضَ ۖ وَلَا يَئُودُهُ حِفْظُهُمَا ۚ وَهُوَ الْعَلِيُّ الْعَظِيمُ',
@@ -1614,6 +1608,13 @@ const azkarData = {
       count:3,
       hadith:'من قرأهن حين يصبح وحين يمسي ثلاث مرات كفتاه من كل شيء',
       source:'رواه أبو داود والترمذي وصححه الألباني'
+    },
+   {
+      title:'دعاء المساء',
+      text:'اللَّهُمَّ بِكَ أَمْسَيْنَا وَبِكَ أَصْبَحْنَا وَبِكَ نَحْيَا وَبِكَ نَمُوتُ وَإِلَيْكَ الْمَصِيرُ',
+      count:1,
+      hadith:'كان النبي ﷺ إذا أمسى قاله',
+      source:'رواه الترمذي'
     },
     {
       title:'أمسينا وأمسى الملك لله',
@@ -2120,6 +2121,61 @@ window.handleSurahTouchEnd = function(surahId) {
     // لو ضغطة عادية عادية تفتح المصحف الأصلي المعتمد في تطبيقك
     openSurah(surahId);
   }
+};
+// دالة توليد وضخ نافذة أسباب النزول والتدبر المنبثقة التبويبية
+window.showSurahInsightsModal = function(surahId, surahName) {
+  const data = window.quranInsights[surahId];
+  if (!data) {
+    alert("⏳ جاري تحضير وجمع بيانات أسباب النزول والتدبر لهذه السورة قريباً إن شاء الله.");
+    return;
+  }
+
+  // بناء الهيكل البرمجي الكامل للنافذة
+  const modalHTML = `
+    <div id="insightModal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:flex; align-items:center; justify-content:center; z-index:9999999; font-family:'Amiri', serif; direction:rtl;">
+      <div style="background:var(--bg2); border:1px solid var(--border); width:92%; max-width:480px; border-radius:20px; padding:20px; color:var(--text); max-height:80vh; overflow-y:auto; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+        
+        <!-- الرأس وزر الإغلاق -->
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:12px;">
+          <h3 style="color:var(--gold); margin:0; font-size:20px;">سورة ${surahName}</h3>
+          <button onclick="document.getElementById('insightModal').remove()" style="background:none; border:none; color:var(--text2); font-size:26px; cursor:pointer;">&times;</button>
+        </div>
+
+        <!-- تبويب أسباب النزول والقصة بالتفصيل -->
+        <div id="reasonsSection" style="margin-top:15px;">
+          <h4 style="color:var(--gold); border-right:3px solid var(--gold); padding-right:8px; margin-bottom:12px; font-size:16px;">📖 أسباب النزول والسياق التاريخي</h4>
+          <p style="font-size:14px; line-height:1.7; text-align:justify; margin-bottom:12px;"><strong style="color:var(--gold);">القصة والسياق:</strong> ${data.reasons.story}</p>
+          <p style="font-size:14px; line-height:1.7; text-align:justify; margin-bottom:12px;"><strong style="color:var(--gold);">أشخاص نزلت فيهم:</strong> ${data.reasons.persons}</p>
+          <p style="font-size:14px; line-height:1.7; text-align:justify; margin-bottom:12px;"><strong style="color:var(--gold);">الخلاف والروايات:</strong> ${data.reasons.dispute}</p>
+          
+          <button onclick="document.getElementById('reasonsSection').style.display='none'; document.getElementById('tadaborSection').style.display='block';" 
+                  style="background:var(--gold); color:#111; border:none; width:100%; padding:12px; border-radius:12px; font-weight:bold; margin-top:20px; cursor:pointer; font-size:15px; font-family:'Amiri', serif;">
+            🌱 الانتقال لتدبر السلف الصالح
+          </button>
+        </div>
+
+        <!-- تبويب تدبر الآيات المهمة والمأثورة عن السلف -->
+        <div id="tadaborSection" style="margin-top:15px; display:none;">
+          <h4 style="color:var(--gold); border-right:3px solid var(--gold); padding-right:8px; margin-bottom:12px; font-size:16px;">🌱 من مواطن تدبر السلف الصالح</h4>
+          
+          ${data.tadabor.map(item => `
+            <div style="background:var(--card); border:1px solid var(--border); padding:12px; border-radius:12px; margin-bottom:12px;">
+              <div style="color:var(--gold); font-weight:bold; font-size:17px; margin-bottom:6px; text-align:center; line-height:1.4; font-family:'Amiri Quran', serif;">﴿ ${item.verse} ﴾</div>
+              <p style="font-size:13px; line-height:1.6; margin:0; text-align:justify; color:var(--text2);">${item.say}</p>
+            </div>
+          `).join('')}
+
+          <button onclick="document.getElementById('tadaborSection').style.display='none'; document.getElementById('reasonsSection').style.display='block';" 
+                  style="background:none; border:1px solid var(--border); color:var(--text); width:100%; padding:11px; border-radius:12px; margin-top:15px; cursor:pointer; font-size:14px; font-family:'Amiri', serif;">
+            ⬅ العودة لأسباب النزول
+          </button>
+        </div>
+
+      </div>
+    </div>
+  `;
+
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
 };
 
 // الدالة المعدلة بالملي لرسم السور لتستقبل الأحداث الجديدة للموبايل والكمبيوتر
