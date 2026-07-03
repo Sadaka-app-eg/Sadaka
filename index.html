@@ -3991,6 +3991,129 @@ function selectMood(mood) {
   }
 }
 
+// =========================================================
+// 📖 كود الخطوة الرابعة: تشغيل نظام الروايات والتحكم في الشيوخ
+// =========================================================
+
+// ١. دالة فتح وإغلاق قائمة الروايات المنسدلة (محدثة ومؤمنة عالمياً)
+window.toggleRoayaDropdown = function() {
+  const dropdown = document.getElementById('roayaDropdown');
+  if (!dropdown) return;
+  
+  // لضمان ملء القائمة بالبيانات فوراً لو كانت فاضية
+  if (dropdown.children.length === 0 && typeof window.initRoayaSelector === 'function') {
+    window.initRoayaSelector();
+  }
+
+  // التبديل بين الفتح والإغلاق
+  if (dropdown.style.display === 'none' || dropdown.style.display === '') {
+    dropdown.style.display = 'block';
+  } else {
+    dropdown.style.display = 'none';
+  }
+};
+
+// تأمين إغلاق القائمة أوتوماتيكياً لو المستخدم ضغط في أي مكان برة الزرار
+document.addEventListener('click', function(event) {
+  const btn = document.getElementById('toggleRoayaBtn');
+  const dropdown = document.getElementById('roayaDropdown');
+  if (dropdown && btn && !btn.contains(event.target) && !dropdown.contains(event.target)) {
+    dropdown.style.display = 'none';
+  }
+});
+
+// ٢. بناء قائمة الروايات العشر داخل الـ Dropdown (تعديل الأمان والـ Scope)
+window.initRoayaSelector = function() {
+  const dropdown = document.getElementById('roayaDropdown');
+  if (!dropdown || !window.quranReadingsData) return;
+
+  dropdown.innerHTML = ''; // تنظيف الوعاء لمنع التكرار
+
+  window.quranReadingsData.forEach(roaya => {
+    const item = document.createElement('div');
+    item.style.cssText = "padding: 12px 14px; color: var(--text); font-size: 14px; font-family: 'Amiri', serif; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.03); text-align: right; transition: background 0.2s; pointer-events: auto;";
+    
+    // ستايل تفاعلي فخم عند التمرير باللمس أو الماوس
+    item.onmouseenter = () => item.style.background = "rgba(212, 175, 55, 0.12)";
+    item.onmouseleave = () => item.style.background = "transparent";
+
+    item.innerHTML = `<strong>${roaya.name}</strong>`;
+    
+    // حدث الضغط الفعلي على الرواية آية آية
+    item.onclick = function(e) {
+      e.stopPropagation(); // منع تداخل الأحداث
+      
+      window.currentSelectedRoaya = roaya.id;
+      
+      // تحديث الاسم الظاهر على الزرار العلوي بالملي
+      const nameParts = roaya.name.split(' ');
+      document.getElementById('currentRoayaName').textContent = nameParts[0] + ' ' + (nameParts[1] || ''); 
+      
+      dropdown.style.display = 'none'; // غلق القائمة بعد الاختيار
+      
+      // تحديث قائمة الشيوخ وعزلهم أو إرجاع الـ 10 بتوعك
+      window.updateReciterSelectOptions(roaya);
+      
+      // إعادة جلب السورة فواً بضبط ونصوص الرواية الجديدة
+      if (window.currentSurah) {
+        window.openSurah(window.currentSurah.n);
+      }
+    };
+    
+    dropdown.appendChild(item);
+  });
+};
+
+// ٣. دالة السحر: تحديث الـ Select بتاع الشيوخ لتأمين الـ 10 أو تخصيص قارئ الرواية
+window.updateReciterSelectOptions = function(roaya) {
+  const select = document.getElementById('reciterSelect');
+  if (!select) return;
+
+  select.innerHTML = ''; // تفريغ الخيارات القديمة تماماً
+
+  if (roaya.isHafs) {
+    // لو رجع لحفص.. رجع لستة الـ 10 شيوخ المعتمدين بتوعك كاملين وبنفس الـ IDs
+    const hafsReaders = [
+      { name: "المنشاوي", id: "minsh" },
+      { name: "الحصري", id: "husary" },
+      { name: "مشاري العفاسي", id: "afs" },
+      { name: "فارس عباد", id: "frs_a" },
+      { name: "عبد الباسط عبد الصمد", id: "basit" },
+      { name: "ماهر المعيقلي", id: "maher" },
+      { name: "أحمد العجمي", id: "ajm" },
+      { name: "سعود الشريم", id: "shrim" },
+      { name: "ياسر الدوسري", id: "dosr" },
+      { name: "عبدالله القرافي", id: "qarafi" }
+    ];
+    
+    hafsReaders.forEach(r => {
+      const opt = document.createElement('option');
+      opt.value = r.id;
+      opt.textContent = r.name;
+      select.appendChild(opt);
+    });
+    
+    select.value = 'minsh'; // العودة للمنشاوي كافتراضي لحفص
+    window.currentReciter = 'minsh';
+  } else {
+    // لو أي رواية أخرى.. اعزل القائمة واعرض قارئها المخصص لها آية آية فقط
+    roaya.readers.forEach(r => {
+      const opt = document.createElement('option');
+      opt.value = r.id;
+      opt.textContent = r.name;
+      select.appendChild(opt);
+    });
+    select.value = roaya.readers[0].id;
+    window.currentReciter = roaya.readers[0].id;
+  }
+  
+  if (typeof window.changeReciter === 'function') window.changeReciter();
+};
+
+// ٤. التشغيل التجهيزي الفوري والآمن
+document.addEventListener('DOMContentLoaded', () => {
+  if (typeof window.initRoayaSelector === 'function') window.initRoayaSelector();
+});
 
   
 // ============================
