@@ -684,12 +684,18 @@ body.hide-controls button:not(.mushaf-page button) {
 <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
 
 <div class="header">
-  <!-- زر الثلاث شرط الجديد فوق يمين بالملي -->
+  <!-- زر الثلاث شرط فوق يمين -->
   <button class="icon-btn" onclick="toggleMenu()" style="font-size: 20px; font-weight: bold;">☰</button>
   
-  <h1>🌙 صدقة جارية — شيماء سعيد</h1>
-  <button class="icon-btn" onclick="toggleTheme()" id="themeBtn">☀️</button>
+  <h1> لا أبرح حتى أبلغ الجنة</h1>
+  
+  <div style="display: flex; gap: 6px; align-items: center;">
+    <!-- زرار تسجيل الدخول بجوجل الاختياري الجديد فوق يسار -->
+    <button class="icon-btn" id="googleLoginBtn" onclick="triggerHeaderGoogleLogin()" title="حفظ البيانات بجوجل" style="width: auto; padding: 0 10px; border-radius: 15px; font-size: 12px; font-family: 'Amiri', serif; font-weight: bold; color: var(--gold);">🔑 دخول</button>
+    <button class="icon-btn" onclick="toggleTheme()" id="themeBtn">☀️</button>
+  </div>
 </div>
+
 
 <!-- تحويل التبويبات إلى منيو جانبي فخم واحترافي -->
 <div class="tabs" id="tabsMenu">
@@ -4582,16 +4588,50 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         });
       }
-    } else {
-      setTimeout(() => {
-        if (!auth.currentUser && typeof checkAuthAndBlock === 'function') {
-          checkAuthAndBlock();
-        }
-      }, 1000);
+        } else {
+      // إزالة أي تعتيم أو حجب متبقي لفتح التطبيق فوراً كزائر
+      const overlay = document.getElementById('authOverlay');
+      if (overlay) overlay.remove();
     }
+
   });
 
   
+// دالة تشغيل الدخول بجوجل من زرار الهيدر
+window.triggerHeaderGoogleLogin = function() {
+  const savedName = localStorage.getItem('user_display_name');
+  if (savedName) {
+    // لو مسجل وداس عليه، نسأله لو عايز يعمل تسجيل خروج
+    if (confirm('هل ترغب في تسجيل الخروج من الحساب؟')) {
+      localStorage.removeItem('user_display_name');
+      if (window.firebaseAuth) {
+        window.firebaseAuth.signOut().then(() => location.reload());
+      } else {
+        location.reload();
+      }
+    }
+    return;
+  }
+
+  // لو مش مسجل، نفتح الـ Popup الافتراضي بتاعك فوراً
+  if (typeof window.signInWithPopup === 'function' && window.firebaseAuth && window.GoogleAuthProvider) {
+    const provider = new window.GoogleAuthProvider();
+    window.signInWithPopup(window.firebaseAuth, provider)
+      .then((result) => {
+        // فحص الاسم وعرض شاشة كتابة الاسم لو مش موجود في الداتابيز
+        const user = result.user;
+        const firstName = user.displayName ? user.displayName.split(' ')[0] : 'المستخدم';
+        
+        // حفظ تمهيدي
+        localStorage.setItem('user_display_name', firstName);
+        window.finishLogin(firstName);
+        alert(`✨ أهلاً بك يا ${firstName}، تم ربط حسابك بنجاح!`);
+      })
+      .catch(err => console.error('خطأ تسجيل دخول الهيدر:', err));
+  } else {
+    alert("⏳ جاري تهيئة خدمات الاتصال، جرب كمان ثانية واحدة...");
+  }
+};
 
    
   
