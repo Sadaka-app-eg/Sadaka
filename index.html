@@ -755,8 +755,14 @@ body.hide-controls button:not(.mushaf-page button) {
 <!-- QURAN -->
 <div class="page" id="quran">
   <!-- تعديل السطر ده لتغيير النص واستدعاء الدالة الجديدة globalSearch -->
-  <input class="search-box" placeholder="🔍 ابحث عن سورة أو آية..." oninput="globalSearch(this.value)">
-  
+ <!-- النص التوضيحي المضاف لميزة الضغط المطول -->
+<div style="text-align: center; margin-bottom: 12px; font-family: 'Amiri', serif; direction: rtl;">
+  <p style="color: var(--text2); font-size: 13px;">✨ اضغط للقراءة العادية.. و<span style="color:var(--gold); font-weight:bold;">اضغط ضغطة مطولة</span> لأسباب النزول والتدبر</p>
+</div>
+
+<input class="search-box" placeholder="🔍 ابحث عن سورة أو آية..." oninput="globalSearch(this.value)">
+
+    
   <!-- السطر الجديد ده: مكان مخصص لظهور نتائج البحث في الآيات -->
   <div id="ayahSearchResults" style="display:none; margin-bottom:14px;"></div>
   
@@ -2093,9 +2099,36 @@ if (id === 'settingsPage') {
 // ===========================
 // Surah List
 // ===========================
+// =========================================================================
+// نظام التلافي والتحكم بالضغط المطول لأسباب النزول وتدبر السلف
+// =========================================================================
+let longPressTimer;
+let isLongPressAction = false;
+
+window.handleSurahTouchStart = function(surahId, surahName) {
+  isLongPressAction = false;
+  longPressTimer = setTimeout(() => {
+    isLongPressAction = true;
+    if(navigator.vibrate) navigator.vibrate(50); // اهتزاز خفيف للتأكيد
+    window.showSurahInsightsModal(surahId, surahName);
+  }, 700); // 700 مللي ثانية لاعتبارها ضغطة مطولة
+};
+
+window.handleSurahTouchEnd = function(surahId) {
+  clearTimeout(longPressTimer);
+  if (!isLongPressAction) {
+    // لو ضغطة عادية عادية تفتح المصحف الأصلي المعتمد في تطبيقك
+    openSurah(surahId);
+  }
+};
+
+// الدالة المعدلة بالملي لرسم السور لتستقبل الأحداث الجديدة للموبايل والكمبيوتر
 function renderSurahs(list) {
   document.getElementById('surahList').innerHTML = list.map(s => `
-    <div class="surah-item" onclick="openSurah(${s.n})">
+    <div class="surah-item" 
+         onpointerdown="window.handleSurahTouchStart(${s.n}, '${s.name}')" 
+         onpointerup="window.handleSurahTouchEnd(${s.n})"
+         style="user-select: none; -webkit-user-select: none;">
       <div class="surah-num">${s.n}</div>
       <div class="surah-info">
         <div class="surah-name">${s.name}</div>
@@ -2105,6 +2138,63 @@ function renderSurahs(list) {
     </div>
   `).join('');
 }
+
+// دالة توليد وضخ نافذة أسباب النزول والتدبر المنبثقة التبويبية
+window.showSurahInsightsModal = function(surahId, surahName) {
+  const data = window.quranInsights[surahId];
+  if (!data) {
+    alert("⏳ جاري تحضير وجمع بيانات أسباب النزول والتدبر لهذه السورة قريباً إن شاء الله.");
+    return;
+  }
+
+  // بناء الهيكل البرمجي الكامل للنافذة
+  const modalHTML = `
+    <div id="insightModal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:flex; align-items:center; justify-content:center; z-index:9999999; font-family:'Amiri', serif; direction:rtl;">
+      <div style="background:var(--bg2); border:1px solid var(--border); width:92%; max-width:480px; border-radius:20px; padding:20px; color:var(--text); max-height:80vh; overflow-y:auto; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+        
+        <!-- الرأس وحق الغلق -->
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:12px;">
+          <h3 style="color:var(--gold); margin:0; font-size:20px;">سورة ${surahName}</h3>
+          <button onclick="document.getElementById('insightModal').remove()" style="background:none; border:none; color:var(--text2); font-size:26px; cursor:pointer;">&times;</button>
+        </div>
+
+        <!-- تبويب أسباب النزول والقصة بالتفصيل -->
+        <div id="reasonsSection" style="margin-top:15px;">
+          <h4 style="color:var(--gold); border-right:3px solid var(--gold); padding-right:8px; margin-bottom:12px; font-size:16px;">📖 أسباب النزول والسياق التاريخي</h4>
+          <p style="font-size:14px; line-height:1.7; text-align:justify; margin-bottom:12px;"><strong style="color:var(--gold);">القصة والسياق:</strong> ${data.reasons.story}</p>
+          <p style="font-size:14px; line-height:1.7; text-align:justify; margin-bottom:12px;"><strong style="color:var(--gold);">أشخاص نزلت فيهم:</strong> ${data.reasons.persons}</p>
+          <p style="font-size:14px; line-height:1.7; text-align:justify; margin-bottom:12px;"><strong style="color:var(--gold);">الخلاف والروايات:</strong> ${data.reasons.dispute}</p>
+          
+          <button onclick="document.getElementById('reasonsSection').style.display='none'; document.getElementById('tadaborSection').style.display='block';" 
+                  style="background:var(--gold); color:#111; border:none; width:100%; padding:12px; border-radius:12px; font-weight:bold; margin-top:20px; cursor:pointer; font-size:15px; font-family:'Amiri', serif;">
+            🌱 الانتقال لتدبر السلف الصالح
+          </button>
+        </div>
+
+        <!-- تبويب تدبر الآيات المهمة والمأثورة عن السلف -->
+        <div id="tadaborSection" style="margin-top:15px; display:none;">
+          <h4 style="color:var(--gold); border-right:3px solid var(--gold); padding-right:8px; margin-bottom:12px; font-size:16px;">🌱 من مواطن تدبر السلف الصالح</h4>
+          
+          ${data.tadabor.map(item => `
+            <div style="background:var(--card); border:1px solid var(--border); padding:12px; border-radius:12px; margin-bottom:12px;">
+              <div style="color:var(--gold); font-weight:bold; font-size:17px; margin-bottom:6px; text-align:center; line-height:1.4; font-family:'Amiri Quran', serif;">﴿ ${item.verse} ﴾</div>
+              <p style="font-size:13px; line-height:1.6; margin:0; text-align:justify; color:var(--text2);">${item.say}</p>
+            </div>
+          `).join('')}
+
+          <button onclick="document.getElementById('tadaborSection').style.display='none'; document.getElementById('reasonsSection').style.display='block';" 
+                  style="background:none; border:1px solid var(--border); color:var(--text); width:100%; padding:11px; border-radius:12px; margin-top:15px; cursor:pointer; font-size:14px; font-family:'Amiri', serif;">
+            ⬅ العودة لأسباب النزول
+          </button>
+        </div>
+
+      </div>
+    </div>
+  `;
+
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+};
+
 renderSurahs(surahs);
 
 function filterSurahs(q) {
@@ -4735,6 +4825,7 @@ function updateSettingsAccountBox() {
   <script src="radio.js"></script>
  <script src="videoCreator.js"></script> <!-- 🎬 استدعاء محرك صانع الفيديو الجديد هنا بالملي -->
 <script src="quranData.js"></script>
+<script src="quranInsights.js"></script> <!-- هنا بالظبط -->
 
  <script type="module">
   // الغاء مفعول دالة الـ load القديمة تماماً لكسر حلقة إعادة تسجيل الدخول
