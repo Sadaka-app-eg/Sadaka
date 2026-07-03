@@ -4,7 +4,7 @@
 window.rareRecitations = [
   { 
     name: "محمد عباده: سورة هود (تلاوة خاشعة نادرة) 🎙️", 
-    url: "audio/Facebook 2205930596219780(MP3)_1.mp3", 
+     url: "audio/Facebook 2205930596219780(MP3)_1.mp3", 
     desc: "تشغيل مباشر محلي بدون إنترنت",
     tag: "محمد عباده"
   },
