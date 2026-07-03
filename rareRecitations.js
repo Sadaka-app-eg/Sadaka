@@ -2,37 +2,42 @@
 // مصفوفة التلاوات النادرة المظبوطة بالملي حسب شيوخك
 // ==========================================
 window.rareRecitations = [
+  { 
+    name: "محمد عباده: سورة هود (تلاوة خاشعة نادرة) 🎙️", 
+    url: "audio/Facebook 2205930596219780(MP3)_1.mp3", 
+    desc: "تشغيل مباشر محلي بدون إنترنت",
+    tag: "محمد عباده"
+  },
+  // تلاوات الشيخ محمد عباده المرتبة من 1 إلى 27
+  { name: "محمد عباده: تلاوة خاشعة 1 🎙️", url: "audio/obada_1.mp3", desc: "تشغيل مباشر محلي بدون إنترنت", tag: "محمد عباده" },
+  { name: "محمد عباده: تلاوة خاشعة 2 🎙️", url: "audio/obada_2.mp3", desc: "تشغيل مباشر محلي بدون إنترنت", tag: "محمد عباده" },
+  { name: "محمد عباده: تلاوة خاشعة 3 🎙️", url: "audio/obada_3.mp3", desc: "تشغيل مباشر محلي بدون إنترنت", tag: "محمد عباده" },
+  { name: "محمد عباده: تلاوة خاشعة 4 🎙️", url: "audio/obada_4.mp3", desc: "تشغيل مباشر محلي بدون إنترنت", tag: "محمد عباده" },
+  { name: "محمد عباده: تلاوة خاشعة 5 🎙️", url: "audio/obada_5.mp3", desc: "تشغيل مباشر محلي بدون إنترنت", tag: "محمد عباده" },
+  { name: "محمد عباده: تلاوة خاشعة 6 🎙️", url: "audio/obada_6.mp3", desc: "تشغيل مباشر محلي بدون إنترنت", tag: "محمد عباده" },
+  { name: "محمد عباده: تلاوة خاشعة 7 🎙️", url: "audio/obada_7.mp3", desc: "تشغيل مباشر محلي بدون إنترنت", tag: "محمد عباده" },
+  { name: "محمد عباده: تلاوة خاشعة 8 🎙️", url: "audio/obada_8.mp3", desc: "تشغيل مباشر محلي بدون إنترنت", tag: "محمد عباده" },
+  { name: "محمد عباده: تلاوة خاشعة 9 🎙️", url: "audio/obada_9.mp3", desc: "تشغيل مباشر محلي بدون إنترنت", tag: "محمد عباده" },
+  { name: "محمد عباده: تلاوة خاشعة 10 🎙️", url: "audio/obada_10.mp3", desc: "تشغيل مباشر محلي بدون إنترنت", tag: "محمد عباده" },
+  { name: "محمد عباده: تلاوة خاشعة 11 🎙️", url: "audio/obada_11.mp3", desc: "تشغيل مباشر محلي بدون إنترنت", tag: "محمد عباده" },
+  { name: "محمد عباده: تلاوة خاشعة 12 🎙️", url: "audio/obada_12.mp3", desc: "تشغيل مباشر محلي بدون إنترنت", tag: "محمد عباده" },
+  { name: "محمد عباده: تلاوة خاشعة 13 🎙️", url: "audio/obada_13.mp3", desc: "تشغيل مباشر محلي بدون إنترنت", tag: "محمد عباده" },
+  { name: "محمد عباده: تلاوة خاشعة 14 🎙️", url: "audio/obada_14.mp3", desc: "تشغيل مباشر محلي بدون إنترنت", tag: "محمد عباده" },
+  { name: "محمد عباده: تلاوة خاشعة 15 🎙️", url: "audio/obada_15.mp3", desc: "تشغيل مباشر محلي بدون إنترنت", tag: "محمد عباده" },
+  { name: "محمد عباده: تلاوة خاشعة 16 🎙️", url: "audio/obada_16.mp3", desc: "تشغيل مباشر محلي بدون إنترنت", tag: "محمد عباده" },
+  { name: "محمد عباده: تلاوة خاشعة 17 🎙️", url: "audio/obada_17.mp3", desc: "تشغيل مباشر محلي بدون إنترنت", tag: "محمد عباده" },
+  { name: "محمد عباده: تلاوة خاشعة 18 🎙️", url: "audio/obada_18.mp3", desc: "تشغيل مباشر محلي بدون إنترنت", tag: "محمد عباده" },
+  { name: "محمد عباده: تلاوة خاشعة 19 🎙️", url: "audio/obada_19.mp3", desc: "تشغيل مباشر محلي بدون إنترنت", tag: "محمد عباده" },
+  { name: "محمد عباده: تلاوة خاشعة 20 🎙️", url: "audio/obada_20.mp3", desc: "تشغيل مباشر محلي بدون إنترنت", tag: "محمد عباده" },
+  { name: "محمد عباده: تلاوة خاشعة 21 🎙️", url: "audio/obada_21.mp3", desc: "تشغيل مباشر محلي بدون إنترنت", tag: "محمد عباده" },
+  { name: "محمد عباده: تلاوة خاشعة 22 🎙️", url: "audio/obada_22.mp3", desc: "تشغيل مباشر محلي بدون إنترنت", tag: "محمد عباده" },
+  { name: "محمد عباده: تلاوة خاشعة 23 🎙️", url: "audio/obada_23.mp3", desc: "تشغيل مباشر محلي بدون إنترنت", tag: "محمد عباده" },
+  { name: "محمد عباده: تلاوة خاشعة 24 🎙️", url: "audio/obada_24.mp3", desc: "تشغيل مباشر محلي بدون إنترنت", tag: "محمد عباده" },
+  { name: "محمد عباده: تلاوة خاشعة 25 🎙️", url: "audio/obada_25.mp3", desc: "تشغيل مباشر محلي بدون إنترنت", tag: "محمد عباده" },
+  { name: "محمد عباده: تلاوة خاشعة 26 🎙️", url: "audio/obada_26.mp3", desc: "تشغيل مباشر محلي بدون إنترنت", tag: "محمد عباده" },
+  { name: "محمد عباده: تلاوة خاشعة 27 🎙️", url: "audio/obada_27.mp3", desc: "تشغيل مباشر محلي بدون إنترنت", tag: "محمد عباده" },
   
-  { 
-    name: "محمد عباده: تلاوة خاشعة 1 🎙️", 
-    url: "audio/obada_1.mp3", 
-     desc: "تشغيل مباشر محلي بدون إنترنت",
-    tag: "محمد عباده"
-  },
-  { 
-    name: "محمد عباده: تلاوة خاشعة 2 🎙️", 
-    url: "audio/obada_2.mp3", 
-    desc: "تشغيل مباشر محلي بدون إنترنت",
-    tag: "محمد عباده"
-  },
-  { 
-    name: "محمد عباده: تلاوة خاشعة 3 🎙️", 
-    url: "audio/obada_3.mp3", 
-    desc: "تشغيل مباشر محلي بدون إنترنت",
-    tag: "محمد عباده"
-  },
-  { 
-    name: "محمد عباده: تلاوة خاشعة 4 🎙️", 
-    url: "audio/obada_4.mp3", 
-    desc: "تشغيل مباشر محلي بدون إنترنت",
-    tag: "محمد عباده"
-  },
-  { 
-    name: "محمد عباده: تلاوة خاشعة 5 🎙️", 
-    url: "audio/obada_5.mp3", 
-    desc: "تشغيل مباشر محلي بدون إنترنت",
-    tag: "محمد عباده"
-  },
+  // باقي الشيوخ
   { 
     name: "المنشاوي: سورة الحشر 🎙️", 
     url: "audio/minshawi_1.mp3", 
@@ -96,7 +101,6 @@ window.rareAudioPlayer.ontimeupdate = () => {
   const player = window.rareAudioPlayer;
   if (!player.duration) return;
   
-  // البحث عن شريط التقدم الخاص بـ الملف الشغال حالياً وتحديث قيمته
   const activeProgressBar = document.querySelector(`input[data-url="${window.currentRareUrl}"]`);
   if (activeProgressBar) {
     const progress = (player.currentTime / player.duration) * 100;
@@ -107,12 +111,10 @@ window.rareAudioPlayer.ontimeupdate = () => {
 // دالة التحكم اليدوي وتجريع الصوت عند سحب شريط التقدم
 window.seekRare = function(element, url) {
   const player = window.rareAudioPlayer;
-  // إذا كان المستخدم يحاول تجريع الملف الذي يعمل حالياً
   if (window.currentRareUrl === url && player.duration) {
     const seekTo = (element.value / 100) * player.duration;
     player.currentTime = seekTo;
   } else {
-    // لو حاول تجريع ملف مش شغال، نرجعه لـ 0 عشان اللخبطة
     element.value = 0;
   }
 };
@@ -169,7 +171,6 @@ window.renderRareRecitations = function() {
     const isPlaying = isCurrent && !window.rareAudioPlayer.paused;
     const icon = isPlaying ? '⏸' : '▶';
     
-    // حساب القيمة الحالية للشريط (لو شغال يحسب مكانه، لو مش شغال يبدأ من 0)
     const currentProgress = isCurrent && window.rareAudioPlayer.duration ? (window.rareAudioPlayer.currentTime / window.rareAudioPlayer.duration) * 100 : 0;
 
     return `
@@ -180,10 +181,7 @@ window.renderRareRecitations = function() {
           
           <!-- أزرار الاستماع والتنزيل -->
           <div style="display:flex; align-items:center; gap:10px;">
-            <!-- زر التشغيل والاستماع -->
             <button onclick="window.playRare('${item.url}')" style="background:var(--gold); border:none; width:42px; height:42px; border-radius:50%; color:#111; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.2s;">${icon}</button>
-            
-            <!-- زر التنزيل المباشر للجهاز -->
             <a href="${item.url}" download="${item.name}.mp3" style="background:rgba(255,255,255,0.1); border:1px solid var(--border); width:42px; height:42px; border-radius:50%; color:var(--text); font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; text-decoration:none; transition:0.2s;" title="تحميل الملف">📥</a>
           </div>
 
