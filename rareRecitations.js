@@ -81,25 +81,48 @@ window.currentRareFilter = 'all';
 window.playRare = function(url) {
   const player = window.rareAudioPlayer;
   
-  // لو ضغط على نفس الملف اللي شغال حالياً
   if (window.currentRareUrl === url) {
     if (!player.paused) {
-      player.pause(); // إيقاف مؤقت
+      player.pause();
     } else {
-      player.play().catch(e => console.log("Play error:", e)); // إعادة تشغيل
+      player.play().catch(e => console.log("Play error:", e));
     }
   } else {
-    // لو ملف جديد تماماً
     player.src = url;
     window.currentRareUrl = url;
     player.play().catch(e => console.log("Play error:", e));
   }
   
-  // إعادة رسم الكروت لتحديث شكل الأزرار (▶ أو ⏸)
   window.renderRareRecitations();
 };
 
-// متابعة أحداث المشغل لتحديث الواجهة تلقائياً عند انتهاء الصوت أو توقفه
+// تحديث شريط التقدم أثناء تشغيل الصوت بالثانية
+window.rareAudioPlayer.ontimeupdate = () => {
+  const player = window.rareAudioPlayer;
+  if (!player.duration) return;
+  
+  // البحث عن شريط التقدم الخاص بـ الملف الشغال حالياً وتحديث قيمته
+  const activeProgressBar = document.querySelector(`input[data-url="${window.currentRareUrl}"]`);
+  if (activeProgressBar) {
+    const progress = (player.currentTime / player.duration) * 100;
+    activeProgressBar.value = progress;
+  }
+};
+
+// دالة التحكم اليدوي وتجريع الصوت عند سحب شريط التقدم
+window.seekRare = function(element, url) {
+  const player = window.rareAudioPlayer;
+  // إذا كان المستخدم يحاول تجريع الملف الذي يعمل حالياً
+  if (window.currentRareUrl === url && player.duration) {
+    const seekTo = (element.value / 100) * player.duration;
+    player.currentTime = seekTo;
+  } else {
+    // لو حاول تجريع ملف مش شغال، نرجعه لـ 0 عشان اللخبطة
+    element.value = 0;
+  }
+};
+
+// متابعة أحداث المشغل لتحديث الواجهة
 window.rareAudioPlayer.onplay = () => window.renderRareRecitations();
 window.rareAudioPlayer.onpause = () => window.renderRareRecitations();
 window.rareAudioPlayer.onended = () => {
@@ -117,8 +140,8 @@ window.filterRare = function(tag) {
     btn.style.border = '1px solid var(--border)';
   });
   
-  const activeBtn = event.currentTarget;
-  if (activeBtn) {
+  if (event && event.currentTarget) {
+    const activeBtn = event.currentTarget;
     activeBtn.style.background = 'var(--gold)';
     activeBtn.style.color = '#111';
     activeBtn.style.border = 'none';
@@ -126,7 +149,7 @@ window.filterRare = function(tag) {
   window.renderRareRecitations();
 };
 
-// دالة الرسم العالمية لضخ الكروت وتحديث الأيقونة
+// دالة الرسم العالمية لضخ الكروت مع شريط التقدم وزر التنزيل المباشر
 window.renderRareRecitations = function() {
   const container = document.getElementById('rareList');
   if (!container) return;
@@ -147,20 +170,46 @@ window.renderRareRecitations = function() {
   }
 
   container.innerHTML = filteredList.map((item, index) => {
-    // معرفة هل الملف الحالي هو المشغل ونشط؟
     const isCurrent = (window.currentRareUrl === item.url);
     const isPlaying = isCurrent && !window.rareAudioPlayer.paused;
-    
-    // اختيار الأيقونة بناءً على الحالة
     const icon = isPlaying ? '⏸' : '▶';
+    
+    // حساب القيمة الحالية للشريط (لو شغال يحسب مكانه، لو مش شغال يبدأ من 0)
+    const currentProgress = isCurrent && window.rareAudioPlayer.duration ? (window.rareAudioPlayer.currentTime / window.rareAudioPlayer.duration) * 100 : 0;
 
     return `
-      <div style="background:var(--card); border-radius:15px; padding:15px; border:1px solid var(--border); display:flex; align-items:center; gap:15px; margin-bottom:10px;">
-        <button onclick="window.playRare('${item.url}')" style="background:var(--gold); border:none; width:45px; height:45px; border-radius:50%; color:#111; font-size:20px; cursor:pointer; display:flex; align-items:center; justify-content:center;">${icon}</button>
-        <div style="flex:1; text-align:right; direction:rtl;">
-          <div style="font-weight:bold; color:var(--text); font-family:'Amiri',serif; font-size:16px;">${item.name}</div>
-          <div style="font-size:12px; color:var(--text2); font-family:'Amiri',serif; margin-top:4px;">${item.desc}</div>
+      <div style="background:var(--card); border-radius:15px; padding:15px; border:1px solid var(--border); margin-bottom:12px; display:flex; flex-direction:column; gap:10px;">
+        
+        <!-- القسم العلوي: أزرار التحكم والبيانات -->
+        <div style="display:flex; align-items:center; gap:15px; justify-content:space-between; width:100%;">
+          
+          <!-- أزرار الاستماع والتنزيل -->
+          <div style="display:flex; align-items:center; gap:10px;">
+            <!-- زر التشغيل والاستماع -->
+            <button onclick="window.playRare('${item.url}')" style="background:var(--gold); border:none; width:42px; height:42px; border-radius:50%; color:#111; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.2s;">${icon}</button>
+            
+            <!-- زر التنزيل المباشر للجهاز -->
+            <a href="${item.url}" download="${item.name}.mp3" style="background:rgba(255,255,255,0.1); border:1px solid var(--border); width:42px; height:42px; border-radius:50%; color:var(--text); font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; text-decoration:none; transition:0.2s;" title="تحميل الملف">📥</a>
+          </div>
+
+          <!-- تفاصيل التلاوة والشيخ -->
+          <div style="flex:1; text-align:right; direction:rtl;">
+            <div style="font-weight:bold; color:var(--text); font-family:'Amiri',serif; font-size:15px; line-height:1.4;">${item.name}</div>
+            <div style="font-size:12px; color:var(--text2); font-family:'Amiri',serif; margin-top:2px;">${item.desc}</div>
+          </div>
+
         </div>
+
+        <!-- القسم السفلي: شريط مدة الصوت والتحكم بالتجري -->
+        <div style="width:100%; display:flex; align-items:center;">
+          <input type="range" 
+                 data-url="${item.url}"
+                 min="0" max="100" 
+                 value="${currentProgress}" 
+                 oninput="window.seekRare(this, '${item.url}')"
+                 style="width:100%; accent-color:var(--gold); cursor:pointer; height:4px; border-radius:2px; background:rgba(255,255,255,0.2); outline:none;" />
+        </div>
+
       </div>
     `;
   }).join('');
