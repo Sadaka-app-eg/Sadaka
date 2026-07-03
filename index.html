@@ -689,8 +689,8 @@ body.in-subpage .back-to-home-btn {
     }
   </style>
 
-  <!-- الهلال المضيء بنبض روحي -->
-  <div class="splash-moon">🌙</div>
+  <!-- المسجد المضيء بنبض روحي -->
+  <div class="splash-moon">🕌</div>
   
   <!-- اسم التطبيق الجديد بطلبك -->
   <div class="splash-title">كُن ذا أثر</div>
@@ -700,8 +700,20 @@ body.in-subpage .back-to-home-btn {
   
   <!-- كارت التذكير المتحرك بالصلاة على النبي -->
   <div class="splash-salawat-box">✨ لا تنسَ الصلاة على النبي ﷺ ✨</div>
-</div>
 
+  <!-- 🚀 سكريبت الأمان الذاتي: هيقفل الشاشة ويخفيها تلقائياً بعد ثانيتين بدون ما يعتمد على أي ملف برة -->
+  <script>
+    setTimeout(() => {
+      const splash = document.getElementById('splashScreen');
+      if (splash) {
+        splash.style.opacity = '0';
+        splash.style.visibility = 'hidden';
+        setTimeout(() => splash.remove(), 800);
+      }
+    }, 2000);
+  </script>
+</div>
+  
 
 <!-- زرار العودة السحري للرئيسية - يظهر فقط داخل الصفحات كاملة الشاشة -->
 <button class="back-to-home-btn" onclick="showPage('home', null)">🏠 العودة للرئيسية</button>
