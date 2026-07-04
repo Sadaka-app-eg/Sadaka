@@ -2411,12 +2411,7 @@ window.showSurahInsightsModal = function(surahId, surahName) {
   document.body.insertAdjacentHTML('beforeend', modalHTML);
 };
 
-// متغيرات التتبع العالمية لضمان عزل السكرول عن الضغط
-let longPressTimer;
-window.isLongPressAction = false;
-window.isScrolling = false;
-let pointerStartX = 0;
-let pointerStartY = 0;
+
 
 function renderSurahs(list) {
   document.getElementById('surahList').innerHTML = list.map(s => `
