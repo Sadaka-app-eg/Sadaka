@@ -3389,6 +3389,24 @@ function updateQiblaDisplay() {
   let prayerCountdownInterval = null;
 let globalPrayerTimings = null;
 
+// دالة مساعدة لتحويل أي أرقام أو أوقات إلى الأرقام العربية الشرقية المظبوطة
+function toArabicDigits(num) {
+  if (num === null || num === undefined) return '';
+  const arabicDigits = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+  return num.toString().replace(/[0-9]/g, function (w) {
+    return arabicDigits[+w];
+  });
+}
+
+// دالة تظبط تنسيق الوقت (ساعة:دقيقة) وتحوله لعربي كامل مع الـ AM/PM
+function formatTimeToArabic(timeStr) {
+  if (!timeStr) return '--:--';
+  const [h, min] = timeStr.split(':').map(Number);
+  const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  const ampm = h < 12 ? 'ص' : 'م';
+  return `${toArabicDigits(h12)}:${String(toArabicDigits(String(min).padStart(2, '0')))} ${ampm}`;
+}
+
 // دالة جلب المواقيت بناءً على الموقع الجغرافي الفعلي للمستخدم
 async function loadPrayerTimes() {
   const locationText = document.getElementById('userLocationName');
@@ -3398,7 +3416,6 @@ async function loadPrayerTimes() {
       const lat = position.coords.latitude;
       const lng = position.coords.longitude;
       
-      // جلب اسم المنطقة التقريبي من إحداثيات خطوط الطول والعرض للتوثيق بالواجهة
       try {
         const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=ar`);
         const geoData = await geoRes.json();
@@ -3409,8 +3426,7 @@ async function loadPrayerTimes() {
 
       executePrayerTimesFetch(lat, lng);
     }, () => {
-      // افتراضي القاهرة في حال رفض إذن الموقع من المستخدم
-      if(locationText) locationText.textContent = "القاهرة (افتراضي - لم يُسمح بالموقع)";
+      if(locationText) locationText.textContent = "القاهرة (افتراضي)";
       executePrayerTimesFetch(30.0444, 31.2357);
     });
   } else {
@@ -3438,26 +3454,22 @@ async function executePrayerTimesFetch(lat, lng) {
     ];
 
     const hijri = data.data.date.hijri;
-    document.getElementById('hijriDate').textContent = `${toAr(hijri.day)} ${hijri.month.ar} ${toAr(hijri.year)} هـ`;
+    document.getElementById('hijriDate').textContent = `${toArabicDigits(hijri.day)} ${hijri.month.ar} ${toArabicDigits(hijri.year)} هـ`;
     
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     document.getElementById('gregorianDate').textContent = today.toLocaleDateString('ar-EG', options);
 
-    // بناء شبكة عرض الصلوات الكروت الصغيرة المتناسقة مع الواجهة
+    // بناء شبكة عرض الصلوات بالأرقام العربي المظبوطة وباتجاه نص صحيح (rtl)
     document.getElementById('prayerTimes').innerHTML = prayers.map(p => {
-      const [h, min] = p.time.split(':').map(Number);
-      const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
-      const ampm = h < 12 ? 'ص' : 'م';
       return `
-        <div style="background: var(--card); border-radius: 16px; padding: 12px; text-align: center; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px;">
+        <div style="background: var(--card); border-radius: 16px; padding: 12px; text-align: center; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; direction: rtl;">
           <span style="font-size: 18px;">${p.icon}</span>
           <span style="font-size: 13px; font-weight: bold; color: var(--gold);">${p.name}</span>
-          <span style="font-size: 13px; font-family: monospace;">${toAr(h12)}:${String(min).padStart(2, '0')} ${ampm}</span>
+          <span style="font-size: 13px; font-weight: bold; white-space: nowrap;">${formatTimeToArabic(p.time)}</span>
         </div>
       `;
     }).join('');
 
-    // تشغيل محرك حساب الفاصل والعداد التنازلي التلقائي للصلوات القادمة
     startPrayerCountdown(prayers);
 
   } catch (e) {
@@ -3465,6 +3477,68 @@ async function executePrayerTimesFetch(lat, lng) {
   }
 }
 
+// محرك الحساب والعد التنازلي للصلوات الست اليومية بالثانية بالأرقام العربية
+function startPrayerCountdown(prayers) {
+  if(prayerCountdownInterval) clearInterval(prayerCountdownInterval);
+
+  function updateTimer() {
+    const now = new Date();
+    let nextPrayer = null;
+    let minDiff = Infinity;
+
+    prayers.forEach(p => {
+      const [h, m] = p.time.split(':').map(Number);
+      const pDate = new Date(now);
+      pDate.setHours(h, m, 0, 0);
+
+      if (pDate <= now) {
+        pDate.setDate(pDate.getDate() + 1);
+      }
+
+      const diff = pDate - now;
+      if (diff < minDiff) {
+        minDiff = diff;
+        nextPrayer = { ...p, targetDate: pDate };
+      }
+    });
+
+    if (nextPrayer) {
+      document.getElementById('nextPrayerName').textContent = nextPrayer.name;
+      document.getElementById('nextPrayerTimeStr').textContent = `الأذان القادم في تمام الساعة: ${formatTimeToArabic(nextPrayer.time)}`;
+
+      let totalSecs = Math.floor(minDiff / 1000);
+      const hours = Math.floor(totalSecs / 3600);
+      totalSecs %= 3600;
+      const mins = Math.floor(totalSecs / 60);
+      const secs = totalSecs % 60;
+
+      // تحديث العداد بالأرقام العربية داخل الدائرة
+      const clockStr = `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+      document.getElementById('countdownTimer').textContent = toArabicDigits(clockStr);
+    }
+  }
+
+  updateTimer();
+  prayerCountdownInterval = setInterval(updateTimer, 1000);
+}
+
+// دالة فتح الخرائط
+window.openNearestMosque = function() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition((position) => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+      const mapUrl = `https://www.google.com/maps/search/?api=1&query=mosque&center=${lat},${lng}`;
+      window.open(mapUrl, '_blank');
+    }, () => {
+      window.open(`https://www.google.com/maps/search/?api=1&query=mosque`, '_blank');
+    });
+  } else {
+    window.open(`https://www.google.com/maps/search/?api=1&query=mosque`, '_blank');
+  }
+};
+        
+      
 // محرك الحساب والعد التنازلي للصلوات الست اليومية بالثانية
 function startPrayerCountdown(prayers) {
   if(prayerCountdownInterval) clearInterval(prayerCountdownInterval);
