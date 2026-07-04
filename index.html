@@ -2411,14 +2411,15 @@ window.showSurahInsightsModal = function(surahId, surahName) {
   document.body.insertAdjacentHTML('beforeend', modalHTML);
 };
 
-// الدالة المحدثة بالملي لرسم السور لاستقبال لوجيك الحركة (onpointermove) ومنع السكرول
+// الدالة المحدثة بالملي لمنع تداخل السكرول مع أسباب النزول
 function renderSurahs(list) {
   document.getElementById('surahList').innerHTML = list.map(s => `
     <div class="surah-item" 
-         onpointerdown="window.handleSurahTouchStart(event, ${s.n}, '${s.name}')" 
-         onpointermove="window.handleSurphTouchMove ? window.handleSurphTouchMove(event) : window.handleSurahTouchMove(event)"
-         onpointerup="window.handleSurahTouchEnd(${s.n})"
-         style="user-select: none; -webkit-user-select: none;">
+         ontouchstart="window.handleSurahTouchStart(event, ${s.n}, '${s.name}')" 
+         ontouchmove="window.handleSurahTouchMove(event)"
+         ontouchend="window.handleSurahTouchEnd(${s.n})"
+         onclick="if(!window.isLongPressAction) openSurah(${s.n})"
+         style="user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;">
       <div class="surah-num">${s.n}</div>
       <div class="surah-info">
         <div class="surah-name">${s.name}</div>
@@ -2428,6 +2429,7 @@ function renderSurahs(list) {
     </div>
   `).join('');
 }
+  
 
 // دالة توليد وضخ نافذة أسباب النزول والتدبر المنبثقة التبويبية
 window.showSurahInsightsModal = function(surahId, surahName) {
