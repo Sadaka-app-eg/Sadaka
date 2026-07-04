@@ -2935,25 +2935,38 @@ function toggleAudio() {
       currentQueueIndex = 0;
       playNextInQueue();
     } else {
-      isPlayingQueue = false;
-      const num = currentSurah.n;
+      // داخل دالة toggleAudio() استبدل كتل روابط السيرفرات بهذا الجزء:
+isPlayingQueue = false;
+const num = currentSurah.n;
 const num3 = String(num).padStart(3, '0');
 
-const reciterUrls = {
-  'minsh': `https://server10.mp3quran.net/minsh/${num3}.mp3`,
-  'husary': `https://server13.mp3quran.net/husr/${num3}.mp3`,
-  'afs': `https://server8.mp3quran.net/afs/${num3}.mp3`,
-  'frs_a': `https://server8.mp3quran.net/frs_a/${num3}.mp3`,
-  'basit': `https://server7.mp3quran.net/basit/${num3}.mp3`,
-  'maher': `https://server12.mp3quran.net/maher/${num3}.mp3`,
-  'ajm': `https://server10.mp3quran.net/ajm/${num3}.mp3`,
-  // امسح سطر الشريم القديم وحط السيرفر السريع ده:
-'shrim': `https://server7.mp3quran.net/shur/${num3}.mp3`,
-  'dosr': `https://server11.mp3quran.net/yasser/${num3}.mp3`,
-  'qarafi': `https://server16.mp3quran.net/download/a_alqrafi/Rewayat-Hafs-A-n-Assem/${num3}.mp3`
-};
+let audioSourceUrl = '';
 
-audio.src = reciterUrls[currentReciter];
+// إذا كانت الرواية المختارة هي حفص الأساسية
+if (window.currentSelectedRoaya === 'hafs') {
+  const reciterUrls = {
+    'minsh': `https://server10.mp3quran.net/minsh/${num3}.mp3`,
+    'husary': `https://server13.mp3quran.net/husr/${num3}.mp3`,
+    'afs': `https://server8.mp3quran.net/afs/${num3}.mp3`,
+    'frs_a': `https://server8.mp3quran.net/frs_a/${num3}.mp3`,
+    'basit': `https://server7.mp3quran.net/basit/${num3}.mp3`,
+    'maher': `https://server12.mp3quran.net/maher/${num3}.mp3`,
+    'ajm': `https://server10.mp3quran.net/ajm/${num3}.mp3`,
+    'shrim': `https://server7.mp3quran.net/shur/${num3}.mp3`,
+    'dosr': `https://server11.mp3quran.net/yasser/${num3}.mp3`,
+    'qarafi': `https://server16.mp3quran.net/download/a_alqrafi/Rewayat-Hafs-A-n-Assem/${num3}.mp3`
+  };
+  audioSourceUrl = reciterUrls[currentReciter];
+} else {
+  // إذا اختار العميل أي رواية أخرى من الروايات العشر
+  const currentRoayaObj = window.quranReadingsData.find(r => r.id === window.currentSelectedRoaya);
+  if (currentRoayaObj && currentRoayaObj.readers[0] && currentRoayaObj.readers[0].serverUrl) {
+    // دمج رابط السيرفر المباشر والمستقر المأخوذ من روابط_القراءات_كما_بالصور.csv مع رقم السورة
+    audioSourceUrl = `${currentRoayaObj.readers[0].serverUrl}${num3}.mp3`;
+  }
+}
+
+audio.src = audioSourceUrl;
       
       audio.play();
       isPlaying = true;
