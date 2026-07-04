@@ -205,17 +205,17 @@ window.executeKhairShare = function(type) {
       navigator.clipboard.writeText(fullText);
       alert('تم نسخ النص المبارك وجاهز للمشاركة واللصق فوراً! ✓');
     }
-  } else if (type === 'image') {
+    } else if (type === 'image') {
     const canvas = document.createElement('canvas');
     canvas.width = 1000;
-    canvas.height = 1000; // مقاس مربع متطابق 100% مع الصور المرفوعة
+    canvas.height = 1000; 
     const ctx = canvas.getContext('2d');
 
-    // 1. خلفية بيضاء سادة تماماً مثل 66144.jpg
+    // 1. خلفية بيضاء سادة
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // 2. رسم شريط العنوان العلوي (أحمر مستطيل بحواف دائرية ناعمة)
+    // 2. شريط العنوان العلوي الأحمر الفخم
     ctx.fillStyle = "#b71c1c"; 
     window.drawRoundedRect = function(x, y, width, height, radius) {
       ctx.beginPath();
@@ -231,25 +231,25 @@ window.executeKhairShare = function(type) {
       ctx.closePath();
       ctx.fill();
     };
-    window.drawRoundedRect(160, 40, 680, 110, 25);
+    window.drawRoundedRect(160, 45, 680, 115, 25);
 
-    // كتابة نص العنوان داخل المستطيل الأحمر
+    // نص العنوان داخل الشريط
     ctx.fillStyle = "#ffffff";
     ctx.font = "bold 44px 'Amiri', serif";
     ctx.textAlign = "center";
     ctx.direction = "rtl";
-    ctx.fillText(headerTitle, 540, 112);
+    ctx.fillText(headerTitle, 540, 118);
 
-    // 3. كتابة المتن باللون الأسود العريض المحاط بأقواس « »
+    // 3. تكبير وتوزيع المتن (الخط بقى 62px والمسافات أوسع لملء الكارت)
     ctx.fillStyle = "#000000";
-    ctx.font = "bold 52px 'Amiri Quran', serif";
+    ctx.font = "bold 62px 'Amiri Quran', serif"; // كبرنا الخط لملء الفراغ
     
     const fullTextToDraw = `« ${activeSelectedItem.text} »`;
     const words = fullTextToDraw.split(' ');
     let line = '';
-    let y = 300;
-    const lineHeight = 100;
-    const maxWidth = 860;
+    let y = 320; 
+    const lineHeight = 115; // زيادة تباعد الأسطر لمنع التكدس وطباعة الهيبة
+    const maxWidth = 880;
 
     for (let n = 0; n < words.length; n++) {
       let testLine = line + words[n] + ' ';
@@ -264,44 +264,46 @@ window.executeKhairShare = function(type) {
     }
     ctx.fillText(line, 540, y);
 
-    // 4. السند والتحقيق أسفل اليسار بالظبط بخط ناعم صغير
+    // 4. ضبط السند أسفل اليسار بمحاذاة الشاشة الأصلية (مرفوع عن الحافة ومتناسق)
     ctx.fillStyle = "#333333";
-    ctx.font = "bold 26px 'Amiri', serif";
-    ctx.textAlign = "left";
-    ctx.fillText(activeSelectedItem.source || activeSelectedItem.author, 80, 930);
+    ctx.font = "bold 28px 'Amiri', serif";
+    ctx.textAlign = "left"; // إرجاعه لليسار مع تشفيته يدوياً عن الحافة
+    ctx.direction = "rtl";
+    ctx.fillText(activeSelectedItem.source || activeSelectedItem.author, 60, 935); 
 
-    // 5. المربع الخشبي (أَثَر) أسفل اليمين بالظبط متطابق مع 66144.jpg
-    ctx.fillStyle = "#4e342e"; // لون بني خشبي
+    // 5. ضبط موقع مربع (أَثَر) أسفل اليمين بالملي متطابق مع الأصل
+    ctx.fillStyle = "#4e342e"; 
     ctx.beginPath();
-    ctx.rect(760, 890, 160, 60);
+    ctx.rect(760, 895, 180, 65); // زيادة الحجم قليلاً ليتناسق مع أثر
     ctx.fill();
     
-    // إطار ذهبي للمربع الخشبي
     ctx.strokeStyle = "#c5a059";
     ctx.lineWidth = 3;
-    ctx.strokeRect(760, 890, 160, 60);
+    ctx.strokeRect(760, 895, 180, 65);
     
-    // كلمة أثر باللون الذهبي بداخل المربع
     ctx.fillStyle = "#d4af37";
-    ctx.font = "bold 28px 'Amiri', serif";
+    ctx.font = "bold 30px 'Amiri', serif";
     ctx.textAlign = "center";
-    ctx.fillText("أَثَر", 840, 930);
+    ctx.fillText("أَثَر", 850, 938);
 
-    // تصدير الصورة بجودة ونقاء عاليين للمشاركة
+    // تصدير الصورة بجودة فائقة
     canvas.toBlob((blob) => {
-      const file = new File([blob], "Athar_Post.png", { type: "image/png" });
+      const file = new File([blob], "Athar_Perfect_Post.png", { type: "image/png" });
       if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
         navigator.share({ files: [file], title: 'انشر الخير' });
       } else {
         const link = document.createElement('a');
-        link.download = 'Athar_Design.png';
+        link.download = 'Athar_Perfect_Design.png';
         link.href = canvas.toDataURL();
         link.click();
-        alert('تم حفظ بطاقة التصميم الفخمة (أثر) متطابقة مع الشكل تماماً! جاهزة للنشر 🖼️');
-      }
-    }, 'image/png');
-  }
+              alert('تم تحديث المحرك! الكارت الآن نسخة طبق الأصل 100% وجاهز للنشر ✨🖼️');
+    }
+  }, 'image/png');
 };
+
+  
+     
+    
 
 // =========================================================
 // محرك الربط الآمن لقسم "شارك في الخير" مع نظام التنقل الموحد
