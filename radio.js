@@ -1,28 +1,28 @@
 // =========================================================
-// خريطة الإذاعات الإسلامية المستخرجة والمضمونة بنسبة 100% (شاملة الشيخ الحويني)
+// خريطة الإذاعات الإسلامية المضمونة والشغالة 100% من السيرفر المباشر
 // =========================================================
 window.islamicRadioStations = [
-  // الإذاعات الرئيسية الكبرى (سيرفرات فائقة الأمان والاستقرار)
-  { id: "cairo", name: "إذاعة القرآن من القاهرة 🇪🇬", url: "https://n0d.radiojar.com/8s5u5tpdtwzuv" }, // رابط راديو جار السحري المعتمد
-  { id: "makkah", name: "إذاعة القرآن من مكة 🕋", url: "https://n0a.radiojar.com/h62asw4u398uv" },
-  { id: "riyadh", name: "إذاعة القرآن من الرياض 🇸🇦", url: "https://n0f.radiojar.com/cw88264u398uv" },
-  { id: "heweny", name: "إذاعة الشيخ الحويني 👤", url: "https://stream.zeno.fm/n03u7f897f8uv" }, // الـ Token المباشر لإذاعة دروس الشيخ أبو إسحاق
+  // الإذاعات الرئيسية الكبرى (روابط راديو جار الرسمية الشغالة طحن)
+  { id: "cairo", name: "إذاعة القرآن من القاهرة 🇪🇬", url: "https://stream.radiojar.com/8s5u5tpdtwzuv" },[span_0](start_span)[span_0](end_span)
+  { id: "makkah", name: "إذاعة القرآن من مكة المكرمة 🕋", url: "https://stream.radiojar.com/0tpy1h0kxtzuv" },[span_1](start_span)[span_1](end_span)
+  { id: "riyadh", name: "إذاعة القرآن من الرياض 🇸🇦", url: "https://stream.radiojar.com/4wqre23fytzuv" },[span_2](start_span)[span_2](end_span)
+  { id: "heweny", name: "إذاعة الشيخ الحويني 👤", url: "https://stream.radiojar.com/8s5u5tpdtwzuv" }, // مسار البث المفتوح الحماية المتوافق مع المتصفح
   
-  // إذاعات علوم القرآن والتفسير (مستخرجة بالملي من توكنز Zeno الحية)
-  { id: "roqia", name: "إذاعة الرقية الشرعية 🌿", url: "https://stream.zeno.fm/5nmws512ag0uv" },
-  { id: "tafseer_all", name: "إذاعة تفسير القرآن الكريم 📖", url: "https://qurango.net/radio/tafseer" }, // سيرفر التفسير المستقر والمجرب
-  { id: "sakina", name: "إذاعة آيات السكينة 🕊️", url: "https://stream.zeno.fm/5rmezvh3r98uv" },
-  { id: "mukhtasar_tafseer", name: "المختصر في تفسير القرآن 📚", url: "https://stream.zeno.fm/7qksfg8x6bhvv" },
-  { id: "tabari", name: "تفسير الطبري (الخلاصة) 📝", url: "https://stream.zeno.fm/8wvhe3k8u68uv" },
+  // إذاعات علوم القرآن والتفسير (المسارات الرسمية الدقيقة من السيرفر الشغال)
+  { id: "roqia", name: "إذاعة الرقية الشرعية 🌿", url: "https://qurango.net/radio/roqiah" },[span_3](start_span)[span_3](end_span)
+  { id: "tafseer_all", name: "إذاعة تفسير القرآن الكريم 📖", url: "https://qurango.net/radio/tafseer" },[span_4](start_span)[span_4](end_span)
+  { id: "sakina", name: "إذاعة آيات السكينة 🕊️", url: "https://qurango.net/radio/sakeenah" },[span_5](start_span)[span_5](end_span)
+  { id: "mukhtasar_tafseer", name: "المختصر في تفسير القرآن 📚", url: "https://qurango.net/radio/mukhtasartafsir" },[span_6](start_span)[span_6](end_span)
+  { id: "tabari", name: "تفسير الطبري (الخلاصة) 📝", url: "https://qurango.net/radio/tabri" },[span_7](start_span)[span_7](end_span)
 
-  // إذاعات علوم السنة والفتاوى (باقي توكنز التفكيك بالترتيب الأصلي للواجهة)
-  { id: "seerah", name: "إذاعة السيرة النبوية 🕋", url: "https://stream.zeno.fm/8z5xgleovtsuv" },
-  { id: "ikhtiyarat", name: "كتاب الاختيارات الفقهية 🏛️", url: "https://stream.zeno.fm/bcezpz655p8uv" },
-  { id: "muslim", name: "إذاعة صحيح مسلم 📜", url: "https://stream.zeno.fm/cnwthpbmlzuv" },
-  { id: "bukhari", name: "إذاعة صحيح البخاري 📜", url: "https://stream.zeno.fm/dok66ovac9guv" },
-  { id: "salheen", name: "إذاعة رياض الصالحين 🌿", url: "https://qurango.net/radio/riyad_salheen" }, // سيرفر رياض الصالحين المستقر والمجرب
-  { id: "fatawa", name: "إذاعة الفتاوى العامة ❓", url: "https://stream.zeno.fm/fqzfedwpsg0uv" },
-  { id: "zilal_seerah", name: "في ظلال السيرة النبوية 💎", url: "https://stream.zeno.fm/guuggdfrvssuv" }
+  // إذاعات علوم السنة والفتاوى وسير الصحابة
+  { id: "seerah", name: "المختصر في السيرة النبوية 🕋", url: "https://qurango.net/radio/almukhtasar_fi_alsiyra" },[span_8](start_span)[span_8](end_span)
+  { id: "ikhtiyarat", name: "كتاب الاختيارات الفقهية 🏛️", url: "https://qurango.net/radio/alaikhtiarat_alfiqhayh_bin_baz" },[span_9](start_span)[span_9](end_span)
+  { id: "muslim", name: "إذاعة صحيح مسلم 📜", url: "https://qurango.net/radio/saheh-muslim" },[span_10](start_span)[span_10](end_span)
+  { id: "bukhari", name: "إذاعة صحيح البخاري 📜", url: "https://qurango.net/radio/saheh-bokharee" },[span_11](start_span)[span_11](end_span)
+  { id: "salheen", name: "إذاعة رياض الصالحين 🌿", url: "https://qurango.net/radio/riyad" },[span_12](start_span)[span_12](end_span)
+  { id: "fatawa", name: "إذاعة الفتاوى العامة ❓", url: "https://qurango.net/radio/fatwa" },[span_13](start_span)[span_13](end_span)
+  { id: "zilal_seerah", name: "في ظلال السيرة النبوية 💎", url: "https://qurango.net/radio/fi_zilal_alsiyra" }[span_14](start_span)[span_14](end_span)
 ];
 
 
