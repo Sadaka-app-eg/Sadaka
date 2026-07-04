@@ -2650,15 +2650,11 @@ if (window.currentSelectedRoaya && roayaMapping[window.currentSelectedRoaya]) {
           txt = txt.replace(/^بِسْمِ[\s\S]+?رَّحِيمِ\s*/, '');
           txt = txt.replace(/^بِسْمِ[\s\S]+?الرَّحِيمِ\s*/, '');
         }
-        return `<span class="ayah-span" id="ayah_${a.originalIndex}"
-          onclick="handleAyahClick(${a.originalIndex})"
-          oncontextmenu="event.preventDefault();"
-          onmousedown="startPress(event,${a.originalIndex})"
-          ontouchstart="startPress(event,${a.originalIndex})"
-          onmousemove="cancelPress(event)" ontouchmove="cancelPress(event)"
-          onmouseup="cancelPress(event)" ontouchend="cancelPress(event)"
-          style="display:inline; padding: 2px 0;"
-        >${txt}<span class="ayah-sign" style="color:#8b6914; margin:0 6px; font-size:22px; white-space:nowrap;"> ﴿${toAr(a.numberInSurah)}﴾ </span></span> `;
+            return `<span class="ayah-span" id="ayah_${a.originalIndex}"
+      ontouchstart="startPress(event, ${a.originalIndex})"
+      ontouchend="cancelPress(event); handleAyahClick(${a.originalIndex})"
+      style="display:inline; padding: 2px 0;">
+      ${txt}<span class="ayah-sign" style="color:#8b6914; margin:0 6px; font-size:22px; white-space:nowrap;"> ﴿${toAr(a.numberInSurah)}﴾ </span></span> `;
       }).join('');
 
       sliderHtml += `<div class="page-footer">صفحة ${toAr(pageNum)}</div></div>`;
