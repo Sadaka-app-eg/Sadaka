@@ -77,36 +77,58 @@ window.selectAndPlayRadio = function(url, name) {
     status.textContent = "جاري البحث عن بث حي للشيخ الحويني...";
     btn.textContent = "⏳";
 
-    // عمل استعلام فوري من الـ API العام لـ Radio Browser بجلب اسم الشيخ
-    fetch("https://de1.api.radio-browser.info/json/stations/byname/أبو إسحاق الحويني")
-      .then(res => res.json())
-      .then(data => {
-        if (data && data.length > 0) {
-          // ترتيب حسب الأصوات الأعلى لضمان الرابط الشغال
-          data.sort((a, b) => b.votes - a.votes);
-          const liveUrl = data[0].url_resolved || data[0].url;
-          
-          status.textContent = "تم العثور على البث، جاري التشغيل المباشر...";
-          player.src = liveUrl;
-          
-          player.play()
-            .then(() => { btn.textContent = "⏸"; })
-            .catch(() => {
-              status.textContent = "فشل تشغيل السيرفر الحالي، جرب مرة أخرى 🙏";
-              btn.textContent = "▶";
-            });
-        } else {
-          status.textContent = "إذاعة الشيخ خارج التغطية حالياً، جرب لاحقاً 🙏";
-          btn.textContent = "▶";
+    const searchTerms = ["alheweny", "Houaini", "Huwaini", "الحويني", "أبو إسحاق الحويني"];
+    const servers = [
+      "https://de1.api.radio-browser.info",
+      "https://nl1.api.radio-browser.info",
+      "https://at1.api.radio-browser.info"
+    ];
+
+    const tryPlay = (streamUrl) => new Promise((resolve) => {
+      player.src = streamUrl;
+      player.play().then(() => resolve(true)).catch(() => resolve(false));
+    });
+
+    const searchAndPlayHeweny = async () => {
+      for (const term of searchTerms) {
+        for (const server of servers) {
+          try {
+            const apiUrl = `${server}/json/stations/search?name=${encodeURIComponent(term)}&limit=10&hidebroken=true`;
+            const res = await fetch(apiUrl);
+            if (!res.ok) continue;
+            const data = await res.json();
+            if (data && data.length > 0) {
+              data.sort((a, b) => (b.votes || 0) - (a.votes || 0));
+              for (const station of data) {
+                const liveUrl = station.url_resolved || station.url;
+                status.textContent = `جاري تجربة: ${station.name}...`;
+                const ok = await tryPlay(liveUrl);
+                if (ok) {
+                  btn.textContent = "⏸";
+                  status.textContent = `يتم البث الآن: ${station.name}`;
+                  window.currentActiveRadioUrl = "DYNAMIC_SEARCH";
+                  return true;
+                }
+              }
+            }
+          } catch (err) {
+            console.error("Radio-browser server failed:", server, err);
+            continue;
+          }
         }
-      })
-      .catch(err => {
-        console.error("Radio-browser API failed:", err);
-        status.textContent = "خطأ في الاتصال بقاعدة البيانات الخارجية.";
+      }
+      return false;
+    };
+
+    searchAndPlayHeweny().then((found) => {
+      if (!found) {
+        status.textContent = "إذاعة الشيخ خارج التغطية حالياً، جرب لاحقاً 🙏";
         btn.textContent = "▶";
-      });
+      }
+    });
+
     return;
-  }
+  } 
 
   // تشغيل باقي الإذاعات الثابتة بشكل طبيعي
   player.pause();
