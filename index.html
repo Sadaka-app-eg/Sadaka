@@ -2991,13 +2991,10 @@ function toggleAudio() {
 }
 
   
- function playNextInQueue() {
-  // تصفير وإيقاف الصّوت الحالي لمنع التداخل والتعليق عند النقل
+function playNextInQueue() {
   const audio = document.getElementById('audioPlayer');
   if (audio) {
     audio.pause();
-    audio.removeAttribute('src');
-    audio.load();
   }
 
   if (currentQueueIndex >= selectedAyahsQueue.length) {
@@ -3009,7 +3006,6 @@ function toggleAudio() {
   const idx = selectedAyahsQueue[currentQueueIndex];
   const a = currentAyahsData[idx];
   
-  // تحديث تمييز الآية النشطة في الـ UI
   document.querySelectorAll('.ayah-span').forEach(el => el.classList.remove('playing'));
   const span = document.getElementById(`ayah_${idx}`);
   if (span) { 
@@ -3017,102 +3013,73 @@ function toggleAudio() {
     span.scrollIntoView({ behavior: 'smooth', block: 'center' }); 
   }
 
-  // 🎯 تجهيز تركيبات أرقام الآيات للسيرفرات المحدثة الجديدة
-    const fileKey = `${surahNum}${ayahNum}`;
+  const surahNum = String(currentSurah.n).padStart(3, '0');
+  const ayahNum = String(a.numberInSurah).padStart(3, '0');
+  const fileKey = `${surahNum}${ayahNum}`;
 
-  // 🎯 استبدل الجزء الخاص بتحديد الـ audioSource في دالة playNextInQueue بالكود ده:
-  // استبدل الجزء الخاص بتحديد الـ audioSource داخل دالة playNextInQueue بهذا الكود المضمون والمحدث:
-let audioSource = '';
-const surahNum = currentSurah.n;
-const ayahGlobalNum = a.globalNumber;
+  let audioSource = '';
 
-// السيرفر العالمي المحدث والطلقة لتشغيل الآيات فرادى لكافة القراء الأساسيين
-audioSource = `https://everyayah.com/data/${getReciterFolder(currentReciter)}/${String(surahNum).padStart(3, '0')}${String(a.numberInSurah).padStart(3, '0')}.mp3`;
-
-// دالة جلب مسار المجلد الصحيح لكل قارئ على السيرفر المستقر
-function getReciterFolder(reciter) {
-  const map = {
-    'minsh': 'Minshawy_Murattal_128kbps',
-    'husary': 'Husary_128kbps',
-    'afs': 'Alafasy_128kbps',
-    'frs_a': 'Fares_Abbad_64kbps',
-    'basit': 'Abdul_Basit_Murattal_64kbps',
-    'maher': 'MaherAlMuaiqly128kbps',
-    'ajm': 'Ahmed_ibn_Ali_al-Ajamy_128kbps_copy',
-    'shrim': 'Saood_ash-Shuraym_128kbps',
-    'dosr': 'Yasser_Ad-Dussary_128kbps',
-    'qarafi': 'Minshawy_Murattal_128kbps' // الافتراضي للروايات البديلة
-  };
-  return map[reciter] || 'Minshawy_Murattal_128kbps';
-}
+  if (window.currentSelectedRoaya === 'hafs') {
+    if (currentReciter === 'shrim') {
+      audioSource = `https://www.everyayah.com/data/Saood_ash-Shuraym_128kbps/${fileKey}.mp3`;
+    } else if (currentReciter === 'frs_a') {
+      audioSource = `https://www.everyayah.com/data/Fares_Abbad_64kbps/${fileKey}.mp3`;
+    } else if (currentReciter === 'dosr') {
+      audioSource = `https://www.everyayah.com/data/Yasser_Ad-Dussary_128kbps/${fileKey}.mp3`;
+    } else if (currentReciter === 'basit') {
+      audioSource = `https://www.everyayah.com/data/Abdul_Basit_Murattal_192kbps/${fileKey}.mp3`;
+    } else {
+      let reciterApiId = 'ar.minshawi';
+      if (currentReciter === 'husary') reciterApiId = 'ar.husary';
+      else if (currentReciter === 'afs') reciterApiId = 'ar.alafasy';
+      else if (currentReciter === 'maher') reciterApiId = 'ar.mahermuaiqly';
+      else if (currentReciter === 'ajm') reciterApiId = 'ar.ahmedajamy';
+      else if (currentReciter === 'qarafi') reciterApiId = 'ar.qarafi';
+      
+      audioSource = `https://cdn.islamic.network/quran/audio/128/${reciterApiId}/${a.globalNumber}.mp3`;
+    }
+  } else {
+    const roayaObj = window.quranReadingsData.find(r => r.id === window.currentSelectedRoaya);
+    if (roayaObj && roayaObj.readers[0].apiId) {
+       audioSource = `https://cdn.islamic.network/quran/audio/128/${roayaObj.readers[0].apiId}/${a.globalNumber}.mp3`;
+    }
+  }
 
   audio.src = audioSource;
-  
   audio.play()
     .then(() => {
       isPlaying = true;
       document.getElementById('playBtn').textContent = '⏸';
-      // الـ safe-check لتعديل النص بدون استخدام idx اللي كان بيضرب ويخرب الدنيا:
-      document.getElementById('audioStatus').textContent = `يُشغّل الآية ${toAr(a.numberInSurah)} (تكرار ${toAr(window.currentAyahRepeatProgress)} من ${toAr(window.ayahRepeatCount)})`;
-     // تفعيل التحكم في الوسائط لجعل الصوت يستمر في الخلفية
-if ('mediaSession' in navigator) {
-  navigator.mediaSession.metadata = new MediaMetadata({
-    title: `الآية ${currentAyahsData[idx].numberInSurah}`,
-    artist: "أثر",
-    album: "القرآن الكريم"
-  });
-
-  navigator.mediaSession.setActionHandler('nexttrack', () => {
-    currentQueueIndex++;
-    playNextInQueue();
-  });
-  
-  navigator.mediaSession.setActionHandler('pause', () => {
-    document.getElementById('audioPlayer').pause();
-    isPlaying = false;
-  });
-}
-
+      document.getElementById('audioStatus').textContent = `يُشغّل الآية ${toAr(a.numberInSurah)} ${window.ayahRepeatCount > 1 ? `(تكرار ${toAr(window.currentAyahRepeatProgress)} من ${toAr(window.ayahRepeatCount)})` : ""}`;
     })
-   
     .catch(error => {
-      console.error("أزمة تفرير بروميس الصوت:", error);
-      // في حال حدوث خطأ الانتقال السريع AbortError نمتص الصدمة ولا يتجمد التطبيق
+      console.error("خطأ تشغيل الصوت:", error);
     });
 }
 
-
-        
-let isProcessingEnd = false; // لمنع التكرار المزدوج
-
 function audioEnded() {
-  // منع تنفيذ الدالة مرتين في نفس اللحظة
-  if (isProcessingEnd) return;
-  isProcessingEnd = true;
-
   if (isPlayingQueue) {
     if (window.currentAyahRepeatProgress < window.ayahRepeatCount) {
       window.currentAyahRepeatProgress++;
-      
       const idx = selectedAyahsQueue[currentQueueIndex];
       const a = currentAyahsData[idx];
       document.getElementById('audioStatus').textContent = `تكرار (${toAr(window.currentAyahRepeatProgress)} من ${toAr(window.ayahRepeatCount)}) للآية ${toAr(a.numberInSurah)}`;
       
       const audio = document.getElementById('audioPlayer');
       audio.currentTime = 0;
-      audio.play().then(() => { isProcessingEnd = false; }); // فتح القفل بعد نجاح التشغيل
+      audio.play();
     } else {
       window.currentAyahRepeatProgress = 1;
       currentQueueIndex++;
-      isProcessingEnd = false; // فتح القفل قبل نداء التالي
       playNextInQueue();
     }
   } else {
-    isProcessingEnd = false;
     isPlaying = false;
     document.getElementById('playBtn').textContent = '▶';
   }
 }
+ 
+
 
 
 
