@@ -6,8 +6,7 @@ window.islamicRadioStations = [
   { id: "cairo", name: "إذاعة القرآن من القاهرة 🇪🇬", url: "https://stream.radiojar.com/8s5u5tpdtwzuv" },
   { id: "makkah", name: "إذاعة القرآن من مكة المكرمة 🕋", url: "https://stream.radiojar.com/0tpy1h0kxtzuv" },
   { id: "riyadh", name: "إذاعة القرآن من الرياض 🇸🇦", url: "https://stream.radiojar.com/4wqre23fytzuv" },
-  { id: "heweny", name: "إذاعة الشيخ الحويني 👤", url: "DYNAMIC_SEARCH" }, // علمنا الإذاعة دي إنها ديناميكية
-  
+    
   // إذاعات علوم القرآن والتفسير (المسارات الرسمية الدقيقة من السيرفر الشغال)
   { id: "roqia", name: "إذاعة الرقية الشرعية 🌿", url: "https://qurango.net/radio/roqiah" },
   { id: "tafseer_all", name: "إذاعة تفسير القرآن الكريم 📖", url: "https://qurango.net/radio/tafseer" },
@@ -70,65 +69,10 @@ window.selectAndPlayRadio = function(url, name) {
     return;
   }
 
-  // إذا كانت الإذاعة هي إذاعة الشيخ الحويني الديناميكية
-  if (url === "DYNAMIC_SEARCH") {
-    player.pause();
-    title.textContent = name;
-    status.textContent = "جاري البحث عن بث حي للشيخ الحويني...";
-    btn.textContent = "⏳";
+  
 
-    const searchTerms = ["alheweny", "Houaini", "Huwaini", "الحويني", "أبو إسحاق الحويني"];
-    const servers = [
-      "https://de1.api.radio-browser.info",
-      "https://nl1.api.radio-browser.info",
-      "https://at1.api.radio-browser.info"
-    ];
-
-    const tryPlay = (streamUrl) => new Promise((resolve) => {
-      player.src = streamUrl;
-      player.play().then(() => resolve(true)).catch(() => resolve(false));
-    });
-
-    const searchAndPlayHeweny = async () => {
-      for (const term of searchTerms) {
-        for (const server of servers) {
-          try {
-            const apiUrl = `${server}/json/stations/search?name=${encodeURIComponent(term)}&limit=10&hidebroken=true`;
-            const res = await fetch(apiUrl);
-            if (!res.ok) continue;
-            const data = await res.json();
-            if (data && data.length > 0) {
-              data.sort((a, b) => (b.votes || 0) - (a.votes || 0));
-              for (const station of data) {
-                const liveUrl = station.url_resolved || station.url;
-                status.textContent = `جاري تجربة: ${station.name}...`;
-                const ok = await tryPlay(liveUrl);
-                if (ok) {
-                  btn.textContent = "⏸";
-                  status.textContent = `يتم البث الآن: ${station.name}`;
-                  window.currentActiveRadioUrl = "DYNAMIC_SEARCH";
-                  return true;
-                }
-              }
-            }
-          } catch (err) {
-            console.error("Radio-browser server failed:", server, err);
-            continue;
-          }
-        }
-      }
-      return false;
-    };
-
-    searchAndPlayHeweny().then((found) => {
-      if (!found) {
-        status.textContent = "إذاعة الشيخ خارج التغطية حالياً، جرب لاحقاً 🙏";
-        btn.textContent = "▶";
-      }
-    });
-
-    return;
-  } 
+    
+    
 
   // تشغيل باقي الإذاعات الثابتة بشكل طبيعي
   player.pause();
