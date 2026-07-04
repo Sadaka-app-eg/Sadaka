@@ -6,7 +6,7 @@ window.islamicRadioStations = [
   { id: "cairo", name: "إذاعة القرآن من القاهرة 🇪🇬", url: "https://stream.radiojar.com/8s5u5tpdtwzuv" },
   { id: "makkah", name: "إذاعة القرآن من مكة المكرمة 🕋", url: "https://stream.radiojar.com/0tpy1h0kxtzuv" },
   { id: "riyadh", name: "إذاعة القرآن من الرياض 🇸🇦", url: "https://stream.radiojar.com/4wqre23fytzuv" },
-  { id: "heweny", name: "إذاعة الشيخ الحويني 👤", url: "https://stream.zeno.fm/s78bfahr36duv" }, // الرابط المباشر الصافي لبث راديو أبو إسحاق الحويني على زينو
+  { id: "heweny", name: "إذاعة الشيخ الحويني 👤", url: "DYNAMIC_SEARCH" }, // علمنا الإذاعة دي إنها ديناميكية
   
   // إذاعات علوم القرآن والتفسير (المسارات الرسمية الدقيقة من السيرفر الشغال)
   { id: "roqia", name: "إذاعة الرقية الشرعية 🌿", url: "https://qurango.net/radio/roqiah" },
@@ -25,7 +25,6 @@ window.islamicRadioStations = [
   { id: "zilal_seerah", name: "في ظلال السيرة النبوية 💎", url: "https://qurango.net/radio/fi_zilal_alsiyra" }
 ];
 
- 
 window.currentActiveRadioUrl = "";
 
 // دالة رندرة وضخ أزرار الإذاعات في شبكة الكروت
@@ -57,7 +56,8 @@ window.selectAndPlayRadio = function(url, name) {
 
   if (typeof stopAudio === 'function') stopAudio();
 
-  if (window.currentActiveRadioUrl === url) {
+  // لو ضغطنا تاني على نفس المحطة الشغالة نوقفها
+  if (window.currentActiveRadioUrl === url && url !== "DYNAMIC_SEARCH") {
     if (!player.paused) {
       player.pause();
       btn.textContent = "▶";
@@ -66,28 +66,69 @@ window.selectAndPlayRadio = function(url, name) {
       status.textContent = "جاري الاتصال بالبث الحي...";
       player.play().then(() => { btn.textContent = "⏸"; }).catch(e => console.log(e));
     }
-  } else {
+    window.renderRadioStationsGrid();
+    return;
+  }
+
+  // إذا كانت الإذاعة هي إذاعة الشيخ الحويني الديناميكية
+  if (url === "DYNAMIC_SEARCH") {
     player.pause();
-    player.src = url;
-    window.currentActiveRadioUrl = url;
     title.textContent = name;
-    status.textContent = "جاري الاتصال بمصدر البث الحي...";
+    status.textContent = "جاري البحث عن بث حي للشيخ الحويني...";
     btn.textContent = "⏳";
 
-    player.play()
-      .then(() => { btn.textContent = "⏸"; })
+    // عمل استعلام فوري من الـ API العام لـ Radio Browser بجلب اسم الشيخ
+    fetch("https://de1.api.radio-browser.info/json/stations/byname/أبو إسحاق الحويني")
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.length > 0) {
+          // ترتيب حسب الأصوات الأعلى لضمان الرابط الشغال
+          data.sort((a, b) => b.votes - a.votes);
+          const liveUrl = data[0].url_resolved || data[0].url;
+          
+          status.textContent = "تم العثور على البث، جاري التشغيل المباشر...";
+          player.src = liveUrl;
+          
+          player.play()
+            .then(() => { btn.textContent = "⏸"; })
+            .catch(() => {
+              status.textContent = "فشل تشغيل السيرفر الحالي، جرب مرة أخرى 🙏";
+              btn.textContent = "▶";
+            });
+        } else {
+          status.textContent = "إذاعة الشيخ خارج التغطية حالياً، جرب لاحقاً 🙏";
+          btn.textContent = "▶";
+        }
+      })
       .catch(err => {
-        console.error("Radio play failed:", err);
-        status.textContent = "جاري إعادة الاتصال بالبث الاحتياطي...";
-        setTimeout(() => {
-          player.src = url;
-          player.play().then(() => { btn.textContent = "⏸"; }).catch(() => {
-            status.textContent = "السيرفر تحت الصيانة حالياً، جرب إذاعة أخرى 🙏";
-            btn.textContent = "▶";
-          });
-        }, 1000);
+        console.error("Radio-browser API failed:", err);
+        status.textContent = "خطأ في الاتصال بقاعدة البيانات الخارجية.";
+        btn.textContent = "▶";
       });
+    return;
   }
+
+  // تشغيل باقي الإذاعات الثابتة بشكل طبيعي
+  player.pause();
+  player.src = url;
+  window.currentActiveRadioUrl = url;
+  title.textContent = name;
+  status.textContent = "جاري الاتصال بمصدر البث الحي...";
+  btn.textContent = "⏳";
+
+  player.play()
+    .then(() => { btn.textContent = "⏸"; })
+    .catch(err => {
+      console.error("Radio play failed:", err);
+      status.textContent = "جاري إعادة الاتصال بالبث الاحتياطي...";
+      setTimeout(() => {
+        player.src = url;
+        player.play().then(() => { btn.textContent = "⏸"; }).catch(() => {
+          status.textContent = "السيرفر تحت الصيانة حالياً، جرب إذاعة أخرى 🙏";
+          btn.textContent = "▶";
+        });
+      }, 1000);
+    });
 
   window.renderRadioStationsGrid();
 };
