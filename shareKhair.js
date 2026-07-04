@@ -288,7 +288,7 @@ window.executeKhairShare = function(type) {
     ctx.textAlign = "center";
     ctx.fillText("أَثَر", 850, 938);
 
-    // تصدير الصورة بجودة فائقة
+        // تصدير الصورة بجودة فائقة
     canvas.toBlob((blob) => {
       const file = new File([blob], "Athar_Perfect_Post.png", { type: "image/png" });
       if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -298,10 +298,11 @@ window.executeKhairShare = function(type) {
         link.download = 'Athar_Perfect_Design.png';
         link.href = canvas.toDataURL();
         link.click();
-              alert('تم تحديث المحرك! الكارت الآن نسخة طبق الأصل 100% وجاهز للنشر ✨🖼️');
-    }
-  }, 'image/png');
-};
+        alert('تم تحديث المحرك! الكارت الآن نسخة طبق الأصل 100% وجاهز للنشر ✨🖼️');
+      }
+    }, 'image/png');
+  } // <--- هذه قفلة الـ if (type === 'image')
+}; // <--- هذه قفلة دالة executeKhairShare
 
   
      
