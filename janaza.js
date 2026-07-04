@@ -1,5 +1,5 @@
 // =========================================================
-// محرك إدارة وتوليد إعلانات الجنائز الذكي للتطبيق (حفظ ومشاركة)
+// محرك إدارة وتوليد إعلانات الجنائز الذكي بالتنسيق المظبوط بالملي
 // =========================================================
 window.currentJanazaGender = "ذكر";
 
@@ -42,36 +42,32 @@ window.closeJanazaSheet = function() {
 function compileJanazaData() {
   const name = document.getElementById('jName').value.trim();
   const location = document.getElementById('jLocation').value.trim();
-  const relation = document.getElementById('jRelation').value.trim() || "غير محدد";
-  const time = document.getElementById('jTime').value.trim() || "لم يُحدد بعد";
+  const relation = document.getElementById('jRelation').value.trim();
+  const time = document.getElementById('jTime').value.trim() || "لَمْ يُحَدَّدْ بَعْدُ";
 
   // جلب أيام وتواريخ اليوم تلقائياً بالملي
   const today = new Date();
   const weekday = today.toLocaleDateString('ar-EG', { weekday: 'long' });
   const gregorian = today.toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
-  
-  // قراءة التاريخ الهجري المكتوب مسبقاً في واجهة المواقيت العليا
-  const hijriEl = document.getElementById('hijriDate');
-  const hijri = hijriEl ? hijriEl.textContent : "--";
 
   const isMale = (window.currentJanazaGender === "ذكر");
 
   return {
     title: "﴿ إِنَّا لِلَّهِ وَإِنَّا إِلَيْهِ رَاجِعُونَ ﴾",
     header: "🕊️ إِعْلَانُ جَنَازَةٍ",
-    intro: isMale ? "توفي إلى رحمة الله تعالى" : "توفيت إلى رحمة الله تعالى",
-    labelName: isMale ? `المرحوم: ${name}` : `المرحومة: ${name}`,
+    intro: isMale ? "تُوُفِّيَ إِلَى رَحْمَةِ اللَّهِ تَعَالَى" : "تُوُفِّيَتْ إِلَى رَحْمَةِ اللَّهِ تَعَالَى",
+    labelName: isMale ? `المَرْحُوم: ${name}` : `المَرْحُومَة: ${name}`,
     nameOnly: name,
     location: location,
-    relation: relation,
+    relation: relation, // ستكون نصاً أو فارغة تماماً
     time: time,
     day: weekday,
-    hijri: hijri,
     gregorian: gregorian,
-    hadith: "قال رسول الله ﷺ:\n«من اتبع جنازة مسلم إيمانًا واحتسابًا، وكان معه حتى يُصلى عليها ويُفرغ من دفنها، فإنه يرجع من الأجر بقيراطين، كل قيراط مثل أحد، ومن صلى عليها ثم رجع قبل أن تدفن فإنه يرجع بقيراط.»\n📚 رواه البخاري.",
+    hadithText: "«مَنِ اتَّبَعَ جَنَازَةَ مُسْلِمٍ إِيمَانًا وَاحْتِسَابًا، وَكَانَ مَعَهُ حَتَّى يُصَلَّى عَلَيْهَا وَيُفْرَغَ مِنْ دَفْنِهَا، فَإِنَّهُ يَرْجِعُ مِنَ الْأَجْرِ بِقِيرَاطَيْنِ، كُلُّ قِيرَاطٍ مِثْلُ أُحُدٍ، وَمَنْ صَلَّى عَلَيْهَا ثُمَّ رَجَعَ قَبْلَ أَنْ تُدْفَنَ فَإِنَّهُ يَرْجِعُ بِقِيرَاطٍ»",
+    hadithSource: "📚 رَوَاهُ الْبُخَارِيُّ.",
     dua: isMale ? 
-      "نسأل الله أن يغفر له ويرحمه، ويكرم نزله، ويوسع مدخله، ويسكنه الفردوس الأعلى." : 
-      "نسأل الله أن يغفر لها ويرحمها، ويكرم نزلها، ويوسع مدخلها، ويسكنها الفردوس الأعلى.",
+      "نَسْأَلُ اللَّهَ أَنْ يَغْفِرَ لَهُ وَيَرْحَمَهُ، وَيُكْرِمَ نُزُلَهُ، وَيُوَسِّعَ مَدْخَلَهُ، وَيُسْكِنَهُ الْفِرْدَوْسَ الْأَعْلَى." : 
+      "نَسْأَلُ اللَّهَ أَنْ يَغْفِرَ لَهَا وَيَرْحَمَهَا، وَيُكْرِمَ نُزُلَهَا، وَيُوَسِّعَ مَدْخَلَهَا، وَيُسْكِنَهَا الْفِرْدَوْسَ الْأَعْلَى.",
     footer: "اذهب للجنازة، وصلِّ عليها، واشهد دفنها، ولك الأجر إن شاء الله."
   };
 }
@@ -80,13 +76,20 @@ function compileJanazaData() {
 window.shareJanazaAsText = function() {
   const d = compileJanazaData();
   
-  const textBlock = `${d.title}\n${d.header}\n\n${d.intro}\n${d.labelName}\n📍 المنطقة: ${d.location}\n👨‍👩‍👧‍👦 الصلة: ${d.relation}\nPublic 🕌 صلاة الجنازة: ${d.time}\n📅 اليوم: ${d.day}\n🌙 التاريخ الهجري: ${d.hijri}\n📅 التاريخ الميلادي: ${d.gregorian}\n\n${d.hadith}\n\n${d.dua}\n\n${d.footer}\n\n• تم النشر عبر تطبيق كُن ذا أثر •`;
+  let textBlock = `${d.title}\n${d.header}\n\n${d.intro}\n${d.labelName}\n📍 المِنْطَقَة: ${d.location}\n`;
+  
+  // شرط ذكي: لو الصلة مكتوبة تظهر، لو مش مكتوبة تختفي تماماً من السطر
+  if (d.relation) {
+    textBlock += `👨‍👩‍👧‍👦 الصِّلَة: ${d.relation}\n`;
+  }
+  
+  textBlock += `🕌 صَلَاةُ الجَنَازَةِ: ${d.time}\n📅 اليَوْم: ${d.day}\n📅 التَّارِيخُ المِيلَادِيُّ: ${d.gregorian}\n\nقَالَ رَسُولُ اللَّهِ ﷺ:\n${d.hadithText}\n${d.hadithSource}\n\n${d.dua}\n\n${d.footer}\n\n• تَمَّ النَّشْرُ عَبْرَ تَطْبِيقِ كُنْ ذَا أَثَرٍ •`;
 
   if (navigator.share) {
     navigator.share({ title: "إعلان جنازة", text: textBlock }).then(() => window.closeJanazaSheet());
   } else {
     navigator.clipboard.writeText(textBlock);
-    alert("✓ تم نسخ نص إعلان الجنازة المنسق بنجاح في جهازك، يمكنك لصقه ومشاركته الآن.");
+    alert("✓ تم نسخ نص إعلان الجنازة المنسق والمشكل بنجاح!");
     window.closeJanazaSheet();
   }
 };
@@ -101,94 +104,110 @@ window.shareJanazaAsImage = function() {
   canvas.height = 1400;
   const ctx = canvas.getContext('2d');
 
-  // صب ثيم الخلفية الداكن الفخم للتطبيق (تدرج خضرة الروضة الملكي المريح)
+  // خلفية التطبيق الداكنة الملكية
   const grad = ctx.createLinearGradient(0, 0, 0, 1400);
   grad.addColorStop(0, '#0b120c');
   grad.addColorStop(1, '#121e14');
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, 900, 1400);
 
-  // رسم حواف وإطار داخلي ذهبي مرن وراقٍ جداً
+  // إطار داخلي ذهبي
   ctx.strokeStyle = '#d4af37';
   ctx.lineWidth = 6;
   ctx.strokeRect(30, 30, 840, 1340);
 
-  // أعلى البطاقة: أيقونة حمامة السلام الروحية 🕊️
+  // أيقونة حمامة السلام 🕊️
   ctx.fillStyle = "#ffffff";
   ctx.font = "60px sans-serif";
   ctx.textAlign = "center";
   ctx.direction = "rtl";
   ctx.fillText("🕊️", 450, 110);
 
-  // عنوان التعزية الرئيسي الكبير
+  // العنوان الرئيسي
   ctx.fillStyle = "#d4af37";
-  ctx.font = "bold 32px 'Amiri', 'Cairo', serif";
+  ctx.font = "bold 34px 'Amiri', 'Cairo', serif";
   ctx.fillText(d.title, 450, 190);
 
   ctx.fillStyle = "#9aa79c";
   ctx.font = "24px 'Amiri', serif";
   ctx.fillText(d.intro, 450, 270);
 
-  // اسم المتوفى في منتصف البطاقة بخط بارز وضخم جداً لتفخيم الرؤية
+  // اسم المتوفى بارز وضخم
   ctx.fillStyle = "#ffffff";
-  ctx.font = "bold 46px 'Amiri', 'Cairo', serif";
+  ctx.font = "bold 48px 'Amiri', 'Cairo', serif";
   ctx.fillText(d.nameOnly, 450, 350);
 
-  // رسم خط فاصل ذهبي ناعم تحت الاسم للترتيب البصري
+  // خط فاصل ذهبي ناعم
   ctx.strokeStyle = 'rgba(212,175,55,0.3)';
   ctx.lineWidth = 2;
   ctx.beginPath(); ctx.moveTo(250, 390); ctx.lineTo(650, 390); ctx.stroke();
 
-  // ضخ حقول البيانات المنسقة والمنظمة
+  // ضخ حقول البيانات المنظمة
   ctx.fillStyle = "#f4f6f4";
   ctx.font = "24px 'Amiri', serif";
   
-  ctx.fillText(`📍 المنطقة: ${d.location}`, 450, 440);
-  ctx.fillText(`👨‍👩‍👧‍👦 الصلة: ${d.relation}`, 450, 490);
-  ctx.fillText(`🕌 صلاة الجنازة: ${d.time}`, 450, 540);
-  ctx.fillText(`📅 اليوم: ${d.day}`, 450, 590);
-  ctx.fillText(`🌙 التاريخ: ${d.hijri} مِيلَادِيّاً: ${d.gregorian}`, 450, 640);
+  let currentY = 440;
+  ctx.fillText(`📍 المِنْطَقَة: ${d.location}`, 450, currentY);
+  
+  // شرط عرض الصلة في الصورة: لو موجودة ارسمها وزود المساحة، لو مش موجودة متظهرش
+  if (d.relation) {
+    currentY += 50;
+    ctx.fillText(`👨‍👩‍👧‍👦 الصِّلَة: ${d.relation}`, 450, currentY);
+  }
+  
+  currentY += 50;
+  ctx.fillText(`🕌 صَلَاةُ الجَنَازَةِ: ${d.time}`, 450, currentY);
+  currentY += 50;
+  ctx.fillText(`📅 اليَوْم: ${d.day}`, 450, currentY);
+  currentY += 50;
+  ctx.fillText(`📅 التَّارِيخُ المِيلَادِيُّ: ${d.gregorian}`, 450, currentY);
 
+  currentY += 50;
   ctx.strokeStyle = 'rgba(212,175,55,0.3)';
-  ctx.beginPath(); ctx.moveTo(150, 690); ctx.lineTo(750, 690); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(150, currentY); ctx.lineTo(750, currentY); ctx.stroke();
 
-  // كارت نص الحديث الشريف في الأسفل (داخل صندوق حواف دائرية خفيف)
+  // صندوق الحديث الشريف
+  currentY += 30;
   ctx.fillStyle = "rgba(255, 255, 255, 0.02)";
-  ctx.fillRect(80, 720, 740, 280);
+  ctx.fillRect(80, currentY, 740, 260);
   ctx.strokeStyle = "rgba(212, 175, 55, 0.15)";
-  ctx.strokeRect(80, 720, 740, 280);
+  ctx.strokeRect(80, currentY, 740, 260);
 
   ctx.fillStyle = "#d4af37";
-  ctx.font = "bold 20px 'Amiri', serif";
-  ctx.fillText("قَالَ رَسُولُ اللَّهِ ﷺ:", 450, 760);
+  ctx.font = "bold 22px 'Amiri', serif";
+  ctx.fillText("قَالَ رَسُولُ اللَّهِ ﷺ:", 450, currentY + 45);
 
   ctx.fillStyle = "#9aa79c";
-  ctx.font = "20px 'Amiri', serif";
+  ctx.font = "21px 'Amiri', serif";
   
-  // تفتيت أسطر الحديث ميكانيكياً لكي لا تخرج عن الإطار
-  const txtHadith = "«من اتبع جنازة مسلم إيمانًا واحتسابًا، وكان معه حتى يُصلى عليها ويُفرغ من دفنها، فإنه يرجع من الأجر بقيراطين، كل قيراط مثل أحد، ومن صلى عليها ثم رجع قبل أن تدفن فإنه يرجع بقيراط.» [رواه البخاري]";
-  wrapTextOnCanvas(ctx, txtHadith, 450, 810, 40, 660);
+  // رسم نص الحديث بالتشكيل
+  wrapTextOnCanvas(ctx, d.hadithText, 450, currentY + 95, 38, 660);
 
-  // دعاء الميت المخصص والعبارة النهائية الحاثة للأجر
+  // مصدر الدليل بخط صغير بالأسفل
+  ctx.fillStyle = "rgba(212,175,55,0.6)";
+  ctx.font = "bold 16px 'Amiri', serif";
+  ctx.fillText(d.hadithSource, 450, currentY + 235);
+
+  // دعاء الميت والعبارة النهائية
   ctx.fillStyle = "#6fbf73";
   ctx.font = "bold 24px 'Amiri', serif";
-  ctx.fillText(d.dua, 450, 1070);
+  ctx.fillText(d.dua, 450, currentY + 320);
 
   ctx.fillStyle = "#d4af37";
   ctx.font = "bold 24px 'Amiri', serif";
-  wrapTextOnCanvas(ctx, d.footer, 450, 1160, 35, 700);
+  wrapTextOnCanvas(ctx, d.footer, 450, currentY + 390, 35, 700);
 
-  // تحويل الرسمة لملف ومشاركتها فوراً
+  // تحويل الرسمة لملف ومشاركتها
   canvas.toBlob((blob) => {
-    const file = new File([blob], "Janaza_Announcement.png", { type: "image/png" });
+    const file = new File([blob], "Janaza_Card.png", { type: "image/png" });
     if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
       navigator.share({ files: [file], title: "إعلان جنازة" });
     } else {
       const link = document.createElement('a');
-      link.download = 'Janaza_Announcement.png';
+      link.download = 'Janaza_Card.png';
       link.href = canvas.toDataURL();
       link.click();
-      alert("✓ تم حفظ صورة بطاقة الجنازة الفاخرة في الاستوديو الخاص بك لمشاركتها يدوياً.");
+      alert("✓ تم حفظ صورة بطاقة الجنازة المحدثة في الاستوديو الخاص بك.");
     }
   }, 'image/png');
 };
