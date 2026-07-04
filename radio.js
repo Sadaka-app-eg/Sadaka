@@ -2,13 +2,13 @@
 // خريطة الإذاعات الإسلامية المضمونة والشغالة 100% من السيرفر المباشر
 // =========================================================
 window.islamicRadioStations = [
-  // الإذاعات الرئيسية الكبرى
+  // الإذاعات الرئيسية الكبرى (روابط راديو جار الرسمية الشغالة طحن)
   { id: "cairo", name: "إذاعة القرآن من القاهرة 🇪🇬", url: "https://stream.radiojar.com/8s5u5tpdtwzuv" },
   { id: "makkah", name: "إذاعة القرآن من مكة المكرمة 🕋", url: "https://stream.radiojar.com/0tpy1h0kxtzuv" },
   { id: "riyadh", name: "إذاعة القرآن من الرياض 🇸🇦", url: "https://stream.radiojar.com/4wqre23fytzuv" },
-  { id: "heweny", name: "إذاعة الشيخ الحويني 👤", url: "https://stream.zeno.fm/n03u7f897f8uv" }, // الرابط المباشر والمنفصل تماماً لدروس الشيخ الحويني
+  { id: "heweny", name: "إذاعة الشيخ الحويني 👤", url: "https://stream.zeno.fm/s78bfahr36duv" }, // الرابط المباشر الصافي لبث راديو أبو إسحاق الحويني على زينو
   
-  // إذاعات علوم القرآن والتفسير
+  // إذاعات علوم القرآن والتفسير (المسارات الرسمية الدقيقة من السيرفر الشغال)
   { id: "roqia", name: "إذاعة الرقية الشرعية 🌿", url: "https://qurango.net/radio/roqiah" },
   { id: "tafseer_all", name: "إذاعة تفسير القرآن الكريم 📖", url: "https://qurango.net/radio/tafseer" },
   { id: "sakina", name: "إذاعة آيات السكينة 🕊️", url: "https://qurango.net/radio/sakeenah" },
@@ -24,6 +24,7 @@ window.islamicRadioStations = [
   { id: "fatawa", name: "إذاعة الفتاوى العامة ❓", url: "https://qurango.net/radio/fatwa" },
   { id: "zilal_seerah", name: "في ظلال السيرة النبوية 💎", url: "https://qurango.net/radio/fi_zilal_alsiyra" }
 ];
+
  
 window.currentActiveRadioUrl = "";
 
