@@ -2651,10 +2651,11 @@ if (window.currentSelectedRoaya && roayaMapping[window.currentSelectedRoaya]) {
           txt = txt.replace(/^بِسْمِ[\s\S]+?الرَّحِيمِ\s*/, '');
         }
             return `<span class="ayah-span" id="ayah_${a.originalIndex}"
-      ontouchstart="startPress(event, ${a.originalIndex})"
-      ontouchend="cancelPress(event); if(window.isPickingEndAyah){ handleAyahClick(${a.originalIndex}); }"
-      style="display:inline; padding: 2px 0;">
-      ${txt}<span class="ayah-sign" style="color:#8b6914; margin:0 6px; font-size:22px; white-space:nowrap;"> ﴿${toAr(a.numberInSurah)}﴾ </span></span> `;
+  ontouchstart="startPress(event, ${a.originalIndex})"
+  ontouchmove="cancelPress(event)"
+  ontouchend="if(!isScrolling && window.isPickingEndAyah){ handleAyahClick(${a.originalIndex}); }"
+  style="display:inline; padding: 2px 0;">
+  ${txt}<span class="ayah-sign" style="color:#8b6914; margin:0 6px; font-size:22px; white-space:nowrap;"> ﴿${toAr(a.numberInSurah)}﴾ </span></span> `;
       }).join('');
 
       sliderHtml += `<div class="page-footer">صفحة ${toAr(pageNum)}</div></div>`;
