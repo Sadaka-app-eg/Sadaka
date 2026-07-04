@@ -195,17 +195,16 @@ window.executeKhairShare = function(type) {
   if(!activeSelectedItem) return;
 
   const headerTitle = activeKhairTab === 'sunan' ? "قال رسول الله ﷺ :" : "من مواعظ السلف الصالح :";
-  const footerText = "• ويبقى الأثر •";
 
   if (type === 'text') {
-    const fullText = `📜 *${headerTitle}*\n\n« ${activeSelectedItem.text} »\n\n📚 المصدر: ${activeSelectedItem.source || activeSelectedItem.author}\n\n${footerText}`;
+    const fullText = `📜 *${headerTitle}*\n\n« ${activeSelectedItem.text} »\n\n📚 المصدر: ${activeSelectedItem.source || activeSelectedItem.author}\n\n• ويبقى الأثر •`;
     if (navigator.share) {
       navigator.share({ title: 'أنشر الأثر', text: fullText });
     } else {
       navigator.clipboard.writeText(fullText);
       alert('تم نسخ النص المبارك وجاهز للمشاركة واللصق فوراً! ✓');
     }
-    } else if (type === 'image') {
+  } else if (type === 'image') {
     const canvas = document.createElement('canvas');
     canvas.width = 1000;
     canvas.height = 1000; 
@@ -233,14 +232,14 @@ window.executeKhairShare = function(type) {
     };
     window.drawRoundedRect(160, 45, 680, 115, 25);
 
-    // نص العنوان داخل الشريط
+    // نص العنوان
     ctx.fillStyle = "#ffffff";
     ctx.font = "bold 44px 'Amiri', serif";
     ctx.textAlign = "center";
     ctx.direction = "rtl";
     ctx.fillText(headerTitle, 540, 118);
 
-        // 3. كتابة المتن بحجم ضخم ومهيب ومفرد
+    // 3. كتابة المتن
     ctx.fillStyle = "#000000";
     ctx.font = "bold 80px 'Amiri Quran', serif"; 
     ctx.textAlign = "center"; 
@@ -265,46 +264,37 @@ window.executeKhairShare = function(type) {
     }
     ctx.fillText(line, 540, y);
 
-
-    // 4. ضبط السند أسفل اليسار بمحاذاة الشاشة الأصلية (مرفوع عن الحافة ومتناسق)
+    // 4. السند
     ctx.fillStyle = "#333333";
     ctx.font = "bold 28px 'Amiri', serif";
-    ctx.textAlign = "left"; // إرجاعه لليسار مع تشفيته يدوياً عن الحافة
+    ctx.textAlign = "left";
     ctx.direction = "rtl";
     ctx.fillText(activeSelectedItem.source || activeSelectedItem.author, 60, 935); 
 
-    // 5. ضبط موقع مربع (أَثَر) أسفل اليمين بالملي متطابق مع الأصل
+    // 5. مربع أثر
     ctx.fillStyle = "#4e342e"; 
     ctx.beginPath();
-    ctx.rect(760, 895, 180, 65); // زيادة الحجم قليلاً ليتناسق مع أثر
+    ctx.rect(760, 895, 180, 65); 
     ctx.fill();
-    
     ctx.strokeStyle = "#c5a059";
     ctx.lineWidth = 3;
     ctx.strokeRect(760, 895, 180, 65);
-    
     ctx.fillStyle = "#d4af37";
     ctx.font = "bold 30px 'Amiri', serif";
     ctx.textAlign = "center";
     ctx.fillText("أَثَر", 850, 938);
 
-    // تصدير الصورة بجودة فائقة
+    // تصدير الصورة - تم إصلاح الأقواس هنا
     canvas.toBlob((blob) => {
-      const file = new File([blob], "Athar_Perfect_Post.png", { type: "image/png" });
-      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-        navigator.share({ files: [file], title: 'انشر الخير' });
-      } else {
-        const link = document.createElement('a');
-        link.download = 'Athar_Perfect_Design.png';
-        link.href = canvas.toDataURL();
-        link.click();
-              alert('تم تحديث المحرك! الكارت الآن نسخة طبق الأصل 100% وجاهز للنشر ✨🖼️');
-    }
-  }, 'image/png');
-};
-
-  
-     
+      const link = document.createElement('a');
+      link.download = 'Athar_Perfect_Design.png';
+      link.href = URL.createObjectURL(blob);
+      link.click();
+      alert('تم حفظ البطاقة بنجاح! ✨🖼️');
+    }, 'image/png');
+  } // نهاية شرط الـ image
+}; // نهاية الدالة executeKhairShare
+          
     
 
 // =========================================================
