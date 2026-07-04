@@ -757,6 +757,7 @@ body.in-subpage .back-to-home-btn {
  <div class="tab" onclick="showPage('radioPage',this)">📻 الإذاعات المباشرة</div> <!-- ضيف السطر ده هنا -->
 <div class="tab" onclick="showPage('settingsPage', this)">⚙️ الإعدادات وحسابي</div>
 <div class="tab" onclick="showPage('janazaPage',this)">🕊️ قسم الجنائز</div>
+<div class="tab" onclick="showPage('shareKhairPage',this)">💝 شارك في الخير</div>
 
 </div>
 
@@ -1489,6 +1490,16 @@ body.in-subpage .back-to-home-btn {
     <button class="action-btn" onclick="shareJanazaAsImage()"><span>🖼️</span> مشاركة كـ صُورَة تصميم راقٍ</button>
     <button class="action-btn action-cancel" onclick="closeJanazaSheet()"><span>✕</span> إلغاء الإغلاق</button>
   </div>
+</div>
+<!-- 💝 صفحة شارك في الخير (مقتطفات دعوية جاهزة للمشاركة) -->
+<div class="page" id="shareKhairPage">
+  <div style="text-align: center; margin-bottom: 20px;">
+    <h2 style="color: var(--gold); font-family: 'Amiri', serif; font-size: 24px;">💝 شَارِكْ فِي الخَيْرِ</h2>
+    <p style="color: var(--text2); font-size: 13px; font-family: 'Amiri', serif;">بطاقات مأثورة وآيات جاهزة للنشر الفوري كصدقة جارية</p>
+  </div>
+
+  <!-- وعاء استقبال كروت وضخ البيانات التفاعلي -->
+  <div id="shareKhairCardsContainer" style="display: grid; grid-template-columns: 1fr; gap: 14px; direction: rtl;"></div>
 </div>
 
 <!-- OVERLAY DIMMER -->
@@ -5346,6 +5357,7 @@ function updateSettingsAccountBox() {
 <script src="quranInsights.js"></script> <!-- هنا بالظبط -->
 <script src="obeyPlan.js"></script> 
 <script src="janaza.js"></script>
+<script src="shareKhair.js"></script>
 
  <script type="module">
   // الغاء مفعول دالة الـ load القديمة تماماً لكسر حلقة إعادة تسجيل الدخول
