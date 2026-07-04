@@ -2411,13 +2411,41 @@ window.showSurahInsightsModal = function(surahId, surahName) {
   document.body.insertAdjacentHTML('beforeend', modalHTML);
 };
 
-// الدالة المحدثة بالملي لمنع فتح السورة أو أسباب النزول غصب عنك أثناء السكرول
+// متغيرات التتبع العالمية لضمان عزل السكرول عن الضغط
+let longPressTimer;
+window.isLongPressAction = false;
+window.isScrolling = false;
+let pointerStartX = 0;
+let pointerStartY = 0;
+
 function renderSurahs(list) {
   document.getElementById('surahList').innerHTML = list.map(s => `
     <div class="surah-item" 
-         ontouchstart="window.handleSurahTouchStart(event, ${s.n}, '${s.name}')" 
-         ontouchmove="window.handleSurahTouchMove(event)"
-         ontouchend="if(!window.isScrolling && !window.isLongPressAction) { openSurah(${s.n}); } clearTimeout(longPressTimer);"
+         ontouchstart="
+           window.isLongPressAction = false;
+           window.isScrolling = false;
+           pointerStartX = event.touches[0].clientX;
+           pointerStartY = event.touches[0].clientY;
+           longPressTimer = setTimeout(() => {
+             window.isLongPressAction = true;
+             if(navigator.vibrate) navigator.vibrate(50);
+             if(typeof window.showSurahInsightsModal === 'function') window.showSurahInsightsModal(${s.n}, '${s.name}');
+           }, 650);
+         " 
+         ontouchmove="
+           let currentX = event.touches[0].clientX;
+           let currentY = event.touches[0].clientY;
+           if (Math.abs(currentX - pointerStartX) > 10 || Math.abs(currentY - pointerStartY) > 10) {
+             clearTimeout(longPressTimer);
+             window.isScrolling = true;
+           }
+         "
+         ontouchend="
+           clearTimeout(longPressTimer);
+           if(!window.isScrolling && !window.isLongPressAction) { 
+             openSurah(${s.n}); 
+           }
+         "
          style="user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;">
       <div class="surah-num">${s.n}</div>
       <div class="surah-info">
@@ -2428,6 +2456,7 @@ function renderSurahs(list) {
     </div>
   `).join('');
 }
+
 
 
   
