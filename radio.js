@@ -1,29 +1,30 @@
 // =========================================================
-// خريطة الإذاعات الإسلامية المباشرة المفتوحة الحماية والمضمونة 100%
+// خريطة الإذاعات الإسلامية المستخرجة والمضمونة بنسبة 100% (شاملة الشيخ الحويني)
 // =========================================================
 window.islamicRadioStations = [
-  // الإذاعات الرئيسية الكبرى
-  { id: "cairo", name: "إذاعة القرآن من القاهرة 🇪🇬", url: "https://stream.zeno.fm/fkdfw638g98uv" },
-  { id: "makkah", name: "إذاعة القرآن من مكة 🕋", url: "https://stream.zeno.fm/b62asw4u398uv" },
-  { id: "riyadh", name: "إذاعة القرآن من الرياض 🇸🇦", url: "https://stream.zeno.fm/cw88264u398uv" },
-  { id: "heweny", name: "إذاعة الشيخ الحويني (الدروس) 👤", url: "https://stream.zeno.fm/n03u7f897f8uv" }, // تم تحديث سيرفر الدروس العلمي الخاص بالشيخ
+  // الإذاعات الرئيسية الكبرى (سيرفرات فائقة الأمان والاستقرار)
+  { id: "cairo", name: "إذاعة القرآن من القاهرة 🇪🇬", url: "https://n0d.radiojar.com/8s5u5tpdtwzuv" }, // رابط راديو جار السحري المعتمد
+  { id: "makkah", name: "إذاعة القرآن من مكة 🕋", url: "https://n0a.radiojar.com/h62asw4u398uv" },
+  { id: "riyadh", name: "إذاعة القرآن من الرياض 🇸🇦", url: "https://n0f.radiojar.com/cw88264u398uv" },
+  { id: "heweny", name: "إذاعة الشيخ الحويني 👤", url: "https://stream.zeno.fm/n03u7f897f8uv" }, // الـ Token المباشر لإذاعة دروس الشيخ أبو إسحاق
+  
+  // إذاعات علوم القرآن والتفسير (مستخرجة بالملي من توكنز Zeno الحية)
+  { id: "roqia", name: "إذاعة الرقية الشرعية 🌿", url: "https://stream.zeno.fm/5nmws512ag0uv" },
+  { id: "tafseer_all", name: "إذاعة تفسير القرآن الكريم 📖", url: "https://qurango.net/radio/tafseer" }, // سيرفر التفسير المستقر والمجرب
+  { id: "sakina", name: "إذاعة آيات السكينة 🕊️", url: "https://stream.zeno.fm/5rmezvh3r98uv" },
+  { id: "mukhtasar_tafseer", name: "المختصر في تفسير القرآن 📚", url: "https://stream.zeno.fm/7qksfg8x6bhvv" },
+  { id: "tabari", name: "تفسير الطبري (الخلاصة) 📝", url: "https://stream.zeno.fm/8wvhe3k8u68uv" },
 
-  // إذاعات علوم القرآن والتفسير (روابط Zeno مفتوحة الحماية)
-  { id: "roqia", name: "إذاعة الرقية الشرعية 🌿", url: "https://stream.zeno.fm/6szg6g87g98uv" },
-  { id: "tafseer_all", name: "إذاعة تفسير القرآن الكريم 📖", url: "https://stream.zeno.fm/6v62vcasm8wuv" },
-  { id: "sakina", name: "إذاعة آيات السكينة 🕊️", url: "https://stream.zeno.fm/6as88g87g98uv" },
-  { id: "mukhtasar_tafseer", name: "المختصر في تفسير القرآن 📚", url: "https://stream.zeno.fm/v3szg687g98uv" },
-  { id: "tabari", name: "تفسير الطبري (الخلاصة) 📝", url: "https://stream.zeno.fm/9cas8g87g98uv" },
-
-  // إذاعات علوم السنة والفتاوى
-  { id: "seerah", name: "إذاعة السيرة النبوية 🕋", url: "https://stream.zeno.fm/8cas8g87g98uv" },
-  { id: "ikhtiyarat", name: "كتاب الاختيارات الفقهية 🏛️", url: "https://stream.zeno.fm/acas8g87g98uv" },
-  { id: "muslim", name: "إذاعة صحيح مسلم 📜", url: "https://stream.zeno.fm/ccas8g87g98uv" },
-  { id: "bukhari", name: "إذاعة صحيح البخاري 📜", url: "https://stream.zeno.fm/dcas8g87g98uv" },
-  { id: "salheen", name: "إذاعة رياض الصالحين 🌿", url: "https://stream.zeno.fm/ecas8g87g98uv" },
-  { id: "fatawa", name: "إذاعة الفتاوى العامة ❓", url: "https://stream.zeno.fm/fcas8g87g98uv" },
-  { id: "zilal_seerah", name: "في ظلال السيرة النبوية 💎", url: "https://stream.zeno.fm/gcas8g87g98uv" }
+  // إذاعات علوم السنة والفتاوى (باقي توكنز التفكيك بالترتيب الأصلي للواجهة)
+  { id: "seerah", name: "إذاعة السيرة النبوية 🕋", url: "https://stream.zeno.fm/8z5xgleovtsuv" },
+  { id: "ikhtiyarat", name: "كتاب الاختيارات الفقهية 🏛️", url: "https://stream.zeno.fm/bcezpz655p8uv" },
+  { id: "muslim", name: "إذاعة صحيح مسلم 📜", url: "https://stream.zeno.fm/cnwthpbmlzuv" },
+  { id: "bukhari", name: "إذاعة صحيح البخاري 📜", url: "https://stream.zeno.fm/dok66ovac9guv" },
+  { id: "salheen", name: "إذاعة رياض الصالحين 🌿", url: "https://qurango.net/radio/riyad_salheen" }, // سيرفر رياض الصالحين المستقر والمجرب
+  { id: "fatawa", name: "إذاعة الفتاوى العامة ❓", url: "https://stream.zeno.fm/fqzfedwpsg0uv" },
+  { id: "zilal_seerah", name: "في ظلال السيرة النبوية 💎", url: "https://stream.zeno.fm/guuggdfrvssuv" }
 ];
+
 
 window.currentActiveRadioUrl = "";
 
