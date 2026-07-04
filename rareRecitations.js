@@ -2,7 +2,7 @@
 // مصفوفة التلاوات النادرة المظبوطة بالملي حسب شيوخك
 // ==========================================
 window.rareRecitations = [
-  // تلاوات الشيخ محمد عباده المرتبة من 1 إلى 27 (تم حذف تلاوة سورة هود القديمة)
+  // تلاوات الشيخ محمد عباده المرتبة من 1 إلى 27
   { name: "محمد عباده: تلاوة خاشعة 1 🎙️", url: "audio/obada_1.mp3", desc: "", tag: "محمد عباده" },
   { name: "محمد عباده: تلاوة خاشعة 2 🎙️", url: "audio/obada_2.mp3", desc: "", tag: "محمد عباده" },
   { name: "محمد عباده: تلاوة خاشعة 3 🎙️", url: "audio/obada_3.mp3", desc: "", tag: "محمد عباده" },
@@ -31,8 +31,18 @@ window.rareRecitations = [
   { name: "محمد عباده: تلاوة خاشعة 26 🎙️", url: "audio/obada_26.mp3", desc: "", tag: "محمد عباده" },
   { name: "محمد عباده: تلاوة خاشعة 27 🎙️", url: "audio/obada_27.mp3", desc: "", tag: "محمد عباده" },
   
-  // باقي الشيوخ (تم تصفير الوصف لمنع ظهوره أيضاً)
-  { name: "المنشاوي: سورة الحشر 🎙️", url: "audio/minshawi_1.mp3", desc: "", tag: "منشاوي" },
+  // تلاوات الشيخ محمد صديق المنشاوي المضافة حديثاً من واقع مجلد المستودع
+  { name: "المنشاوي: تلاوة خاشعة 1 🎙️", url: "audio/minshawi_1.mp3", desc: "", tag: "منشاوي" },
+  { name: "المنشاوي: تلاوة خاشعة 2 🎙️", url: "audio/minshawi_2.mp3", desc: "", tag: "منشاوي" },
+  { name: "المنشاوي: تلاوة خاشعة 3 🎙️", url: "audio/minshawi_3.mp3", desc: "", tag: "منشاوي" },
+  { name: "المنشاوي: تلاوة خاشعة 4 🎙️", url: "audio/minshawi_4.mp3", desc: "", tag: "منشاوي" },
+  { name: "المنشاوي: تلاوة خاشعة 5 🎙️", url: "audio/minshawi_5.mp3", desc: "", tag: "منشاوي" },
+  { name: "المنشاوي: تلاوة خاشعة 6 🎙️", url: "audio/minshawi_6.mp3", desc: "", tag: "منشاوي" },
+  { name: "المنشاوي: تلاوة خاشعة 7 🎙️", url: "audio/minshawi_7.mp3", desc: "", tag: "منشاوي" },
+  { name: "المنشاوي: تلاوة خاشعة 8 🎙️", url: "audio/minshawi_8.mp3", desc: "", tag: "منشاوي" },
+  { name: "المنشاوي: تلاوة خاشعة 9 🎙️", url: "audio/minshawi_9.mp3", desc: "", tag: "منشاوي" },
+
+  // باقي الشيوخ في المنظومة
   { name: "ياسر الدوسري: روائع المحافل 🎙️", url: "audio/3.mp3", desc: "", tag: "الدوسري" },
   { name: "عبد الباسط: روائع قصار السور 🎙️", url: "audio/4.mp3", desc: "", tag: "عبد الباسط" },
   { name: "الحصري: قراءة متأنية 🎙️", url: "audio/5.mp3", desc: "", tag: "حصري" },
@@ -115,7 +125,7 @@ window.filterRare = function(tag) {
   window.renderRareRecitations();
 };
 
-// دالة الرسم العالمية لضخ الكروت (تم حذف كود سطر الوصف منها تماماً)
+// دالة الرسم العالمية لضخ الكروت
 window.renderRareRecitations = function() {
   const container = document.getElementById('rareList');
   if (!container) return;
