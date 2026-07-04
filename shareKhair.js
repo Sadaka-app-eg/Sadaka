@@ -286,11 +286,25 @@ window.executeKhairShare = function(type) {
 
     // تصدير الصورة - تم إصلاح الأقواس هنا
     canvas.toBlob((blob) => {
-      const link = document.createElement('a');
-      link.download = 'Athar_Perfect_Design.png';
-      link.href = URL.createObjectURL(blob);
-      link.click();
-      alert('تم حفظ البطاقة بنجاح! ✨🖼️');
+        // تصدير الصورة ومشاركتها مباشرة عبر قائمة النظام
+    canvas.toBlob((blob) => {
+      const file = new File([blob], "Athar_Perfect_Design.png", { type: "image/png" });
+      
+      // التحقق مما إذا كان المتصفح يدعم مشاركة الملفات
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        navigator.share({
+          files: [file],
+          title: 'كُن ذا أثر',
+          text: 'شارك الأثر الجميل'
+        }).catch((error) => console.log('خطأ في المشاركة:', error));
+      } else {
+        // لو الجهاز لا يدعم المشاركة المباشرة (مثل المتصفحات القديمة)، يحملها كتحميل
+        const link = document.createElement('a');
+        link.download = 'Athar_Perfect_Design.png';
+        link.href = canvas.toDataURL();
+        link.click();
+        alert('تم حفظ البطاقة في جهازك بنجاح! 🖼️');
+      }
     }, 'image/png');
   } // نهاية شرط الـ image
 }; // نهاية الدالة executeKhairShare
