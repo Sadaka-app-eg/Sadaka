@@ -2831,41 +2831,54 @@ function actionSelect() {
 window.ayahRepeatCount = 1; // الافتراضي تعمل مرة واحدة
 window.currentAyahRepeatProgress = 1;
 
-function handleAyahClick(idx) {
-  if (!window.isPickingEndAyah || window.firstSelectedAyahIndex === null) return;
-  
-  const start = Math.min(window.firstSelectedAyahIndex, idx);
-  const end = Math.max(window.firstSelectedAyahIndex, idx);
-  
-  selectedAyahsQueue = [];
-  document.querySelectorAll('.ayah-span').forEach(el => el.classList.remove('selected'));
-  
-  for (let i = start; i <= end; i++) {
-    selectedAyahsQueue.push(i);
-    const span = document.getElementById(`ayah_${i}`);
-    if (span) span.classList.add('selected');
-  }
-  
-  selectedAyahsQueue.sort((a, b) => a - b);
-  
-  window.isPickingEndAyah = false;
-  window.firstSelectedAyahIndex = null;
-  
-  // 🔥 السحر هنا: سؤال المستخدم عن عدد مرات التكرار فوراً بعد تحديد النطاق
-  setTimeout(() => {
-    let repeatInput = prompt("🔂 تريد تكرار كل آية كم مرة؟\n(اكتب 1 للتشغيل العادي بدون تكرار):", "3");
-    let repeatNum = parseInt(repeatInput);
+window.handleAyahClick = function(idx) {
+  // 1. لو لسه مابدأناش تحديد، بنسجل آية البداية
+  if (!window.isPickingEndAyah) {
+    window.firstSelectedAyahIndex = idx;
+    window.isPickingEndAyah = true;
     
-    if (!isNaN(repeatNum) && repeatNum > 0) {
-      window.ayahRepeatCount = repeatNum;
-    } else {
-      window.ayahRepeatCount = 1; // الافتراضي لو كنسل أو كتب غلط
+    // تظليل آية البداية فقط
+    selectedAyahsQueue = [idx];
+    document.querySelectorAll('.ayah-span').forEach(el => el.classList.remove('selected'));
+    document.getElementById(`ayah_${idx}`)?.classList.add('selected');
+    
+    // تحديث الحالة للمستخدم
+    const statusEl = document.getElementById('audioStatus');
+    if (statusEl) {
+      statusEl.innerHTML = `<span style="color:var(--gold); font-weight:bold;">تم تحديد البداية.. اضغط الآن على آية النهاية 🏁</span>`;
+    }
+  } 
+  // 2. لو إحنا فعلاً في وضع تحديد النهاية
+  else {
+    const start = Math.min(window.firstSelectedAyahIndex, idx);
+    const end = Math.max(window.firstSelectedAyahIndex, idx);
+    
+    selectedAyahsQueue = [];
+    document.querySelectorAll('.ayah-span').forEach(el => el.classList.remove('selected'));
+    
+    for (let i = start; i <= end; i++) {
+      selectedAyahsQueue.push(i);
+      document.getElementById(`ayah_${i}`)?.classList.add('selected');
     }
     
-    window.currentAyahRepeatProgress = 1; // تصفير عداد البداية
-    updateAudioStatus();
-  }, 200);
-}
+    selectedAyahsQueue.sort((a, b) => a - b);
+    
+    // إعادة ضبط المتغيرات
+    window.isPickingEndAyah = false;
+    window.firstSelectedAyahIndex = null;
+    
+    // الآن فقط نسأل عن التكرار بعد ما حددنا النطاق كامل
+    setTimeout(() => {
+      let repeatInput = prompt("🔂 تريد تكرار النطاق كم مرة؟ (1 للتكرار مرة واحدة):", "1");
+      window.ayahRepeatCount = parseInt(repeatInput) || 1;
+      window.currentAyahRepeatProgress = 1;
+      updateAudioStatus();
+    }, 200);
+  }
+};
+
+  
+  
 
 
 function actionShare() {
@@ -3026,41 +3039,31 @@ function toggleAudio() {
   const fileKey = `${surahNum}${ayahNum}`;
 
   // 🎯 استبدل الجزء الخاص بتحديد الـ audioSource في دالة playNextInQueue بالكود ده:
+  // داخل دالة playNextInQueue، استبدل جزء الـ audioSource بهذا:
+let audioSource = '';
+const surahNum = String(currentSurah.n).padStart(3, '0');
+const ayahNum = String(a.numberInSurah).padStart(3, '0');
 
-  let audioSource = '';
+// استخدام رابط ثابت وموحد للآيات يضمن التشغيل للجميع
+// هذا الرابط يدعم الآيات الفردية لكافة القراء الأساسيين
+audioSource = `https://cdn.islamic.network/quran/audio/128/${getReciterApiId(currentReciter)}/${a.globalNumber}.mp3`;
 
-  // 1. لو الرواية حفص: استخدم سيرفرات الـ 10 قراء بتوعك اللي أنت معرفهم
-  if (window.currentSelectedRoaya === 'hafs') {
-    if (currentReciter === 'shrim') {
-      audioSource = `https://www.everyayah.com/data/Saood_ash-Shuraym_128kbps/${fileKey}.mp3`;
-    } else if (currentReciter === 'frs_a') {
-      audioSource = `https://www.everyayah.com/data/Fares_Abbad_64kbps/${fileKey}.mp3`;
-    } else if (currentReciter === 'dosr') {
-      audioSource = `https://www.everyayah.com/data/Yasser_Ad-Dussary_128kbps/${fileKey}.mp3`;
-    } else if (currentReciter === 'basit') {
-      audioSource = `https://www.everyayah.com/data/Abdul_Basit_Murattal_192kbps/${fileKey}.mp3`;
-    } else {
-      let reciterApiId = 'ar.minshawi';
-      if (currentReciter === 'husary') reciterApiId = 'ar.husary';
-      else if (currentReciter === 'afs') reciterApiId = 'ar.alafasy';
-      else if (currentReciter === 'maher') reciterApiId = 'ar.mahermuaiqly';
-      else if (currentReciter === 'ajm') reciterApiId = 'ar.ahmedajamy';
-      else if (currentReciter === 'qarafi') reciterApiId = 'ar.qarafi';
-      
-      audioSource = `https://cdn.islamic.network/quran/audio/128/${reciterApiId}/${a.globalNumber}.mp3`;
-    }
-  } 
-  // 2. لو أي رواية تانية: استخدم القارئ المخصص للرواية من ملف quranData.js
-  else {
-    const roayaObj = window.quranReadingsData.find(r => r.id === window.currentSelectedRoaya);
-    if (roayaObj && roayaObj.readers[0].apiId) {
-       audioSource = `https://cdn.islamic.network/quran/audio/128/${roayaObj.readers[0].apiId}/${a.globalNumber}.mp3`;
-    }
- }
-
-  // إسناد الرابط الجديد والتشغيل الآمن
-  audio.src = audioSource;
-  
+// دالة مساعدة لجلب معرف القارئ الصحيح للـ API
+function getReciterApiId(reciter) {
+  const map = {
+    'minsh': 'ar.minshawi',
+    'husary': 'ar.husary',
+    'afs': 'ar.alafasy',
+    'maher': 'ar.mahermuaiqly',
+    'ajm': 'ar.ahmedajamy',
+    'basit': 'ar.abdulbasitmurattal',
+    'shrim': 'ar.saoodashuraym',
+    'dosr': 'ar.yasseraldossari',
+    'qarafi': 'ar.qarafi'
+  };
+  return map[reciter] || 'ar.minshawi';
+}
+audio.src = audioSource;
   audio.play()
     .then(() => {
       isPlaying = true;
@@ -3070,7 +3073,7 @@ function toggleAudio() {
 if ('mediaSession' in navigator) {
   navigator.mediaSession.metadata = new MediaMetadata({
     title: `الآية ${currentAyahsData[idx].numberInSurah}`,
-    artist: "صدقة جارية عن شيماء سعيد",
+    artist: "أثر",
     album: "القرآن الكريم"
   });
 
