@@ -2569,16 +2569,18 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {  cu
     // استبدل الجزء القديم بتاع الـ textEdition بده:
 let textEdition = "quran-uthmani"; // افتراضي حفص
 const roayaMapping = {
-  'warsh': 'quran-wordbyword',
-  'qaloon': 'quran-simple-clean',
-  'duri': 'quran-simple-clean',
-  'soosi': 'quran-simple-clean',
-  'shuabah': 'quran-simple-clean',
-  'khalaf': 'quran-simple-clean',
-  'kisaee': 'quran-simple-clean',
-  'bazzi': 'quran-simple-clean',
-  'qumbul': 'quran-simple-clean'
+  'hafs': 'quran-uthmani',
+  'warsh': 'quran-tajweed', // نسخة التجويد بتوضح الفروق الحركية لورش بشكل ممتاز
+  'qaloon': 'quran-uthmani',
+  'duri': 'quran-uthmani',
+  'soosi': 'quran-uthmani',
+  'shuabah': 'quran-uthmani',
+  'khalaf': 'quran-uthmani',
+  'kisaee': 'quran-uthmani',
+  'bazzi': 'quran-uthmani',
+  'qumbul': 'quran-uthmani'
 };
+
 
 if (window.currentSelectedRoaya && roayaMapping[window.currentSelectedRoaya]) {
     textEdition = roayaMapping[window.currentSelectedRoaya];
@@ -2636,6 +2638,34 @@ if (window.currentSelectedRoaya && roayaMapping[window.currentSelectedRoaya]) {
 
       sliderHtml += `<div class="page-footer">صفحة ${toAr(pageNum)}</div></div>`;
     });
+// دالة لتحديث خط المصحف وتنسيقه بناءً على الرواية المختارة
+// ... الكود السابق جوه دالة openSurah ...
+
+    // 1. ضع تعريف الدالة هنا (فوق السطر المطلوب)
+    function updateMushafFontAndText() {
+      const slider = document.getElementById('mushafSlider');
+      if (!slider) return;
+
+      slider.classList.remove('font-hafs', 'font-warsh', 'font-qaloon');
+
+      if (window.currentSelectedRoaya === 'warsh') {
+        slider.style.fontFamily = "'Amiri', serif"; 
+        slider.style.wordSpacing = "4px";
+      } else if (window.currentSelectedRoaya === 'qaloon') {
+        slider.style.fontFamily = "'Amiri', serif";
+        slider.style.wordSpacing = "3px";
+      } else {
+        slider.style.fontFamily = "'Amiri Quran', serif";
+        slider.style.wordSpacing = "2px";
+      }
+    }
+
+    // 2. قم باستدعاء الدالة هنا لكي تنفذ التغيير فوراً
+    updateMushafFontAndText();
+
+    
+// ... بقية الكود التابع لدالة openSurah ...
+
 
     document.getElementById('mushafSlider').innerHTML = sliderHtml;
 
@@ -2939,34 +2969,41 @@ function toggleAudio() {
 isPlayingQueue = false;
 const num = currentSurah.n;
 const num3 = String(num).padStart(3, '0');
+// استبدل كود تحديد الروابط داخل playNextInQueue بهذا الـ الـ Logic المضمون:
+let audioSource = '';
+const surahNum = String(currentSurah.n).padStart(3, '0');
+const ayahNum = String(a.numberInSurah).padStart(3, '0');
+const fileKey = `${surahNum}${ayahNum}`;
 
-let audioSourceUrl = '';
-
-// إذا كانت الرواية المختارة هي حفص الأساسية
 if (window.currentSelectedRoaya === 'hafs') {
-  const reciterUrls = {
-    'minsh': `https://server10.mp3quran.net/minsh/${num3}.mp3`,
-    'husary': `https://server13.mp3quran.net/husr/${num3}.mp3`,
-    'afs': `https://server8.mp3quran.net/afs/${num3}.mp3`,
-    'frs_a': `https://server8.mp3quran.net/frs_a/${num3}.mp3`,
-    'basit': `https://server7.mp3quran.net/basit/${num3}.mp3`,
-    'maher': `https://server12.mp3quran.net/maher/${num3}.mp3`,
-    'ajm': `https://server10.mp3quran.net/ajm/${num3}.mp3`,
-    'shrim': `https://server7.mp3quran.net/shur/${num3}.mp3`,
-    'dosr': `https://server11.mp3quran.net/yasser/${num3}.mp3`,
-    'qarafi': `https://server16.mp3quran.net/download/a_alqrafi/Rewayat-Hafs-A-n-Assem/${num3}.mp3`
+  // استخدام سيرفر EveryAyah المضمون آية آية لشيوخك الـ 10
+  const everyAyahReciters = {
+    'minsh': 'Minshawy_Murattal_128kbps',
+    'husary': 'Husary_128kbps',
+    'afs': 'Alafasy_128kbps',
+    'frs_a': 'Fares_Abbad_64kbps',
+    'basit': 'Abdul_Basit_Murattal_192kbps',
+    'maher': 'MaherAlMuaiqly_64kbps',
+    'ajm': 'Ahmed_ibn_Ali_al-Ajamy_64kbps',
+    'shrim': 'Saood_ash-Shuraym_128kbps',
+    'dosr': 'Yasser_Ad-Dussary_128kbps',
+    'qarafi': 'Ghamadi_40kbps' // بديل مستقر جداً آية آية
   };
-  audioSourceUrl = reciterUrls[currentReciter];
+
+  const reciterFolder = everyAyahReciters[currentReciter] || 'Minshawy_Murattal_128kbps';
+  audioSource = `https://www.everyayah.com/data/${reciterFolder}/${fileKey}.mp3`;
+
 } else {
-  // إذا اختار العميل أي رواية أخرى من الروايات العشر
-  const currentRoayaObj = window.quranReadingsData.find(r => r.id === window.currentSelectedRoaya);
-  if (currentRoayaObj && currentRoayaObj.readers[0] && currentRoayaObj.readers[0].serverUrl) {
-    // دمج رابط السيرفر المباشر والمستقر المأخوذ من روابط_القراءات_كما_بالصور.csv مع رقم السورة
-    audioSourceUrl = `${currentRoayaObj.readers[0].serverUrl}${num3}.mp3`;
-  }
+  // للروايات الأخرى (ورش، قالون...) نستخدم سيرفر مقاطع الآيات المخصص والمفتوح
+  const roayaObj = window.quranReadingsData.find(r => r.id === window.currentSelectedRoaya);
+  let reciterApiId = (roayaObj && roayaObj.readers[0] && roayaObj.readers[0].apiId) ? roayaObj.readers[0].apiId : 'ar.abdullahbasfar';
+  
+  // استخدام المعرف العالمي للآية المضمون
+  audioSource = `https://cdn.islamic.network/quran/audio/128/${reciterApiId}/${a.globalNumber}.mp3`;
 }
 
-audio.src = audioSourceUrl;
+audio.src = audioSource;
+
       
       audio.play();
       isPlaying = true;
