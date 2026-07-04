@@ -756,6 +756,7 @@ body.in-subpage .back-to-home-btn {
 
  <div class="tab" onclick="showPage('radioPage',this)">📻 الإذاعات المباشرة</div> <!-- ضيف السطر ده هنا -->
 <div class="tab" onclick="showPage('settingsPage', this)">⚙️ الإعدادات وحسابي</div>
+<div class="tab" onclick="showPage('janazaPage',this)">🕊️ قسم الجنائز</div>
 
 </div>
 
@@ -1440,6 +1441,58 @@ body.in-subpage .back-to-home-btn {
   <div id="obeyPlanPageContainer"></div>
 </div>
 
+<!-- 🕊️ PAGE JANAZA -->
+<div class="page" id="janazaPage">
+  <div style="text-align: center; margin-bottom: 20px;">
+    <h2 style="color: var(--gold); font-family: 'Amiri', serif; font-size: 24px;">🕊️ نِظَامُ وَإِعْلَانَاتُ الجَنَائِزِ</h2>
+    <p style="color: var(--text2); font-size: 13px;">انشر إعلانات الجنائز واحتسب أجر الصلاة والدفن</p>
+  </div>
+
+  <!-- كارت إدخال البيانات الفاخر -->
+  <div style="background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--border); border-right: 4px solid var(--gold); display: flex; flex-direction: column; gap: 14px; direction: rtl;">
+    <div>
+      <label style="font-size: 13px; color: var(--gold); display: block; margin-bottom: 6px; font-weight: bold;">👤 الاسم الكامل للمتوفى:</label>
+      <input type="text" id="jName" placeholder="اكتب الاسم بالكامل يرحمه الله..." style="width:100%; padding:12px; border-radius:12px; background:var(--bg2); color:var(--text); border:1px solid var(--border); font-family:'Amiri',serif; font-size:15px; outline:none;">
+    </div>
+
+    <div>
+      <label style="font-size: 13px; color: var(--gold); display: block; margin-bottom: 6px; font-weight: bold;">📍 المنطقة أو البلدة:</label>
+      <input type="text" id="jLocation" placeholder="مثال: أبو رجوان البحري - الجيزة..." style="width:100%; padding:12px; border-radius:12px; background:var(--bg2); color:var(--text); border:1px solid var(--border); font-family:'Amiri',serif; font-size:15px; outline:none;">
+    </div>
+
+    <div>
+      <label style="font-size: 13px; color: var(--gold); display: block; margin-bottom: 6px; font-weight: bold;">🧬 النوع:</label>
+      <div style="display: flex; gap: 10px;">
+        <button id="jGenderMale" onclick="setJanazaGender('ذكر')" style="flex:1; padding:11px; border-radius:12px; border:1px solid var(--gold); background:rgba(212,175,55,0.15); color:var(--gold); font-family:'Amiri',serif; font-weight:bold; cursor:pointer;">👨 ذكر</button>
+        <button id="jGenderFemale" onclick="setJanazaGender('أنثى')" style="flex:1; padding:11px; border-radius:12px; border:1px solid var(--border); background:var(--bg2); color:var(--text2); font-family:'Amiri',serif; font-weight:bold; cursor:pointer;">👩 أنثى</button>
+      </div>
+    </div>
+
+    <div>
+      <label style="font-size: 13px; color: var(--gold); display: block; margin-bottom: 6px; font-weight: bold;">👨‍👩‍👧‍👦 صلة القرابة (اختياري):</label>
+      <input type="text" id="jRelation" placeholder="مثال: والده، والدته، عمه.. أو اتركه فارغاً" style="width:100%; padding:12px; border-radius:12px; background:var(--bg2); color:var(--text); border:1px solid var(--border); font-family:'Amiri',serif; font-size:15px; outline:none;">
+    </div>
+
+    <div>
+      <label style="font-size: 13px; color: var(--gold); display: block; margin-bottom: 6px; font-weight: bold;">🕌 وقت صلاة الجنازة (اختياري):</label>
+      <input type="text" id="jTime" placeholder="مثال: صلاة الظهر، صلاة العصر..." style="width:100%; padding:12px; border-radius:12px; background:var(--bg2); color:var(--text); border:1px solid var(--border); font-family:'Amiri',serif; font-size:15px; outline:none;">
+    </div>
+
+    <!-- زر توليد البيانات والمشاركة -->
+    <button onclick="processJanazaData()" style="width:100%; background:var(--gold); color:#111; border:none; padding:14px; border-radius:14px; font-family:'Amiri',serif; font-size:16px; font-weight:700; cursor:pointer; margin-top:10px; display:flex; align-items:center; justify-content:center; gap:8px;">✨ حفظ وتجهيز الإعلان للمشاركة</button>
+  </div>
+</div>
+
+<!-- 📦 JANAZA BOTTOM SHEET DIALOG -->
+<div class="overlay-dimmer" id="janazaDimmer" onclick="closeJanazaSheet()"></div>
+<div class="action-sheet" id="janazaSheet" style="z-index: 9999999;">
+  <div class="action-title">🕊️ خيارات مشاركة إعلان الجنازة</div>
+  <div style="padding: 10px 0; display:flex; flex-direction:column; gap:8px;">
+    <button class="action-btn" onclick="shareJanazaAsText()"><span>📝</span> مشاركة كـ نَصّ مبرمج تلقائياً</button>
+    <button class="action-btn" onclick="shareJanazaAsImage()"><span>🖼️</span> مشاركة كـ صُورَة تصميم راقٍ</button>
+    <button class="action-btn action-cancel" onclick="closeJanazaSheet()"><span>✕</span> إلغاء الإغلاق</button>
+  </div>
+</div>
 
 <!-- OVERLAY DIMMER -->
 <div class="overlay-dimmer" id="overlayDimmer" onclick="closeActionMenu()"></div>
@@ -5255,6 +5308,7 @@ function updateSettingsAccountBox() {
 <script src="quranData.js"></script>
 <script src="quranInsights.js"></script> <!-- هنا بالظبط -->
 <script src="obeyPlan.js"></script> 
+<script src="janaza.js"></script>
 
  <script type="module">
   // الغاء مفعول دالة الـ load القديمة تماماً لكسر حلقة إعادة تسجيل الدخول
