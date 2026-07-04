@@ -1,6 +1,6 @@
-// ==========================================
+// ==========================================================
 // محرك وقسم "شارك في الخير" - تطبيق كُن ذا أثر
-// ==========================================
+// ==========================================================
 
 const khairSunanData = [
   { id: 1, type: "حديث", text: "مَنْ تَوَلَّى عَمَلًا وَهُوَ يَعْلَمُ أَنَّهُ لَيْسَ لِذَلِكَ العَمَلِ أَهْلٌ؛ فَلْيَتَبَّوَأْ مَقْعَدَهُ مِنَ النَّارِ", source: "إسناده حسن • السلسلة الصحيحة" },
@@ -12,7 +12,7 @@ const khairSunanData = [
 
 // توليد مصفوفة الـ 50 موعظة للسلف الصالح بالملي
 const khairSalafData = [
-  { id: 1, type: "موعظة", text: "لو التمس أحدكم الحق بصدق، لأوشك أن يقع عليه، فإن الحق منار لا يخفى على قاصد.", author: "عمر بن الخطاب رضي الله عنه" },
+  { id: 1, type: "موعظة", text: "لو التمس أحدكم الحق بصدق، لأوشك أن يقع عليه, فإن الحق منار لا يخفى على قاصد.", author: "عمر بن الخطاب رضي الله عنه" },
   { id: 2, type: "موعظة", text: "من أصلح سريرته أصلح الله علانيته، ومن أصلح ما بينه وبين الله أصلح الله ما بينه وبين الناس.", source: "ابن عون رحمه الله" },
   { id: 3, type: "موعظة", text: "إنكم في زمان من ترك فيه عشراً مما أُمر به هلك، وسيجيء زمان من عمل فيه بعشر مما أُمر به نجا.", source: "الحسن البصري رحمه الله" },
   { id: 4, type: "موعظة", text: "ليس العجب ممن هلك كيف هلك، إنما العجب ممن نجا كيف نجا مع كثرة الفتن.", source: "سفيان الثوري رحمه الله" },
@@ -23,6 +23,7 @@ const khairSalafData = [
   { id: 9, type: "موعظة", text: "إذا رأيت الله ينعم على العبد وهو مقيم على معاصيه فاعلم أنما ذلك استدراج.", source: "ابن القيم رحمه الله" },
   { id: 10, type: "موعظة", text: "الصلاة تجلب الرزق، وتحفظ الصحة، وتدفع الأذى، وتطرد الداء، وتقوي القلب.", source: "ابن القيم الجوزية" }
 ];
+
 // ملء بقية الـ 50 موعظة تلقائياً لثبات وبناء رصيد الكود
 for(let i = 11; i <= 50; i++) {
   khairSalafData.push({
@@ -38,9 +39,14 @@ let activeSelectedItem = null;
 
 window.switchKhairTab = function(tab) {
   activeKhairTab = tab;
-  document.getElementById('btnKhairSunan').classList.toggle('active', tab === 'sunan');
-  document.getElementById('btnKhairSalaf').classList.toggle('active', tab === 'salaf');
-  renderKhairCards();
+  
+  const btnSunan = document.getElementById('btnKhairSunan');
+  const btnSalaf = document.getElementById('btnKhairSalaf');
+  
+  if (btnSunan) btnSunan.classList.toggle('active', tab === 'sunan');
+  if (btnSalaf) btnSalaf.classList.toggle('active', tab === 'salaf');
+  
+  window.renderKhairCards();
 };
 
 window.renderKhairCards = function() {
@@ -60,7 +66,7 @@ window.renderKhairCards = function() {
       <div style="font-size:12px; color:var(--green); font-family:'Amiri', serif; margin-bottom:12px; border-right:2px solid var(--green); padding-right:8px;">
         ${item.source || item.author}
       </div>
-      <button onclick="openKhairShareSheet(${item.id})" style="width:100%; padding:10px; background:var(--bg2); border:1px solid var(--border); color:var(--gold); border-radius:12px; font-family:'Amiri', serif; font-weight:bold; cursor:pointer; transition:0.2s;">
+      <button onclick="window.openKhairShareSheet(${item.id})" style="width:100%; padding:10px; background:var(--bg2); border:1px solid var(--border); color:var(--gold); border-radius:12px; font-family:'Amiri', serif; font-weight:bold; cursor:pointer; transition:0.2s;">
         ✨ انشر واحتسب الأثر
       </button>
     </div>
@@ -73,17 +79,23 @@ window.openKhairShareSheet = function(id) {
   
   if(!activeSelectedItem) return;
   
-  document.getElementById('khairDimmer').classList.add('show');
-  document.getElementById('khairSheet').classList.add('show');
+  const dimmer = document.getElementById('khairDimmer');
+  const sheet = document.getElementById('khairSheet');
+  
+  if (dimmer) dimmer.classList.add('show');
+  if (sheet) sheet.classList.add('show');
 };
 
 window.closeKhairSheet = function() {
-  document.getElementById('khairDimmer').classList.remove('show');
-  document.getElementById('khairSheet').classList.remove('show');
+  const dimmer = document.getElementById('khairDimmer');
+  const sheet = document.getElementById('khairSheet');
+  
+  if (dimmer) dimmer.classList.remove('show');
+  if (sheet) sheet.classList.remove('show');
 };
 
 window.executeKhairShare = function(type) {
-  closeKhairSheet();
+  window.closeKhairSheet();
   if(!activeSelectedItem) return;
 
   const headerTitle = activeKhairTab === 'sunan' ? "قال رسول الله ﷺ:" : "من مواعظ السلف الصالح:";
@@ -98,26 +110,21 @@ window.executeKhairShare = function(type) {
       alert('تم نسخ النص المبارك وجاهز للمشاركة واللصق فوراً! ✓');
     }
   } else if (type === 'image') {
-    // محرك توليد الصور المتقدم بالحقوق الجديدة (أثر)
     const canvas = document.createElement('canvas');
     canvas.width = 1080;
-    canvas.height = 1350; // مقاس بوست انستقرام وفيس بوك احترافي
+    canvas.height = 1350; 
     const ctx = canvas.getContext('2d');
 
-    // خلفية إسلامية فخمة داكنة
     ctx.fillStyle = "#0b120c";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // طبقة وهج خفيفة
     ctx.fillStyle = "rgba(255, 215, 0, 0.02)";
     ctx.fillRect(30, 30, canvas.width - 60, canvas.height - 60);
 
-    // إطار ذهبي
     ctx.strokeStyle = "#d4af37";
     ctx.lineWidth = 8;
     ctx.strokeRect(40, 40, canvas.width - 80, canvas.height - 80);
 
-    // العنوان العلوي بالفون الطويل الفخم الأحمر الجميل المتطابق مع 66144.jpg
     ctx.fillStyle = "#b71c1c";
     ctx.fillRect(340, 100, 400, 80);
     ctx.fillStyle = "#ffffff";
@@ -126,7 +133,6 @@ window.executeKhairShare = function(type) {
     ctx.direction = "rtl";
     ctx.fillText(headerTitle, 540, 152);
 
-    // نص الموعظة أو الحديث
     ctx.fillStyle = "#ffffff";
     ctx.font = "bold 46px 'Amiri Quran', serif";
     
@@ -149,13 +155,11 @@ window.executeKhairShare = function(type) {
     }
     ctx.fillText(line, 540, y);
 
-    // المصدر والتحقيق السفلية
     ctx.fillStyle = "#a5d6a7";
     ctx.font = "30px 'Amiri', serif";
     ctx.fillText(activeSelectedItem.source || activeSelectedItem.author, 540, y + 140);
 
-    // 🌟 استبدال مجالس الذكر بـ كلمة (أَثَر) في المربع الخشبي أسفل يسار البطاقة بالظبط!
-    ctx.fillStyle = "#3e2723"; // لون خشبي
+    ctx.fillStyle = "#3e2723"; 
     ctx.fillRect(80, 1180, 160, 65);
     ctx.strokeStyle = "#d4af37";
     ctx.lineWidth = 2;
@@ -164,7 +168,6 @@ window.executeKhairShare = function(type) {
     ctx.font = "bold 28px 'Amiri', serif";
     ctx.fillText("أَثَر", 160, 1222);
 
-    // تحميل الصورة ومشاركتها فوراً
     canvas.toBlob((blob) => {
       const file = new File([blob], "Aثر_Post.png", { type: "image/png" });
       if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -180,14 +183,31 @@ window.executeKhairShare = function(type) {
   }
 };
 
-// تشغيل وضخ البيانات تلقائياً عند الدخول للصفحة
+// =========================================================
+// محرك الربط الآمن لقسم "شارك في الخير" مع نظام التنقل الموحد
+// =========================================================
+window.checkAndRenderShareKhair = function() {
+  const page = document.getElementById('shareKhairPage');
+  if (page && (page.classList.contains('active') || page.style.display === 'block')) {
+    window.switchKhairTab(activeKhairTab || 'sunan');
+  }
+};
+
+// عمل سحر الـ Hooking لدمج الضخ مع الدالة الأساسية بعد استقرار الـ DOM بالكامل
 document.addEventListener('DOMContentLoaded', () => {
-  // دمج المحرك مع نظام الصفحات
-  const oldShowPage = window.showPage;
-  window.showPage = function(id, el) {
-    if(oldShowPage) oldShowPage(id, el);
-    if(id === 'shareKhairPage') {
-      window.switchKhairTab('sunan');
-    }
-  };
+  setTimeout(() => {
+    const originalShowPage = window.showPage;
+    
+    window.showPage = function(id, el) {
+      if (typeof originalShowPage === 'function') {
+        originalShowPage(id, el);
+      }
+      
+      if (id === 'shareKhairPage') {
+        window.switchKhairTab('sunan');
+      }
+    };
+    
+    window.checkAndRenderShareKhair();
+  }, 1000);
 });
