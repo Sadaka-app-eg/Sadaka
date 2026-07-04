@@ -2524,68 +2524,54 @@ function filterSurahs(q) {
 // ===========================
  // تعديل السطر الأول للدالة ليصبح هكذا
 
-async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {  currentSurah = surahs.find(s => s.n === n);
+ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
+  currentSurah = surahs.find(s => s.n === n) || surahs[0];
   localStorage.setItem('last_active_surah', n);
   localStorage.setItem('surah_screen_open', '1');
+  
   const screen = document.getElementById('surahScreen');
- 
-  screen.classList.add('open');
-  document.getElementById('surahScreenTitle').textContent = 'سورة ' + currentSurah.name;
-  document.getElementById('favSurahBtn').textContent = favorites.includes('s'+n) ? '⭐' : '🤍';
+  if (screen) screen.classList.add('open');
   
-  document.getElementById('mushafSlider').innerHTML = '<div style="width:100%;text-align:center;padding:50px;color:#8b6914;font-family:Amiri,serif;font-size:18px;">⏳ جاري تحميل السورة بالرواية المختارة...</div>';
+  const titleEl = document.getElementById('surahScreenTitle');
+  if (titleEl) titleEl.textContent = 'سورة ' + currentSurah.name;
   
-  // إظهار الوقف لو موجود
+  const favBtn = document.getElementById('favSurahBtn');
+  if (favBtn) favBtn.textContent = favorites.includes('s' + n) ? '⭐' : '🤍';
+  
+  const slider = document.getElementById('mushafSlider');
+  if (slider) slider.innerHTML = '<div style="width:100%;text-align:center;padding:50px;color:#8b6914;font-family:Amiri,serif;font-size:18px;">⏳ جاري تحميل السورة الكريمة...</div>';
+  
+  // إظهار علامة الوقف إن وُجدت
   const bm = JSON.parse(localStorage.getItem('quran_bookmark') || 'null');
-  if(bm && bm.surah === n) {
+  if (bm && bm.surah === n) {
     setTimeout(() => {
       const el = document.getElementById('ayah_' + bm.index);
-      if(el) {
+      if (el) {
         const mark = document.createElement('span');
         mark.className = 'bookmark-mark';
         mark.textContent = ' 🔖';
         mark.style.color = '#ffd700';
         el.appendChild(mark);
-        el.scrollIntoView({behavior:'smooth', block:'center'});
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }, 500);
   }
   
-  document.getElementById('pageDots').innerHTML = '';
+  const dotsEl = document.getElementById('pageDots');
+  if (dotsEl) dotsEl.innerHTML = '';
+  
   stopAudio();
   selectedAyahsQueue = [];
-  document.getElementById('clearSelBtn').style.display = 'none';
   
-  // تحديث نص شريط الحالة ليعكس الرواية المختارة
-  let currentRoayaText = "حفص عن عاصم";
-  if (window.quranReadingsData && window.currentSelectedRoaya) {
-    const foundRoaya = window.quranReadingsData.find(r => r.id === window.currentSelectedRoaya);
-    if (foundRoaya) currentRoayaText = foundRoaya.name.split(' ')[0] + ' ' + (foundRoaya.name.split(' ')[1] || '');
-  }
-  document.getElementById('audioStatus').textContent = `رواية ${currentRoayaText} • اضغط تشغيل • اضغط مطولاً للخيارات`;
+  const clearBtn = document.getElementById('clearSelBtn');
+  if (clearBtn) clearBtn.style.display = 'none';
+  
+  const statusEl = document.getElementById('audioStatus');
+  if (statusEl) statusEl.textContent = `رواية حفص عن عاصم • اضغط تشغيل • اضغط مطولاً للخيارات`;
 
   try {
-    // 🚀 السحر هنا: تحديد معرّف نص الرواية للـ API بناءً على اختيار المستخدم
-    // استبدل الجزء القديم بتاع الـ textEdition بده:
-let textEdition = "quran-uthmani"; // افتراضي حفص
-const roayaMapping = {
-  'warsh': 'quran-wordbyword',
-  'qaloon': 'quran-simple-clean',
-  'duri': 'quran-simple-clean',
-  'soosi': 'quran-simple-clean',
-  'shuabah': 'quran-simple-clean',
-  'khalaf': 'quran-simple-clean',
-  'kisaee': 'quran-simple-clean',
-  'bazzi': 'quran-simple-clean',
-  'qumbul': 'quran-simple-clean'
-};
-
-if (window.currentSelectedRoaya && roayaMapping[window.currentSelectedRoaya]) {
-    textEdition = roayaMapping[window.currentSelectedRoaya];
-}
-
-
-    const secureUrl = `https://api.alquran.cloud/v1/surah/${n}/editions/${textEdition},ar.muyassar`;
+    // تثبيت النص على المصحف العثماني لحفص عن عاصم فقط لضمان جودة التشكيل
+    const secureUrl = `https://api.alquran.cloud/v1/surah/${n}/editions/quran-uthmani,ar.muyassar`;
     const r = await fetch(secureUrl);
     const d = await r.json();
 
@@ -2599,12 +2585,12 @@ if (window.currentSelectedRoaya && roayaMapping[window.currentSelectedRoaya]) {
 
     const pagesDict = {};
     currentAyahsData.forEach((a, i) => {
-      if(!pagesDict[a.page]) pagesDict[a.page] = [];
-      pagesDict[a.page].push({...a, originalIndex: i});
+      if (!pagesDict[a.page]) pagesDict[a.page] = [];
+      pagesDict[a.page].push({ ...a, originalIndex: i });
     });
 
     const pageNums = Object.keys(pagesDict);
-   window.currentSurahPages = pageNums.map(Number);
+    window.currentSurahPages = pageNums.map(Number);
     let sliderHtml = '';
 
     pageNums.forEach((pageNum, pageIndex) => {
@@ -2619,6 +2605,7 @@ if (window.currentSelectedRoaya && roayaMapping[window.currentSelectedRoaya]) {
 
       sliderHtml += pagesDict[pageNum].map(a => {
         let txt = a.text;
+        // تنظيف البسملة التكرارية في بداية السور عدا الفاتحة والتوبة
         if (n !== 1 && n !== 9 && a.numberInSurah === 1) {
           txt = txt.replace(/^بِسْمِ[\s\S]+?رَّحِيمِ\s*/, '');
           txt = txt.replace(/^بِسْمِ[\s\S]+?الرَّحِيمِ\s*/, '');
@@ -2637,36 +2624,42 @@ if (window.currentSelectedRoaya && roayaMapping[window.currentSelectedRoaya]) {
       sliderHtml += `<div class="page-footer">صفحة ${toAr(pageNum)}</div></div>`;
     });
 
-    document.getElementById('mushafSlider').innerHTML = sliderHtml;
+    // تأكيد فرض وتثبيت خط حفص التفاعلي الأصلي الفخم وحجم التباعد
+    if (slider) {
+      slider.style.fontFamily = "'Amiri Quran', serif";
+      slider.style.wordSpacing = "2px";
+      slider.innerHTML = sliderHtml;
+    }
 
-    // تشغيل نظام الـ Dots الطبيعي بتاعك
-    if (pageNums.length > 1) {
+    // بناء نقاط التنقل السفلى (Pagination Dots)
+    if (pageNums.length > 1 && dotsEl) {
       const dotsHtml = pageNums.map((_, i) =>
-        `<div class="page-dot ${i===0?'active':''}" id="dot_${i}"></div>`
+        `<div class="page-dot ${i === 0 ? 'active' : ''}" id="dot_${i}"></div>`
       ).join('');
-      document.getElementById('pageDots').innerHTML = dotsHtml;
+      dotsEl.innerHTML = dotsHtml;
 
-      const slider = document.getElementById('mushafSlider');
       slider.addEventListener('scroll', () => {
         const idx = Math.round(slider.scrollLeft / window.innerWidth);
         localStorage.setItem('last_page_index', idx);
-        const d = document.getElementById('dot_'+idx);
-        if(d) d.classList.add('active');
+        const d = document.getElementById('dot_' + idx);
+        if (d) d.classList.add('active');
         pageNums.forEach((_, j) => {
-          if(j !== idx) {
-            const od = document.getElementById('dot_'+j);
-            if(od) od.classList.remove('remove');
+          if (j !== idx) {
+            const od = document.getElementById('dot_' + j);
+            if (od) od.classList.remove('active');
           }
         });
-      }, {passive:true});
+      }, { passive: true });
     }
 
+    // التوجيه الفوري للصفحة أو الآية المطلوبة بدقة
     if (targetPageNumber !== null) {
-  setTimeout(() => {
-    const pageEl = document.getElementById('mpage_' + targetPageNumber);
-    if (pageEl) pageEl.scrollIntoView({ behavior: 'auto' });
-  }, 150);
-} else if (targetAyahNum !== null) {     setTimeout(() => {
+      setTimeout(() => {
+        const pageEl = document.getElementById('mpage_' + targetPageNumber);
+        if (pageEl) pageEl.scrollIntoView({ behavior: 'auto' });
+      }, 150);
+    } else if (targetAyahNum !== null) {
+      setTimeout(() => {
         const targetIdx = currentAyahsData.findIndex(a => a.numberInSurah === targetAyahNum);
         if (targetIdx !== -1) {
           const el = document.getElementById('ayah_' + targetIdx);
@@ -2684,11 +2677,15 @@ if (window.currentSelectedRoaya && roayaMapping[window.currentSelectedRoaya]) {
     }
 
   } catch(e) {
-    console.error(e);
-    document.getElementById('mushafSlider').innerHTML =
-      '<div style="width:100%;text-align:center;padding:50px;color:#8b6914;font-family:Amiri,serif;font-size:18px;">تحتاج اتصال بالإنترنت لمزامنة الرواية 🌐</div>';
+    console.error("OpenSurah Error:", e);
+    if (slider) {
+      slider.innerHTML = '<div style="width:100%;text-align:center;padding:50px;color:#8b6914;font-family:Amiri,serif;font-size:18px;">تحتاج اتصال بالإنترنت لمزامنة بيانات السورة الكريمة 🌐</div>';
+    }
   }
 }
+      
+
+  
  
     
       
