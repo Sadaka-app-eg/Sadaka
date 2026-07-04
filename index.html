@@ -5,7 +5,7 @@
  <meta name="theme-color" content="#000000">
     
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-  <meta name="apple-mobile-web-app-capable" content="yes">
+ <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
  <link rel="manifest" href="manifest.json">
@@ -2524,54 +2524,68 @@ function filterSurahs(q) {
 // ===========================
  // تعديل السطر الأول للدالة ليصبح هكذا
 
- async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
-  currentSurah = surahs.find(s => s.n === n) || surahs[0];
+async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {  currentSurah = surahs.find(s => s.n === n);
   localStorage.setItem('last_active_surah', n);
   localStorage.setItem('surah_screen_open', '1');
-  
   const screen = document.getElementById('surahScreen');
-  if (screen) screen.classList.add('open');
+ 
+  screen.classList.add('open');
+  document.getElementById('surahScreenTitle').textContent = 'سورة ' + currentSurah.name;
+  document.getElementById('favSurahBtn').textContent = favorites.includes('s'+n) ? '⭐' : '🤍';
   
-  const titleEl = document.getElementById('surahScreenTitle');
-  if (titleEl) titleEl.textContent = 'سورة ' + currentSurah.name;
+  document.getElementById('mushafSlider').innerHTML = '<div style="width:100%;text-align:center;padding:50px;color:#8b6914;font-family:Amiri,serif;font-size:18px;">⏳ جاري تحميل السورة بالرواية المختارة...</div>';
   
-  const favBtn = document.getElementById('favSurahBtn');
-  if (favBtn) favBtn.textContent = favorites.includes('s' + n) ? '⭐' : '🤍';
-  
-  const slider = document.getElementById('mushafSlider');
-  if (slider) slider.innerHTML = '<div style="width:100%;text-align:center;padding:50px;color:#8b6914;font-family:Amiri,serif;font-size:18px;">⏳ جاري تحميل السورة الكريمة...</div>';
-  
-  // إظهار علامة الوقف إن وُجدت
+  // إظهار الوقف لو موجود
   const bm = JSON.parse(localStorage.getItem('quran_bookmark') || 'null');
-  if (bm && bm.surah === n) {
+  if(bm && bm.surah === n) {
     setTimeout(() => {
       const el = document.getElementById('ayah_' + bm.index);
-      if (el) {
+      if(el) {
         const mark = document.createElement('span');
         mark.className = 'bookmark-mark';
         mark.textContent = ' 🔖';
         mark.style.color = '#ffd700';
         el.appendChild(mark);
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.scrollIntoView({behavior:'smooth', block:'center'});
       }
     }, 500);
   }
   
-  const dotsEl = document.getElementById('pageDots');
-  if (dotsEl) dotsEl.innerHTML = '';
-  
+  document.getElementById('pageDots').innerHTML = '';
   stopAudio();
   selectedAyahsQueue = [];
+  document.getElementById('clearSelBtn').style.display = 'none';
   
-  const clearBtn = document.getElementById('clearSelBtn');
-  if (clearBtn) clearBtn.style.display = 'none';
-  
-  const statusEl = document.getElementById('audioStatus');
-  if (statusEl) statusEl.textContent = `رواية حفص عن عاصم • اضغط تشغيل • اضغط مطولاً للخيارات`;
+  // تحديث نص شريط الحالة ليعكس الرواية المختارة
+  let currentRoayaText = "حفص عن عاصم";
+  if (window.quranReadingsData && window.currentSelectedRoaya) {
+    const foundRoaya = window.quranReadingsData.find(r => r.id === window.currentSelectedRoaya);
+    if (foundRoaya) currentRoayaText = foundRoaya.name.split(' ')[0] + ' ' + (foundRoaya.name.split(' ')[1] || '');
+  }
+  document.getElementById('audioStatus').textContent = `رواية ${currentRoayaText} • اضغط تشغيل • اضغط مطولاً للخيارات`;
 
   try {
-    // تثبيت النص على المصحف العثماني لحفص عن عاصم فقط لضمان جودة التشكيل
-    const secureUrl = `https://api.alquran.cloud/v1/surah/${n}/editions/quran-uthmani,ar.muyassar`;
+    // 🚀 السحر هنا: تحديد معرّف نص الرواية للـ API بناءً على اختيار المستخدم
+    // استبدل الجزء القديم بتاع الـ textEdition بده:
+let textEdition = "quran-uthmani"; // افتراضي حفص
+const roayaMapping = {
+  'warsh': 'quran-wordbyword',
+  'qaloon': 'quran-simple-clean',
+  'duri': 'quran-simple-clean',
+  'soosi': 'quran-simple-clean',
+  'shuabah': 'quran-simple-clean',
+  'khalaf': 'quran-simple-clean',
+  'kisaee': 'quran-simple-clean',
+  'bazzi': 'quran-simple-clean',
+  'qumbul': 'quran-simple-clean'
+};
+
+if (window.currentSelectedRoaya && roayaMapping[window.currentSelectedRoaya]) {
+    textEdition = roayaMapping[window.currentSelectedRoaya];
+}
+
+
+    const secureUrl = `https://api.alquran.cloud/v1/surah/${n}/editions/${textEdition},ar.muyassar`;
     const r = await fetch(secureUrl);
     const d = await r.json();
 
@@ -2585,12 +2599,12 @@ function filterSurahs(q) {
 
     const pagesDict = {};
     currentAyahsData.forEach((a, i) => {
-      if (!pagesDict[a.page]) pagesDict[a.page] = [];
-      pagesDict[a.page].push({ ...a, originalIndex: i });
+      if(!pagesDict[a.page]) pagesDict[a.page] = [];
+      pagesDict[a.page].push({...a, originalIndex: i});
     });
 
     const pageNums = Object.keys(pagesDict);
-    window.currentSurahPages = pageNums.map(Number);
+   window.currentSurahPages = pageNums.map(Number);
     let sliderHtml = '';
 
     pageNums.forEach((pageNum, pageIndex) => {
@@ -2605,7 +2619,6 @@ function filterSurahs(q) {
 
       sliderHtml += pagesDict[pageNum].map(a => {
         let txt = a.text;
-        // تنظيف البسملة التكرارية في بداية السور عدا الفاتحة والتوبة
         if (n !== 1 && n !== 9 && a.numberInSurah === 1) {
           txt = txt.replace(/^بِسْمِ[\s\S]+?رَّحِيمِ\s*/, '');
           txt = txt.replace(/^بِسْمِ[\s\S]+?الرَّحِيمِ\s*/, '');
@@ -2624,42 +2637,36 @@ function filterSurahs(q) {
       sliderHtml += `<div class="page-footer">صفحة ${toAr(pageNum)}</div></div>`;
     });
 
-    // تأكيد فرض وتثبيت خط حفص التفاعلي الأصلي الفخم وحجم التباعد
-    if (slider) {
-      slider.style.fontFamily = "'Amiri Quran', serif";
-      slider.style.wordSpacing = "2px";
-      slider.innerHTML = sliderHtml;
-    }
+    document.getElementById('mushafSlider').innerHTML = sliderHtml;
 
-    // بناء نقاط التنقل السفلى (Pagination Dots)
-    if (pageNums.length > 1 && dotsEl) {
+    // تشغيل نظام الـ Dots الطبيعي بتاعك
+    if (pageNums.length > 1) {
       const dotsHtml = pageNums.map((_, i) =>
-        `<div class="page-dot ${i === 0 ? 'active' : ''}" id="dot_${i}"></div>`
+        `<div class="page-dot ${i===0?'active':''}" id="dot_${i}"></div>`
       ).join('');
-      dotsEl.innerHTML = dotsHtml;
+      document.getElementById('pageDots').innerHTML = dotsHtml;
 
+      const slider = document.getElementById('mushafSlider');
       slider.addEventListener('scroll', () => {
         const idx = Math.round(slider.scrollLeft / window.innerWidth);
         localStorage.setItem('last_page_index', idx);
-        const d = document.getElementById('dot_' + idx);
-        if (d) d.classList.add('active');
+        const d = document.getElementById('dot_'+idx);
+        if(d) d.classList.add('active');
         pageNums.forEach((_, j) => {
-          if (j !== idx) {
-            const od = document.getElementById('dot_' + j);
-            if (od) od.classList.remove('active');
+          if(j !== idx) {
+            const od = document.getElementById('dot_'+j);
+            if(od) od.classList.remove('remove');
           }
         });
-      }, { passive: true });
+      }, {passive:true});
     }
 
-    // التوجيه الفوري للصفحة أو الآية المطلوبة بدقة
     if (targetPageNumber !== null) {
-      setTimeout(() => {
-        const pageEl = document.getElementById('mpage_' + targetPageNumber);
-        if (pageEl) pageEl.scrollIntoView({ behavior: 'auto' });
-      }, 150);
-    } else if (targetAyahNum !== null) {
-      setTimeout(() => {
+  setTimeout(() => {
+    const pageEl = document.getElementById('mpage_' + targetPageNumber);
+    if (pageEl) pageEl.scrollIntoView({ behavior: 'auto' });
+  }, 150);
+} else if (targetAyahNum !== null) {     setTimeout(() => {
         const targetIdx = currentAyahsData.findIndex(a => a.numberInSurah === targetAyahNum);
         if (targetIdx !== -1) {
           const el = document.getElementById('ayah_' + targetIdx);
@@ -2677,15 +2684,11 @@ function filterSurahs(q) {
     }
 
   } catch(e) {
-    console.error("OpenSurah Error:", e);
-    if (slider) {
-      slider.innerHTML = '<div style="width:100%;text-align:center;padding:50px;color:#8b6914;font-family:Amiri,serif;font-size:18px;">تحتاج اتصال بالإنترنت لمزامنة بيانات السورة الكريمة 🌐</div>';
-    }
+    console.error(e);
+    document.getElementById('mushafSlider').innerHTML =
+      '<div style="width:100%;text-align:center;padding:50px;color:#8b6914;font-family:Amiri,serif;font-size:18px;">تحتاج اتصال بالإنترنت لمزامنة الرواية 🌐</div>';
   }
 }
-      
-
-  
  
     
       
@@ -3005,26 +3008,30 @@ audio.src = audioSourceUrl;
   const fileKey = `${surahNum}${ayahNum}`;
 
   // 🎯 استبدل الجزء الخاص بتحديد الـ audioSource في دالة playNextInQueue بالكود ده:
-  // 🟢 استبدل السطر 3009 بالـ Object والروابط دي:
-  const everyAyahReciters = {
-    'minsh': 'Minshawy_Murattal_128kbps',
-    'husary': 'Husary_128kbps',
-    'afs': 'Alafasy_128kbps',
-    'frs_a': 'Fares_Abbad_64kbps',
-    'basit': 'Abdul_Basit_Murattal_192kbps',
-    'maher': 'MaherAlMuaiqly_64kbps',
-    'ajm': 'Ahmed_ibn_Ali_al-Ajamy_64kbps',
-    'shrim': 'Saood_ash-Shuraym_128kbps',
-    'dosr': 'Yasser_Ad-Dussary_128kbps',
-    'qarafi': 'Ghamadi_40kbps' 
-  };
 
-  const reciterFolder = everyAyahReciters[currentReciter] || 'Minshawy_Murattal_128kbps';
-  let audioSource = `https://www.everyayah.com/data/${reciterFolder}/${fileKey}.mp3`;
+  let audioSource = '';
 
-    // 1. لو الرواية حفص: استخدم سيرفرات الـ 10 قراء بتوعك اللي أنت معرفهم
-      
-  
+  // 1. لو الرواية حفص: استخدم سيرفرات الـ 10 قراء بتوعك اللي أنت معرفهم
+  if (window.currentSelectedRoaya === 'hafs') {
+    if (currentReciter === 'shrim') {
+      audioSource = `https://www.everyayah.com/data/Saood_ash-Shuraym_128kbps/${fileKey}.mp3`;
+    } else if (currentReciter === 'frs_a') {
+      audioSource = `https://www.everyayah.com/data/Fares_Abbad_64kbps/${fileKey}.mp3`;
+    } else if (currentReciter === 'dosr') {
+      audioSource = `https://www.everyayah.com/data/Yasser_Ad-Dussary_128kbps/${fileKey}.mp3`;
+    } else if (currentReciter === 'basit') {
+      audioSource = `https://www.everyayah.com/data/Abdul_Basit_Murattal_192kbps/${fileKey}.mp3`;
+    } else {
+      let reciterApiId = 'ar.minshawi';
+      if (currentReciter === 'husary') reciterApiId = 'ar.husary';
+      else if (currentReciter === 'afs') reciterApiId = 'ar.alafasy';
+      else if (currentReciter === 'maher') reciterApiId = 'ar.mahermuaiqly';
+      else if (currentReciter === 'ajm') reciterApiId = 'ar.ahmedajamy';
+      else if (currentReciter === 'qarafi') reciterApiId = 'ar.qarafi';
+      
+      audioSource = `https://cdn.islamic.network/quran/audio/128/${reciterApiId}/${a.globalNumber}.mp3`;
+    }
+  } 
   // 2. لو أي رواية تانية: استخدم القارئ المخصص للرواية من ملف quranData.js
   else {
     const roayaObj = window.quranReadingsData.find(r => r.id === window.currentSelectedRoaya);
@@ -3045,7 +3052,7 @@ audio.src = audioSourceUrl;
 if ('mediaSession' in navigator) {
   navigator.mediaSession.metadata = new MediaMetadata({
     title: `الآية ${currentAyahsData[idx].numberInSurah}`,
-    artist: "كُن ذا أثر",
+    artist: "صدقة جارية عن شيماء سعيد",
     album: "القرآن الكريم"
   });
 
@@ -5335,6 +5342,7 @@ function updateSettingsAccountBox() {
 <script src="rareRecitations.js"></script>
   <script src="radio.js"></script>
  <script src="videoCreator.js"></script> <!-- 🎬 استدعاء محرك صانع الفيديو الجديد هنا بالملي -->
+<script src="quranData.js"></script>
 <script src="quranInsights.js"></script> <!-- هنا بالظبط -->
 <script src="obeyPlan.js"></script> 
 <script src="janaza.js"></script>
@@ -5442,4 +5450,4 @@ window.triggerHeaderGoogleLogin = function() {
 </script>
 
 </body>
-    </html>
+   </html>
