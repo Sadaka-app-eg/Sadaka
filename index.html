@@ -3034,9 +3034,7 @@ function toggleAudio() {
   }
 
   // 🎯 تجهيز تركيبات أرقام الآيات للسيرفرات المحدثة الجديدة
-  const surahNum = String(currentSurah.n).padStart(3, '0');
-  const ayahNum = String(a.numberInSurah).padStart(3, '0');
-  const fileKey = `${surahNum}${ayahNum}`;
+    const fileKey = `${surahNum}${ayahNum}`;
 
   // 🎯 استبدل الجزء الخاص بتحديد الـ audioSource في دالة playNextInQueue بالكود ده:
   // داخل دالة playNextInQueue، استبدل جزء الـ audioSource بهذا:
