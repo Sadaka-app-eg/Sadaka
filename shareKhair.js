@@ -163,7 +163,7 @@ window.renderKhairCards = function() {
         ${item.source || item.author}
       </div>
       <button onclick="window.openKhairShareSheet(${item.id})" style="width:100%; padding:10px; background:var(--bg2); border:1px solid var(--border); color:var(--gold); border-radius:12px; font-family:'Amiri', serif; font-weight:bold; cursor:pointer; transition:0.2s;">
-        ✨ انشر وااحتسب الأثر
+        ✨ انشر واحتسب الأجر
       </button>
     </div>
   `).join('');
@@ -240,16 +240,17 @@ window.executeKhairShare = function(type) {
     ctx.direction = "rtl";
     ctx.fillText(headerTitle, 540, 118);
 
-    // 3. تكبير وتوزيع المتن (الخط بقى 62px والمسافات أوسع لملء الكارت)
+        // 3. كتابة المتن بحجم ضخم ومهيب ومفرد
     ctx.fillStyle = "#000000";
-    ctx.font = "bold 62px 'Amiri Quran', serif"; // كبرنا الخط لملء الفراغ
+    ctx.font = "bold 80px 'Amiri Quran', serif"; 
+    ctx.textAlign = "center"; 
     
     const fullTextToDraw = `« ${activeSelectedItem.text} »`;
     const words = fullTextToDraw.split(' ');
     let line = '';
-    let y = 320; 
-    const lineHeight = 115; // زيادة تباعد الأسطر لمنع التكدس وطباعة الهيبة
-    const maxWidth = 880;
+    let y = 300; 
+    const lineHeight = 120; 
+    const maxWidth = 920; 
 
     for (let n = 0; n < words.length; n++) {
       let testLine = line + words[n] + ' ';
@@ -263,6 +264,7 @@ window.executeKhairShare = function(type) {
       }
     }
     ctx.fillText(line, 540, y);
+
 
     // 4. ضبط السند أسفل اليسار بمحاذاة الشاشة الأصلية (مرفوع عن الحافة ومتناسق)
     ctx.fillStyle = "#333333";
