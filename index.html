@@ -2652,7 +2652,7 @@ if (window.currentSelectedRoaya && roayaMapping[window.currentSelectedRoaya]) {
         }
             return `<span class="ayah-span" id="ayah_${a.originalIndex}"
       ontouchstart="startPress(event, ${a.originalIndex})"
-      ontouchend="cancelPress(event); handleAyahClick(${a.originalIndex})"
+      ontouchend="cancelPress(event); if(window.isPickingEndAyah){ handleAyahClick(${a.originalIndex}); }"
       style="display:inline; padding: 2px 0;">
       ${txt}<span class="ayah-sign" style="color:#8b6914; margin:0 6px; font-size:22px; white-space:nowrap;"> ﴿${toAr(a.numberInSurah)}﴾ </span></span> `;
       }).join('');
@@ -2832,51 +2832,34 @@ window.ayahRepeatCount = 1; // الافتراضي تعمل مرة واحدة
 window.currentAyahRepeatProgress = 1;
 
 window.handleAyahClick = function(idx) {
-  // 1. لو لسه مابدأناش تحديد، بنسجل آية البداية
-  if (!window.isPickingEndAyah) {
-    window.firstSelectedAyahIndex = idx;
-    window.isPickingEndAyah = true;
-    
-    // تظليل آية البداية فقط
-    selectedAyahsQueue = [idx];
-    document.querySelectorAll('.ayah-span').forEach(el => el.classList.remove('selected'));
-    document.getElementById(`ayah_${idx}`)?.classList.add('selected');
-    
-    // تحديث الحالة للمستخدم
-    const statusEl = document.getElementById('audioStatus');
-    if (statusEl) {
-      statusEl.innerHTML = `<span style="color:var(--gold); font-weight:bold;">تم تحديد البداية.. اضغط الآن على آية النهاية 🏁</span>`;
-    }
-  } 
-  // 2. لو إحنا فعلاً في وضع تحديد النهاية
-  else {
-    const start = Math.min(window.firstSelectedAyahIndex, idx);
-    const end = Math.max(window.firstSelectedAyahIndex, idx);
-    
-    selectedAyahsQueue = [];
-    document.querySelectorAll('.ayah-span').forEach(el => el.classList.remove('selected'));
-    
-    for (let i = start; i <= end; i++) {
-      selectedAyahsQueue.push(i);
-      document.getElementById(`ayah_${i}`)?.classList.add('selected');
-    }
-    
-    selectedAyahsQueue.sort((a, b) => a - b);
-    
-    // إعادة ضبط المتغيرات
-    window.isPickingEndAyah = false;
-    window.firstSelectedAyahIndex = null;
-    
-    // الآن فقط نسأل عن التكرار بعد ما حددنا النطاق كامل
-    setTimeout(() => {
-      let repeatInput = prompt("🔂 تريد تكرار النطاق كم مرة؟ (1 للتكرار مرة واحدة):", "1");
-      window.ayahRepeatCount = parseInt(repeatInput) || 1;
-      window.currentAyahRepeatProgress = 1;
-      updateAudioStatus();
-    }, 200);
-  }
-};
+  if (!window.isPickingEndAyah) return; // أمان إضافي
 
+  const start = Math.min(window.firstSelectedAyahIndex, idx);
+  const end = Math.max(window.firstSelectedAyahIndex, idx);
+
+  selectedAyahsQueue = [];
+  document.querySelectorAll('.ayah-span').forEach(el => el.classList.remove('selected'));
+
+  for (let i = start; i <= end; i++) {
+    selectedAyahsQueue.push(i);
+    document.getElementById(`ayah_${i}`)?.classList.add('selected');
+  }
+
+  selectedAyahsQueue.sort((a, b) => a - b);
+
+  window.isPickingEndAyah = false;
+  window.firstSelectedAyahIndex = null;
+
+  setTimeout(() => {
+    let repeatInput = prompt("🔂 تريد تكرار النطاق كم مرة؟ (1 للتكرار مرة واحدة):", "1");
+    window.ayahRepeatCount = parseInt(repeatInput) || 1;
+    window.currentAyahRepeatProgress = 1;
+    updateAudioStatus();
+  }, 200);
+};    
+       
+    
+    
   
   
 
