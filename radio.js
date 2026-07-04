@@ -24,7 +24,7 @@ window.islamicRadioStations = [
   { id: "fatawa", name: "إذاعة الفتاوى العامة ❓", url: "https://qurango.net/radio/fatwa" },
   { id: "zilal_seerah", name: "في ظلال السيرة النبوية 💎", url: "https://qurango.net/radio/fi_zilal_alsiyra" }
 ];
-
+ 
 window.currentActiveRadioUrl = "";
 
 // دالة رندرة وضخ أزرار الإذاعات في شبكة الكروت
