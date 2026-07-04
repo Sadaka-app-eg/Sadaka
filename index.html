@@ -771,10 +771,19 @@ body.in-subpage .back-to-home-btn {
     <div class="name">ويبقى الأثر </div>
     <div class="ayah">﴿ إِنَّا نَحْنُ نُحْيِي الْمَوْتَىٰ وَنَكْتُبُ مَا قَدَّمُوا وَآثَارَهُمْ ﴾</div>
   </div>
-  <div class="stats">
+    <div class="stats">
     <div class="stat-card"><div class="stat-num" id="statTasbeh">0</div><div class="stat-label">تسبيحة اليوم</div></div>
-        <div class="stat-card"><div class="stat-num" id="statAzkar">0</div><div class="stat-label">ذكر اليوم</div></div>
-  </div> <!-- قفلة الـ stats -->
+    
+    <!-- 🟢 كارت ذكر اليوم المطور بعد التعديل والاستبدال في السطر 776 -->
+    <div class="stat-card" style="position: relative;">
+      <div class="stat-num" id="statAzkar">0</div>
+      <div class="stat-label">ذكر اليوم</div>
+      <!-- العداد الجديد للمهام -->
+      <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border); font-size: 13px; color: var(--gold); font-weight: bold; font-family: 'Amiri', serif;">
+        المهام اليومية: <span id="dailyTasksCounter" style="font-size: 16px;">٠</span> / ٩
+      </div>
+    </div>
+  </div> <!-- قفلة الـ stats في السطر 777 -->
 
   <!-- كارت النفحات الذهبي الصريح الجديد -->
   <!-- مكان النفحات -->
@@ -3129,7 +3138,14 @@ document.getElementById('audioPlayer').addEventListener('ended', audioEnded);
   showAzkar('sabah', document.querySelector('.cat-btn'));
 });
 
+
 function countZekr(cat, i, max) {
+  const savedName = localStorage.getItem('user_display_name');
+  if (!savedName) {
+    alert('⚠️ عذراً، يجب تسجيل الدخول أولاً لحفظ وإظهار إحصائيات الأذكار!');
+    return;
+  }
+
   const key = cat+'_'+i;
   if((zekrCounts[key]||0) >= max) return;
   zekrCounts[key] = (zekrCounts[key]||0) + 1;
@@ -3138,23 +3154,36 @@ function countZekr(cat, i, max) {
   const pct = Math.min(cur/max*100,100);
   document.getElementById('zc_'+cat+'_'+i).textContent = cur;
   document.getElementById('bar_'+cat+'_'+i).style.width = pct+'%';
+  
   if(cur >= max) {
     document.getElementById('done_'+cat+'_'+i).style.display='inline-block';
     document.getElementById('zc_'+cat+'_'+i).style.color='#4caf50';
     document.getElementById('zcard_'+cat+'_'+i).classList.add('done-card');
   }
+  
   updateStats();
- localStorage.setItem('zekrCounts', JSON.stringify(zekrCounts));
-localStorage.setItem('totalAzkar', totalAzkar);
+  localStorage.setItem('zekrCounts', JSON.stringify(zekrCounts));
+  localStorage.setItem('totalAzkar', totalAzkar);
+
+  // 👇 السطر السحري الجديد اللي هيشيك على اكتمال القسم ويحدث العداد 9/9
+  checkCategoryCompleted(cat);
 }
+
 
 // ===========================
 // Tasbeh
 // ===========================
 function incrementTasbeh() {
+  // 🔒 شرط الأمان: التحقق من تسجيل الدخول
+  const savedName = localStorage.getItem('user_display_name');
+  if (!savedName) {
+    alert('⚠️ عذراً، يجب تسجيل الدخول أولاً لحفظ وإظهار إحصائياتك الصالحة!');
+    return;
+  }
+
   tasbehCount++;
   tasbehTotal++;
- localStorage.setItem('tasbehCount', tasbehCount);
+  localStorage.setItem('tasbehCount', tasbehCount);
   localStorage.setItem('tasbehTotal', tasbehTotal);
   const el = document.getElementById('tasbehCount');
   el.textContent = tasbehCount;
@@ -3169,6 +3198,7 @@ function incrementTasbeh() {
   }
   updateStats();
 }
+
 
 function resetTasbeh() {
   tasbehCount=0;
@@ -4021,9 +4051,16 @@ document.addEventListener('DOMContentLoaded', () => {
   applyHomeBg(savedBg);
 });
 function updateStats() {
-  document.getElementById('statTasbeh').textContent = tasbehCount;
-  document.getElementById('statAzkar').textContent = totalAzkar;
+  const savedName = localStorage.getItem('user_display_name');
+  if (!savedName) {
+    document.getElementById('statTasbeh').textContent = 0;
+    document.getElementById('statAzkar').textContent = 0;
+  } else {
+    document.getElementById('statTasbeh').textContent = tasbehCount;
+    document.getElementById('statAzkar').textContent = totalAzkar;
+  }
 }
+
  // كود استعادة التبويب الأخير تلقائياً بعد التحديث لثبات التطبيق
 // كود استعادة البيانات وتشغيل الدوال عند فتح التطبيق (محدث)
 
@@ -5159,6 +5196,139 @@ function updateSettingsAccountBox() {
       <button onclick="window.triggerHeaderGoogleLogin()" style="background: var(--gold); color: #111; border: none; padding: 12px; border-radius: 12px; font-family: 'Amiri', serif; font-weight: bold; cursor: pointer; width: 100%; margin-top: 8px;">🔑 ربط الحساب بجوجل الآن</button>
     `;
   }
+}
+// ===========================
+// نظام المهام اليومية (9/9)
+// ===========================
+
+function getDailyTasksState() {
+  const today = new Date().toLocaleDateString('en-CA'); // تاريخ اليوم
+  let state = JSON.parse(localStorage.getItem('daily_tasks_state') || '{}');
+  
+  // لو يوم جديد، هنصفر المهام وعدادات الأذكار عشان يبدأ يوم جديد بنظافة
+  if (state.date !== today) {
+    state = {
+      date: today,
+      sabah: false,
+      masa: false,
+      nawm: false,
+      istiqadh: false,
+      salahCount: 0,
+      completed: false
+    };
+    localStorage.setItem('daily_tasks_state', JSON.stringify(state));
+    
+    // تصفير الأذكار لليوم الجديد
+    zekrCounts = {};
+    localStorage.removeItem('zekrCounts');
+  }
+  return state;
+}
+
+function updateDailyTasksProgress() {
+  const state = getDailyTasksState();
+  let completedTasks = 0;
+  
+  if (state.sabah) completedTasks++;
+  if (state.masa) completedTasks++;
+  if (state.nawm) completedTasks++;
+  if (state.istiqadh) completedTasks++;
+  completedTasks += state.salahCount; // الصلوات (من 0 لـ 5)
+
+  const counterEl = document.getElementById('dailyTasksCounter');
+  if (counterEl) {
+    counterEl.textContent = toAr(completedTasks); // استخدام دالة التحويل للأرقام العربية
+  }
+
+  // لو قفل الـ 9 مهام لأول مرة النهاردة
+  if (completedTasks === 9 && !state.completed) {
+    state.completed = true;
+    localStorage.setItem('daily_tasks_state', JSON.stringify(state));
+    showLuxuriousCongrats();
+  }
+}
+
+function checkCategoryCompleted(cat) {
+  const state = getDailyTasksState();
+  
+  // لو القسم ده خلصان قبل كده متعملش حاجة (ما عدا الصلاة عشان ليها 5 مرات)
+  if (cat === 'sabah' && state.sabah) return;
+  if (cat === 'masa' && state.masa) return;
+  if (cat === 'nawm' && state.nawm) return;
+  if (cat === 'istiqadh' && state.istiqadh) return;
+  if (cat === 'salah' && state.salahCount >= 5) return;
+
+  const catData = azkarData[cat];
+  let isAllDone = true;
+  
+  // فحص هل كل أذكار القسم ده وصلت للحد الأقصى؟
+  for (let idx = 0; idx < catData.length; idx++) {
+    const key = cat + '_' + idx;
+    const required = catData[idx].count;
+    const current = zekrCounts[key] || 0;
+    if (current < required) {
+      isAllDone = false;
+      break;
+    }
+  }
+
+  // لو كل أذكار القسم خلصت
+  if (isAllDone) {
+    if (cat === 'sabah') state.sabah = true;
+    else if (cat === 'masa') state.masa = true;
+    else if (cat === 'nawm') state.nawm = true;
+    else if (cat === 'istiqadh') state.istiqadh = true;
+    else if (cat === 'salah') {
+      state.salahCount++;
+      
+      // رسالة تشجيعية عند إتمام كل صلاة
+      setTimeout(() => {
+        alert(`🕌 تَقَبَّلَ اللهُ! أتممت أذكار الصلاة (${toAr(state.salahCount)} من ٥) لهذا اليوم.`);
+      }, 300);
+
+      // السحر هنا: تصفير أذكار الصلاة فقط عشان يقدر يسبح للصلاة اللي بعدها!
+      if (state.salahCount < 5) {
+         for (let idx = 0; idx < catData.length; idx++) {
+           delete zekrCounts[cat + '_' + idx];
+         }
+         localStorage.setItem('zekrCounts', JSON.stringify(zekrCounts));
+         // تحديث الشاشة فوراً لو هو فاتح قسم الصلاة
+         if (currentAzkarCat === 'salah') {
+           setTimeout(() => showAzkar('salah', document.querySelector('#azkar .cat-btn.active')), 500);
+         }
+      }
+    }
+    
+    localStorage.setItem('daily_tasks_state', JSON.stringify(state));
+    updateDailyTasksProgress();
+  }
+}
+
+// دالة التهنئة الفخمة
+function showLuxuriousCongrats() {
+  const modalHTML = `
+    <div id="congratsModal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:flex; align-items:center; justify-content:center; z-index:9999999; font-family:'Amiri', serif; direction:rtl; opacity:0; transition: opacity 0.5s;">
+      <div style="background: linear-gradient(135deg, var(--bg2), var(--bg)); border: 2px solid var(--gold); width: 90%; max-width: 420px; border-radius: 20px; padding: 40px 20px; text-align: center; box-shadow: 0 10px 50px rgba(212,175,55,0.4); position: relative;">
+        
+        <div style="font-size: 70px; margin-bottom: 15px; text-shadow: 0 0 20px rgba(212,175,55,0.8);">👑</div>
+        <h2 style="color: var(--gold); margin-bottom: 15px; font-size: 26px; font-weight: 700;">هَنِيئاً لَكَ يَا صَاحِبَ الأَثَر!</h2>
+        
+        <p style="color: var(--text); font-size: 17px; line-height: 2; margin-bottom: 25px;">
+          لقد أتممت مهامك الـ ٩ اليومية بنجاح<br>
+          <span style="font-size:14px; color:var(--text2);">(٥ صلوات، صباح، مساء، نوم، استيقاظ)</span><br>
+          <span style="color: var(--green); font-weight: bold; display:inline-block; margin-top:10px;">جَعَلَهَا اللهُ فِي مِيزَانِ حَسَنَاتِكَ وَرَفَعَ بِهَا قَدْرَكَ! ✨</span>
+        </p>
+        
+        <button onclick="document.getElementById('congratsModal').remove()" style="background: var(--gold); color: #111; border: none; padding: 12px 35px; border-radius: 25px; font-size: 16px; font-weight: bold; font-family: 'Amiri', serif; cursor: pointer; box-shadow: 0 4px 15px rgba(212,175,55,0.3);">الحَمْدُ للهِ 🤍</button>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+  
+  // حركة ظهور ناعمة
+  setTimeout(() => {
+    document.getElementById('congratsModal').style.opacity = '1';
+  }, 50);
 }
 
 
