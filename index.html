@@ -3021,31 +3021,34 @@ function toggleAudio() {
     const fileKey = `${surahNum}${ayahNum}`;
 
   // 🎯 استبدل الجزء الخاص بتحديد الـ audioSource في دالة playNextInQueue بالكود ده:
-  // داخل دالة playNextInQueue، استبدل جزء الـ audioSource بهذا:
+  // استبدل الجزء الخاص بتحديد الـ audioSource داخل دالة playNextInQueue بهذا الكود المضمون والمحدث:
 let audioSource = '';
-const surahNum = String(currentSurah.n).padStart(3, '0');
-const ayahNum = String(a.numberInSurah).padStart(3, '0');
+const surahNum = currentSurah.n;
+const ayahGlobalNum = a.globalNumber;
 
-// استخدام رابط ثابت وموحد للآيات يضمن التشغيل للجميع
-// هذا الرابط يدعم الآيات الفردية لكافة القراء الأساسيين
-audioSource = `https://cdn.islamic.network/quran/audio/128/${getReciterApiId(currentReciter)}/${a.globalNumber}.mp3`;
+// السيرفر العالمي المحدث والطلقة لتشغيل الآيات فرادى لكافة القراء الأساسيين
+audioSource = `https://everyayah.com/data/${getReciterFolder(currentReciter)}/${String(surahNum).padStart(3, '0')}${String(a.numberInSurah).padStart(3, '0')}.mp3`;
 
-// دالة مساعدة لجلب معرف القارئ الصحيح للـ API
-function getReciterApiId(reciter) {
+// دالة جلب مسار المجلد الصحيح لكل قارئ على السيرفر المستقر
+function getReciterFolder(reciter) {
   const map = {
-    'minsh': 'ar.minshawi',
-    'husary': 'ar.husary',
-    'afs': 'ar.alafasy',
-    'maher': 'ar.mahermuaiqly',
-    'ajm': 'ar.ahmedajamy',
-    'basit': 'ar.abdulbasitmurattal',
-    'shrim': 'ar.saoodashuraym',
-    'dosr': 'ar.yasseraldossari',
-    'qarafi': 'ar.qarafi'
+    'minsh': 'Minshawy_Murattal_128kbps',
+    'husary': 'Husary_128kbps',
+    'afs': 'Alafasy_128kbps',
+    'frs_a': 'Fares_Abbad_64kbps',
+    'basit': 'Abdul_Basit_Murattal_64kbps',
+    'maher': 'MaherAlMuaiqly128kbps',
+    'ajm': 'Ahmed_ibn_Ali_al-Ajamy_128kbps_copy',
+    'shrim': 'Saood_ash-Shuraym_128kbps',
+    'dosr': 'Yasser_Ad-Dussary_128kbps',
+    'qarafi': 'Minshawy_Murattal_128kbps' // الافتراضي للروايات البديلة
   };
-  return map[reciter] || 'ar.minshawi';
+  return map[reciter] || 'Minshawy_Murattal_128kbps';
 }
+
 audio.src = audioSource;
+
+  
   audio.play()
     .then(() => {
       isPlaying = true;
