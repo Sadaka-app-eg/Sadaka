@@ -921,38 +921,88 @@ body.in-subpage .back-to-home-btn {
   </div>
 </div>
 <!-- AWKAT -->
+<!-- واجهة مواقيت الصلاة المتطورة بالزرين المطلوبين فقط (القبلة وأقرب مسجد) -->
 <div class="page" id="awkat">
-  <div style="background:var(--card);border-radius:20px;padding:20px;border:1px solid var(--border);text-align:center;margin-bottom:14px;">
-    <div style="font-size:14px;color:var(--gold);font-family:'Amiri',serif;margin-bottom:5px;">🕌 مواقيت الصلاة — القاهرة</div>
-    <div id="hijriDate" style="font-size:12px;color:var(--text2);"></div>
-   <div id="gregorianDate" style="font-size: 13px; color: var(--gold); margin-top: 4px; font-family: 'Amiri', serif;"></div>
+  
+  <!-- كارت العداد المدمج الملون (تصميم الصورة 66056.jpg) -->
+  <div style="background: linear-gradient(135deg, #123524 0%, #0b120c 100%); border-radius: 24px; padding: 24px; border: 1px solid rgba(212,175,55,0.15); display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; color: #fff; box-shadow: 0 8px 25px rgba(0,0,0,0.3);">
+    
+    <!-- العداد الدائري والتنازلي على اليسار -->
+    <div style="position: relative; width: 130px; height: 130px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); border-radius: 50%; border: 3px solid var(--border);">
+      <div id="countdownTimer" style="font-size: 24px; font-weight: bold; font-family: monospace; color: var(--gold);">00:00:00</div>
+      <div id="countdownLabel" style="font-size: 11px; color: #9aa79c; margin-top: 4px;">متبقي على الأذان</div>
+    </div>
+
+    <!-- بيانات الصلاة الحالية والمنطقة على اليمين -->
+    <div style="text-align: right; flex: 1; padding-right: 20px; display: flex; flex-direction: column; gap: 8px;">
+      <div>
+        <div style="font-size: 12px; color: #9aa79c;">الصلاة القادمة</div>
+        <div id="nextPrayerName" style="font-size: 26px; font-weight: bold; color: var(--gold); font-family: 'Amiri', serif;">--</div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 6px; justify-content: flex-start; font-size: 13px; color: #fff;">
+        <span>📍</span> <span id="userLocationName">جاري تحديد منطقتك...</span>
+      </div>
+      <div style="font-size: 13px; color: #9aa79c;">
+        <span id="nextPrayerTimeStr">--</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- التواريخ الهجرية والميلادية المدمجة -->
+  <div style="background: var(--card); border-radius: 16px; padding: 14px; border: 1px solid var(--border); text-align: center; margin-bottom: 16px; display: flex; justify-content: space-around; align-items: center;">
+    <div id="hijriDate" style="font-size: 14px; font-weight: bold; color: var(--gold);"></div>
+    <div id="gregorianDate" style="font-size: 14px; color: var(--text);"></div>
+  </div>
+
+  <!-- شبكة مواقيت الصلوات الخمس والشروق -->
+  <div id="prayerTimes" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 24px;"></div>
+
+  <!-- 🌟 الأزرار السفلية المطلوبة فقط (القبلة وأقرب مسجد) 🌟 -->
+  <div style="display: flex; justify-content: center; gap: 40px; margin-top: 15px; text-align: center; width: 100%;">
+    
+    <!-- زر القبلة مستقل (يفتح صفحة القبلة المخصصة) -->
+    <div onclick="showPage('qiblaPage', null)" style="cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px;">
+      <div style="background: #ffffff; width: 70px; height: 70px; border-radius: 18px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(0,0,0,0.1); border: 1px solid var(--border);">
+        <span style="font-size: 34px;">🧭</span>
+      </div>
+      <span style="font-size: 14px; color: var(--text); font-family: 'Amiri', serif; font-weight: bold;">القبلة</span>
+    </div>
+
+    <!-- زر أقرب مسجد (يفتح خرائط جوجل مباشرة لإحداثيات المستخدم) -->
+    <div onclick="window.openNearestMosque()" style="cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px;">
+      <div style="background: #ffffff; width: 70px; height: 70px; border-radius: 18px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(0,0,0,0.1); border: 1px solid var(--border);">
+        <span style="font-size: 34px;">📍</span>
+      </div>
+      <span style="font-size: 14px; color: var(--text); font-family: 'Amiri', serif; font-weight: bold;">أقرب مسجد</span>
+    </div>
 
   </div>
-  <div id="prayerTimes" style="display:grid;gap:10px;margin-bottom:16px;"></div>
 
-  <div class="qibla-card">
-    <div style="font-size:14px;color:var(--gold);font-family:'Amiri',serif;margin-bottom:4px;">🧭 اتجاه القبلة</div>
-    <div style="font-size:11px;color:var(--text2);margin-bottom:10px;">وجّه موبايلك أفقياً واتّبع اتجاه الكعبة</div>
+</div>
 
+<!-- صفحة اتجاه القبلة المستقلة التابعة للزر السفلية -->
+<div class="page" id="qiblaPage">
+  <div class="qibla-card" style="margin-top: 20px;">
+    <div style="font-size:16px; color:var(--gold); font-family:'Amiri',serif; margin-bottom:4px; font-weight: bold;">🧭 اتجاه القبلة الذكي</div>
+    <div style="font-size:12px; color:var(--text2); margin-bottom:15px;">وجّه موبايلك أفقياً واتّبع اتجاه الكعبة المشرفة</div>
     <div id="qiblaPermissionView">
       <button class="qibla-enable-btn" onclick="enableQibla()">🧭 تفعيل البوصلة</button>
       <div class="qibla-status-text" id="qiblaPermStatus"></div>
     </div>
-
     <div id="qiblaCompassView" style="display:none;">
       <div class="qibla-compass-wrap">
-        <div class="qibla-compass-bg" id="qiblaCompassBg">
-          <div class="qibla-north-label">N</div>
-        </div>
+        <div class="qibla-compass-bg" id="qiblaCompassBg"><div class="qibla-north-label">N</div></div>
         <div class="qibla-kaaba-icon" id="qiblaKaabaIcon">🕋</div>
         <div class="qibla-arrow" id="qiblaArrow"></div>
         <div class="qibla-center-dot"></div>
       </div>
       <div class="qibla-degree-text" id="qiblaDegreeText">--°</div>
-      <div class="qibla-status-text" id="qiblaStatusText">جاري تحديد اتجاه القبلة...</div>
+      <div class="qibla-status-text" id="qiblaStatusText">جاري تحديد الاتجاه...</div>
     </div>
   </div>
 </div>
+
+ 
  <!-- ASMA2 -->
 <div class="page" id="asma2">
   <input class="asma2-search-box" placeholder="🔍 ابحث باسم أو رقم..." oninput="filterAsma2(this.value)">
@@ -3336,58 +3386,151 @@ function updateQiblaDisplay() {
     statusText.style.color = 'var(--text2)';
   }
  }
- async function loadPrayerTimes() {
-  const today = new Date();
-  const d = today.getDate();
-  const m = today.getMonth() + 1;
-  const y = today.getFullYear();
-  try {
-    const r = await fetch(`https://api.aladhan.com/v1/timingsByCity/${d}-${m}-${y}?city=Cairo&country=Egypt&method=5`);
-    const data = await r.json();
-    const t = data.data.timings;
-    const prayers = [
-      {name:'الفجر', time:t.Fajr, icon:'🌙'},
-      {name:'الشروق', time:t.Sunrise, icon:'🌅'},
-      {name:'الظهر', time:t.Dhuhr, icon:'☀️'},
-      {name:'العصر', time:t.Asr, icon:'🌤'},
-      {name:'المغرب', time:t.Maghrib, icon:'🌆'},
-      {name:'العشاء', time:t.Isha, icon:'🌙'},
-    ];
-    const hijri = data.data.date.hijri;
-    document.getElementById('hijriDate').textContent = `${hijri.day} ${hijri.month.ar} ${hijri.year}`;
-   // توليد التاريخ الميلادي الحالي باللغة العربية بالملي
-const today = new Date();
-const options = { year: 'numeric', month: 'long', day: 'numeric' };
-const gregorianAr = today.toLocaleDateString('ar-EG', options);
+  let prayerCountdownInterval = null;
+let globalPrayerTimings = null;
 
-if (document.getElementById('gregorianDate')) {
-  document.getElementById('gregorianDate').textContent = gregorianAr;
+// دالة جلب المواقيت بناءً على الموقع الجغرافي الفعلي للمستخدم
+async function loadPrayerTimes() {
+  const locationText = document.getElementById('userLocationName');
+  
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(async (position) => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+      
+      // جلب اسم المنطقة التقريبي من إحداثيات خطوط الطول والعرض للتوثيق بالواجهة
+      try {
+        const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=ar`);
+        const geoData = await geoRes.json();
+        if(locationText) locationText.textContent = geoData.address.city || geoData.address.town || geoData.address.state || "موقعك الحالي";
+      } catch(e) {
+        if(locationText) locationText.textContent = "موقعك الحالي الجغرافي";
+      }
+
+      executePrayerTimesFetch(lat, lng);
+    }, () => {
+      // افتراضي القاهرة في حال رفض إذن الموقع من المستخدم
+      if(locationText) locationText.textContent = "القاهرة (افتراضي - لم يُسمح بالموقع)";
+      executePrayerTimesFetch(30.0444, 31.2357);
+    });
+  } else {
+    executePrayerTimesFetch(30.0444, 31.2357);
+  }
 }
 
+async function executePrayerTimesFetch(lat, lng) {
+  const today = new Date();
+  const d = today.getDate(), m = today.getMonth() + 1, y = today.getFullYear();
+  
+  try {
+    const r = await fetch(`https://api.aladhan.com/v1/timingsByCity/${d}-${m}-${y}?city=${lat}&country=${lng}&method=5`);
+    const data = await r.json();
+    const t = data.data.timings;
+    globalPrayerTimings = t;
+    
+    const prayers = [
+      { name: 'الفجر', time: t.Fajr, icon: '🌙' },
+      { name: 'الشروق', time: t.Sunrise, icon: '🌅' },
+      { name: 'الظهر', time: t.Dhuhr, icon: '☀️' },
+      { name: 'العصر', time: t.Asr, icon: '🌤' },
+      { name: 'المغرب', time: t.Maghrib, icon: '🌆' },
+      { name: 'العشاء', time: t.Isha, icon: '🌙' },
+    ];
 
-    const now = today.getHours()*60 + today.getMinutes();
+    const hijri = data.data.date.hijri;
+    document.getElementById('hijriDate').textContent = `${toAr(hijri.day)} ${hijri.month.ar} ${toAr(hijri.year)} هـ`;
+    
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    document.getElementById('gregorianDate').textContent = today.toLocaleDateString('ar-EG', options);
+
+    // بناء شبكة عرض الصلوات الكروت الصغيرة المتناسقة مع الواجهة
     document.getElementById('prayerTimes').innerHTML = prayers.map(p => {
-      const [h,min] = p.time.split(':').map(Number);
-const pMin = h*60 + min;
-const isNext = pMin > now;
-const h12 = h === 0 ? 12 : h > 12 ? h-12 : h;
-const ampm = h < 12 ? 'ص' : 'م';
-const timeStr = `${h12}:${String(min).padStart(2,'0')} ${ampm}`;
-      return `<div style="background:var(--card);border-radius:15px;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;border:1px solid ${isNext?'rgba(255,215,0,0.4)':' var(--border)'};${isNext?'box-shadow:0 0 10px rgba(255,215,0,0.1)':''}">
-        <div style="display:flex;align-items:center;gap:10px;">
-          <span style="font-size:22px;">${p.icon}</span>
-          <span style="font-size:16px;font-family:'Amiri',serif;color:${isNext?'var(--gold)':'var(--text)'};">${p.name}</span>
+      const [h, min] = p.time.split(':').map(Number);
+      const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+      const ampm = h < 12 ? 'ص' : 'م';
+      return `
+        <div style="background: var(--card); border-radius: 16px; padding: 12px; text-align: center; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px;">
+          <span style="font-size: 18px;">${p.icon}</span>
+          <span style="font-size: 13px; font-weight: bold; color: var(--gold);">${p.name}</span>
+          <span style="font-size: 13px; font-family: monospace;">${toAr(h12)}:${String(min).padStart(2, '0')} ${ampm}</span>
         </div>
-        <div style="display:flex;align-items:center;gap:10px;">
-  <div style="font-size:18px;font-family:'Amiri',serif;color:${isNext?'var(--gold)':'var(--text2)'};">${timeStr}</div>
-  <button onclick="setAdhanReminder('${p.name}',${h},${min})" style="background:transparent;border:1px solid var(--border);color:var(--gold);padding:4px 8px;border-radius:8px;cursor:pointer;font-size:11px;">🔔</button>
-</div>
-      </div>`;
+      `;
     }).join('');
-  } catch(e) {
+
+    // تشغيل محرك حساب الفاصل والعداد التنازلي التلقائي للصلوات القادمة
+    startPrayerCountdown(prayers);
+
+  } catch (e) {
     document.getElementById('prayerTimes').innerHTML = '<div style="text-align:center;padding:30px;color:var(--text2);">تحتاج اتصال بالإنترنت 🌐</div>';
   }
- }
+}
+
+// محرك الحساب والعد التنازلي للصلوات الست اليومية بالثانية
+function startPrayerCountdown(prayers) {
+  if(prayerCountdownInterval) clearInterval(prayerCountdownInterval);
+
+  function updateTimer() {
+    const now = new Date();
+    let nextPrayer = null;
+    let minDiff = Infinity;
+
+    prayers.forEach(p => {
+      const [h, m] = p.time.split(':').map(Number);
+      const pDate = new Date(now);
+      pDate.setHours(h, m, 0, 0);
+
+      // لو الصلاة مرت النهاردة، نحسبها على بكره تلقائياً
+      if (pDate <= now) {
+        pDate.setDate(pDate.getDate() + 1);
+      }
+
+      const diff = pDate - now;
+      if (diff < minDiff) {
+        minDiff = diff;
+        nextPrayer = { ...p, targetDate: pDate };
+      }
+    });
+
+    if (nextPrayer) {
+      document.getElementById('nextPrayerName').textContent = nextPrayer.name;
+      
+      const [th, tmin] = nextPrayer.time.split(':').map(Number);
+      const th12 = th === 0 ? 12 : th > 12 ? th - 12 : th;
+      const tampm = th < 12 ? 'ص' : 'م';
+      document.getElementById('nextPrayerTimeStr').textContent = `الأذان القادم في تمام الساعة: ${toAr(th12)}:${String(tmin).padStart(2,'0')} ${tampm === 'ص' ? 'صباحاً' : 'مساءً'}`;
+
+      // تحويل الفارق لـ (ساعات : دقائق : ثواني) حية
+      let totalSecs = Math.floor(minDiff / 1000);
+      const hours = Math.floor(totalSecs / 3600);
+      totalSecs %= 3600;
+      const mins = Math.floor(totalSecs / 60);
+      const secs = totalSecs % 60;
+
+      document.getElementById('countdownTimer').textContent = 
+        `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+  }
+
+  updateTimer();
+  prayerCountdownInterval = setInterval(updateTimer, 1000);
+}
+
+// دالة فتح الخرائط للتوجه الفوري لأقرب مسجد مبني على إحداثيات موقع المستخدم الفعلي
+window.openNearestMosque = function() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition((position) => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+      const mapUrl = `https://www.google.com/maps/search/mosque/@${lat},${lng},14z`;
+      window.open(mapUrl, '_blank');
+    }, () => {
+      window.open(`https://www.google.com/maps/search/مسجد+قريب+مني`, '_blank');
+    });
+  } else {
+    window.open(`https://www.google.com/maps/search/مسجد+قريب+مني`, '_blank');
+  }
+};
+
  function setAdhanReminder(name, h, min) {
   const options = ['قبل 5 دقائق', 'قبل 10 دقائق', 'قبل 15 دقائق', 'عند الأذان'];
   const mins = [5, 10, 15, 0];
