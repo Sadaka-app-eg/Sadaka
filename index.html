@@ -2971,34 +2971,27 @@ function toggleAudio() {
     span.scrollIntoView({ behavior: 'smooth', block: 'center' }); 
   }
 
-  // 🎯 تجهيز تركيبات أرقام الآيات للسيرفرات المحدثة الجديدة
+  const surahNum = String(currentSurah.n).padStart(3, '0');
+    const ayahNum = String(a.numberInSurah).padStart(3, '0');
     const fileKey = `${surahNum}${ayahNum}`;
 
-  // 🎯 استبدل الجزء الخاص بتحديد الـ audioSource في دالة playNextInQueue بالكود ده:
-  // داخل دالة playNextInQueue، استبدل جزء الـ audioSource بهذا:
-let audioSource = '';
-const surahNum = String(currentSurah.n).padStart(3, '0');
-const ayahNum = String(a.numberInSurah).padStart(3, '0');
-
-// استخدام رابط ثابت وموحد للآيات يضمن التشغيل للجميع
-// هذا الرابط يدعم الآيات الفردية لكافة القراء الأساسيين
-audioSource = `https://cdn.islamic.network/quran/audio/128/${getReciterApiId(currentReciter)}/${a.globalNumber}.mp3`;
-
-// دالة مساعدة لجلب معرف القارئ الصحيح للـ API
-function getReciterApiId(reciter) {
-  const map = {
-    'minsh': 'ar.minshawi',
-    'husary': 'ar.husary',
-    'afs': 'ar.alafasy',
-    'maher': 'ar.mahermuaiqly',
-    'ajm': 'ar.ahmedajamy',
-    'basit': 'ar.abdulbasitmurattal',
-    'shrim': 'ar.saoodashuraym',
-    'dosr': 'ar.yasseraldossari',
-    'qarafi': 'ar.qarafi'
-  };
-  return map[reciter] || 'ar.minshawi';
-}
+    let audioSource = '';
+    if (currentReciter === 'shrim') {
+      audioSource = `https://www.everyayah.com/data/Saood_ash-Shuraym_128kbps/${fileKey}.mp3`;
+    } else if (currentReciter === 'frs_a') {
+      audioSource = `https://www.everyayah.com/data/Fares_Abbad_64kbps/${fileKey}.mp3`;
+    } else if (currentReciter === 'dosr') {
+      audioSource = `https://www.everyayah.com/data/Yasser_Ad-Dussary_128kbps/${fileKey}.mp3`;
+    } else if (currentReciter === 'basit') {
+      audioSource = `https://www.everyayah.com/data/Abdul_Basit_Murattal_192kbps/${fileKey}.mp3`;
+    } else {
+      let reciterApiId = 'ar.minshawi';
+      if (currentReciter === 'husary') reciterApiId = 'ar.husary';
+      else if (currentReciter === 'afs') reciterApiId = 'ar.alafasy';
+      else if (currentReciter === 'maher') reciterApiId = 'ar.mahermuaiqly';
+      else if (currentReciter === 'ajm') reciterApiId = 'ar.ahmedajamy';
+      audioSource = `https://cdn.islamic.network/quran/audio/128/${reciterApiId}/${a.globalNumber}.mp3`;
+    }
 audio.src = audioSource;
   audio.play()
     .then(() => {
