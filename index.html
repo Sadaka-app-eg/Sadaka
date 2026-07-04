@@ -745,8 +745,7 @@ body.in-subpage .back-to-home-btn {
   <div class="tab" onclick="showPage('tasbeh',this)">📿 السبحة الإلكترونية</div>
    <div class="tab" onclick="showPage('islamicContent',this)">📚 المكتبة العلمية</div>
   <div class="tab" onclick="showPage('favPage',this)">⭐ السور المفضلة</div>
-  <div class="tab" onclick="showPage('awkat',this)">🕌 مواقيت الصلاة والقبلة</div>
-  <div class="tab" onclick="showPage('asma2',this)">✨ أسماء الله الحسنى</div>
+    <div class="tab" onclick="showPage('asma2',this)">✨ أسماء الله الحسنى</div>
   <div class="tab" onclick="showPage('khatma',this)">📿 الختمة المباركة</div>
    <div class="tab" onclick="showPage('themeSettingsPage',this)">🎨 ألوان ومظهر التطبيق</div>
  <div class="tab" onclick="showPage('rareRecitationsPage',this)">🎧 تلاوات نادرة</div>
@@ -762,43 +761,91 @@ body.in-subpage .back-to-home-btn {
 </div>
 
 
+
 <!-- HOME -->
 <div class="page active" id="home">
   
+  <!-- 🕌 أولاً: قسم مواقيت الصلاة والقبلة في الصدارة -->
+  <div style="background: linear-gradient(135deg, #123524 0%, #0b120c 100%); border-radius: 24px; padding: 24px; border: 1px solid rgba(212,175,55,0.15); display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; color: #fff; box-shadow: 0 8px 25px rgba(0,0,0,0.3);">
+    <!-- العداد الدائري والتنازلي على اليسار -->
+    <div style="position: relative; width: 130px; height: 130px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); border-radius: 50%; border: 3px solid var(--border);">
+      <div id="countdownTimer" style="font-size: 24px; font-weight: bold; font-family: monospace; color: var(--gold);">00:00:00</div>
+      <div id="countdownLabel" style="font-size: 11px; color: #9aa79c; margin-top: 4px;">متبقي على الأذان</div>
+    </div>
+    <!-- بيانات الصلاة الحالية والمنطقة على اليمين -->
+    <div style="text-align: right; flex: 1; padding-right: 20px; display: flex; flex-direction: column; gap: 8px;">
+      <div>
+        <div style="font-size: 12px; color: #9aa79c;">الصلاة القادمة</div>
+        <div id="nextPrayerName" style="font-size: 26px; font-weight: bold; color: var(--gold); font-family: 'Amiri', serif;">--</div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 6px; justify-content: flex-start; font-size: 13px; color: #fff;">
+        <span>📍</span> <span id="userLocationName">جاري تحديد منطقتك...</span>
+      </div>
+      <div style="font-size: 13px; color: #9aa79c;">
+        <span id="nextPrayerTimeStr">--</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- التواريخ الهجرية والميلادية المدمجة -->
+  <div style="background: var(--card); border-radius: 16px; padding: 14px; border: 1px solid var(--border); text-align: center; margin-bottom: 16px; display: flex; justify-content: space-around; align-items: center;">
+    <div id="hijriDate" style="font-size: 14px; font-weight: bold; color: var(--gold);"></div>
+    <div id="gregorianDate" style="font-size: 14px; color: var(--text);"></div>
+  </div>
+
+  <!-- شبكة مواقيت الصلوات الخمس والشروق -->
+  <div id="prayerTimes" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 24px;"></div>
+
+  <!-- الأزرار السفلية (القبلة وأقرب مسجد) -->
+  <div style="display: flex; justify-content: center; gap: 40px; margin-top: 15px; margin-bottom: 25px; text-align: center; width: 100%;">
+    <div onclick="showPage('qiblaPage', null)" style="cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px;">
+      <div style="background: #ffffff; width: 70px; height: 70px; border-radius: 18px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(0,0,0,0.1); border: 1px solid var(--border);">
+        <span style="font-size: 34px;">🧭</span>
+      </div>
+      <span style="font-size: 14px; color: var(--text); font-family: 'Amiri', serif; font-weight: bold;">القبلة</span>
+    </div>
+    <div onclick="window.openNearestMosque()" style="cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px;">
+      <div style="background: #ffffff; width: 70px; height: 70px; border-radius: 18px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(0,0,0,0.1); border: 1px solid var(--border);">
+        <span style="font-size: 34px;">📍</span>
+      </div>
+      <span style="font-size: 14px; color: var(--text); font-family: 'Amiri', serif; font-weight: bold;">أقرب مسجد</span>
+    </div>
+  </div>
+
+  <hr style="border: 0; border-top: 1px dashed var(--border); margin: 20px 0;">
+
+  <!-- 🌙 ثانياً: كارت الهوية "كن ذا أثر" نزل بالأسفل بنجاح -->
   <div class="hero" id="homeHeroCard">
     <div class="moon">🌙</div>
-    <h2>كُن ذا أثر</h2> <!-- 🌟 تم تعديلها هنا بناءً على طلبك بالملي -->
-    <div class="name">ويبقى الأثر </div>
+    <h2>كُن ذا أثر</h2>
+    <div class="name">ويبقى الأثر</div>
     <div class="ayah">﴿ إِنَّا نَحْنُ نُحْيِي الْمَوْتَىٰ وَنَكْتُبُ مَا قَدَّمُوا وَآثَارَهُمْ ﴾</div>
   </div>
-    <div class="stats">
+
+  <!-- كروت الإحصائيات (التسبيح والذكر والمهام) -->
+  <div class="stats">
     <div class="stat-card"><div class="stat-num" id="statTasbeh">0</div><div class="stat-label">تسبيحة اليوم</div></div>
-    
-    <!-- 🟢 كارت ذكر اليوم المطور بعد التعديل والاستبدال في السطر 776 -->
     <div class="stat-card" style="position: relative;">
       <div class="stat-num" id="statAzkar">0</div>
       <div class="stat-label">ذكر اليوم</div>
-      <!-- العداد الجديد للمهام -->
       <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border); font-size: 13px; color: var(--gold); font-weight: bold; font-family: 'Amiri', serif;">
         المهام اليومية: <span id="dailyTasksCounter" style="font-size: 16px;">٠</span> / ٩
       </div>
     </div>
-  </div> <!-- قفلة الـ stats في السطر 777 -->
+  </div>
 
-  <!-- كارت النفحات الذهبي الصريح الجديد -->
-  <!-- مكان النفحات -->
-<div onclick="showPage('nafahatPage', null)" style="background: var(--card); border-radius: 16px; padding: 16px; margin-top: 14px; border: 1px solid var(--border); text-align: center; cursor: pointer; border-right: 4px solid var(--gold); transition: background 0.3s;">
+  <!-- مكان النفحات والهدية -->
+  <div onclick="showPage('nafahatPage', null)" style="background: var(--card); border-radius: 16px; padding: 16px; margin-top: 14px; border: 1px solid var(--border); text-align: center; cursor: pointer; border-right: 4px solid var(--gold); transition: background 0.3s;">
     <span style="color: var(--gold); font-family: 'Amiri', serif; font-size: 15px; font-weight: 700;">✨ اضغط لعرض نفحات وهداية اليوم (آية، حديث، ودعاء) ✨</span>
-</div>
+  </div>
 
-<!-- حط كود الصندوق هنا بالظبط -->
-<div id="gift-container" style="text-align:center; padding:15px; margin-top:20px;">
-  <div id="gift-box" onclick="openGift()" style="cursor:pointer; font-size:50px; transition: transform 0.3s; display:inline-block;">🎁</div>
-  <div id="gift-text" style="margin-top:5px; font-weight:bold; color:var(--gold); font-size:14px;">اضغط لفتح هدية اليوم</div>
-  <div id="gift-result" style="display:none; padding:15px; background:var(--card); border-radius:15px; border: 1px solid var(--border);"></div>
-</div>
+  <div id="gift-container" style="text-align:center; padding:15px; margin-top:20px;">
+    <div id="gift-box" onclick="openGift()" style="cursor:pointer; font-size:50px; transition: transform 0.3s; display:inline-block;">🎁</div>
+    <div id="gift-text" style="margin-top:5px; font-weight:bold; color:var(--gold); font-size:14px;">اضغط لفتح هدية اليوم</div>
+    <div id="gift-result" style="display:none; padding:15px; background:var(--card); border-radius:15px; border: 1px solid var(--border);"></div>
+  </div>
 
-</div> <!-- دي قفلة الـ home -->
+</div>
 
 
 
@@ -2316,7 +2363,7 @@ if (id === 'settingsPage') {
   updateSettingsAccountBox();
 }
   if(id === 'favPage') renderFav();
-  if(id === 'awkat') loadPrayerTimes();
+  if(id === 'home') loadPrayerTimes();
   if(id === 'notifPage') { renderNotifPresets(); renderCustomNotifList(); }
   
   // 🌟 ضع هذا السطر الجديد هنا بالظبط:
@@ -2902,6 +2949,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+ loadPrayerTimes(); // 🕌 السطر السحري لتشغيل حساب المواقيت فور فتح التطبيق على الرئيسية
+  updateDailyTasksProgress(); 
+  restoreLastState(); 
 });
 function toggleAudio() {
   if(!currentSurah) return;
