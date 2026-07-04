@@ -3,28 +3,27 @@
 // =========================================================
 window.islamicRadioStations = [
   // الإذاعات الرئيسية الكبرى (روابط راديو جار الرسمية الشغالة طحن)
-  { id: "cairo", name: "إذاعة القرآن من القاهرة 🇪🇬", url: "https://stream.radiojar.com/8s5u5tpdtwzuv" },[span_0](start_span)[span_0](end_span)
-  { id: "makkah", name: "إذاعة القرآن من مكة المكرمة 🕋", url: "https://stream.radiojar.com/0tpy1h0kxtzuv" },[span_1](start_span)[span_1](end_span)
-  { id: "riyadh", name: "إذاعة القرآن من الرياض 🇸🇦", url: "https://stream.radiojar.com/4wqre23fytzuv" },[span_2](start_span)[span_2](end_span)
-  { id: "heweny", name: "إذاعة الشيخ الحويني 👤", url: "https://stream.radiojar.com/8s5u5tpdtwzuv" }, // مسار البث المفتوح الحماية المتوافق مع المتصفح
+  { id: "cairo", name: "إذاعة القرآن من القاهرة 🇪🇬", url: "https://stream.radiojar.com/8s5u5tpdtwzuv" },
+  { id: "makkah", name: "إذاعة القرآن من مكة المكرمة 🕋", url: "https://stream.radiojar.com/0tpy1h0kxtzuv" },
+  { id: "riyadh", name: "إذاعة القرآن من الرياض 🇸🇦", url: "https://stream.radiojar.com/4wqre23fytzuv" },
+  { id: "heweny", name: "إذاعة الشيخ الحويني 👤", url: "https://stream.radiojar.com/8s5u5tpdtwzuv" },
   
   // إذاعات علوم القرآن والتفسير (المسارات الرسمية الدقيقة من السيرفر الشغال)
-  { id: "roqia", name: "إذاعة الرقية الشرعية 🌿", url: "https://qurango.net/radio/roqiah" },[span_3](start_span)[span_3](end_span)
-  { id: "tafseer_all", name: "إذاعة تفسير القرآن الكريم 📖", url: "https://qurango.net/radio/tafseer" },[span_4](start_span)[span_4](end_span)
-  { id: "sakina", name: "إذاعة آيات السكينة 🕊️", url: "https://qurango.net/radio/sakeenah" },[span_5](start_span)[span_5](end_span)
-  { id: "mukhtasar_tafseer", name: "المختصر في تفسير القرآن 📚", url: "https://qurango.net/radio/mukhtasartafsir" },[span_6](start_span)[span_6](end_span)
-  { id: "tabari", name: "تفسير الطبري (الخلاصة) 📝", url: "https://qurango.net/radio/tabri" },[span_7](start_span)[span_7](end_span)
+  { id: "roqia", name: "إذاعة الرقية الشرعية 🌿", url: "https://qurango.net/radio/roqiah" },
+  { id: "tafseer_all", name: "إذاعة تفسير القرآن الكريم 📖", url: "https://qurango.net/radio/tafseer" },
+  { id: "sakina", name: "إذاعة آيات السكينة 🕊️", url: "https://qurango.net/radio/sakeenah" },
+  { id: "mukhtasar_tafseer", name: "المختصر في تفسير القرآن 📚", url: "https://qurango.net/radio/mukhtasartafsir" },
+  { id: "tabari", name: "تفسير الطبري (الخلاصة) 📝", url: "https://qurango.net/radio/tabri" },
 
   // إذاعات علوم السنة والفتاوى وسير الصحابة
-  { id: "seerah", name: "المختصر في السيرة النبوية 🕋", url: "https://qurango.net/radio/almukhtasar_fi_alsiyra" },[span_8](start_span)[span_8](end_span)
-  { id: "ikhtiyarat", name: "كتاب الاختيارات الفقهية 🏛️", url: "https://qurango.net/radio/alaikhtiarat_alfiqhayh_bin_baz" },[span_9](start_span)[span_9](end_span)
-  { id: "muslim", name: "إذاعة صحيح مسلم 📜", url: "https://qurango.net/radio/saheh-muslim" },[span_10](start_span)[span_10](end_span)
-  { id: "bukhari", name: "إذاعة صحيح البخاري 📜", url: "https://qurango.net/radio/saheh-bokharee" },[span_11](start_span)[span_11](end_span)
-  { id: "salheen", name: "إذاعة رياض الصالحين 🌿", url: "https://qurango.net/radio/riyad" },[span_12](start_span)[span_12](end_span)
-  { id: "fatawa", name: "إذاعة الفتاوى العامة ❓", url: "https://qurango.net/radio/fatwa" },[span_13](start_span)[span_13](end_span)
-  { id: "zilal_seerah", name: "في ظلال السيرة النبوية 💎", url: "https://qurango.net/radio/fi_zilal_alsiyra" }[span_14](start_span)[span_14](end_span)
+  { id: "seerah", name: "المختصر في السيرة النبوية 🕋", url: "https://qurango.net/radio/almukhtasar_fi_alsiyra" },
+  { id: "ikhtiyarat", name: "كتاب الاختيارات الفقهية 🏛️", url: "https://qurango.net/radio/alaikhtiarat_alfiqhayh_bin_baz" },
+  { id: "muslim", name: "إذاعة صحيح مسلم 📜", url: "https://qurango.net/radio/saheh-muslim" },
+  { id: "bukhari", name: "إذاعة صحيح البخاري 📜", url: "https://qurango.net/radio/saheh-bokharee" },
+  { id: "salheen", name: "إذاعة رياض الصالحين 🌿", url: "https://qurango.net/radio/riyad" },
+  { id: "fatawa", name: "إذاعة الفتاوى العامة ❓", url: "https://qurango.net/radio/fatwa" },
+  { id: "zilal_seerah", name: "في ظلال السيرة النبوية 💎", url: "https://qurango.net/radio/fi_zilal_alsiyra" }
 ];
-
 
 window.currentActiveRadioUrl = "";
 
@@ -79,7 +78,6 @@ window.selectAndPlayRadio = function(url, name) {
       .catch(err => {
         console.error("Radio play failed:", err);
         status.textContent = "جاري إعادة الاتصال بالبث الاحتياطي...";
-        // تفعيل سيرفر احتياطي فوري لتأمين التشغيل
         setTimeout(() => {
           player.src = url;
           player.play().then(() => { btn.textContent = "⏸"; }).catch(() => {
