@@ -3046,14 +3046,14 @@ function getReciterFolder(reciter) {
   return map[reciter] || 'Minshawy_Murattal_128kbps';
 }
 
-audio.src = audioSource;
-
+  audio.src = audioSource;
   
   audio.play()
     .then(() => {
       isPlaying = true;
       document.getElementById('playBtn').textContent = '⏸';
-      document.getElementById('audioStatus').textContent = `يُشغّل الآية ${toAr(a.numberInSurah)} ${window.ayahRepeatCount > 1 ? `(تكرار ١ من ${toAr(window.ayahRepeatCount)})` : ""}`;
+      // الـ safe-check لتعديل النص بدون استخدام idx اللي كان بيضرب ويخرب الدنيا:
+      document.getElementById('audioStatus').textContent = `يُشغّل الآية ${toAr(a.numberInSurah)} (تكرار ${toAr(window.currentAyahRepeatProgress)} من ${toAr(window.ayahRepeatCount)})`;
      // تفعيل التحكم في الوسائط لجعل الصوت يستمر في الخلفية
 if ('mediaSession' in navigator) {
   navigator.mediaSession.metadata = new MediaMetadata({
