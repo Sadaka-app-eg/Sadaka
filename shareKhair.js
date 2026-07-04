@@ -306,7 +306,7 @@ window.executeKhairShare = function(type) {
         alert('تم حفظ البطاقة في جهازك بنجاح! 🖼️');
       }
     }, 'image/png');
-  } // نهاية شرط الـ image
+  }, // نهاية شرط الـ image
 }; // نهاية الدالة executeKhairShare
           
     
