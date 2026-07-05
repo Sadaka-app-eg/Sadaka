@@ -444,34 +444,32 @@ function generateFinalVideo() {
         recordedChunks.push(e.data);
       }
     };
+mediaRecorder.onstop = function() {
+  vcIsPlaying = false;
+  cancelAnimationFrame(vcAnimationId);
+  vcStopAyahPlayback();
+  if (audioEl) audioEl.pause();
+  if (safetyTimeoutId) clearTimeout(safetyTimeoutId);
 
-    mediaRecorder.onstop = function() {
-      // إيقاف حلقة الرندر والصوت بعد انتهاء التسجيل مباشرة
-      vcIsPlaying = false;
-      cancelAnimationFrame(vcAnimationId);
-      vcStopAyahPlayback();
-      if (audioEl) audioEl.pause();
-      if (safetyTimeoutId) clearTimeout(safetyTimeoutId);
+  // ✅ نحدد الصيغة الحقيقية اللي اتسجلت فعلاً، مش نفترض
+  const actualMime = mediaRecorder.mimeType || options.mimeType;
+  const isWebm = actualMime.includes('webm');
+  const blob = new Blob(recordedChunks, { type: actualMime });
+  const videoURL = URL.createObjectURL(blob);
 
-      // ج. تحويل البيانات المسجلة إلى ملف فيديو حقيقي قابل للتحميل والدفق
-      const blob = new Blob(recordedChunks, { type: 'video/mp4' });
-      const videoURL = URL.createObjectURL(blob);
-      
-      // د. إنشاء رابط تحميل وهمي وضغط زر التحميل صامتاً في جهاز المستخدم
-      const downloadLink = document.createElement('a');
-      downloadLink.href = videoURL;
-      downloadLink.download = `Athar_Reels_${vcSurahName || 'Quran'}.mp4`;
-      downloadLink.click();
-      
-      // إخفاء الـ Loader وإرجاع الأبعاد الأصلية لشاشة المعاينة المستقرة
-      statusEl.style.display = "none";
-      alert("🎉 ألف مبروك يا هندسة! تم إنشاء مقطع الريلز الإسلامي الاحترافي وحفظه في معرض الصور بجهازك بنجاح كلي! ✨");
-      
-      canvas.width = 720;
-      canvas.height = 1280;
-      updateVideoPreview();
-    };
+  const downloadLink = document.createElement('a');
+  downloadLink.href = videoURL;
+  downloadLink.download = `Athar_Reels_${vcSurahName || 'Quran'}.${isWebm ? 'webm' : 'mp4'}`;
+  downloadLink.click();
 
+  statusEl.style.display = "none";
+  alert("🎉 ألف مبروك ! تم إنشاء مقطع الريلز الإسلامي الاحترافي وحفظه بنجاح ! ✨");
+
+  canvas.width = 720;
+  canvas.height = 1280;
+  updateVideoPreview();
+};
+    
     // هـ. بدء المحرك الفعلي للتسجيل وتشغيل الفيديو والصوت بشكل تزامني
     mediaRecorder.start();
     if (videoSource.paused) videoSource.play().catch(e => console.log(e));
