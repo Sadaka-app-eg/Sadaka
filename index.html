@@ -1402,8 +1402,10 @@ body.in-subpage .back-to-home-btn {
         <button onclick="document.getElementById('vcUserAudioInput').click()" class="cat-btn" style="background: var(--bg3); border-color: var(--border); font-size: 12px; white-space: nowrap;">➕ أضف ملف صوتي</button>
         <input type="file" id="vcUserAudioInput" accept="audio/*" onchange="handleUserAudioUpload(event)" style="display: none;">
       </div>
-      <div id="userAudioStatus" style="font-size: 11px; color: var(--green); text-align: right; display: none;">✓ تم رفع ملف الصوت</div>
-    </div>
+      <div id="userAudioStatus" style="font-size: 11px; color: var(--green); text-align: right; display: none; justify-content:flex-end; align-items:center; gap:8px;">
+  ✓ تم رفع ملف الصوت
+  <button onclick="clearVcUserAudio()" style="background:transparent;border:1px solid var(--border);color:#ff6b6b;padding:2px 8px;border-radius:8px;cursor:pointer;font-size:11px;">✕ إلغاء</button>
+      </div>    </div>
 
     <div>
       <label style="font-size: 13px; color: var(--gold); display: block; margin-bottom: 6px;">📖 3. حدد الآيات:</label>
