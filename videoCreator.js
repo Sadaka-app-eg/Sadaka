@@ -35,6 +35,22 @@ let vcReciterName = "المنشاوي";
 let vcUserUploadedAudio = null;
 
 // ==========================================
+// دالة مساعدة: تجيب رابط صوت القارئ المختار للسورة الحالية
+// ==========================================
+function vcGetReciterAudioUrl(surahNum) {
+  const num3 = String(surahNum).padStart(3, '0');
+  const reciterEl = document.getElementById('vcReciterSelect');
+  const key = reciterEl ? reciterEl.value : 'minsh';
+  const map = {
+    minsh: `https://server10.mp3quran.net/minsh/${num3}.mp3`,
+    husary: `https://server13.mp3quran.net/husr/${num3}.mp3`,
+    afs: `https://server8.mp3quran.net/afs/${num3}.mp3`,
+    basit: `https://server7.mp3quran.net/basit/${num3}.mp3`
+  };
+  return map[key] || map.minsh;
+}
+
+// ==========================================
 // 1. دالة تهيئة النظام وبناء الواجهة برمجياً فور تحميل الصفحة
 // ==========================================
 function initVideoCreatorSystem() {
@@ -123,6 +139,18 @@ function updateVideoPreview() {
   if (!vcUserUploadedAudio) {
     const reciterEl = document.getElementById('vcReciterSelect');
     vcReciterName = reciterEl.options[reciterEl.selectedIndex].text;
+
+    // 🔊 تحديث مصدر صوت القارئ تلقائياً لو اتغير القارئ أو السورة
+    const surahEl2 = document.getElementById('vcSurahSelect');
+    const surahNum2 = surahEl2 ? parseInt(surahEl2.value) : 1;
+    const newAudioUrl = vcGetReciterAudioUrl(surahNum2);
+    const audioEl = document.getElementById('audioTrackSource');
+    if (audioEl && audioEl.src !== newAudioUrl) {
+      const wasPlaying = !audioEl.paused;
+      audioEl.src = newAudioUrl;
+      audioEl.load();
+      if (wasPlaying) audioEl.play().catch(e => console.log(e));
+    }
   }
 
   // هـ. رسم اسم السورة أعلى اليمين بخط ذهبي وقور
@@ -192,15 +220,21 @@ function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
 function toggleVideoPreviewPlay() {
   const video = document.getElementById('bgVideoSource');
   const btn = document.getElementById('vcPlayBtn');
-  
+  const audioEl = document.getElementById('audioTrackSource');
+
   if (vcIsPlaying) {
     vcIsPlaying = false;
     if (video) video.pause();
+    if (audioEl) audioEl.pause();
     if (btn) btn.textContent = "▶ تشغيل المعاينة";
     cancelAnimationFrame(vcAnimationId);
   } else {
     vcIsPlaying = true;
     if (video) video.play().catch(e => console.log(e));
+    if (audioEl) {
+      if (!audioEl.src) updateVideoPreview();
+      audioEl.play().catch(e => console.log(e));
+    }
     if (btn) btn.textContent = "⏸ إيقاف المعاينة";
     
     // إطلاق اللووب الرندري لطلب الفريمات باستمرار من المتصفح دون تهنيج
@@ -219,7 +253,7 @@ function handleUserAudioUpload(event) {
   if (!file) return;
   
   vcUserUploadedAudio = URL.createObjectURL(file);
-  document.getElementById('userAudioStatus').style.display = 'block';
+  document.getElementById('userAudioStatus').style.display = 'flex';
   document.getElementById('vcReciterSelect').disabled = true;
   vcReciterName = "صوت خارجي مخصص";
   
@@ -228,6 +262,15 @@ function handleUserAudioUpload(event) {
     audio.src = vcUserUploadedAudio;
     audio.load();
   }
+  updateVideoPreview();
+}
+
+// دالة إلغاء الصوت المخصص والرجوع لاختيار القارئ من القائمة
+function clearVcUserAudio() {
+  vcUserUploadedAudio = null;
+  document.getElementById('userAudioStatus').style.display = 'none';
+  document.getElementById('vcReciterSelect').disabled = false;
+  document.getElementById('vcUserAudioInput').value = '';
   updateVideoPreview();
 }
 
@@ -293,6 +336,17 @@ function generateFinalVideo() {
   // ب. التقاط البث المباشر من لوحة الكانفاس بمعدل 30 فريم ثابت
   const videoStream = canvas.captureStream(30);
   let recordedChunks = [];
+
+  // 🔊 دمج صوت القارئ/الملف المرفوع في نفس تيار التسجيل
+  const audioEl = document.getElementById('audioTrackSource');
+  if (audioEl && typeof audioEl.captureStream === 'function') {
+    try {
+      const audioStream = audioEl.captureStream();
+      audioStream.getAudioTracks().forEach(track => videoStream.addTrack(track));
+    } catch (audioErr) {
+      console.warn("تعذر دمج الصوت:", audioErr);
+    }
+  }
   
   // تظبيط الميم تايب المتوافق مع المواصفات لأعلى جودة وضغط خفيف
   let options = { mimeType: 'video/webm;codecs=vp9,opus' };
@@ -313,6 +367,11 @@ function generateFinalVideo() {
     };
 
     mediaRecorder.onstop = function() {
+      // إيقاف حلقة الرندر والصوت بعد انتهاء التسجيل مباشرة
+      vcIsPlaying = false;
+      cancelAnimationFrame(vcAnimationId);
+      if (audioEl) audioEl.pause();
+
       // ج. تحويل البيانات المسجلة إلى ملف فيديو حقيقي قابل للتحميل والدفق
       const blob = new Blob(recordedChunks, { type: 'video/mp4' });
       const videoURL = URL.createObjectURL(blob);
@@ -332,11 +391,23 @@ function generateFinalVideo() {
       updateVideoPreview();
     };
 
-    // هـ. بدء المحرك الفعلي للتسجيل وتشغيل الفيديو الخلفي بشكل تزامني
+    // هـ. بدء المحرك الفعلي للتسجيل وتشغيل الفيديو والصوت بشكل تزامني
     mediaRecorder.start();
     if (videoSource.paused) videoSource.play().catch(e => console.log(e));
+    if (audioEl) {
+      audioEl.currentTime = 0;
+      audioEl.play().catch(e => console.log(e));
+    }
+
+    // و. تشغيل حلقة رسم مستمرة أثناء التسجيل لضمان تحديث الكانفاس فريم بفريم
+    vcIsPlaying = true;
+    (function exportRenderLoop() {
+      if (!vcIsPlaying) return;
+      updateVideoPreview();
+      vcAnimationId = requestAnimationFrame(exportRenderLoop);
+    })();
     
-    // و. مدة دقيقة ونصف كحد أقصى للريلز (90 ثانية) ومن ثم الإغلاق الآمن والتصدير
+    // ز. مدة دقيقة ونصف كحد أقصى للريلز (90 ثانية) ومن ثم الإغلاق الآمن والتصدير
     // وضعنا هنا 15 ثانية للتجربة السريعة الفورية، وتقدر ترفع الرقم يدوياً حسب الرغبة
     setTimeout(() => {
       mediaRecorder.stop();
