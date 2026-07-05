@@ -756,7 +756,7 @@ body.in-subpage .back-to-home-btn {
 <div class="tab" onclick="showPage('settingsPage', this)">⚙️ الإعدادات وحسابي</div>
 <div class="tab" onclick="showPage('janazaPage',this)">🕊️ قسم الجنائز</div>
 <div class="tab" onclick="showPage('shareKhairPage',this)">💝 شارك في الخير</div>
-
+<div class="tab" onclick="showPage('blessingsPage',this)">❤️ دفتر النعم</div>
 </div>
 
 
@@ -841,6 +841,10 @@ body.in-subpage .back-to-home-btn {
     <span style="color: var(--green); font-family: 'Amiri', serif; font-size: 15px; font-weight: 700;">🔖 انقر هنا للذهاب إلى علامة وقفك في المصحف</span>
     <div id="homeBookmarkDetails" style="color: var(--text2); font-size: 12px; margin-top: 6px;"></div>
 </div>
+  <div onclick="showPage('blessingsPage', null)" style="background: var(--card); border-radius: 16px; padding: 16px; margin-top: 14px; border: 1px solid var(--border); text-align: center; cursor: pointer; border-right: 4px solid #e07b9d; transition: background 0.3s;">
+  <span style="color: #e07b9d; font-family: 'Amiri', serif; font-size: 15px; font-weight: 700;">❤️ دفتر النعم — اكتب نعمة اليوم</span>
+  <div id="homeBlessingsHint" style="color: var(--text2); font-size: 12px; margin-top: 6px;"></div>
+  </div>
   <div id="gift-container" style="text-align:center; padding:15px; margin-top:20px;">
     <div id="gift-box" onclick="openGift()" style="cursor:pointer; font-size:50px; transition: transform 0.3s; display:inline-block;">🎁</div>
     <div id="gift-text" style="margin-top:5px; font-weight:bold; color:var(--gold); font-size:14px;">اضغط لفتح هدية اليوم</div>
@@ -1490,7 +1494,27 @@ body.in-subpage .back-to-home-btn {
     </div>
   </div>
 </div>
+<!-- BLESSINGS JOURNAL PAGE -->
+<div class="page" id="blessingsPage">
+  <div style="text-align: center; margin-bottom: 16px;">
+    <h2 style="color: var(--gold); font-family: 'Amiri', serif; font-size: 24px;">❤️ دَفْتَرُ النِّعَمِ</h2>
+    <p style="color: var(--text2); font-size: 13px;">اكتب نعمة واحدة كل يوم، وبعد سنة هتلاقي مئات النعم اتكتبت بخط إيدك</p>
+  </div>
 
+  <div style="background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--border); border-right: 4px solid var(--gold); margin-bottom: 16px;">
+    <div id="blessingTodayStatus" style="font-size: 13px; color: var(--gold); margin-bottom: 10px; font-weight: bold;"></div>
+    <textarea id="blessingInput" placeholder="اكتب نعمة تشكر الله عليها النهاردة..." style="width:100%; min-height:80px; padding:12px; border-radius:12px; background:var(--bg2); color:var(--text); border:1px solid var(--border); font-family:'Amiri',serif; font-size:16px; resize:vertical; outline:none; margin-bottom:12px;"></textarea>
+    <button onclick="saveTodayBlessing()" id="blessingSaveBtn" style="width:100%; background:var(--gold); color:#111; border:none; padding:13px; border-radius:14px; font-family:'Amiri',serif; font-size:15px; font-weight:700; cursor:pointer;">💾 احفظ نعمة اليوم</button>
+  </div>
+
+  <div style="background: var(--card); border-radius: 16px; padding: 16px; border: 1px solid var(--border); text-align: center; margin-bottom: 16px;">
+    <span style="color: var(--gold); font-size: 22px; font-weight: 700; font-family:'Amiri',serif;" id="blessingsCount">٠</span>
+    <div style="color: var(--text2); font-size: 12px; margin-top: 4px;">نعمة مسجلة منذ ما بدأت</div>
+  </div>
+
+  <div style="font-size: 14px; color: var(--gold); margin-bottom: 10px; font-family: 'Amiri', serif;">📖 سجل نعمك</div>
+  <div id="blessingsList" style="display:grid; gap:10px;"></div>
+</div>
   
 <!-- OVERLAY DIMMER -->
 <div class="overlay-dimmer" id="overlayDimmer" onclick="closeActionMenu()"></div>
@@ -2291,6 +2315,7 @@ if (id === 'settingsPage') {
   updateSettingsAccountBox();
 }
   if(id === 'favPage') renderFav();
+  if(id === 'blessingsPage') renderBlessingsPage();
   if(id === 'home') loadPrayerTimes();
   updateHomeBookmarkCard();
   if(id === 'notifPage') { renderNotifPresets(); renderCustomNotifList(); }
@@ -2882,6 +2907,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateDailyTasksProgress(); 
   restoreLastState(); 
   updateHomeBookmarkCard();
+  updateHomeBlessingsHint();
 });
 function toggleAudio() {
   if(!currentSurah) return;
@@ -5332,7 +5358,101 @@ function showLuxuriousCongrats() {
     document.getElementById('congratsModal').style.opacity = '1';
   }, 50);
 }
+function getBlessings() {
+  return JSON.parse(localStorage.getItem('blessings_journal') || '[]');
+}
 
+function getTodayDateKey() {
+  return new Date().toLocaleDateString('en-CA'); // yyyy-mm-dd ثابت
+}
+
+function saveTodayBlessing() {
+  const input = document.getElementById('blessingInput');
+  const text = input.value.trim();
+  if (!text) { alert('اكتب نعمة الأول 🙏'); return; }
+
+  const today = getTodayDateKey();
+  let blessings = getBlessings();
+
+  const existingIndex = blessings.findIndex(b => b.date === today);
+  if (existingIndex !== -1) {
+    blessings[existingIndex].text = text;
+  } else {
+    blessings.unshift({ date: today, text: text });
+  }
+
+  localStorage.setItem('blessings_journal', JSON.stringify(blessings));
+  input.value = '';
+  renderBlessingsPage();
+  updateHomeBlessingsHint();
+}
+
+function deleteBlessing(index) {
+  if (!confirm('متأكد إنك عايز تمسح النعمة دي؟')) return;
+  let blessings = getBlessings();
+  blessings.splice(index, 1);
+  localStorage.setItem('blessings_journal', JSON.stringify(blessings));
+  renderBlessingsPage();
+  updateHomeBlessingsHint();
+}
+
+function formatBlessingDate(dateKey) {
+  const d = new Date(dateKey);
+  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  return d.toLocaleDateString('ar-EG', options);
+}
+
+function renderBlessingsPage() {
+  const blessings = getBlessings();
+  const today = getTodayDateKey();
+
+  const countEl = document.getElementById('blessingsCount');
+  if (countEl) countEl.textContent = toAr(blessings.length);
+
+  const statusEl = document.getElementById('blessingTodayStatus');
+  const todayEntry = blessings.find(b => b.date === today);
+  const input = document.getElementById('blessingInput');
+  const saveBtn = document.getElementById('blessingSaveBtn');
+
+  if (todayEntry) {
+    if (statusEl) statusEl.textContent = '✅ كتبت نعمة اليوم بالفعل — تقدر تعدلها لو حابب';
+    if (input) input.value = todayEntry.text;
+    if (saveBtn) saveBtn.textContent = '💾 تعديل نعمة اليوم';
+  } else {
+    if (statusEl) statusEl.textContent = '📝 لسه ما كتبتش نعمة النهاردة';
+    if (input) input.value = '';
+    if (saveBtn) saveBtn.textContent = '💾 احفظ نعمة اليوم';
+  }
+
+  const listEl = document.getElementById('blessingsList');
+  if (!listEl) return;
+
+  if (blessings.length === 0) {
+    listEl.innerHTML = '<div class="fav-empty"><div class="icon">❤️</div><p>لسه دفترك فاضي<br><small>ابدأ بكتابة أول نعمة النهاردة</small></p></div>';
+    return;
+  }
+
+  listEl.innerHTML = blessings.map((b, i) => `
+    <div class="zekr-card" style="border-right: 3px solid #e07b9d;">
+      <div style="font-size:11px; color:var(--gold); margin-bottom:8px;">${formatBlessingDate(b.date)}</div>
+      <div style="font-size:15px; line-height:1.9; color:var(--text); font-family:'Amiri',serif;">${b.text}</div>
+      <div style="text-align:left; margin-top:10px;">
+        <button onclick="deleteBlessing(${i})" style="background:transparent; border:1px solid rgba(255,100,100,0.3); color:#ff6b6b; padding:5px 12px; border-radius:8px; font-size:11px; cursor:pointer;">✕ حذف</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function updateHomeBlessingsHint() {
+  const hint = document.getElementById('homeBlessingsHint');
+  if (!hint) return;
+  const blessings = getBlessings();
+  const today = getTodayDateKey();
+  const wroteToday = blessings.some(b => b.date === today);
+  hint.textContent = wroteToday
+    ? `عدد نعمك: ${toAr(blessings.length)} — كتبت النهاردة ✅`
+    : `عدد نعمك: ${toAr(blessings.length)} — لسه ما كتبتش النهاردة`;
+}
 
 </script>
  <script src="asma2.js"></script>
