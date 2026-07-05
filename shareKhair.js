@@ -1689,7 +1689,6 @@ window.switchKhairTab = function(tab) {
     renderKhairCards();
   }
 };
-
 window.renderKhairCards = function() {
   const container = document.getElementById('shareKhairCardsContainer');
   if (!container) return;
@@ -1704,20 +1703,32 @@ window.renderKhairCards = function() {
   else if (activeKhairTab === 'tadabor') { dataset = khairTadaborData; headerTitle = "💡 من مواطن تدبر الآية:"; sideBorderColor = "#64b5f6"; }
   
   container.innerHTML = dataset.map(item => `
-    <div class="zekr-card" style="border-right: 4px solid ${sideBorderColor}; padding: 18px; background: var(--card); border-radius: 16px;">
+    <div class="zekr-card" style="border-right: 4px solid ${sideBorderColor}; padding: 18px; background: var(--card); border-radius: 16px; margin-bottom: 15px;">
       <div style="font-size:12px; color:var(--gold); margin-bottom:8px; font-weight:bold;">${headerTitle}</div>
+      
       <div style="font-size: 18px; line-height: 2.1; color: var(--text); font-family: 'Amiri Quran', serif; text-align: justify; margin-bottom: 12px; white-space: pre-line;">
         ${item.text}
       </div>
+
+      <!-- 🌟 المربع المنفصل الديناميكي (يظهر فقط إذا كان هناك شرح) -->
+      ${item.explanation ? `
+      <div style="background: rgba(0, 0, 0, 0.2); border-right: 3px solid #4ade80; padding: 12px; margin-bottom: 12px; border-radius: 8px;">
+        <div style="color: #4ade80; font-size: 13px; font-weight: bold; margin-bottom: 6px;">💡 الشرح البسيط:</div>
+        <div style="color: var(--text2); font-size: 14px; line-height: 1.6;">${item.explanation}</div>
+      </div>
+      ` : ''}
+
       <div style="font-size:12px; color:var(--green); font-family:'Amiri', serif; margin-bottom:12px; border-right:2px solid var(--green); padding-right:8px;">
         ${item.source}
       </div>
+      
       <button onclick="openKhairShareSheet(${item.id})" style="width:100%; padding:10px; background:var(--bg2); border:1px solid var(--border); color:var(--gold); border-radius:12px; font-family:'Amiri', serif; font-weight:bold; cursor:pointer; transition:0.2s;">
-        ✨ انشر واحتسب الأثر
+        ✨ انشر واحتسب الأجر
       </button>
     </div>
   `).join('');
 };
+
 
 function renderKhairDiyThumbnails() {
   const grid = document.getElementById('diyThumbnailsGrid');
