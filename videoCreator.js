@@ -53,7 +53,10 @@ function vcGetAyahAudioUrl(globalAyahNumber) {
     basit: 'ar.abdulbasitmurattal'
   };
   const apiId = map[key] || map.minsh;
-  return `https://cdn.islamic.network/quran/audio/128/${apiId}/${globalAyahNumber}.mp3`;
+  const originalUrl = `https://cdn.islamic.network/quran/audio/128/${apiId}/${globalAyahNumber}.mp3`;
+  
+  // 🔗 نمرر الرابط عبر الـ proxy بتاعنا عشان يضيفله هيدر CORS
+  return `https://quran-audio-proxy.ahmedmohamedhosny100.workers.dev/?url=${encodeURIComponent(originalUrl)}`;
 }
 
 // ==========================================
