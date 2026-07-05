@@ -171,14 +171,15 @@ window.selectDiyBackgroundCard = function(url, element) {
   element.style.borderColor = 'var(--gold)';
 };
 
-// محرك تصميم بطاقات "افعل بنفسك" المخصصة وبنفس قالب وموقع تذهيب الأثر المعتمد
+    
 window.generateCustomDiyPost = async function() {
   const text = document.getElementById('diyMainText').value.trim();
   const source = document.getElementById('diySourceText').value.trim();
+  const contentType = document.getElementById('diyContentType').value; // جلب الخيار المختار
   const savedName = localStorage.getItem('user_display_name') || 'صاحب أثر';
 
   if (!text) {
-    alert("اكتب الفائدة أو كلام السلف أولاً يا هندسة! ✍️");
+    alert("اكتب الفائدة أولاً يا هندسة! ✍️");
     return;
   }
 
@@ -194,25 +195,34 @@ window.generateCustomDiyPost = async function() {
   bgImg.onload = function() {
     ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
 
-    // طبقة تعتيم غامقة وفخمة لحماية النصوص
     ctx.fillStyle = "rgba(11, 18, 12, 0.75)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // إطار تذهيب كارت النشر الحامي بالكامل
     ctx.strokeStyle = "#d4af37";
     ctx.lineWidth = 8;
     ctx.strokeRect(40, 40, canvas.width - 80, canvas.height - 80);
 
-    // الترويسة العلوية باللون الأحمر الفخم المتناسق
+    // --- الشريط الأحمر وتغيير النص ديناميكياً ---
     ctx.fillStyle = "#b71c1c";
-    ctx.fillRect(340, 100, 400, 80);
+    ctx.fillRect(340, 100, 400, 80); // المستطيل الأحمر المعتمد في الصورة 66331.jpg
+    
     ctx.fillStyle = "#ffffff";
     ctx.font = "bold 38px 'Amiri', serif";
     ctx.textAlign = "center";
     ctx.direction = "rtl";
-    ctx.fillText("مِنْ أَثَرِ الصَّالِحِينِ", 540, 152);
+    
+    // ضخ العنوان بناءً على الاختيار بدقة
+    let dynamicHeader = "مِنْ أَثَرِ الصَّالِحِينِ"; // الافتراضي
+    if (contentType === "آية قرآنية") {
+      dynamicHeader = "آيَةٌ وَهِدَايَةٌ";
+    } else if (contentType === "سنة نبوية") {
+      dynamicHeader = "مِنْ مِشْكَاةِ النُّبُوَّةِ";
+    } else if (contentType === "كلام السلف الصالح") {
+      dynamicHeader = "مِنْ أَقْوَالِ السَّلَفِ";
+    }
+    ctx.fillText(dynamicHeader, 540, 152);
 
-    // رسم النص الأساسي بالفونت العثماني للقرآن والآيات
+    // --- رسم نص المقتطف بالخط العثماني الفخم ---
     ctx.fillStyle = "#ffffff";
     ctx.font = "bold 46px 'Amiri Quran', serif";
     
@@ -235,14 +245,14 @@ window.generateCustomDiyPost = async function() {
     }
     ctx.fillText(line, 540, y);
 
-    // صب المصدر أو الدليل الاختياري باللون الأخضر الهادئ
+    // صب الدليل والمصدر أسفل الكلام
     if (source) {
       ctx.fillStyle = "#a5d6a7";
       ctx.font = "32px 'Amiri', serif";
       ctx.fillText(`[ دليله: ${source} ]`, 540, y + 140);
     }
 
-    // 🌟 ضخ لوحة وكارت التوقيع الخشبي بكلمة (أَثَر) مع الحقوق والاسم المربوط
+    // كارت التوقيع الخشبي الصغير "أَثَر" أسفل يسار البطاقة
     ctx.fillStyle = "#3e2723";
     ctx.fillRect(80, 1180, 160, 65);
     ctx.strokeStyle = "#d4af37";
@@ -252,18 +262,17 @@ window.generateCustomDiyPost = async function() {
     ctx.font = "bold 28px 'Amiri', serif";
     ctx.fillText("أَثَر", 160, 1222);
 
-    // توقيع الحقوق المائل باسمك أو كاتب الأثر يسار الكارت الخشبي
+    // التوقيع باسمك الشخصي بجوار الكارت الخشبي
     ctx.fillStyle = "rgba(212, 175, 55, 0.7)";
     ctx.font = "italic 24px 'Amiri', sans-serif";
     ctx.textAlign = "left";
     ctx.fillText(`بقلم: ${savedName}`, 260, 1220);
 
-    // توليد ملف البث الآمن للمشاركة الفورية
+    // تصدير الصورة ومشاركتها
     canvas.toBlob((blob) => {
       const file = new File([blob], "Diy_Athar_Post.png", { type: "image/png" });
       if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
         navigator.share({ files: [file], title: 'انشر الأثر المخصص' });
-        // تنظيف الخانات بعد التصدير والنجاح
         document.getElementById('diyMainText').value = '';
         document.getElementById('diySourceText').value = '';
       } else {
@@ -271,7 +280,7 @@ window.generateCustomDiyPost = async function() {
         link.download = 'Custom_Athar_Design.png';
         link.href = canvas.toDataURL();
         link.click();
-        alert('تم حفظ بطاقة مقتطفك الفريد (أثر) المخصصة في جهازك بنجاح! جاهزة للنشر والتداول 🖼️');
+        alert('تم حفظ بطاقة التصميم المخصصة في جهازك بنجاح! 🖼️');
       }
     }, 'image/png');
   };
@@ -280,6 +289,8 @@ window.generateCustomDiyPost = async function() {
     alert("حدث خطأ في مزامنة الصورة، تأكد من اتصالك بالإنترنت 🌐");
   };
 };
+
+  
 
 window.openKhairShareSheet = function(id) {
   const dataset = activeKhairTab === 'sunan' ? khairSunanData : khairSalafData;
