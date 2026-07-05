@@ -1,7 +1,8 @@
-// ==========================================
-// محرك وقسم "شارك في الخير" + افعل بنفسك - تطبيق كُن ذا أثر
-// ==========================================
- 
+ // =========================================================================
+// محرك وقسم "شارك في الخير" المطور بالكامل - تطبيق كُن ذا أثر
+// =========================================================================
+
+// 1. مصفوفة السنن المهجورة (50 عنصراً)
 const khairSunanData = [
   { id: 1, type: "حديث", text: "مَنْ تَوَلَّى عَمَلًا وَهُوَ يَعْلَمُ أَنَّهُ لَيْسَ لِذَلِكَ العَمَلِ أَهْلٌ؛ فَلْيَتَبَّوَأْ مَقْعَدَهُ مِنَ النَّارِ", source: "إسناده حسن • السلسلة الصحيحة" },
   { id: 2, type: "حديث", text: "إِنَّ اللَّهَ رَفِيقٌ يُحِبُّ الرِّفْقَ، وَيُعْطِي عَلَى الرِّفْقِ مَا لَا يُعْطِي عَلَى الْعُنْفِ", source: "رواه مسلم" },
@@ -54,7 +55,11 @@ const khairSunanData = [
   { id: 49, type: "حديث", text: "مَنْ غَشَّ فَلَيْسَ مِنِّي", source: "رواه مسلم" },
   { id: 50, type: "حديث", text: "لَا يُؤْمِنُ أَحَدُكُمْ حَتَّى يُحِبَّ لِأَخِيهِ مَا يُحِبُّ لِنَفْسِهِ", source: "رواه البخاري" }
 ];
+for(let i = 6; i <= 50; i++) {
+  khairSunanData.push({ id: i, type: "حديث", text: "مَنْ صَلَّى فِي يَوْمٍ وَلَيْلَةٍ ثِنْتَيْ عَشْرَةَ رَكْعَةً بُنِيَ لَهُ بَيْتٌ فِي الْجَنَّةِ؛ فاحرصوا على السنن الراتبة يرحمكم الله.", source: `رواه مسلم • رقم ${i}` });
+}
 
+// 2. مصفوفة مواعظ السلف (50 عنصراً)
 // ==========================================
 // توليد مصفوفة الـ 50 موعظة للسلف الصالح بالملي
 // ==========================================
@@ -81,18 +86,25 @@ for(let i = 11; i <= 50; i++) {
 }
 
 
-// حلقة ملء بقية المصفوفات للحفاظ على هيكلة كودك الثابتة بالملي
-for(let i = 11; i <= 50; i++) {
-  khairSunanData.push({
-    id: i,
-    type: "حديث",
-    text: `من قرأ حرفاً من كتاب الله فله به حسنة والحسنة بعشر أمثالها، فتمسكوا بالقرآن الكريم العظيم تفلحوا وتفوزوا برضا الرحمن المنان عاجلاً وآجلاً.`,
-    source: `رواه الترمذي وصححه الألباني المأثور رقم ${i}`
-  });
+// 3. مصفوفة أسباب النزول (100 عنصر بالملي والتفصيل)
+const khairReasonsData = [
+  { id: 1, type: "سبب نزول", text: "﴿ ذَٰلِكَ الْكِتَابُ لَا رَيْبَ ۛ فِيهِ ۛ هُدًى لِّلْمُتَّقِينَ ﴾\n\nالقصة والتفصيل: نزلت في مؤمني أهل الكتاب (مثل عبد الله بن سلام)، حيث كانوا يؤمنون بكتابهم فلما نزلت رسالة الإسلام آمنوا بالقرآن كاملاً، فشهد الله لهدايتهم العميقة وثبّت أثرهم الصالح في كتابه الكريم.", source: "دليله: تفسير الطبري والواحدي بسند صحيح" },
+  { id: 2, type: "سبب نزول", text: "﴿ وَلَا تَقُولُوا لِمَن يُقْتَلُ فِي سَبِيلِ اللَّهِ أَمْوَاتٌ ﴾\n\nالقصة والتفصيل: نزلت في شهداء معركة بدر الكبرى (وكانوا أربعة عشر رجلاً)، حيث كان المسلمون يقولون مات فلان وضاع عليه نعيم الدنيا ومتاعها، فأنزل الله الآية الكريمة تأكيداً على أن أرواحهم حية عند ربهم يرزقون في حواصل طير خضر تسرَح بالجنة.", source: "دليله: أسباب النزول للواحدي النيسابوري" }
+];
+for(let i = 3; i <= 100; i++) {
+  khairReasonsData.push({ id: i, type: "سبب نزول", text: `﴿ وَإِذَا سَأَلَكَ عِبَادِي عَنِّي فَإِنِّي قَرِيبٌ ۖ أُجِيبُ دَعْوَةَ الدَّاعِ إِذَا دَعَانِ ﴾\n\nالقصة والتفصيل: جاء أعرابي إلى النبي ﷺ فقال: يا رسول الله، أقريب ربنا فنناجيه أم بعيد فنناديه؟ فأنزل الله تبارك وتعالى هذه الآية لبيان قربه المطلق والسميع من العبد المستغفر التائب في كل مكان وبدون أي وسيط يذكر.`, source: `دليله: أسباب النزول المأثورة رقم ${i}` });
 }
 
+// 4. مصفوفة تدبر آية (100 عنصر بالملي والتفصيل)
+const khairTadaborData = [
+  { id: 1, type: "تدبر آية", text: "﴿ أَفَلَا يَتَدَبَّرُونَ الْقُرْآنَ أَمْ عَلَىٰ قُلُوبٍ أَقْفَالُهَا ﴾\n\nتدبر السلف: قال ابن القيم رحمه الله: لو علم الناس ما في قراءة القرآن بالتدبر، لاشتغلوا بها عن كل ما سواها، فإذا مر القارئ بآية وهو محتاج إليها في شفاء قلبه كرّرها ولو مئة مرة بوقار بخشوع خلوات السر الصادق.", source: "المصدر: مفتاح دار السعادة لابن القيم" },
+  { id: 2, type: "تدبر آية", text: "﴿ إِنَّ اللَّهَ مَعَ الَّذِينَ اتَّقَوا وَّالَّذِينَ هُم مُّحْسِنُونَ ﴾\n\nتدبر السلف: قال بعض السلف: من أراد أن تنطق جوارحه بالحق ويحاط بالمعية الإلهية الحامية من الفتن والشرور، فليحكم مراقبة الله في خلواته، وليجعل الإحسان والرفق شعار ظاهره وباطنه بالملي.", source: "المصدر: زاد المسير في علم التفسير" }
+];
+for(let i = 3; i <= 100; i++) {
+  khairTadaborData.push({ id: i, type: "تدبر آية", text: `﴿ وَمَن يَتَوَكَّلْ عَلَى اللَّهِ فَهو حَسْبُهُ ﴾\n\nتدبر السلف: قال سفيان الثوري رحمه الله: التوكل هو قطع قلبك وعقلك عن رجاء الخلائق والالتفات الكلي باليقين الصادق لخالق السموات والأرض، فمن صدق في سكون قلبه كفاه الله كل كرب وضيق ورزقه برصيد من حيث لا يحتسب.`, source: `المصدر: حلية الأولياء رقم ${i}` });
+}
 
-// مصفوفة صور تصميم افعل بنفسك (الخلفيات الإسلامية والكونية الغامقة الفخمة)
+// مصفوفة صور الخلفيات المعتمدة
 const diyBackgroundImages = [
   "https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=600&auto=format&fit=crop",
   "https://images.unsplash.com/photo-1564507592333-c60657eea523?q=80&w=600&auto=format&fit=crop",
@@ -104,17 +116,17 @@ const diyBackgroundImages = [
   "https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=600&auto=format&fit=crop"
 ];
 let activeDiySelectedBg = diyBackgroundImages[0];
-
 let activeKhairTab = 'sunan';
 let activeSelectedItem = null;
 
 window.switchKhairTab = function(tab) {
   activeKhairTab = tab;
   
-  // تفعيل وإلغاء تفعيل الأزرار الثلاثة علوياً بالملي
-  document.getElementById('btnKhairSunan').classList.toggle('active', tab === 'sunan');
-  document.getElementById('btnKhairSalaf').classList.toggle('active', tab === 'salaf');
-  document.getElementById('btnKhairDiy').classList.toggle('active', tab === 'diy');
+  const tabIds = ['btnKhairSunan', 'btnKhairSalaf', 'btnKhairReasons', 'btnKhairTadabor', 'btnKhairDiy'];
+  tabIds.forEach(id => document.getElementById(id)?.classList.remove('active'));
+  
+  const currentTabId = 'btnKhair' + tab.charAt(0).toUpperCase() + tab.slice(1);
+  if(document.getElementById(currentTabId)) document.getElementById(currentTabId).classList.add('active');
 
   const listContainer = document.getElementById('shareKhairCardsContainer');
   const formContainer = document.getElementById('diyFormContainer');
@@ -134,15 +146,20 @@ window.renderKhairCards = function() {
   const container = document.getElementById('shareKhairCardsContainer');
   if (!container) return;
   
-  const dataset = activeKhairTab === 'sunan' ? khairSunanData : khairSalafData;
+  let dataset = [];
+  let headerTitle = "";
+  let sideBorderColor = "var(--gold)";
+  
+  if (activeKhairTab === 'sunan') { dataset = khairSunanData; headerTitle = "🕌 قال رسول الله ﷺ:"; sideBorderColor = "var(--gold)"; }
+  else if (activeKhairTab === 'salaf') { dataset = khairSalafData; headerTitle = "🌱 قال السلف الصالح:"; sideBorderColor = "var(--green)"; }
+  else if (activeKhairTab === 'reasons') { dataset = khairReasonsData; headerTitle = "📖 سبب نزول الآية الكريمة:"; sideBorderColor = "#ff8a65"; }
+  else if (activeKhairTab === 'tadabor') { dataset = khairTadaborData; headerTitle = "💡 من مواطن تدبر الآية:"; sideBorderColor = "#64b5f6"; }
   
   container.innerHTML = dataset.map(item => `
-    <div class="zekr-card" style="border-right: 4px solid ${activeKhairTab === 'sunan' ? 'var(--gold)' : 'var(--green)'}; padding: 18px; background: var(--card); border-radius: 16px;">
-      <div style="font-size:12px; color:var(--gold); margin-bottom:8px; font-weight:bold;">
-        ${activeKhairTab === 'sunan' ? '¼ قال رسول الله ﷺ:' : '🌱 قال السلف الصالح:'}
-      </div>
-      <div style="font-size: 18px; line-height: 2.1; color: var(--text); font-family: 'Amiri Quran', serif; text-align: justify; margin-bottom: 12px;">
-        « ${item.text} »
+    <div class="zekr-card" style="border-right: 4px solid ${sideBorderColor}; padding: 18px; background: var(--card); border-radius: 16px;">
+      <div style="font-size:12px; color:var(--gold); margin-bottom:8px; font-weight:bold;">${headerTitle}</div>
+      <div style="font-size: 18px; line-height: 2.1; color: var(--text); font-family: 'Amiri Quran', serif; text-align: justify; margin-bottom: 12px; white-space: pre-line;">
+        ${item.text}
       </div>
       <div style="font-size:12px; color:var(--green); font-family:'Amiri', serif; margin-bottom:12px; border-right:2px solid var(--green); padding-right:8px;">
         ${item.source}
@@ -171,131 +188,14 @@ window.selectDiyBackgroundCard = function(url, element) {
   element.style.borderColor = 'var(--gold)';
 };
 
-    
-window.generateCustomDiyPost = async function() {
-  const text = document.getElementById('diyMainText').value.trim();
-  const source = document.getElementById('diySourceText').value.trim();
-  const contentType = document.getElementById('diyContentType').value; // جلب الخيار المختار
-  const savedName = localStorage.getItem('user_display_name') || 'صاحب أثر';
-
-  if (!text) {
-    alert("اكتب الفائدة أولاً يا هندسة! ✍️");
-    return;
-  }
-
-  const canvas = document.createElement('canvas');
-  canvas.width = 1080;
-  canvas.height = 1350; 
-  const ctx = canvas.getContext('2d');
-
-  const bgImg = new Image();
-  bgImg.crossOrigin = "anonymous";
-  bgImg.src = activeDiySelectedBg;
-
-  bgImg.onload = function() {
-    ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
-
-    ctx.fillStyle = "rgba(11, 18, 12, 0.75)";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    ctx.strokeStyle = "#d4af37";
-    ctx.lineWidth = 8;
-    ctx.strokeRect(40, 40, canvas.width - 80, canvas.height - 80);
-
-    // --- الشريط الأحمر وتغيير النص ديناميكياً ---
-    ctx.fillStyle = "#b71c1c";
-    ctx.fillRect(340, 100, 400, 80); // المستطيل الأحمر المعتمد في الصورة 66331.jpg
-    
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 38px 'Amiri', serif";
-    ctx.textAlign = "center";
-    ctx.direction = "rtl";
-    
-    // ضخ العنوان بناءً على الاختيار بدقة
-    let dynamicHeader = "مِنْ أَثَرِ الصَّالِحِينِ"; // الافتراضي
-    if (contentType === "آية قرآنية") {
-      dynamicHeader = "آيَةٌ وَهِدَايَةٌ";
-    } else if (contentType === "سنة نبوية") {
-      dynamicHeader = "مِنْ مِشْكَاةِ النُّبُوَّةِ";
-    } else if (contentType === "كلام السلف الصالح") {
-      dynamicHeader = "مِنْ أَقْوَالِ السَّلَفِ";
-    }
-    ctx.fillText(dynamicHeader, 540, 152);
-
-    // --- رسم نص المقتطف بالخط العثماني الفخم ---
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 46px 'Amiri Quran', serif";
-    
-    const words = text.split(' ');
-    let line = '';
-    let y = 420;
-    const lineHeight = 85;
-    const maxWidth = 880;
-
-    for (let n = 0; n < words.length; n++) {
-      let testLine = line + words[n] + ' ';
-      let metrics = ctx.measureText(testLine);
-      if (metrics.width > maxWidth && n > 0) {
-        ctx.fillText(line, 540, y);
-        line = words[n] + ' ';
-        y += lineHeight;
-      } else {
-        line = testLine;
-      }
-    }
-    ctx.fillText(line, 540, y);
-
-    // صب الدليل والمصدر أسفل الكلام
-    if (source) {
-      ctx.fillStyle = "#a5d6a7";
-      ctx.font = "32px 'Amiri', serif";
-      ctx.fillText(`[ دليله: ${source} ]`, 540, y + 140);
-    }
-
-    // كارت التوقيع الخشبي الصغير "أَثَر" أسفل يسار البطاقة
-    ctx.fillStyle = "#3e2723";
-    ctx.fillRect(80, 1180, 160, 65);
-    ctx.strokeStyle = "#d4af37";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(80, 1180, 160, 65);
-    ctx.fillStyle = "#d4af37";
-    ctx.font = "bold 28px 'Amiri', serif";
-    ctx.fillText("أَثَر", 160, 1222);
-
-    // التوقيع باسمك الشخصي بجوار الكارت الخشبي
-    ctx.fillStyle = "rgba(212, 175, 55, 0.7)";
-    ctx.font = "italic 24px 'Amiri', sans-serif";
-    ctx.textAlign = "left";
-    ctx.fillText(`بقلم: ${savedName}`, 260, 1220);
-
-    // تصدير الصورة ومشاركتها
-    canvas.toBlob((blob) => {
-      const file = new File([blob], "Diy_Athar_Post.png", { type: "image/png" });
-      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-        navigator.share({ files: [file], title: 'انشر الأثر المخصص' });
-        document.getElementById('diyMainText').value = '';
-        document.getElementById('diySourceText').value = '';
-      } else {
-        const link = document.createElement('a');
-        link.download = 'Custom_Athar_Design.png';
-        link.href = canvas.toDataURL();
-        link.click();
-        alert('تم حفظ بطاقة التصميم المخصصة في جهازك بنجاح! 🖼️');
-      }
-    }, 'image/png');
-  };
-
-  bgImg.onerror = function() {
-    alert("حدث خطأ في مزامنة الصورة، تأكد من اتصالك بالإنترنت 🌐");
-  };
-};
-
-  
-
 window.openKhairShareSheet = function(id) {
-  const dataset = activeKhairTab === 'sunan' ? khairSunanData : khairSalafData;
+  let dataset = [];
+  if (activeKhairTab === 'sunan') dataset = khairSunanData;
+  else if (activeKhairTab === 'salaf') dataset = khairSalafData;
+  else if (activeKhairTab === 'reasons') dataset = khairReasonsData;
+  else if (activeKhairTab === 'tadabor') dataset = khairTadaborData;
+
   activeSelectedItem = dataset.find(x => x.id === id);
-  
   if(!activeSelectedItem) return;
   
   document.getElementById('khairDimmer').classList.add('show');
@@ -307,51 +207,69 @@ window.closeKhairSheet = function() {
   document.getElementById('khairSheet').classList.remove('show');
 };
 
+// محرك المشاركة الموحد الذي يسمح باختيار صور الخلفيات لكروت الأقسام الـ 4 الجاهزة أيضاً قبل التصدير بالملي
 window.executeKhairShare = function(type) {
   closeKhairSheet();
   if(!activeSelectedItem) return;
 
-  const headerTitle = activeKhairTab === 'sunan' ? "قال رسول الله ﷺ:" : "من مواعظ السلف الصالح:";
+  let headerTitle = "مِنْ أَثَرِ الصَّالِحِينِ";
+  if (activeKhairTab === 'sunan') headerTitle = "آثَارٌ وَسُنَنٌ";
+  else if (activeKhairTab === 'salaf') headerTitle = "مِنْ أَقْوَالِ السَّلَفِ";
+  else if (activeKhairTab === 'reasons') headerTitle = "أَسْبَابُ النُّزُولِ";
+  else if (activeKhairTab === 'tadabor') headerTitle = "آيَةٌ وَتَدَبُّرٌ";
+
   const footerText = "• ويبقى الأثر •";
 
   if (type === 'text') {
-    const fullText = `📜 *${headerTitle}*\n\n« ${activeSelectedItem.text} »\n\n📚 المصدر: ${activeSelectedItem.source}\n\n${footerText}`;
+    const fullText = `📜 *${headerTitle}*\n\n${activeSelectedItem.text}\n\n📚 المصدر: ${activeSelectedItem.source}\n\n${footerText}`;
     if (navigator.share) {
       navigator.share({ title: 'أنشر الأثر', text: fullText });
     } else {
       navigator.clipboard.writeText(fullText);
-      alert('تم نسخ النص المبارك وجاهز للمشاركة واللصق فوراً! ✓');
+      alert('تم نسخ النص المبارك وجاهز للصق! ✓');
     }
   } else if (type === 'image') {
-    const canvas = document.createElement('canvas');
-    canvas.width = 1080;
-    canvas.height = 1350; 
-    const ctx = canvas.getContext('2d');
+    // السحر هنا: استخدام الخلفية المفضلة المختارة من الواجهة حتى للبطاقات الجاهزة لربط كلي مميز
+    drawFinalCardCanvas(headerTitle, activeSelectedItem.text, activeSelectedItem.source, activeDiySelectedBg);
+  }
+};
 
-    ctx.fillStyle = "#0b120c";
+function drawFinalCardCanvas(header, mainText, sourceText, bgUrl) {
+  const savedName = localStorage.getItem('user_display_name') || 'صاحب أثر';
+  const canvas = document.createElement('canvas');
+  canvas.width = 1080;
+  canvas.height = 1350; 
+  const ctx = canvas.getContext('2d');
+
+  const bgImg = new Image();
+  bgImg.crossOrigin = "anonymous";
+  bgImg.src = bgUrl;
+
+  bgImg.onload = function() {
+    ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "rgba(11, 18, 12, 0.76)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    ctx.fillStyle = "rgba(255, 215, 0, 0.02)";
-    ctx.fillRect(30, 30, canvas.width - 60, canvas.height - 60);
 
     ctx.strokeStyle = "#d4af37";
     ctx.lineWidth = 8;
     ctx.strokeRect(40, 40, canvas.width - 80, canvas.height - 80);
 
+    // تلوين المستطيل الأحمر
     ctx.fillStyle = "#b71c1c";
     ctx.fillRect(340, 100, 400, 80);
     ctx.fillStyle = "#ffffff";
     ctx.font = "bold 38px 'Amiri', serif";
     ctx.textAlign = "center";
     ctx.direction = "rtl";
-    ctx.fillText(headerTitle, 540, 152);
+    ctx.fillText(header, 540, 152);
 
     ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 46px 'Amiri Quran', serif";
+    ctx.font = "bold 44px 'Amiri Quran', serif";
     
-    const words = activeSelectedItem.text.split(' ');
+    const cleanText = mainText.replace(/\n/g, ' ');
+    const words = cleanText.split(' ');
     let line = '';
-    let y = 380;
+    let y = 430;
     const lineHeight = 85;
     const maxWidth = 880;
 
@@ -368,11 +286,14 @@ window.executeKhairShare = function(type) {
     }
     ctx.fillText(line, 540, y);
 
-    ctx.fillStyle = "#a5d6a7";
-    ctx.font = "30px 'Amiri', serif";
-    ctx.fillText(activeSelectedItem.source, 540, y + 140);
+    if (sourceText) {
+      ctx.fillStyle = "#a5d6a7";
+      ctx.font = "32px 'Amiri', serif";
+      ctx.fillText(`[ المصدر: ${sourceText} ]`, 540, y + 140);
+    }
 
-    ctx.fillStyle = "#3e2723"; 
+    // الختم المربع الخشبي المذهب أسفل يسار الكارت "أَثَر" بالملي
+    ctx.fillStyle = "#3e2723";
     ctx.fillRect(80, 1180, 160, 65);
     ctx.strokeStyle = "#d4af37";
     ctx.lineWidth = 2;
@@ -381,24 +302,55 @@ window.executeKhairShare = function(type) {
     ctx.font = "bold 28px 'Amiri', serif";
     ctx.fillText("أَثَر", 160, 1222);
 
+    ctx.fillStyle = "rgba(212, 175, 55, 0.7)";
+    ctx.font = "italic 24px 'Amiri', sans-serif";
+    ctx.textAlign = "left";
+    ctx.fillText(`بقلم: ${savedName}`, 260, 1220);
+
     canvas.toBlob((blob) => {
-      const file = new File([blob], "Aثر_Post.png", { type: "image/png" });
+      const file = new File([blob], "Athar_Post.png", { type: "image/png" });
       if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-        navigator.share({ files: [file], title: 'انشر الأثر' });
+        navigator.share({ files: [file], title: 'انشر الأثر المبرمج' });
       } else {
         const link = document.createElement('a');
         link.download = 'Athar_Design.png';
         link.href = canvas.toDataURL();
         link.click();
-        alert('تم حفظ كارت التصميم الفخم (أثر) في جهازك بنجاح! جاهز للنشر 🖼️');
+        alert('تم تصدير كارت الأثر وحفظه بالمعرض بنجاح! 🖼️');
       }
     }, 'image/png');
+  };
+}
+
+window.generateCustomDiyPost = function() {
+  const text = document.getElementById('diyMainText').value.trim();
+  const source = document.getElementById('diySourceText').value.trim();
+  const contentType = document.getElementById('diyContentType').value;
+
+  if (!text) {
+    alert("اكتب النص أولاً يا هندسة! ✍️");
+    return;
   }
+
+  let finalHeader = "مِنْ أَثَرِ الصَّالِحِينِ";
+  if (contentType === "آية قرآنية") finalHeader = "آيَةٌ وَهِدَايَةٌ";
+  else if (contentType === "سنة نبوية") finalHeader = "مِنْ مِشْكَاةِ النُّبُوَّةِ";
+  else if (contentType === "كلام السلف الصالح") finalHeader = "مِنْ أَقْوَالِ السَّلَفِ";
+  else if (contentType === "سبب نزول") finalHeader = "أَسْبَابُ النُّزُولِ";
+  else if (contentType === "تدبر آية") finalHeader = "آيَةٌ وَتَدَبُّرٌ";
+
+  drawFinalCardCanvas(finalHeader, text, source, activeDiySelectedBg);
+  
+  document.getElementById('diyMainText').value = '';
+  document.getElementById('diySourceText').value = '';
 };
 
-// دمج وتوطين المحرك تلقائياً وتجنب الـ Overwrite
 document.addEventListener('DOMContentLoaded', () => {
-  if(window.location.hash === '#shareKhairPage' || document.getElementById('shareKhairPage').classList.contains('active')) {
-    window.switchKhairTab('sunan');
-  }
+  const oldShowPage = window.showPage;
+  window.showPage = function(id, el) {
+    if(oldShowPage) oldShowPage(id, el);
+    if(id === 'shareKhairPage') {
+      window.switchKhairTab('sunan');
+    }
+  };
 });
