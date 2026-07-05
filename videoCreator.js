@@ -34,20 +34,83 @@ let vcSurahName = "الفاتحة";
 let vcReciterName = "المنشاوي";
 let vcUserUploadedAudio = null;
 
+// 🔊 حالة قائمة تشغيل الآيات المحددة (Ayah Queue)
+let vcSelectedAyahsData = [];   // [{ numberInSurah, globalNumber }, ...] للنطاق المختار فقط
+let vcAyahQueueUrls = [];       // روابط صوت كل آية بالترتيب
+let vcAyahQueueIndex = 0;
+let vcQueueOnComplete = null;
+
 // ==========================================
-// دالة مساعدة: تجيب رابط صوت القارئ المختار للسورة الحالية
+// دالة مساعدة: تجيب رابط صوت آية واحدة بعينها حسب القارئ المختار
 // ==========================================
-function vcGetReciterAudioUrl(surahNum) {
-  const num3 = String(surahNum).padStart(3, '0');
+function vcGetAyahAudioUrl(globalAyahNumber) {
   const reciterEl = document.getElementById('vcReciterSelect');
   const key = reciterEl ? reciterEl.value : 'minsh';
   const map = {
-    minsh: `https://server10.mp3quran.net/minsh/${num3}.mp3`,
-    husary: `https://server13.mp3quran.net/husr/${num3}.mp3`,
-    afs: `https://server8.mp3quran.net/afs/${num3}.mp3`,
-    basit: `https://server7.mp3quran.net/basit/${num3}.mp3`
+    minsh: 'ar.minshawi',
+    husary: 'ar.husary',
+    afs: 'ar.alafasy',
+    basit: 'ar.abdulbasitmurattal'
   };
-  return map[key] || map.minsh;
+  const apiId = map[key] || map.minsh;
+  return `https://cdn.islamic.network/quran/audio/128/${apiId}/${globalAyahNumber}.mp3`;
+}
+
+// ==========================================
+// بناء قائمة روابط الآيات المحددة (من - إلى) بالقارئ الحالي
+// ==========================================
+function vcBuildAyahQueue() {
+  vcAyahQueueUrls = vcSelectedAyahsData.map(a => vcGetAyahAudioUrl(a.globalNumber));
+  vcAyahQueueIndex = 0;
+}
+
+// ==========================================
+// تشغيل قائمة الآيات المحددة واحدة ورا التانية، والتوقف تلقائياً بعد آخر آية
+// ==========================================
+function vcStartAyahPlayback(onComplete) {
+  const audioEl = document.getElementById('audioTrackSource');
+  if (!audioEl) return;
+
+  vcBuildAyahQueue();
+  vcQueueOnComplete = onComplete || null;
+
+  if (vcAyahQueueUrls.length === 0) {
+    if (vcQueueOnComplete) vcQueueOnComplete();
+    return;
+  }
+
+  audioEl.onended = vcPlayNextQueuedAyah;
+
+  function playAyahAtCurrentIndex() {
+    if (vcAyahQueueIndex >= vcAyahQueueUrls.length) {
+      if (vcQueueOnComplete) vcQueueOnComplete();
+      return;
+    }
+    audioEl.src = vcAyahQueueUrls[vcAyahQueueIndex];
+    audioEl.load();
+    audioEl.play().catch(e => console.log(e));
+  }
+
+  // نخزنها عالمياً عشان onended يقدر يستدعيها تاني
+  window.__vcPlayAyahAtCurrentIndex = playAyahAtCurrentIndex;
+  playAyahAtCurrentIndex();
+}
+
+function vcPlayNextQueuedAyah() {
+  vcAyahQueueIndex++;
+  if (typeof window.__vcPlayAyahAtCurrentIndex === 'function') {
+    window.__vcPlayAyahAtCurrentIndex();
+  }
+}
+
+function vcStopAyahPlayback() {
+  const audioEl = document.getElementById('audioTrackSource');
+  if (audioEl) {
+    audioEl.onended = null;
+    audioEl.pause();
+  }
+  vcAyahQueueIndex = 0;
+  vcQueueOnComplete = null;
 }
 
 // ==========================================
@@ -139,18 +202,6 @@ function updateVideoPreview() {
   if (!vcUserUploadedAudio) {
     const reciterEl = document.getElementById('vcReciterSelect');
     vcReciterName = reciterEl.options[reciterEl.selectedIndex].text;
-
-    // 🔊 تحديث مصدر صوت القارئ تلقائياً لو اتغير القارئ أو السورة
-    const surahEl2 = document.getElementById('vcSurahSelect');
-    const surahNum2 = surahEl2 ? parseInt(surahEl2.value) : 1;
-    const newAudioUrl = vcGetReciterAudioUrl(surahNum2);
-    const audioEl = document.getElementById('audioTrackSource');
-    if (audioEl && audioEl.src !== newAudioUrl) {
-      const wasPlaying = !audioEl.paused;
-      audioEl.src = newAudioUrl;
-      audioEl.load();
-      if (wasPlaying) audioEl.play().catch(e => console.log(e));
-    }
   }
 
   // هـ. رسم اسم السورة أعلى اليمين بخط ذهبي وقور
@@ -225,17 +276,30 @@ function toggleVideoPreviewPlay() {
   if (vcIsPlaying) {
     vcIsPlaying = false;
     if (video) video.pause();
+    vcStopAyahPlayback();
     if (audioEl) audioEl.pause();
     if (btn) btn.textContent = "▶ تشغيل المعاينة";
     cancelAnimationFrame(vcAnimationId);
   } else {
     vcIsPlaying = true;
     if (video) video.play().catch(e => console.log(e));
-    if (audioEl) {
-      if (!audioEl.src) updateVideoPreview();
-      audioEl.play().catch(e => console.log(e));
-    }
     if (btn) btn.textContent = "⏸ إيقاف المعاينة";
+
+    if (vcUserUploadedAudio) {
+      // ملف صوتي مرفوع يدوياً: يشتغل كامل زي ما هو
+      if (audioEl) {
+        audioEl.onended = null;
+        audioEl.play().catch(e => console.log(e));
+      }
+    } else {
+      // تشغيل الآيات المحددة فقط بالترتيب، ويقف تلقائياً بعد آخر آية
+      vcStartAyahPlayback(() => {
+        vcIsPlaying = false;
+        if (video) video.pause();
+        if (btn) btn.textContent = "▶ تشغيل المعاينة";
+        cancelAnimationFrame(vcAnimationId);
+      });
+    }
     
     // إطلاق اللووب الرندري لطلب الفريمات باستمرار من المتصفح دون تهنيج
     function renderLoop() {
@@ -259,6 +323,7 @@ function handleUserAudioUpload(event) {
   
   const audio = document.getElementById('audioTrackSource');
   if (audio) {
+    audio.onended = null;
     audio.src = vcUserUploadedAudio;
     audio.load();
   }
@@ -284,6 +349,11 @@ async function loadVcAyahs() {
   
   if (!surahNum) return;
 
+  // أي تشغيل قائم إيقافه فوراً لأن النطاق اتغيّر
+  if (vcIsPlaying) {
+    toggleVideoPreviewPlay();
+  }
+
   try {
     // جلب نص السورة عثماني نظيف من الـ API المشترك عندك
     const res = await fetch(`https://api.alquran.cloud/v1/surah/${surahNum}/quran-uthmani`);
@@ -298,13 +368,21 @@ async function loadVcAyahs() {
       if (selectedAyahs.length > 0) {
         // دمج الآيات المختارة في نص واحد مجمع ليظهر داخل كادر الفيديو
         vcCurrentAyahText = selectedAyahs.map(a => `${a.text} ﴿${toAr(a.numberInSurah)}﴾`).join(' ');
+
+        // 🔊 حفظ بيانات الآيات (رقم الآية العالمي) لبناء قائمة الصوت لاحقاً
+        vcSelectedAyahsData = selectedAyahs.map(a => ({
+          numberInSurah: a.numberInSurah,
+          globalNumber: a.number
+        }));
       } else {
         vcCurrentAyahText = "﴿ نطاق الآيات المختار غير موجود في هذه السورة ﴾";
+        vcSelectedAyahsData = [];
       }
     }
   } catch (error) {
     console.error("خطأ أثناء جلب آيات صانع الفيديو:", error);
     vcCurrentAyahText = "﴿ تحتاج اتصال بالإنترنت لجلب نصوص الآيات 🌐 ﴾";
+    vcSelectedAyahsData = [];
   }
   updateVideoPreview();
 }
@@ -359,6 +437,7 @@ function generateFinalVideo() {
 
   try {
     const mediaRecorder = new MediaRecorder(videoStream, options);
+    let safetyTimeoutId = null;
     
     mediaRecorder.ondataavailable = function(e) {
       if (e.data && e.data.size > 0) {
@@ -370,7 +449,9 @@ function generateFinalVideo() {
       // إيقاف حلقة الرندر والصوت بعد انتهاء التسجيل مباشرة
       vcIsPlaying = false;
       cancelAnimationFrame(vcAnimationId);
+      vcStopAyahPlayback();
       if (audioEl) audioEl.pause();
+      if (safetyTimeoutId) clearTimeout(safetyTimeoutId);
 
       // ج. تحويل البيانات المسجلة إلى ملف فيديو حقيقي قابل للتحميل والدفق
       const blob = new Blob(recordedChunks, { type: 'video/mp4' });
@@ -394,9 +475,19 @@ function generateFinalVideo() {
     // هـ. بدء المحرك الفعلي للتسجيل وتشغيل الفيديو والصوت بشكل تزامني
     mediaRecorder.start();
     if (videoSource.paused) videoSource.play().catch(e => console.log(e));
-    if (audioEl) {
-      audioEl.currentTime = 0;
-      audioEl.play().catch(e => console.log(e));
+
+    if (vcUserUploadedAudio) {
+      // ملف مرفوع: شغله كامل، ووقف التسجيل لما يخلص أو بعد 90 ثانية أيهما أسبق
+      if (audioEl) {
+        audioEl.currentTime = 0;
+        audioEl.onended = () => { if (mediaRecorder.state !== 'inactive') mediaRecorder.stop(); };
+        audioEl.play().catch(e => console.log(e));
+      }
+    } else {
+      // الآيات المحددة فقط: شغلها بالترتيب ووقف التسجيل تلقائياً بعد آخر آية
+      vcStartAyahPlayback(() => {
+        if (mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+      });
     }
 
     // و. تشغيل حلقة رسم مستمرة أثناء التسجيل لضمان تحديث الكانفاس فريم بفريم
@@ -407,11 +498,10 @@ function generateFinalVideo() {
       vcAnimationId = requestAnimationFrame(exportRenderLoop);
     })();
     
-    // ز. مدة دقيقة ونصف كحد أقصى للريلز (90 ثانية) ومن ثم الإغلاق الآمن والتصدير
-    // وضعنا هنا 15 ثانية للتجربة السريعة الفورية، وتقدر ترفع الرقم يدوياً حسب الرغبة
-    setTimeout(() => {
-      mediaRecorder.stop();
-    }, 15000); 
+    // ز. سقف أمان أقصاه 90 ثانية، لو لأي سبب الصوت ما بعتش "انتهى" فالتسجيل يوقف من نفسه
+    safetyTimeoutId = setTimeout(() => {
+      if (mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+    }, 90000);
 
   } catch (error) {
     console.error("أزمة في معالج تصدير وتركيب الفيديو:", error);
