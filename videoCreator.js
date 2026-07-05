@@ -1,4 +1,4 @@
-// ==========================================
+ // ==========================================
 // 🎬 ملف صانع مقاطع الريلز والفيديوهات (videoCreator.js)
 // ==========================================
 
@@ -41,7 +41,7 @@ let vcAyahQueueIndex = 0;
 let vcQueueOnComplete = null;
 
 // ==========================================
-// دالة مساعدة: تجيب رابط صوت آية واحدة بعينها حسب القارئ المختار
+// دالة مساعدة: تجيب رابط صوت آية واحدة بعينها حسب القارئ المختار وتمرره للـ Proxy
 // ==========================================
 function vcGetAyahAudioUrl(globalAyahNumber) {
   const reciterEl = document.getElementById('vcReciterSelect');
@@ -55,7 +55,7 @@ function vcGetAyahAudioUrl(globalAyahNumber) {
   const apiId = map[key] || map.minsh;
   const originalUrl = `https://cdn.islamic.network/quran/audio/128/${apiId}/${globalAyahNumber}.mp3`;
   
-  // 🔗 نمرر الرابط عبر الـ proxy بتاعنا عشان يضيفله هيدر CORS
+  // 🔗 استخدام سيرفر الـ proxy الخاص بك لمنع مشاكل الـ CORS في التصدير
   return `https://quran-audio-proxy.ahmedmohamedhosny100.workers.dev/?url=${encodeURIComponent(originalUrl)}`;
 }
 
@@ -74,7 +74,7 @@ function vcStartAyahPlayback(onComplete) {
   const audioEl = document.getElementById('audioTrackSource');
   if (!audioEl) return;
 
-  // ✅ نضمن تعيين الـ crossOrigin هنا بشكل صريح للـ Proxy
+  // تأكيد تفعيل CORS برمجياً لتأمين سحب المسارات
   audioEl.crossOrigin = "anonymous";
 
   vcBuildAyahQueue();
@@ -94,7 +94,7 @@ function vcStartAyahPlayback(onComplete) {
     }
     audioEl.src = vcAyahQueueUrls[vcAyahQueueIndex];
     audioEl.load();
-    audioEl.play().catch(e => console.log("خطأ تشغيل المعاينة:", e));
+    audioEl.play().catch(e => console.log("خطأ في تشغيل مسار الصوت:", e));
   }
 
   window.__vcPlayAyahAtCurrentIndex = playAyahAtCurrentIndex;
@@ -372,10 +372,7 @@ async function loadVcAyahs() {
 }
 
 // ==========================================
-// 7. ✅ الدالة العملاقة المستقرة للتصدير (بدون الـ AudioContext المعقد)
-// ==========================================
-// ==========================================
-// 7. الدالة العملاقة لدمج التراكات وتصدير وحفظ فيديو الريلز النهائي (MP4)
+// 7. ✅ دالة تصدير ودمج التراكات النظيفة (الحل الشامل والمحدث لتسجيل الصوت الديناميكي)
 // ==========================================
 function generateFinalVideo() {
   const canvas = document.getElementById('videoCanvas');
@@ -385,7 +382,7 @@ function generateFinalVideo() {
   
   if (!canvas || !videoSource || !audioEl) return;
   
-  // أ. ضبط أبعاد التصدير الحقيقية بناءً على اختيار الدقة (720p أو 1080p)
+  // ضبط أبعاد التصدير الحقيقية
   const targetRes = parseInt(document.getElementById('vcResolutionSelect').value);
   if (targetRes === 1080) {
     canvas.width = 1080;
@@ -395,21 +392,20 @@ function generateFinalVideo() {
     canvas.height = 1280;
   }
 
-  // إظهار شريط التحميل والـ Loader للمستخدم
   statusEl.style.display = "block";
   updateVideoPreview();
 
-  // تأكيد تعيين الـ crossorigin برمجياً لحماية الكانفاس من التلوين الأمني
+  // تأكيد تفعيل الـ CORS برمجياً لتأمين مسار الكانفاس
   audioEl.crossOrigin = "anonymous";
 
-  // ب. التقاط البث المباشر من لوحة الكانفاس بمعدل 30 فريم ثابت
+  // التقاط بث الكانفاس الصوري
   const videoStream = canvas.captureStream(30);
   const finalCombinedStream = new MediaStream();
 
-  // إضافة تراكات الفيديو أولاً إلى البث النهائي
+  // إلحاق مسارات الفيديو بالبث النهائي أولاً
   videoStream.getVideoTracks().forEach(track => finalCombinedStream.addTrack(track));
 
-  // 🔊 ج. دمج صوت القارئ/الملف المرفوع بشكل مستقر يضمن التقاط التغير الديناميكي للآيات
+  // 🔊 التقاط مسارات الصوت بشكل تزامني وديناميكي لدعم الـ Queue
   try {
     let audioStream = null;
     if (typeof audioEl.captureStream === 'function') {
@@ -419,13 +415,12 @@ function generateFinalVideo() {
     }
 
     if (audioStream) {
-      // نتحقق بانتظام أثناء التسجيل إذا كان هناك تراك صوتي نشط لدمجه فوراً
       const audioTracks = audioStream.getAudioTracks();
       if (audioTracks.length > 0) {
         finalCombinedStream.addTrack(audioTracks[0]);
       }
       
-      // مستمع ديناميكي: لو الـ src اتغير والـ Queue نقل على آية ثانية وضخ تراك جديد، نضيفه فوراً للبث
+      // مستمع ديناميكي: لو مسار الـ src غير الأغنية/الآية أثناء الرندرة، نحدث تراك التسجيل فوراً
       audioStream.onaddtrack = function(event) {
         if (event.track) {
           finalCombinedStream.addTrack(event.track);
@@ -433,10 +428,10 @@ function generateFinalVideo() {
       };
     }
   } catch (audioErr) {
-    console.warn("تعذر دمج الصوت بالطريقة المباشرة، جاري المحاولة الاحتياطية:", audioErr);
+    console.warn("تعذر دمج الصوت بالطريقة المباشرة:", audioErr);
   }
   
-  // تظبيط الميم تايب المتوافق مع المواصفات لأعلى جودة وضغط خفيف
+  // تهيئة خيارات الـ Mime Type للتصدير
   let options = { mimeType: 'video/webm;codecs=vp9,opus' };
   if (!MediaRecorder.isTypeSupported(options.mimeType)) {
     options = { mimeType: 'video/webm;codecs=vp8,opus' };
@@ -451,7 +446,6 @@ function generateFinalVideo() {
   let recordedChunks = [];
 
   try {
-    // نمرر الـ finalCombinedStream اللي جواه تراك الفيديو + تراكات الصوت الديناميكية
     const mediaRecorder = new MediaRecorder(finalCombinedStream, options);
     let safetyTimeoutId = null;
     
@@ -468,7 +462,6 @@ function generateFinalVideo() {
       if (audioEl) audioEl.pause();
       if (safetyTimeoutId) clearTimeout(safetyTimeoutId);
 
-      // نحدد الصيغة الحقيقية اللي اتسجلت فعلاً
       const actualMime = mediaRecorder.mimeType || options.mimeType;
       const isWebm = actualMime.includes('webm');
       const blob = new Blob(recordedChunks, { type: actualMime });
@@ -480,32 +473,29 @@ function generateFinalVideo() {
       downloadLink.click();
 
       statusEl.style.display = "none";
-      alert("🎉 ألف مبروك ! تم إنشاء مقطع الريلز الإسلامي الاحترافي وحفظه بنجاح بالصوت ! ✨");
+      alert("🎉 ألف مبروك ! تم إنشاء مقطع الريلز وحفظه بنجاح بالصوت النقي ! ✨");
 
       canvas.width = 720;
       canvas.height = 1280;
       updateVideoPreview();
     };
     
-    // هـ. بدء المحرك الفعلي للتسجيل وتشغيل الفيديو والصوت بشكل تزامني
+    // بدء التسجيل والتشغيل المتزامن
     mediaRecorder.start();
     if (videoSource.paused) videoSource.play().catch(e => console.log(e));
 
     if (vcUserUploadedAudio) {
-      // ملف مرفوع يدوياً
       if (audioEl) {
         audioEl.currentTime = 0;
         audioEl.onended = () => { if (mediaRecorder.state !== 'inactive') mediaRecorder.stop(); };
         audioEl.play().catch(e => console.log(e));
       }
     } else {
-      // الآيات المحددة ورا بعضها من الـ Proxy
       vcStartAyahPlayback(() => {
         if (mediaRecorder.state !== 'inactive') mediaRecorder.stop();
       });
     }
 
-    // و. تشغيل حلقة رسم مستمرة أثناء التسجيل لضمان تحديث الكانفاس فريم بفريم
     vcIsPlaying = true;
     (function exportRenderLoop() {
       if (!vcIsPlaying) return;
@@ -513,14 +503,19 @@ function generateFinalVideo() {
       vcAnimationId = requestAnimationFrame(exportRenderLoop);
     })();
     
-    // ز. سقف أمان أقصاه 90 ثانية للتسجيل
+    // حد أمان أقصى 90 ثانية للريلز
     safetyTimeoutId = setTimeout(() => {
       if (mediaRecorder.state !== 'inactive') mediaRecorder.stop();
     }, 90000);
 
   } catch (error) {
-    console.error("أزمة في معالج تصدير وتركيب الفيديو:", error);
+    console.error("خطأ أثناء التصدير واستخراج الفيديو:", error);
     statusEl.style.display = "none";
-    alert("عذراً، المتصفح واجه مشكلة أثناء دمج وهندسة تراكات الميديا للتصدير 😔");
+    alert("عذراً، واجه المتصفح مشكلة أثناء عملية التمحيص والدمج للتراك الصوتي 😔");
   }
 }
+
+// تشغيل التهيئة بنعومة بعد ثانية ونصف من فتح التطبيق لضمان استقرار العناصر
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(initVideoCreatorSystem, 1500);
+});
