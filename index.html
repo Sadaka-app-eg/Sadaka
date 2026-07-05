@@ -5274,6 +5274,165 @@ function showLuxuriousCongrats() {
     document.getElementById('congratsModal').style.opacity = '1';
   }, 50);
 }
+// مصفوفة الصور الثابتة والجاهزة للتصميم (10 خلفيات فخمة متناسقة)
+const diyBackgrounds = [
+  "https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=600&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1564507592333-c60657eea523?q=80&w=600&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1609599006353-e629f1d40e42?q=80&w=600&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1478760329108-5c3ed9d495a0?q=80&w=600&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=600&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1501854140801-50d01698950b?q=80&w=600&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?q=80&w=600&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=600&auto=format&fit=crop"
+];
+
+let selectedDiyBg = diyBackgrounds[0]; // الخلفية الافتراضية المختارة
+
+// دالة التحكم في تبويبات المودال
+function switchShareTab(tab) {
+  const contents = ['Text', 'Image', 'Diy'];
+  contents.forEach(c => {
+    document.getElementById(`shareContent${c}`).style.display = 'none';
+    document.getElementById(`tabShare${c.toLowerCase()}`).style.background = '#333';
+    document.getElementById(`tabShare${c.toLowerCase()}`).style.color = 'white';
+  });
+
+  document.getElementById(`shareContent${tab.charAt(0).toUpperCase() + tab.slice(1)}`).style.display = 'block';
+  const activeBtn = document.getElementById(`tabShare${tab}`);
+  activeBtn.style.background = '#c5a059';
+  activeBtn.style.color = 'black';
+
+  if (tab === 'diy') {
+    renderDiyThumbnails();
+  }
+}
+
+// توليد مصغرات الصور ليتسنى للمستخدم الاختيار بينها بنقرة واحدة
+function renderDiyThumbnails() {
+  const grid = document.getElementById('diyThumbnailsGrid');
+  if (!grid || grid.children.length > 0) return; // منع التكرار إذا تم بناؤها مسبقاً
+
+  grid.innerHTML = diyBackgrounds.map((bgUrl, idx) => `
+    <div onclick="selectDiyBg('${bgUrl}', this)" class="diy-thumb-item ${idx===0?'active-thumb':''}" 
+         style="background-image:url('${bgUrl}'); background-size:cover; background-position:center; height:55px; border-radius:8px; cursor:pointer; border:2px solid ${idx===0?'#c5a059':'transparent'}; transition:0.2s;">
+    </div>
+  `).join('');
+}
+
+function selectDiyBg(url, element) {
+  selectedDiyBg = url;
+  document.querySelectorAll('.diy-thumb-item').forEach(el => el.style.borderColor = 'transparent');
+  element.style.borderColor = '#c5a059';
+}
+
+// الدالة السحرية لتوليد صورة "افعل بنفسك" ومشاركتها بالملي
+async function generateDiyImage() {
+  const text = document.getElementById('diyMainText').value.trim();
+  const source = document.getElementById('diySourceText').value.trim();
+  const savedName = localStorage.getItem('user_display_name') || 'فاعل خير';
+
+  if (!text) {
+    alert("من فضلك اكتب نص المقتطف أو الفائدة أولاً! ✍️");
+    return;
+  }
+
+  // 1. إعداد لوحة رسم مربعة فخمة (1080x1080) ومثالية لمواقع التواصل
+  const canvas = document.createElement('canvas');
+  canvas.width = 1080;
+  canvas.height = 1080;
+  const ctx = canvas.getContext('2d');
+
+  // 2. تحميل الخلفية المختارة
+  const bgImg = new Image();
+  bgImg.crossOrigin = "anonymous";
+  bgImg.src = selectedDiyBg;
+
+  bgImg.onload = function() {
+    // رسم الصورة لتغطي المربع بالكامل
+    ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+
+    // طبقة تعتيم ناعمة وعميقة لتأمين وضوح الخطوط
+    ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // برواز ذهبي داخلي أنيق
+    ctx.strokeStyle = "#c5a059";
+    ctx.lineWidth = 10;
+    ctx.strokeRect(30, 30, canvas.width - 60, canvas.height - 60);
+
+    // إعدادات النصوص العامة للغة العربية
+    ctx.textAlign = "center";
+    ctx.direction = "rtl";
+
+    // --- رسم النص الأساسي ---
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "44px 'Amiri', 'Cairo', serif";
+    
+    const words = text.split(' ');
+    let line = '';
+    let y = 380; // نقطة البداية العمودية للنص
+    const lineHeight = 75;
+    const maxWidth = 880;
+
+    for (let n = 0; n < words.length; n++) {
+      let testLine = line + words[n] + ' ';
+      let metrics = ctx.measureText(testLine);
+      if (metrics.width > maxWidth && n > 0) {
+        ctx.fillText(line, 540, y);
+        line = words[n] + ' ';
+        y += lineHeight;
+      } else {
+        line = testLine;
+      }
+    }
+    ctx.fillText(line, 540, y);
+
+    // --- رسم الدليل أو المصدر (إذا تم إدخاله) ---
+    if (source) {
+      y += 90; // مسافة أمان بعد النص الرئيسي
+      ctx.fillStyle = "#c5a059";
+      ctx.font = "bold 34px 'Amiri', 'Cairo', serif";
+      ctx.fillText(`[ ${source} ]`, 540, y);
+    }
+
+    // --- توقيع كاتب الأثر في الأسفل ---
+    ctx.fillStyle = "rgba(197, 160, 89, 0.8)";
+    ctx.font = "italic 28px 'Amiri', sans-serif";
+    ctx.fillText(`• صُنِع بأثر: ${savedName} •`, 540, 980);
+
+    // 3. تصدير اللوحة ومشاركتها فوراً مع النظام أو حفظها
+    canvas.toBlob(async (blob) => {
+      const file = new File([blob], "Diy_Sadaka_Post.png", { type: "image/png" });
+      
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: "مقتطف دعوي مخصص"
+          });
+          closeShareModal();
+          // تصفير الخانات بعد النجاح
+          document.getElementById('diyMainText').value = '';
+          document.getElementById('diySourceText').value = '';
+        } catch (err) {
+          console.log("ألغى المستخدم المشاركة");
+        }
+      } else {
+        // حماية وتأمين الهواتف التي لا تدعم مشاركة الملفات بتحميلها مباشرة للـ Gallery
+        const link = document.createElement('a');
+        link.download = 'My_Sadaka_Post.png';
+        link.href = canvas.toDataURL();
+        link.click();
+        alert("✨ تم توليد بطاقتك بنجاح وحفظها في معرض الصور بجهازك لعدم دعم متصفحك للمشاركة المباشرة!");
+        closeShareModal();
+      }
+    }, 'image/png');
+  };
+
+  bgImg.onerror = function() {
+    alert("تعذر الوصول لبعض صور السيرفر حالياً، تحقق من اتصالك بالإنترنت 🌐");
+  };
+}
 
 
 </script>
