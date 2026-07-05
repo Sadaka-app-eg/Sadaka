@@ -1031,7 +1031,6 @@ const diyBackgroundImages = [
   "https://images.unsplash.com/photo-1502082553048-f009c37129b9?q=80&w=600&auto=format&fit=crop",
   "https://images.unsplash.com/photo-1475924156734-496f6cac6ec1?q=80&w=600&auto=format&fit=crop"
 ];
-let activeDiySelectedBg = diyBackgroundImages[0];
 
 let activeDiySelectedBg = diyBackgroundImages[0];
 let activeKhairTab = 'sunan';
