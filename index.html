@@ -1440,10 +1440,13 @@ body.in-subpage .back-to-home-btn {
   </div>
 
   <!-- أزرار التبديل التفاعلية الثلاثية (جنب بعض بالملي) -->
-  <div class="azkar-cats" style="margin-bottom: 16px; display: flex; gap: 6px;">
+  <div class="azkar-cats" style="margin-bottom: 16px; display: flex; gap: 6px; overflow-x: auto; white-space: nowrap; scrollbar-width: none;">
     <button class="cat-btn active" id="btnKhairSunan" onclick="window.switchKhairTab('sunan')" style="flex: 1; padding: 10px 4px; font-size: 12px;">🕌 سنن مهجورة</button>
     <button class="cat-btn" id="btnKhairSalaf" onclick="window.switchKhairTab('salaf')" style="flex: 1; padding: 10px 4px; font-size: 12px;">🌱 مواعظ السلف</button>
     <button class="cat-btn" id="btnKhairDiy" onclick="window.switchKhairTab('diy')" style="flex: 1; padding: 10px 4px; font-size: 12px;">🛠️ افعل بنفسك</button>
+    <button class="cat-btn" id="btnKhairReasons" onclick="window.switchKhairTab('reasons')" style="flex: 1; padding: 10px 4px; font-size: 12px;">📖 سبب النزول</button>
+<button class="cat-btn" id="btnKhairTadabor" onclick="window.switchKhairTab('tadabor')" style="flex: 1; padding: 10px 4px; font-size: 12px;">💡 تدبر آية</button>
+
   </div>
 
   <!-- وعاء استقبال كروت وضخ البيانات التفاعلي للسنن والمواعظ -->
@@ -1461,6 +1464,9 @@ body.in-subpage .back-to-home-btn {
   <option value="آية قرآنية">آية قرآنية 📖</option>
   <option value="سنة نبوية">سنة نبوية 🕌</option>
   <option value="كلام السلف الصالح">كلام السلف الصالح 🌱</option>
+  <option value="سبب نزول">سبب نزول الآية 📖</option>
+<option value="تدبر آية">تدبر آية كريمة 💡</option>
+
 </select>
 
     <label style="color: var(--gold); font-size: 13px; display: block; margin-bottom: 8px; font-weight: bold; font-family: 'Amiri', serif;">🖼️ اختر خلفية التصميم المحترفة:</label>
