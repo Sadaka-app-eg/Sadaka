@@ -497,3 +497,4 @@ function generateFinalVideo() {
 document.addEventListener('DOMContentLoaded', () => {
   setTimeout(initVideoCreatorSystem, 1500);
 });
+ 
