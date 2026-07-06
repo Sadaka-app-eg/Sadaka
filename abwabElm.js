@@ -1252,7 +1252,7 @@ function renderAbwabElmMain() {
   `).join('');
 }
 
-function openAbwabCategory(catId) {
+ function openAbwabCategory(catId) {
   const cat = abwabElmMain.find(c => c.id === catId);
   if (!cat) return;
 
@@ -1261,7 +1261,10 @@ function openAbwabCategory(catId) {
     showPage('abwabTopicsPage', null);
     window._abwabCurrentTopics = salahTopics;
     window._abwabCurrentPlanKey = 'salah';
-    document.getElementById('abwabTopicsTitle').textContent = '🇲🕌 صفة صلاة النبي ﷺ';
+    document.getElementById('abwabTopicsTitle').innerHTML = `
+      <span>🕌 صفة صلاة النبي ﷺ</span>
+      <button class="abwab-back-btn" onclick="goBackToAbwabMain()">🔙 العودة للأبواب</button>
+    `;
     renderAbwabTopicsNav();
     showAbwabTopic(0);
     return;
@@ -1270,7 +1273,10 @@ function openAbwabCategory(catId) {
   // 2) التربية والتزكية
   if (cat.id === 'tarbiya') {
     showPage('abwabSubCatPage', null);
-    document.getElementById('abwabSubCatTitle').textContent = '🤲 التربية والتزكية';
+    document.getElementById('abwabSubCatTitle').innerHTML = `
+      <span>🤲 التربية والتزكية</span>
+      <button class="abwab-back-btn" onclick="goBackToAbwabMain()">🔙 العودة للأبواب</button>
+    `;
     const subGrid = document.getElementById('abwabSubCatGrid');
     subGrid.innerHTML = tarbiyaSubCats.map(s => `
       <div class="abwab-main-card" onclick="openTarbiyaSubCat('${s.id}')">
@@ -1289,7 +1295,10 @@ function openAbwabCategory(catId) {
     showPage('abwabTopicsPage', null);
     window._abwabCurrentTopics = osraTopics;
     window._abwabCurrentPlanKey = 'osra';
-    document.getElementById('abwabTopicsTitle').textContent = '💍 الأسرة والزواج والتربية';
+    document.getElementById('abwabTopicsTitle').innerHTML = `
+      <span>💍 الأسرة والزواج والتربية</span>
+      <button class="abwab-back-btn" onclick="goBackToAbwabMain()">🔙 العودة للأبواب</button>
+    `;
     renderAbwabTopicsNav();
     showAbwabTopic(0);
     return;
@@ -1300,7 +1309,10 @@ function openAbwabCategory(catId) {
     showPage('abwabTopicsPage', null);
     window._abwabCurrentTopics = shubuhatTopics;
     window._abwabCurrentPlanKey = 'shubuhat';
-    document.getElementById('abwabTopicsTitle').textContent = '🧠 الرد الشرعي الفكري على الشبهات';
+    document.getElementById('abwabTopicsTitle').innerHTML = `
+      <span>🧠 الرد الشرعي الفكري على الشبهات</span>
+      <button class="abwab-back-btn" onclick="goBackToAbwabMain()">🔙 العودة للأبواب</button>
+    `;
     renderAbwabTopicsNav();
     showAbwabTopic(0);
     return;
@@ -1311,7 +1323,10 @@ function openAbwabCategory(catId) {
     showPage('abwabTopicsPage', null);
     window._abwabCurrentTopics = talabElmTopics;
     window._abwabCurrentPlanKey = 'talabElm';
-    document.getElementById('abwabTopicsTitle').textContent = '📚 طلب العلم التأصيلي وآدابه';
+    document.getElementById('abwabTopicsTitle').innerHTML = `
+      <span>📚 طلب العلم التأصيلي وآدابه</span>
+      <button class="abwab-back-btn" onclick="goBackToAbwabMain()">🔙 العودة للأبواب</button>
+    `;
     renderAbwabTopicsNav();
     showAbwabTopic(0);
     return;
@@ -1322,18 +1337,24 @@ function openAbwabCategory(catId) {
     showPage('abwabTopicsPage', null);
     window._abwabCurrentTopics = akhlaqTopics;
     window._abwabCurrentPlanKey = 'akhlaq';
-    document.getElementById('abwabTopicsTitle').textContent = '🤝 الأخلاق الإسلامية المأثورة';
+    document.getElementById('abwabTopicsTitle').innerHTML = `
+      <span>🤝 الأخلاق الإسلامية المأثورة</span>
+      <button class="abwab-back-btn" onclick="goBackToAbwabMain()">🔙 العودة للأبواب</button>
+    `;
     renderAbwabTopicsNav();
     showAbwabTopic(0);
     return;
   }
 
-  // 7) المعالملات المالية
+  // 7) المعاملات المالية
   if (cat.id === 'muamalat') {
     showPage('abwabTopicsPage', null);
     window._abwabCurrentTopics = muamalatTopics;
     window._abwabCurrentPlanKey = 'muamalat';
-    document.getElementById('abwabTopicsTitle').textContent = '💰 فقه المعاملات المالية والكسب';
+    document.getElementById('abwabTopicsTitle').innerHTML = `
+      <span>💰 فقه المعاملات المالية والكسب</span>
+      <button class="abwab-back-btn" onclick="goBackToAbwabMain()">🔙 العودة للأبواب</button>
+    `;
     renderAbwabTopicsNav();
     showAbwabTopic(0);
     return;
@@ -1344,27 +1365,38 @@ function openAbwabCategory(catId) {
     showPage('abwabTopicsPage', null);
     window._abwabCurrentTopics = nawaqidTopics;
     window._abwabCurrentPlanKey = 'nawaqid';
-    document.getElementById('abwabTopicsTitle').textContent = '☠️ نواقض الإسلام والتحذير من الغلو';
+    document.getElementById('abwabTopicsTitle').innerHTML = `
+      <span>☠️ نواقض الإسلام والتحذير من الغلو</span>
+      <button class="abwab-back-btn" onclick="goBackToAbwabMain()">🔙 العودة للأبواب</button>
+    `;
     renderAbwabTopicsNav();
     showAbwabTopic(0);
     return;
   }
 }
 
+
 function openTarbiyaSubCat(subId) {
   showPage('abwabTopicsPage', null);
   if (subId === 'kibar') {
     window._abwabCurrentTopics = tarbiyaKibarTopics;
     window._abwabCurrentPlanKey = 'tarbiya_kibar';
-    document.getElementById('abwabTopicsTitle').textContent = '👴 التربية والتزكية — الكبار';
+    document.getElementById('abwabTopicsTitle').innerHTML = `
+      <span>👴 التربية والتزكية — الكبار</span>
+      <button class="abwab-back-btn" onclick="openAbwabCategory('tarbiya')">🔙 العودة لقائمة التربية</button>
+    `;
   } else {
     window._abwabCurrentTopics = tarbiyaSigharTopics;
     window._abwabCurrentPlanKey = 'tarbiya_sighar';
-    document.getElementById('abwabTopicsTitle').textContent = '🧒 التربية والتزكية — الصغار';
+    document.getElementById('abwabTopicsTitle').innerHTML = `
+      <span>🧒 التربية والتزكية — الصغار</span>
+      <button class="abwab-back-btn" onclick="openAbwabCategory('tarbiya')">🔙 العودة لقائمة التربية</button>
+    `;
   }
   renderAbwabTopicsNav();
   showAbwabTopic(0);
 }
+
 
 function renderAbwabTopicsNav() {
   const nav = document.getElementById('abwabTopicsNav');
@@ -1466,4 +1498,9 @@ function toggleAbwabPlanItem(planKey, index) {
   localStorage.setItem('abwab_plan_' + planKey, JSON.stringify(state));
   showAbwabTopic(window._abwabCurrentIndex);
   if (typeof boostFlame === 'function') boostFlame(1);
+}
+// دالة للعودة إلى قائمة أبواب العلم الرئيسية
+function goBackToAbwabMain() {
+  // قم بتغيير 'abwabMainPage' إلى الـ ID الحقيقي لصفحة قائمة الأبواب لديك إذا كان مختلفاً
+  showPage('abwabMainPage', null); 
 }
