@@ -662,6 +662,19 @@ body.in-subpage .back-to-home-btn {
 .flame-companion-wrap.dim .flame-emoji{filter:drop-shadow(0 0 4px rgba(120,120,120,0.2)) grayscale(0.5);opacity:0.6;}
 .flame-companion-wrap.blazing{background:radial-gradient(circle at 50% 30%,rgba(212,175,55,0.18),transparent 70%);}
 .flame-nudge-btn{margin-top:10px;background:transparent;border:1px solid var(--border);color:var(--gold);padding:8px 18px;border-radius:18px;font-size:12px;font-family:'Amiri',serif;cursor:pointer;}
+   .abwab-main-card{background:var(--card);border-radius:16px;padding:16px;border:1px solid var(--border);display:flex;align-items:center;gap:12px;cursor:pointer;transition:all 0.2s;}
+.abwab-main-card:active{transform:scale(0.98);background:rgba(255,215,0,0.06);}
+.abwab-main-icon{font-size:28px;flex-shrink:0;width:44px;text-align:center;}
+.abwab-main-info{flex:1;}
+.abwab-main-name{font-size:15px;font-weight:700;color:var(--text);font-family:'Amiri',serif;}
+.abwab-main-desc{font-size:11px;color:var(--text2);margin-top:2px;}
+.abwab-plan-box{background:rgba(76,175,80,0.08);border:1px solid var(--border);border-radius:14px;padding:16px;margin-top:16px;border-right:4px solid var(--green);}
+.abwab-plan-title{font-size:14px;color:var(--green);font-weight:700;font-family:'Amiri',serif;margin-bottom:10px;text-align:center;}
+.abwab-plan-item{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px dashed var(--border);}
+.abwab-plan-item:last-child{border-bottom:none;}
+.abwab-plan-check{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#4caf50;font-weight:700;font-size:11px;flex-shrink:0;}
+.abwab-plan-check.checked{background:#4caf50;border-color:#4caf50;color:#fff;}
+.abwab-plan-text{font-size:13px;color:var(--text);font-family:'Amiri',serif;}
 </style>  
 
  
@@ -801,7 +814,6 @@ body.in-subpage .back-to-home-btn {
 <div class="tab" onclick="showPage('settingsPage', this)">⚙️ الإعدادات وحسابي</div>
 <div class="tab" onclick="showPage('janazaPage',this)">🕊️ قسم الجنائز</div>
 <div class="tab" onclick="showPage('shareKhairPage',this)">💝 شارك في الخير</div>
-<div class="tab" onclick="showPage('blessingsPage',this)">❤️ دفتر النعم</div>
 </div>
 
 
@@ -907,7 +919,10 @@ body.in-subpage .back-to-home-btn {
   <span style="color: #7a9a7d; font-family: 'Amiri', serif; font-size: 15px; font-weight: 700;">🌑 الأثر الخفي — سجّل عملًا سريًا</span>
   <div id="homeHiddenDeedsHint" style="color: var(--text2); font-size: 12px; margin-top: 6px;"></div>
     </div>
-    
+    <div onclick="showPage('abwabElmPage', null)" style="background: var(--card); border-radius: 16px; padding: 16px; margin-top: 14px; border: 1px solid var(--border); text-align: center; cursor: pointer; border-right: 4px solid var(--gold); transition: background 0.3s;">
+  <span style="color: var(--gold); font-family: 'Amiri', serif; font-size: 15px; font-weight: 700;">📚 أبواب العلم</span>
+  <div style="color: var(--text2); font-size: 12px; margin-top: 6px;">موسوعة شاملة بالدليل والخلاف</div>
+    </div>
   </div>
 
 </div>
@@ -1208,7 +1223,7 @@ body.in-subpage .back-to-home-btn {
   <div id="favContent"></div>
 </div>
  <div class="page" id="rareRecitationsPage">
-  <h2 style="color:var(--gold); text-align:center; margin-bottom:20px;">🎧 تلاوات نادرة</h2>
+  <h2 style="color:var(--gold); text-align:center; margin-bottom:20px;">🎧 تلاوات خاشعة</h2>
  <!-- أزرار الشيوخ المحدثة والمصفاة بدقة بالملي -->
 <div class="sheikh-tabs" style="display: flex; gap: 8px; padding: 10px; overflow-x: auto; direction: rtl; white-space: nowrap; margin-bottom: 10px;">
   <button onclick="window.filterRare('all')" class="sheikh-btn active" style="background: var(--gold); color: #111; border: none; padding: 8px 16px; border-radius: 20px; font-family: 'Amiri', serif; font-weight: bold; cursor: pointer;">الكل</button>
@@ -1241,7 +1256,7 @@ body.in-subpage .back-to-home-btn {
 
     <hr style="border: 0; border-top: 1px dashed var(--border); margin: 12px 0;">
 
-    <div style="font-size: 13px; color: var(--text2); margin-bottom: 12px;">أو صمم ثيمك الخاص (التحكم الكامل بالملي):</div>
+    <div style="font-size: 13px; color: var(--text2); margin-bottom: 12px;">أو صمم ثيمك الخاص (التحكم الكامل ):</div>
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px; font-family: 'Amiri', serif;">
       
       <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg2); padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border);">
@@ -1279,7 +1294,7 @@ body.in-subpage .back-to-home-btn {
 
   <div style="background: var(--card); border-radius: 16px; padding: 16px; border: 1px solid var(--border); border-right: 4px solid var(--gold); margin-top: 14px;">
     <div style="font-size: 13px; color: var(--text2); margin-bottom: 4px;">🖼️ خلفية الشاشة الرئيسية</div>
-    <div style="font-size: 11px; color: var(--text2); margin-bottom: 6px;">اختر خلفية تظهر خلف بطاقة "صدقة جارية" في الرئيسية</div>
+    <div style="font-size: 11px; color: var(--text2); margin-bottom: 6px;">اختر خلفية تظهر خلف بطاقة "أثر" في الرئيسية</div>
     <div class="bg-picker-grid" id="bgPickerGrid"></div>
   </div>
 </div>
@@ -1417,7 +1432,7 @@ body.in-subpage .back-to-home-btn {
 <div class="page" id="settingsPage">
   <div style="text-align: center; margin-bottom: 20px;">
     <h2 style="color: var(--gold); font-family: 'Amiri', serif; font-size: 24px;">⚙️ الإعدادات وحسابي</h2>
-    <p style="color: var(--text2); font-size: 13px;">تحكم في حسابك ومظهر التطبيق بالملي</p>
+    <p style="color: var(--text2); font-size: 13px;">تحكم في حسابك ومظهر التطبيق </p>
   </div>
 
   <!-- كارت حالة الحساب التفاعلي -->
@@ -1640,7 +1655,31 @@ body.in-subpage .back-to-home-btn {
     <button onclick="resetHiddenDeeds()" class="reset-btn" style="width:100%; margin-top:20px;">↺ إعادة ضبط السجل الخفي بالكامل</button>
   </div>
 </div>
-  
+  <!-- ABWAB ELM MAIN PAGE -->
+<div class="page" id="abwabElmPage">
+  <div style="text-align: center; margin-bottom: 16px;">
+    <h2 style="color: var(--gold); font-family: 'Amiri', serif; font-size: 24px;">📚 أَبْوَابُ الْعِلْمِ</h2>
+    <p style="color: var(--text2); font-size: 12px;">موسوعة ميسّرة بالدليل من القرآن والسنة، وأقوال أهل العلم</p>
+  </div>
+  <div id="abwabElmGrid" style="display:grid; gap:10px;"></div>
+</div>
+
+<!-- ABWAB ELM SUB-CATEGORY PAGE (e.g. Tarbiya: Kibar/Sighar) -->
+<div class="page" id="abwabSubCatPage">
+  <div style="text-align: center; margin-bottom: 16px;">
+    <h2 id="abwabSubCatTitle" style="color: var(--gold); font-family: 'Amiri', serif; font-size: 22px;"></h2>
+  </div>
+  <div id="abwabSubCatGrid" style="display:grid; gap:10px;"></div>
+</div>
+
+<!-- ABWAB ELM TOPICS LIST PAGE -->
+<div class="page" id="abwabTopicsPage">
+  <div style="text-align: center; margin-bottom: 14px;">
+    <h2 id="abwabTopicsTitle" style="color: var(--gold); font-family: 'Amiri', serif; font-size: 20px;"></h2>
+  </div>
+  <div class="prayer-steps-nav" id="abwabTopicsNav"></div>
+  <div id="abwabTopicContent"></div>
+</div>
 <!-- OVERLAY DIMMER -->
 <div class="overlay-dimmer" id="overlayDimmer" onclick="closeActionMenu()"></div>
 
@@ -2423,6 +2462,7 @@ function showPage(id, el) {
   if(id === 'awkat') loadPrayerTimes();
   if(id === 'notifPage') { renderNotifPresets(); renderCustomNotifList(); }
   if(id === 'home') renderFlameCompanion(false);
+  if(id === 'abwabElmPage') renderAbwabElmMain();
   // تشغيل المكتبة العلمية بشكل مستقل
   if(id === 'islamicContent' && typeof switchSubContent === 'function') {
     switchSubContent('fiqh');
@@ -6073,7 +6113,7 @@ function spawnFlameParticle() {
 <script src="obeyPlan.js"></script> 
 <script src="janaza.js"></script>
 <script src="shareKhair.js"></script>
-
+<script src="abwabElm.js"></script>
  <script type="module">
   // الغاء مفعول دالة الـ load القديمة تماماً لكسر حلقة إعادة تسجيل الدخول
   window.finishLogin = function(name) { if(typeof window.realFinishLogin === 'function') window.realFinishLogin(name); };
