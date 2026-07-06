@@ -1501,6 +1501,10 @@ function toggleAbwabPlanItem(planKey, index) {
 }
 // دالة للعودة إلى قائمة أبواب العلم الرئيسية
 function goBackToAbwabMain() {
-  // قم بتغيير 'abwabMainPage' إلى الـ ID الحقيقي لصفحة قائمة الأبواب لديك إذا كان مختلفاً
-  showPage('abwabMainPage', null); 
+  // إخفاء الصفحات الفرعية المفتوحة تماماً لمنع التداخل البصري
+  document.getElementById('abwabTopicsPage').classList.remove('active');
+  document.getElementById('abwabSubCatPage').classList.remove('active');
+  
+  // توجيه المستخدم بأمان إلى صفحة الفهرس الرئيسي الصحيحة
+  showPage('abwabElmPage', null); 
 }
