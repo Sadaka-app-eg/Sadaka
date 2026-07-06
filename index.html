@@ -5208,106 +5208,168 @@ function shareAsText() {
     closeShareModal();
   }
 }
+  
+// دالة تلف النص على أسطر متعددة بناءً على أقصى عرض متاح
+function getWrappedLines(ctx, text, maxWidth) {
+  const words = text.split(' ');
+  let lines = [];
+  let line = '';
+  for (let n = 0; n < words.length; n++) {
+    let testLine = line + words[n] + ' ';
+    let metrics = ctx.measureText(testLine);
+    if (metrics.width > maxWidth && n > 0) {
+      lines.push(line.trim());
+      line = words[n] + ' ';
+    } else {
+      line = testLine;
+    }
+  }
+  lines.push(line.trim());
+  return lines;
+}
+
+// دالة تكتشف بنية "السؤال / الإجابة" داخل نص "إيه المشكلة"
+function parseQAStructure(text) {
+  const qMatch = text.match(/◀\s*س:\s*([\s\S]*?)◀\s*ج:/);
+  const aMatch = text.match(/◀\s*ج:\s*([\s\S]*)/);
+  if (qMatch && aMatch) {
+    return { question: qMatch[1].trim(), answer: aMatch[1].trim() };
+  }
+  return null;
+}    
 async function shareAsImage() {
-  // 1. التأكد من وجود نص للمشاركه
   if (!currentShareTitle || !currentShareText) {
     alert("عفواً، لم يتم تحديد النص بشكل صحيح.");
     return;
   }
 
-  // 2. مصفوفة بـ 10 خلفيات إسلامية فخمة وداكنة ومجانية للتصميم
   const backgrounds = [
-    "https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=1080&auto=format&fit=crop", // خلفية زخارف غامقة
-    "https://images.unsplash.com/photo-1564507592333-c60657eea523?q=80&w=1080&auto=format&fit=crop", // إضاءة مسجد فخمة
-    "https://images.unsplash.com/photo-1609599006353-e629f1d40e42?q=80&w=1080&auto=format&fit=crop", // مصحف وإضاءة خافتة
-    "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1080&auto=format&fit=crop", // هدوء ليلي
-    "https://images.unsplash.com/photo-1478760329108-5c3ed9d495a0?q=80&w=1080&auto=format&fit=crop", // تدرج داكن فخم
-    "https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=1080&auto=format&fit=crop", // نجوم ليلية وهادئة
-    "https://images.unsplash.com/photo-1501854140801-50d01698950b?q=80&w=1080&auto=format&fit=crop", // طبيعة خاشعة دافئة
-    "https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?q=80&w=1080&auto=format&fit=crop", // عمق وهدوء
-    "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1080&auto=format&fit=crop", // جبال شائخة مهيبة
-    "https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=1080&auto=format&fit=crop"  // تدرج كوني فخم
+        "https://images.unsplash.com/photo-1564507592333-c60657eea523?q=80&w=1080&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1609599006353-e629f1d40e42?q=80&w=1080&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1080&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1478760329108-5c3ed9d495a0?q=80&w=1080&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=1080&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1501854140801-50d01698950b?q=80&w=1080&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?q=80&w=1080&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1080&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=1080&auto=format&fit=crop"
   ];
- 
-  // اختيار خلفية عشوائية من الـ 10
+
   const randomBg = backgrounds[Math.floor(Math.random() * backgrounds.length)];
 
-  // 3. إنشاء لوحة الرسم (Canvas) بأبعاد فخمة للاستوري ومواقع التواصل (1080x1920)
   const canvas = document.createElement('canvas');
   canvas.width = 1080;
   canvas.height = 1920;
   const ctx = canvas.getContext('2d');
 
-  // تحميل صورة الخلفية العشوائية داخل اللوحة
   const bgImg = new Image();
-  bgImg.crossOrigin = "anonymous"; // عشان نتفادى مشاكل الحماية للروابط الخارجية
+  bgImg.crossOrigin = "anonymous";
   bgImg.src = randomBg;
 
   bgImg.onload = async function() {
-    // رسم الخلفية لتغطي اللوحة بالكامل
     ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
 
-    // إضافة طبقة ظل داكنة فخمة فوق الصورة عشان الكلام الأبيض والذهبي ينطق ويبان
-    ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
+    ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // رسم إطار ذهبي داخلي فخم ومميز
     ctx.strokeStyle = "#c5a059";
     ctx.lineWidth = 15;
     ctx.strokeRect(40, 40, canvas.width - 80, canvas.height - 80);
 
-    // --- كتابة العنوان (ذهبي وبحجم كبير ومتوسط الشاشة) ---
-    ctx.fillStyle = "#c5a059";
-    ctx.font = "bold 55px 'Cairo', 'Amiri', sans-serif";
     ctx.textAlign = "center";
     ctx.direction = "rtl";
-    ctx.fillText(currentShareTitle, 540, 350);
 
-    // --- كتابة النص الأساسي (أبيض مريح للعين) ---
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "42px 'Amiri', 'Cairo', sans-serif";
-    
-    // دالة ذكية لتقطيع النص الطويل لأسطر عشان ميعبرش حدود الصورة
-    const words = currentShareText.split(' ');
-    let line = '';
-    let y = 550;
-    const lineHeight = 75;
-    const maxWidth = 850;
+    // 🔍 هل النص فيه بنية سؤال/إجابة؟
+    const qa = parseQAStructure(currentShareText);
 
-    for (let n = 0; n < words.length; n++) {
-      let testLine = line + words[n] + ' ';
-      let metrics = ctx.measureText(testLine);
-      if (metrics.width > maxWidth && n > 0) {
+    if (qa) {
+      // ===== وضع السؤال والإجابة في جدولين منفصلين =====
+      const maxWidth = 820;
+      const boxPaddingX = 40;
+      const boxPaddingY = 30;
+      const lineHeight = 54;
+      let currentY = 160; // رفعنا البداية لعدم وجود عنوان
+
+      // --- جدول السؤال ---
+      ctx.font = "bold 34px 'Cairo', 'Amiri', sans-serif";
+      ctx.fillStyle = "#c5a059";
+      ctx.fillText("❓ السؤال", 540, currentY);
+      currentY += 45;
+
+      ctx.font = "38px 'Amiri', 'Cairo', sans-serif";
+      const qLines = getWrappedLines(ctx, qa.question, maxWidth);
+      const qBoxHeight = (qLines.length * lineHeight) + (boxPaddingY * 2);
+      const qBoxY = currentY;
+
+      // خلفية صندوق السؤال (لون ذهبي شفاف)
+      ctx.fillStyle = "rgba(197, 160, 89, 0.18)";
+      ctx.strokeStyle = "#c5a059";
+      ctx.lineWidth = 3;
+      roundRect(ctx, 70, qBoxY, canvas.width - 140, qBoxHeight, 20, true, true);
+
+      ctx.fillStyle = "#ffffff";
+      let textY = qBoxY + boxPaddingY + 32;
+      qLines.forEach(line => {
+        ctx.fillText(line, 540, textY);
+        textY += lineHeight;
+      });
+
+      currentY = qBoxY + qBoxHeight + 60;
+
+      // --- جدول الإجابة ---
+      ctx.font = "bold 34px 'Cairo', 'Amiri', sans-serif";
+      ctx.fillStyle = "#6fbf73";
+      ctx.fillText("✅ الإجابة", 540, currentY);
+      currentY += 45;
+
+      ctx.font = "38px 'Amiri', 'Cairo', sans-serif";
+      const aLines = getWrappedLines(ctx, qa.answer, maxWidth);
+      const aBoxHeight = (aLines.length * lineHeight) + (boxPaddingY * 2);
+      const aBoxY = currentY;
+
+      // خلفية صندوق الإجابة (لون أخضر شفاف)
+      ctx.fillStyle = "rgba(111, 191, 115, 0.18)";
+      ctx.strokeStyle = "#6fbf73";
+      ctx.lineWidth = 3;
+      roundRect(ctx, 70, aBoxY, canvas.width - 140, aBoxHeight, 20, true, true);
+
+      ctx.fillStyle = "#ffffff";
+      textY = aBoxY + boxPaddingY + 32;
+      aLines.forEach(line => {
+        ctx.fillText(line, 540, textY);
+        textY += lineHeight;
+      });
+
+    } else {
+      // ===== الوضع العادي (بدون عنوان، مرفوع لأعلى) =====
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "42px 'Amiri', 'Cairo', sans-serif";
+
+      const lines = getWrappedLines(ctx, currentShareText, 850);
+      let y = 400; // رُفع الكلام لمكان العنوان القديم
+      const lineHeight = 75;
+      lines.forEach(line => {
         ctx.fillText(line, 540, y);
-        line = words[n] + ' ';
         y += lineHeight;
-      } else {
-        line = testLine;
-      }
+      });
     }
-    ctx.fillText(line, 540, y);
 
     // --- كتابة الحقوق في أسفل الصورة ---
     ctx.fillStyle = "rgba(197, 160, 89, 0.7)";
     ctx.font = "30px sans-serif";
     ctx.fillText("• تطبيق صدقة جارية •", 540, 1800);
 
-    // 4. تحويل اللوحة الفخمة لملف حقيقي ومشاركته فوراً
     canvas.toBlob(async (blob) => {
       const file = new File([blob], "Sadaka_Post.png", { type: "image/png" });
-      
+
       if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
         try {
-          await navigator.share({
-            files: [file],
-            title: currentShareTitle
-          });
+          await navigator.share({ files: [file], title: currentShareTitle });
           closeShareModal();
         } catch (error) {
           console.log("تم إلغاء مشاركة الصورة");
         }
       } else {
-        // لو الموبايل متصفحه لا يدعم مشاركة الملفات، بنحملها له في الاستوديو يدوياً
         const link = document.createElement('a');
         link.download = 'Sadaka_Post.png';
         link.href = canvas.toDataURL();
@@ -5323,6 +5385,18 @@ async function shareAsImage() {
   };
 }
 
+// دالة رسم مستطيل بحواف دائرية (مطلوبة للجداول الملونة)
+function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.arcTo(x + width, y, x + width, y + height, radius);
+  ctx.arcTo(x + width, y + height, x, y + height, radius);
+  ctx.arcTo(x, y + height, x, y, radius);
+  ctx.arcTo(x, y, x + width, y, radius);
+  ctx.closePath();
+  if (fill) ctx.fill();
+  if (stroke) ctx.stroke();
+        }
 
   // كود تأمين ظهور الترحيب والاسم بعد إخفاء الـ Splash واستقرار الثيمات
 document.addEventListener('DOMContentLoaded', () => {
