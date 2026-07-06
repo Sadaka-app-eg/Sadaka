@@ -629,6 +629,39 @@ body.in-subpage .back-to-home-btn {
 .fruit-item:active{transform:scale(1.3);}
 @keyframes leafGrow{0%{opacity:0;transform:scale(0) rotate(0deg);}100%{opacity:1;transform:scale(1);}}
 @keyframes fruitGrow{0%{opacity:0;transform:scale(0);}60%{transform:scale(1.3);}100%{opacity:1;transform:scale(1);}}
+   .hidden-deed-input-wrap{background:var(--card);border-radius:20px;padding:18px;border:1px solid var(--border);margin-bottom:16px;}
+.hidden-deed-lock-visual{text-align:center;padding:30px 20px;}
+.hidden-deed-lock-visual .lock-icon{font-size:60px;margin-bottom:14px;filter:drop-shadow(0 4px 10px rgba(0,0,0,0.3));animation:lockPulse 3s ease-in-out infinite;}
+@keyframes lockPulse{0%,100%{opacity:0.7;transform:scale(1);}50%{opacity:1;transform:scale(1.05);}}
+.hidden-deed-progress-dots{display:flex;justify-content:center;gap:5px;margin-top:16px;flex-wrap:wrap;max-width:260px;margin-left:auto;margin-right:auto;}
+.hidden-deed-dot{width:8px;height:8px;border-radius:50%;background:rgba(212,175,55,0.15);}
+.hidden-deed-dot.filled{background:var(--gold);}
+.reveal-mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.reveal-mode-btn{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:12px 6px;text-align:center;cursor:pointer;transition:all 0.2s;}
+.reveal-mode-btn.active{border-color:var(--gold);background:rgba(212,175,55,0.12);}
+.reveal-mode-btn .rm-emoji{font-size:22px;display:block;margin-bottom:4px;}
+.reveal-mode-btn .rm-label{font-size:11px;color:var(--text2);font-family:'Amiri',serif;}
+.reveal-mode-btn.active .rm-label{color:var(--gold);font-weight:700;}
+.hidden-deed-revealed-item{background:var(--card);border-radius:14px;padding:14px;border:1px solid var(--border);border-right:3px solid var(--green);margin-bottom:8px;text-align:right;}
+.hidden-deed-revealed-item .hd-date{font-size:10px;color:var(--text2);margin-bottom:4px;}
+.hidden-deed-revealed-item .hd-text{font-size:14px;color:var(--text);font-family:'Amiri',serif;line-height:1.8;}
+.veil-curtain{position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(180deg,#0b120c,#1a2e1c);z-index:9999999;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px;opacity:0;transition:opacity 0.8s;}
+.veil-curtain.show{opacity:1;}
+   .flame-companion-wrap{background:radial-gradient(circle at 50% 30%,rgba(212,175,55,0.08),transparent 70%);border-radius:24px;padding:26px 16px 20px;text-align:center;margin-bottom:16px;border:1px solid var(--border);position:relative;overflow:hidden;}
+.flame-stage{position:relative;width:140px;height:160px;margin:0 auto 10px;display:flex;align-items:flex-end;justify-content:center;}
+.flame-base{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);width:60px;height:14px;background:radial-gradient(ellipse,rgba(212,175,55,0.25),transparent 70%);border-radius:50%;}
+.flame-emoji{font-size:70px;position:relative;z-index:2;transition:all 0.6s ease;filter:drop-shadow(0 0 15px rgba(255,180,60,0.5));animation:flameFlicker 2.4s ease-in-out infinite;}
+@keyframes flameFlicker{0%,100%{transform:scale(1) rotate(-1deg);}25%{transform:scale(1.03) rotate(1deg);}50%{transform:scale(0.98) rotate(-0.5deg);}75%{transform:scale(1.02) rotate(0.5deg);}}
+.flame-particle{position:absolute;bottom:60px;font-size:11px;opacity:0;pointer-events:none;animation:flameParticleRise 2.2s ease-out forwards;}
+@keyframes flameParticleRise{0%{opacity:0;transform:translateY(0) translateX(0) scale(0.6);}15%{opacity:1;}100%{opacity:0;transform:translateY(-90px) translateX(var(--drift,10px)) scale(1.1);}}
+.flame-name{font-size:16px;color:var(--gold);font-weight:700;font-family:'Amiri',serif;margin-top:4px;}
+.flame-status-line{font-size:12px;color:var(--text2);margin-top:4px;font-family:'Amiri',serif;line-height:1.7;}
+.flame-vitality-bar{width:100%;max-width:220px;height:7px;background:var(--border);border-radius:4px;margin:14px auto 6px;overflow:hidden;}
+.flame-vitality-fill{height:100%;background:linear-gradient(90deg,#ff8c00,var(--gold));border-radius:4px;transition:width 0.8s ease;}
+.flame-vitality-label{font-size:10px;color:var(--text2);}
+.flame-companion-wrap.dim .flame-emoji{filter:drop-shadow(0 0 4px rgba(120,120,120,0.2)) grayscale(0.5);opacity:0.6;}
+.flame-companion-wrap.blazing{background:radial-gradient(circle at 50% 30%,rgba(212,175,55,0.18),transparent 70%);}
+.flame-nudge-btn{margin-top:10px;background:transparent;border:1px solid var(--border);color:var(--gold);padding:8px 18px;border-radius:18px;font-size:12px;font-family:'Amiri',serif;cursor:pointer;}
 </style>  
 
  
@@ -844,7 +877,16 @@ body.in-subpage .back-to-home-btn {
       </div>
     </div>
   </div>
-
+<div class="flame-companion-wrap" id="flameCompanionWrap">
+  <div class="flame-stage" id="flameStage">
+    <div class="flame-base"></div>
+    <div class="flame-emoji" id="flameEmoji">🕯️</div>
+  </div>
+  <div class="flame-name">شعلة أثرك</div>
+  <div class="flame-status-line" id="flameStatusLine">جاري تحديد حالة الشعلة...</div>
+  <div class="flame-vitality-bar"><div class="flame-vitality-fill" id="flameVitalityFill" style="width:0%"></div></div>
+  <div class="flame-vitality-label" id="flameVitalityLabel"></div>
+</div>
   <!-- مكان النفحات والهدية -->
   <div onclick="showPage('nafahatPage', null)" style="background: var(--card); border-radius: 16px; padding: 16px; margin-top: 14px; border: 1px solid var(--border); text-align: center; cursor: pointer; border-right: 4px solid var(--gold); transition: background 0.3s;">
     <span style="color: var(--gold); font-family: 'Amiri', serif; font-size: 15px; font-weight: 700;">✨ اضغط لعرض نفحات وهداية اليوم (آية، حديث، ودعاء) ✨</span>
@@ -861,6 +903,11 @@ body.in-subpage .back-to-home-btn {
     <div id="gift-box" onclick="openGift()" style="cursor:pointer; font-size:50px; transition: transform 0.3s; display:inline-block;">🎁</div>
     <div id="gift-text" style="margin-top:5px; font-weight:bold; color:var(--gold); font-size:14px;">اضغط لفتح هدية اليوم</div>
     <div id="gift-result" style="display:none; padding:15px; background:var(--card); border-radius:15px; border: 1px solid var(--border);"></div>
+    <div onclick="showPage('hiddenDeedsPage', null)" style="background: var(--card); border-radius: 16px; padding: 16px; margin-top: 14px; border: 1px solid var(--border); text-align: center; cursor: pointer; border-right: 4px solid #4a5a4d; transition: background 0.3s;">
+  <span style="color: #7a9a7d; font-family: 'Amiri', serif; font-size: 15px; font-weight: 700;">🌑 الأثر الخفي — سجّل عملًا سريًا</span>
+  <div id="homeHiddenDeedsHint" style="color: var(--text2); font-size: 12px; margin-top: 6px;"></div>
+    </div>
+    
   </div>
 
 </div>
@@ -1538,6 +1585,60 @@ body.in-subpage .back-to-home-btn {
 
   <div style="font-size: 14px; color: var(--gold); margin-bottom: 10px; font-family: 'Amiri', serif;">📖 سجل نعمك</div>
   <div id="blessingsList" style="display:grid; gap:10px;"></div>
+</div>
+  <!-- HIDDEN DEEDS PAGE -->
+<div class="page" id="hiddenDeedsPage">
+  <div style="text-align: center; margin-bottom: 16px;">
+    <h2 style="color: var(--gold); font-family: 'Amiri', serif; font-size: 24px;">🌑 الأَثَرُ الخَفِيُّ</h2>
+    <p style="color: var(--text2); font-size: 12px; line-height: 1.8;">«رجلٌ تصدّق بصدقةٍ فأخفاها، حتى كأنّ شمالَه لا تعلمُ ما تصدّقتْ به يمينُه» — سجّل أعمالك السرية، وخبّئها عن نفسك حتى ميعاد الكشف</p>
+  </div>
+
+  <!-- إعداد طريقة الكشف (يظهر أول مرة فقط) -->
+  <div id="hiddenDeedSetup" style="background: var(--card); border-radius: 20px; padding: 18px; border: 1px solid var(--border); margin-bottom: 16px;">
+    <div style="font-size: 13px; color: var(--gold); margin-bottom: 10px; font-weight: 700;">⚙️ متى تحب تكشف حجاب سجلك؟</div>
+    <div class="reveal-mode-grid">
+      <div class="reveal-mode-btn active" id="revealMode_yearly" onclick="selectRevealMode('yearly')">
+        <span class="rm-emoji">📅</span><span class="rm-label">مرة في السنة</span>
+      </div>
+      <div class="reveal-mode-btn" id="revealMode_count" onclick="selectRevealMode('count')">
+        <span class="rm-emoji">🔢</span><span class="rm-label">بعد عدد أعمال</span>
+      </div>
+    </div>
+
+    <div id="revealYearlyWrap">
+      <div style="font-size:12px; color:var(--text2); margin-bottom:6px; font-family:'Amiri',serif;">اختر يوم الكشف السنوي (مثلاً ليلة القدر أو آخر رمضان):</div>
+      <input type="date" id="revealYearlyDate" style="width:100%; padding:12px; border-radius:12px; background:var(--bg2); color:var(--text); border:1px solid var(--border); font-family:'Amiri',serif; font-size:14px; outline:none; margin-bottom:12px;">
+    </div>
+
+    <div id="revealCountWrap" style="display:none;">
+      <div style="font-size:12px; color:var(--text2); margin-bottom:6px; font-family:'Amiri',serif;">بعد كل كام عمل تحب يُكشف السجل؟</div>
+      <input type="number" id="revealCountTarget" placeholder="مثال: 40" min="5" max="500" value="40" style="width:100%; padding:12px; border-radius:12px; background:var(--bg2); color:var(--text); border:1px solid var(--border); font-family:'Amiri',serif; font-size:14px; text-align:center; outline:none; margin-bottom:12px;">
+    </div>
+
+    <button onclick="setupHiddenDeedsMode()" style="width:100%; background:var(--gold); color:#111; border:none; padding:13px; border-radius:14px; font-family:'Amiri',serif; font-size:15px; font-weight:700; cursor:pointer;">🔒 بدء السجل الخفي</button>
+  </div>
+
+  <!-- واجهة إضافة عمل جديد (تظهر بعد الإعداد) -->
+  <div id="hiddenDeedActive" style="display:none;">
+    <div class="hidden-deed-input-wrap">
+      <div style="font-size: 13px; color: var(--gold); margin-bottom: 10px; font-weight: 700;">✍️ سجّل عملًا خفيًا</div>
+      <textarea id="hiddenDeedInput" placeholder="اكتب بكلمات قليلة... اتصدقت، ساعدت حد، سترت على غلطة، دعيت لغريب..." style="width:100%; min-height:70px; padding:12px; border-radius:12px; background:var(--bg2); color:var(--text); border:1px solid var(--border); font-family:'Amiri',serif; font-size:15px; resize:vertical; outline:none; margin-bottom:12px;"></textarea>
+      <button onclick="saveHiddenDeed()" style="width:100%; background:var(--green); color:#fff; border:none; padding:13px; border-radius:14px; font-family:'Amiri',serif; font-size:15px; font-weight:700; cursor:pointer;">🤍 اخفِ هذا الأثر</button>
+    </div>
+
+    <!-- الشاشة الرئيسية المقفولة -->
+    <div class="hidden-deed-lock-visual">
+      <div class="lock-icon">🔒</div>
+      <div style="color: var(--gold); font-size: 15px; font-weight: 700; font-family:'Amiri',serif; margin-bottom:6px;" id="hiddenDeedStatusTitle"></div>
+      <div style="color: var(--text2); font-size: 12px; line-height:1.8;" id="hiddenDeedStatusDesc"></div>
+      <div class="hidden-deed-progress-dots" id="hiddenDeedDots"></div>
+      <div id="hiddenDeedRevealBtnWrap" style="margin-top:18px; display:none;">
+        <button onclick="revealHiddenDeeds()" style="background:var(--gold); color:#111; border:none; padding:12px 30px; border-radius:22px; font-family:'Amiri',serif; font-size:14px; font-weight:700; cursor:pointer;">✨ اكشف الحجاب الآن</button>
+      </div>
+    </div>
+
+    <button onclick="resetHiddenDeeds()" class="reset-btn" style="width:100%; margin-top:20px;">↺ إعادة ضبط السجل الخفي بالكامل</button>
+  </div>
 </div>
   
 <!-- OVERLAY DIMMER -->
@@ -2321,6 +2422,7 @@ function showPage(id, el) {
     if(id === 'favPage') renderFav();
   if(id === 'awkat') loadPrayerTimes();
   if(id === 'notifPage') { renderNotifPresets(); renderCustomNotifList(); }
+  if(id === 'home') renderFlameCompanion(false);
   // تشغيل المكتبة العلمية بشكل مستقل
   if(id === 'islamicContent' && typeof switchSubContent === 'function') {
     switchSubContent('fiqh');
@@ -2341,6 +2443,7 @@ if (id === 'settingsPage') {
   if(id === 'favPage') renderFav();
   if(id === 'blessingsPage') renderBlessingsPage();
   if(id === 'home') loadPrayerTimes();
+  if(id === 'hiddenDeedsPage') renderHiddenDeedsPage();
   updateHomeBookmarkCard();
   if(id === 'notifPage') { renderNotifPresets(); renderCustomNotifList(); }
   
@@ -2932,6 +3035,8 @@ document.addEventListener('DOMContentLoaded', () => {
   restoreLastState(); 
   updateHomeBookmarkCard();
   updateHomeBlessingsHint();
+  updateHomeHiddenDeedsHint();
+  renderFlameCompanion(false);
 });
 function toggleAudio() {
   if(!currentSurah) return;
@@ -3196,6 +3301,7 @@ function countZekr(cat, i, max) {
   localStorage.setItem('totalAzkar', totalAzkar);
 
   // 👇 السطر السحري الجديد اللي هيشيك على اكتمال القسم ويحدث العداد 9/9
+  boostFlame(1);
   checkCategoryCompleted(cat);
 }
 
@@ -3227,6 +3333,7 @@ function incrementTasbeh() {
     setTimeout(()=>el.style.color='var(--gold)',700);
   }
   updateStats();
+  boostFlame(0.5);
 }
 
 
@@ -5121,7 +5228,7 @@ async function shareAsImage() {
     "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1080&auto=format&fit=crop", // جبال شائخة مهيبة
     "https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=1080&auto=format&fit=crop"  // تدرج كوني فخم
   ];
-
+ 
   // اختيار خلفية عشوائية من الـ 10
   const randomBg = backgrounds[Math.floor(Math.random() * backgrounds.length)];
 
@@ -5409,6 +5516,7 @@ function getTodayDateKey() {
   input.value = '';
   renderBlessingsPage();
   updateHomeBlessingsHint();
+   boostFlame(4);
  }
 function deleteBlessing(id) {
   if (!confirm('متأكد إنك عايز تمسح النعمة دي؟')) return;
@@ -5581,7 +5689,305 @@ function updateHomeBlessingsHint() {
     ? `عدد نعمك: ${toAr(blessings.length)} — كتبت النهاردة ✅`
     : `عدد نعمك: ${toAr(blessings.length)} — لسه ما كتبتش النهاردة`;
 }
+// ============================
+// الأثر الخفي
+// ============================
+let selectedRevealMode = 'yearly';
 
+function selectRevealMode(mode) {
+  selectedRevealMode = mode;
+  document.querySelectorAll('.reveal-mode-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('revealMode_' + mode).classList.add('active');
+  document.getElementById('revealYearlyWrap').style.display = mode === 'yearly' ? 'block' : 'none';
+  document.getElementById('revealCountWrap').style.display = mode === 'count' ? 'block' : 'none';
+}
+
+function getHiddenDeedsConfig() {
+  return JSON.parse(localStorage.getItem('hidden_deeds_config') || 'null');
+}
+
+function getHiddenDeeds() {
+  return JSON.parse(localStorage.getItem('hidden_deeds_log') || '[]');
+}
+
+function setupHiddenDeedsMode() {
+  let config = { mode: selectedRevealMode, createdAt: getTodayDateKey() };
+
+  if (selectedRevealMode === 'yearly') {
+    const date = document.getElementById('revealYearlyDate').value;
+    if (!date) { alert('اختار تاريخ الكشف السنوي 📅'); return; }
+    config.yearlyDate = date;
+    config.nextRevealDate = date;
+  } else {
+    const target = parseInt(document.getElementById('revealCountTarget').value) || 40;
+    config.countTarget = target;
+  }
+
+  localStorage.setItem('hidden_deeds_config', JSON.stringify(config));
+  renderHiddenDeedsPage();
+}
+
+function saveHiddenDeed() {
+  const input = document.getElementById('hiddenDeedInput');
+  const text = input.value.trim();
+  if (!text) { alert('اكتب العمل الأول 🙏'); return; }
+
+  let deeds = getHiddenDeeds();
+  deeds.push({ id: Date.now(), text: text, date: getTodayDateKey() });
+  localStorage.setItem('hidden_deeds_log', JSON.stringify(deeds));
+
+  input.value = '';
+
+  const box = document.querySelector('.hidden-deed-input-wrap');
+  if (box) {
+    box.style.transition = 'opacity 0.15s';
+    box.style.opacity = '0.3';
+    setTimeout(() => { box.style.opacity = '1'; }, 200);
+  }
+
+  renderHiddenDeedsPage();
+  updateHomeHiddenDeedsHint();
+  boostFlame(3);
+}
+
+function getNextYearlyDate(dateStr) {
+  const base = new Date(dateStr);
+  const now = new Date(getTodayDateKey());
+  let next = new Date(base);
+  next.setFullYear(now.getFullYear());
+  if (next < now) next.setFullYear(now.getFullYear() + 1);
+  return next.toISOString().split('T')[0];
+}
+
+function renderHiddenDeedsPage() {
+  const config = getHiddenDeedsConfig();
+  const setupEl = document.getElementById('hiddenDeedSetup');
+  const activeEl = document.getElementById('hiddenDeedActive');
+
+  if (!config) {
+    setupEl.style.display = 'block';
+    activeEl.style.display = 'none';
+    return;
+  }
+
+  setupEl.style.display = 'none';
+  activeEl.style.display = 'block';
+
+  const deeds = getHiddenDeeds();
+  const titleEl = document.getElementById('hiddenDeedStatusTitle');
+  const descEl = document.getElementById('hiddenDeedStatusDesc');
+  const dotsEl = document.getElementById('hiddenDeedDots');
+  const revealBtnWrap = document.getElementById('hiddenDeedRevealBtnWrap');
+
+  let canReveal = false;
+  let progressTotal = 0, progressFilled = 0;
+
+  if (config.mode === 'yearly') {
+    const nextDate = getNextYearlyDate(config.yearlyDate);
+    const today = getTodayDateKey();
+    const daysLeft = daysBetween(nextDate);
+
+    if (today >= config.yearlyDate && !config.lastRevealedYear) {
+      canReveal = deeds.length > 0;
+    } else if (daysLeft <= 0) {
+      canReveal = deeds.length > 0;
+    }
+
+    titleEl.textContent = canReveal ? '✨ حان وقت الكشف!' : `سجلك محجوب، هيُكشف بعد ${toAr(Math.max(daysLeft,0))} يوم`;
+    descEl.textContent = deeds.length === 0
+      ? 'لسه محفوظ فيه أي عمل. سجّل أول أثر خفي دلوقتي.'
+      : `عندك أعمال محفوظة بالفعل، بس مش هتشوفها إلا وقت الكشف — عشان تفضل النية بينك وبين الله.`;
+    dotsEl.innerHTML = '';
+  } else {
+    const target = config.countTarget || 40;
+    const doneSinceLastReveal = deeds.filter(d => !d.revealedBatch).length;
+    progressTotal = target;
+    progressFilled = doneSinceLastReveal;
+    canReveal = doneSinceLastReveal >= target;
+
+    titleEl.textContent = canReveal ? '✨ وصلت للعدد المطلوب!' : `باقي ${toAr(target - doneSinceLastReveal)} عمل على الكشف`;
+    descEl.textContent = `سجّلت ${toAr(doneSinceLastReveal)} من ${toAr(target)} عمل مطلوب للكشف`;
+
+    dotsEl.innerHTML = Array.from({length: target}).map((_, i) =>
+      `<div class="hidden-deed-dot ${i < progressFilled ? 'filled' : ''}"></div>`
+    ).join('');
+  }
+
+  revealBtnWrap.style.display = canReveal ? 'block' : 'none';
+}
+
+function revealHiddenDeeds() {
+  const config = getHiddenDeedsConfig();
+  const deeds = getHiddenDeeds();
+  const toReveal = config.mode === 'yearly' ? deeds : deeds.filter(d => !d.revealedBatch);
+
+  showVeilCurtain(toReveal, () => {
+    if (config.mode === 'yearly') {
+      config.lastRevealedYear = new Date().getFullYear();
+      config.yearlyDate = getNextYearlyDate(config.yearlyDate);
+    } else {
+      const allDeeds = getHiddenDeeds();
+      allDeeds.forEach(d => { if (!d.revealedBatch) d.revealedBatch = true; });
+      localStorage.setItem('hidden_deeds_log', JSON.stringify(allDeeds));
+    }
+    localStorage.setItem('hidden_deeds_config', JSON.stringify(config));
+    renderHiddenDeedsPage();
+    updateHomeHiddenDeedsHint();
+  });
+}
+
+function showVeilCurtain(deeds, onClose) {
+  const itemsHtml = deeds.length === 0
+    ? '<p style="color:var(--text2); font-size:14px;">لم تُسجَّل أعمال في هذه الفترة</p>'
+    : deeds.map(d => `
+        <div class="hidden-deed-revealed-item">
+          <div class="hd-date">${formatBlessingDate(d.date)}</div>
+          <div class="hd-text">${d.text}</div>
+        </div>
+      `).join('');
+
+  const html = `
+    <div class="veil-curtain" id="veilCurtain">
+      <div style="font-size:40px; margin-bottom:16px;">🕊️</div>
+      <h2 style="color:var(--gold); font-family:'Amiri',serif; font-size:20px; margin-bottom:10px;">انكشف الحجاب</h2>
+      <p style="color:var(--text2); font-size:12px; margin-bottom:20px; line-height:1.9; max-width:320px;">﴿ إِنَّمَا يَتَقَبَّلُ اللَّهُ مِنَ الْمُتَّقِينَ ﴾<br>هذه أعمالك التي أخفيتها، تذكّرها بينك وبين الله فقط</p>
+      <div style="width:100%; max-width:380px; max-height:50vh; overflow-y:auto; padding:0 6px;">
+        ${itemsHtml}
+      </div>
+      <button onclick="closeVeilCurtain()" style="background:var(--gold); color:#111; border:none; padding:12px 34px; border-radius:24px; font-family:'Amiri',serif; font-weight:700; cursor:pointer; margin-top:20px;">أغلق واعد للخفاء 🤍</button>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', html);
+  setTimeout(() => document.getElementById('veilCurtain').classList.add('show'), 50);
+  window._veilCloseCallback = onClose;
+}
+
+function closeVeilCurtain() {
+  const curtain = document.getElementById('veilCurtain');
+  if (curtain) {
+    curtain.classList.remove('show');
+    setTimeout(() => {
+      curtain.remove();
+      if (typeof window._veilCloseCallback === 'function') window._veilCloseCallback();
+    }, 500);
+  }
+}
+
+function resetHiddenDeeds() {
+  if (!confirm('متأكد إنك عايز تصفّر السجل الخفي بالكامل؟ الأعمال المحفوظة هتضيع نهائيًا.')) return;
+  localStorage.removeItem('hidden_deeds_config');
+  localStorage.removeItem('hidden_deeds_log');
+  renderHiddenDeedsPage();
+  updateHomeHiddenDeedsHint();
+}
+
+function updateHomeHiddenDeedsHint() {
+  const hint = document.getElementById('homeHiddenDeedsHint');
+  if (!hint) return;
+  const config = getHiddenDeedsConfig();
+  if (!config) {
+    hint.textContent = 'ابدأ سجلك الخفي دلوقتي';
+    return;
+  }
+  const deeds = getHiddenDeeds();
+  if (deeds.length === 0) {
+    hint.textContent = 'سجلك مفتوح، محتاج أول أثر خفي';
+  } else {
+    hint.textContent = 'سجلك محجوب عنك حاليًا 🔒';
+  }
+        }
+  // ============================
+// شعلة الأثر (الرفيق الحي)
+// ============================
+function getFlameState() {
+  const today = getTodayDateKey();
+  let state = JSON.parse(localStorage.getItem('flame_companion_state') || 'null');
+
+  if (!state) {
+    state = { vitality: 40, lastActiveDate: today, lastDecayCheck: today };
+    localStorage.setItem('flame_companion_state', JSON.stringify(state));
+    return state;
+  }
+
+  if (state.lastDecayCheck !== today) {
+    const daysPassed = daysBetween(state.lastDecayCheck) * -1;
+    const inactiveDays = Math.max(0, daysPassed - (state.lastActiveDate === today ? 0 : 0));
+    if (state.lastActiveDate !== today) {
+      const gapDays = Math.max(1, daysBetween(state.lastActiveDate) * -1);
+      state.vitality = Math.max(0, state.vitality - (gapDays * 4));
+    }
+    state.lastDecayCheck = today;
+    localStorage.setItem('flame_companion_state', JSON.stringify(state));
+  }
+
+  return state;
+}
+
+function boostFlame(amount) {
+  const today = getTodayDateKey();
+  let state = getFlameState();
+  state.vitality = Math.min(100, state.vitality + amount);
+  state.lastActiveDate = today;
+  localStorage.setItem('flame_companion_state', JSON.stringify(state));
+  renderFlameCompanion(true);
+}
+
+function renderFlameCompanion(justBoosted) {
+  const wrap = document.getElementById('flameCompanionWrap');
+  if (!wrap) return;
+
+  const state = getFlameState();
+  const v = state.vitality;
+
+  const emojiEl = document.getElementById('flameEmoji');
+  const statusEl = document.getElementById('flameStatusLine');
+  const fillEl = document.getElementById('flameVitalityFill');
+  const labelEl = document.getElementById('flameVitalityLabel');
+
+  wrap.classList.remove('dim', 'blazing');
+  let emoji = '🕯️';
+  let status = '';
+
+  if (v <= 15) {
+    emoji = '💨';
+    status = 'شعلتك خفتت.. رجّع لها نورها بذكر أو خطوة بسيطة النهاردة';
+    wrap.classList.add('dim');
+  } else if (v <= 40) {
+    emoji = '🕯️';
+    status = 'شعلة هادية، محتاجة شوية اهتمام تكبر بيه';
+  } else if (v <= 70) {
+    emoji = '🔥';
+    status = 'شعلتك بتنور كويس، استمر عليها';
+  } else if (v <= 90) {
+    emoji = '🔥';
+    status = 'شعلة قوية ومتوهجة، ما شاء الله عليك';
+    wrap.classList.add('blazing');
+  } else {
+    emoji = '✨';
+    status = 'شعلتك في أوجها.. نور ثابت يليق بأثرك';
+    wrap.classList.add('blazing');
+  }
+
+  if (emojiEl) emojiEl.textContent = emoji;
+  if (statusEl) statusEl.textContent = status;
+  if (fillEl) fillEl.style.width = v + '%';
+  if (labelEl) labelEl.textContent = `${toAr(Math.round(v))} / ١٠٠`;
+
+  if (justBoosted) spawnFlameParticle();
+}
+
+function spawnFlameParticle() {
+  const stage = document.getElementById('flameStage');
+  if (!stage) return;
+  const particles = ['✨', '🌟', '·'];
+  const p = document.createElement('div');
+  p.className = 'flame-particle';
+  p.textContent = particles[Math.floor(Math.random() * particles.length)];
+  p.style.left = (45 + Math.random() * 10) + '%';
+  p.style.setProperty('--drift', (Math.random() * 30 - 15) + 'px');
+  stage.appendChild(p);
+  setTimeout(() => p.remove(), 2300);
+}
 </script>
  <script src="asma2.js"></script>
  <script src="khatma.js"></script>
