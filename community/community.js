@@ -608,6 +608,9 @@ window.listenToComments = function(docId) {
 // ✨ 5️⃣ نظام الضغط المطول وإدارة تفاعلات الإيموجي المتعددة
 // =========================================================
 window.startReactionPress = function(event, docId) {
+  // منع السلوك الافتراضي للمتصفح عشان ميعملش وراها Select أو Copy
+  if (event.cancelable) event.preventDefault(); 
+  
   window.isLongPress = false;
   pressTimer = setTimeout(() => {
     window.isLongPress = true;
@@ -615,6 +618,7 @@ window.startReactionPress = function(event, docId) {
     if (menu) menu.style.display = 'flex';
   }, 500); 
 };
+
 
 window.endReactionPress = function(event, docId, hasLiked) {
   clearTimeout(pressTimer);
