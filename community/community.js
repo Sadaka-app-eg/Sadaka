@@ -166,7 +166,7 @@ window.processCommunitySubmit = function() {
 
 
   // =========================================================
-// 🎨 2️⃣ بناء واجهات المجتمع والربط الفوري والتفاعلي (محدث بالكامل)
+// 🎨 2️⃣ بناء واجهات المجتمع والربط الفوري والتفاعلي (نسخة الأزرار الديناميكية)
 // =========================================================
 window.renderCommunityBody = function() {
   const contentArea = document.getElementById('communityContent');
@@ -181,8 +181,15 @@ window.renderCommunityBody = function() {
   const communityLabel = userGender === 'male' ? 'ساحة الرجال (ملتقى النبلاء)' : 'ساحة النساء (مجلس العفيفات)';
   const chatLabel = userGender === 'male' ? '💬 مجلس ذكر الرجال' : '💬 مجلس ذكر النساء';
 
+  // 1️⃣ لو المستخدم واير على تبويب الساحة العامة (Feed)
   if (window.currentCommunityTab === 'feed') {
     contentArea.innerHTML = `
+      <div class="community-tabs" style="margin-bottom: 15px;">
+        <button id="tabFeedBtn" class="comm-tab-btn active" onclick="window.switchCommunityTab('feed')">📝 ساحة الأثر</button>
+        <button id="tabChatBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('chat')">💬 مجلس الذكر</button>
+        <button id="tabFajrBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('fajr')">🕌 استيقاظ الفجر</button>
+      </div>
+
       <div style="color: var(--gold); font-family: 'Amiri', serif; margin-bottom: 10px; font-size: 14px; text-align: right; font-weight: bold;">📍 ${communityLabel}</div>
       <div class="comm-card" style="display:flex; gap:10px; flex-direction:column;">
         <textarea id="postInput" placeholder="اكتب فائدة قرآنية أو تذكير بالخير يا ${userName}..." style="width:100%; height:80px; background:transparent; color:var(--text); border:1px solid var(--border); border-radius:8px; padding:10px; resize:none; outline:none; font-family:'Amiri',serif;"></textarea>
@@ -214,8 +221,15 @@ window.renderCommunityBody = function() {
     `;
     window.listenToPosts(userGender);
 
+  // 2️⃣ لو المستخدم واير على تبويب مجلس الذكر (Chat)
   } else if (window.currentCommunityTab === 'chat') {
     contentArea.innerHTML = `
+      <div class="community-tabs" style="margin-bottom: 15px;">
+        <button id="tabFeedBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('feed')">📝 ساحة الأثر</button>
+        <button id="tabChatBtn" class="comm-tab-btn active" onclick="window.switchCommunityTab('chat')">💬 مجلس الذكر</button>
+        <button id="tabFajrBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('fajr')">🕌 استيقاظ الفجر</button>
+      </div>
+
       <div style="display:flex; flex-direction:column; height: 100%; min-height: 400px; justify-content:space-between; gap:10px;">
         <div style="color: var(--gold); font-family: 'Amiri', serif; font-size: 14px; text-align: right; font-weight: bold;">📍 ${chatLabel}</div>
         <div id="chatMessages" style="flex:1; overflow-y:auto; padding:15px; background: rgba(0,0,0,0.3); border-radius: 12px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; max-height: 320px;">
@@ -229,8 +243,15 @@ window.renderCommunityBody = function() {
     `;
     window.listenToChats(userGender);
 
+  // 3️⃣ لو المستخدم واير على تبويب استيقاظ الفجر (Fajr)
   } else if (window.currentCommunityTab === 'fajr') {
     contentArea.innerHTML = `
+      <div class="community-tabs" style="margin-bottom: 15px;">
+        <button id="tabFeedBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('feed')">📝 ساحة الأثر</button>
+        <button id="tabChatBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('chat')">💬 مجلس الذكر</button>
+        <button id="tabFajrBtn" class="comm-tab-btn active" onclick="window.switchCommunityTab('fajr')">🕌 استيقاظ الفجر</button>
+      </div>
+
       <div style="color: var(--gold); font-family: 'Amiri', serif; margin-bottom: 15px; font-size: 14px; text-align: right; font-weight: bold;">🕌 مجلس الاستيقاظ لصلاة الفجر</div>
       
       <div class="comm-card" style="text-align: right; margin-bottom:15px;">
