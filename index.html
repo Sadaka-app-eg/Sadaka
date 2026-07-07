@@ -887,12 +887,14 @@ body.in-subpage .back-to-home-btn {
       <span style="font-size: 13px; color: var(--text); font-family: 'Amiri', serif; font-weight: bold; white-space: nowrap;">القبلة</span>
     </div>
 
-    <div onclick="showPage('notifPage', null)" style="cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; max-width: 85px;">
+        <!-- 2. زر المؤذن (في المنتصف بالظبط بروقان) -->
+    <div onclick="showPage('azanSettingsPage', null)" style="cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; max-width: 85px;">
       <div style="background: #ffffff; width: 100%; height: 65px; border-radius: 18px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(0,0,0,0.1); border: 1px solid var(--border);">
         <span style="font-size: 30px;">📢</span>
       </div>
-      <span style="font-size: 13px; color: var(--text); font-family: 'Amiri', serif; font-weight: bold; white-space: nowrap;">المؤذن</span>
+      <span style="font-size: 13px; color: var(--text); font-family: 'Amiri', serif; font-weight: bold; white-space: nowrap;">الأذان</span>
     </div>
+
 
     <div onclick="window.openNearestMosque()" style="cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; max-width: 85px;">
       <div style="background: #ffffff; width: 100%; height: 65px; border-radius: 18px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(0,0,0,0.1); border: 1px solid var(--border);">
@@ -1453,6 +1455,37 @@ body.in-subpage .back-to-home-btn {
     <div id="answerTimesStatus" style="text-align:center;margin-top:8px;font-size:12px;color:var(--text2);"></div>
   </div>
 </div>
+  <!-- 🕌 صفحة إعدادات الأذان والمؤذنين المستقلة الفخمة -->
+<div class="page" id="azanSettingsPage">
+  <div style="text-align:center; margin-bottom:20px;">
+    <h2 style="color:var(--gold); font-family:'Amiri',serif; font-size:24px;">🕌 نِظَامُ الأَذَانِ وَالمُؤَذِّنِينَ</h2>
+    <p style="color:var(--text2); font-size:12px;">تحكم في تشغيل الأذان التلقائي وعاين أصوات نخبة المؤذنين</p>
+  </div>
+
+  <!-- كارت التفعيل الرئيسي الموحد -->
+  <div style="background:var(--card); border-radius:16px; padding:16px; border:1px solid var(--border); margin-bottom:16px; text-align:center;">
+    <div style="font-size:15px; color:var(--gold); font-family:'Amiri',serif; font-weight:700; margin-bottom:6px;">الحالة العامة للمحرك الصوتي</div>
+    <div id="azanPageStatusText" style="font-size:12px; color:var(--text2); margin-bottom:12px;">الأذان التلقائي متوقف حاليًا</div>
+    <button id="azanPageEnableBtn" onclick="unlockAdhanAudio()" style="width:100%; background:var(--gold); color:#111; border:none; padding:13px; border-radius:14px; font-family:'Amiri',serif; font-size:14px; font-weight:700; cursor:pointer;">🔔 تفعيل تنبيه الأذان التلقائي</button>
+  </div>
+
+  <!-- وعاء التحكم بمستوى الصوت المباشر -->
+  <div id="azanPageVolumeWrap" style="display:none; background:var(--card); border-radius:16px; padding:16px; border:1px solid var(--border); margin-bottom:16px;">
+    <div style="font-size:12px; color:var(--text2); margin-bottom:6px;">🎚️ التحكم في مستوى صوت الأذان:</div>
+    <input type="range" min="0" max="1" step="0.05" value="1" oninput="changeAdhanVolume(this.value)" style="width:100%; accent-color:var(--gold);">
+  </div>
+
+  <!-- قسم كروت معاينة مؤذني الفجر -->
+  <div style="font-size:14px; color:var(--gold); margin-bottom:10px; font-family:'Amiri',serif; font-weight:bold; border-right:3px solid var(--gold); padding-right:8px;">🌅 مؤذنو صلاة الفجر (التكبير المخصص):</div>
+  <div id="fajrCardsContainer" style="display:grid; gap:10px; margin-bottom:20px;"></div>
+
+  <!-- قسم كروت معاينة مؤذني باقي الصلوات -->
+  <div style="font-size:14px; color:var(--gold); margin-bottom:10px; font-family:'Amiri',serif; font-weight:bold; border-right:3px solid var(--green); padding-right:8px;">🕌 مؤذنو باقي الصلوات الخمس:</div>
+  <div id="regularCardsContainer" style="display:grid; gap:10px; margin-bottom:20px;"></div>
+  
+  <button onclick="stopAdhanPlayback(); showPage('home', null)" style="width: 100%; background: var(--bg2); border: 1px solid var(--border); color: var(--gold); padding: 12px; border-radius: 12px; font-family: 'Amiri', serif; font-size: 15px; cursor: pointer; margin-top: 10px;">⬅ العودة للشاشة الرئيسية</button>
+</div>
+
 <!-- MOOD PAGE -->
 <div class="page" id="moodPage">
   <div style="text-align:center;margin-bottom:16px;">
