@@ -3302,30 +3302,36 @@ function toggleAudio() {
       else if (currentReciter === 'maher') reciterApiId = 'ar.mahermuaiqly';
       else if (currentReciter === 'ajm') reciterApiId = 'ar.ahmedajamy';
       audioSource = `https://cdn.islamic.network/quran/audio/128/${reciterApiId}/${a.globalNumber}.mp3`;
-    }
-audio.src = audioSource;
-  audio.play()
+  }
+   audio.src = audioSource;
+audio.play()
   .then(() => {
     isPlaying = true;
-    document.getElementById('playBtn').textContent = '⏸';
-    document.getElementById('audioStatus').textContent = `يُشغّل الآية ${toAr(a.numberInSurah)} ${window.ayahRepeatCount > 1 ? `(تكرار ١ من ${toAr(window.ayahRepeatCount)})` : ""}`;
+    const playBtn = document.getElementById('playBtn');
+    if (playBtn) playBtn.textContent = '⏸';
+    
+    const audioStatus = document.getElementById('audioStatus');
+    if (audioStatus) {
+      audioStatus.textContent = `يُشغّل الآية ${toAr(a.numberInSurah)} ${window.ayahRepeatCount > 1 ? `(تكرار ١ من ${toAr(window.ayahRepeatCount)})` : ""}`;
+    }
 
     // 🌟 السحر هنا: نحدث لوحة الإشعارات فوراً ببيانات المصحف الحالية وتمسح كلمة أذان
     if ('mediaSession' in navigator) {
-      // توليد المسار الكامل للأيقونة ديناميكياً عشان يظهر اللوجو فخم وكبير
       const fullIconUrl = window.location.origin + window.location.pathname.replace(/[^\/]*$/, '') + 'icon.png';
 
       navigator.mediaSession.metadata = new MediaMetadata({
-        title: `سورة ${currentSurah.name} — الآية ${toAr(a.numberInSurah)} 📖`, // هيعرض اسم السورة والآية الشغالة حالياً تلقائياً
-        artist: 'أثر', // اسم تطبيقك الموحد
-        album: ' ',    // مسافة مخفية لحجب الروابط
+        title: `سورة ${currentSurah.name} — الآية ${toAr(a.numberInSurah)} 📖`,
+        artist: 'أثر',
+        album: ' ',
         artwork: [
           { src: fullIconUrl, sizes: '192x192', type: 'image/png' },
           { src: fullIconUrl, sizes: '512x512', type: 'image/png' }
         ]
       });
     }
-  })
+  }) // <--- دي قفلة الـ .then() اللي كانت ناقصة ومطيرة الكود
+  .catch(err => console.error('عطل في تشغيل صوت المصحف:', err));
+
      // تفعيل التحكم في الوسائط لجعل الصوت يستمر في الخلفية
 if ('mediaSession' in navigator) {
   navigator.mediaSession.metadata = new MediaMetadata({
