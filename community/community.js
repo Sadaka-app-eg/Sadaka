@@ -1,10 +1,10 @@
 // =========================================================
-// 🚀 ربط واستدعاء مكتبات الفايربيز (Firebase SDK) تلقائياً
+// 🚀 ربط واستدعاء مكتبات الفايربيز وتطوير التفاعل بالملي
 // =========================================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, doc, updateDoc, arrayUnion, arrayRemove, onSnapshot, query, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// 🔥 تم حقن مفاتيح مشروعك Sadaka-App بنجاح هنا
+// مفاتيح مشروعك الحقيقية والنشطة Sadaka-App
 const firebaseConfig = {
   apiKey: "AIzaSyCuLaDRVQ9SWSO7zs2WL3D-ANj-wHeoYWg",
   authDomain: "sadaka-app-6637e.firebaseapp.com",
@@ -15,16 +15,17 @@ const firebaseConfig = {
   measurementId: "G-WE16D4JC8F"
 };
 
-// تشغيل الفايربيز وقاعدة البيانات Firestore
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// كود التفعيل السري المعتمد للأخوات
 const WOMEN_SECRET_CODE = "Athr2026"; 
-
-window.currentCommunityTab = 'feed'; // التبويب الافتراضي: الساحة
+window.currentCommunityTab = 'feed'; 
 let unsubscribePosts = null; 
 let unsubscribeChats = null;
+
+// متغيرات مؤقتة لحفظ بيانات البوست المراد مشاركته
+let currentSharePostText = "";
+let currentSharePostAuthor = "";
 
 // =========================================================
 // 🛠️ 1️⃣ نظام التحقق وإعداد الحساب
@@ -32,7 +33,6 @@ let unsubscribeChats = null;
 window.checkCommunityUser = function() {
   const userGender = localStorage.getItem('athr_user_gender');
   const userName = localStorage.getItem('athr_user_name');
-  
   const contentArea = document.getElementById('communityContent');
   if (!contentArea) return;
 
@@ -63,23 +63,15 @@ window.renderSetupScreen = function() {
         </div>
       </div>
 
-            <!-- حقل كود التفعيل السري للأخوات -->
       <div id="femaleCodeContainer" style="display: none; margin-bottom: 25px; text-align: right;">
         <label style="color: var(--gold); display: block; margin-bottom: 6px; font-size: 14px;">⚠️ كود التفعيل للأخوات (مطلوب):</label>
         <input id="commFemaleCodeInp" type="password" placeholder="أدخلي كود الخصوصية السري..." style="width: 100%; padding: 12px; background: #000; border: 1px solid var(--gold); color: var(--text); border-radius: 8px; outline: none; text-align: center;" />
-        
-        <!-- الرابط السحري للتواصل مع المشرفة -->
         <small style="display:block; color: var(--text2); margin-top: 8px; font-size: 12px; line-height: 1.6; text-align: center;">
           * هذا القسم مغلق لحماية خصوصية الأخوات. <br>
           للحصول على كود التفعيل، يرجى التواصل مع الأخت المشرفة عبر: <br>
-          <a href="https://wa.me/201234567890?text=السلام%20عليكم%20ورحمة%20الله%20وبركاته،%20أريد%20الحصول%20على%20كود%20تفعيل%20مجلس%20النساء%20في%20تطبيق%20أثر" 
-             target="_blank" 
-             style="color: var(--gold); text-decoration: underline; font-weight: bold; display: inline-block; margin-top: 4px;">
-             💬 رابط الواتساب المباشر للمشرفة اضغطي هنا
-          </a>
+          <a href="https://wa.me/201234567890?text=السلام%20عليكم%20ورحمة%20الله%20وبركاته،%20أريد%20الحصول%20على%20كود%20تفعيل%20مجلس%20النساء%20في%20تطبيق%20أثر" target="_blank" style="color: var(--gold); text-decoration: underline; font-weight: bold; display: inline-block; margin-top: 4px;">💬 رابط الواتساب المباشر للمشرفة اضغطي هنا</a>
         </small>
       </div>
-
 
       <button onclick="window.processCommunitySubmit()" style="width: 100%; background: var(--gold); color: #111; border: none; padding: 14px; border-radius: 8px; font-weight: bold; font-family: 'Amiri', serif; font-size: 16px; cursor: pointer; transition: 0.2s;">دخول مجتمع أثر 🚀</button>
     </div>
@@ -127,7 +119,7 @@ window.processCommunitySubmit = function() {
 };
 
 // =========================================================
-// 🎨 2️⃣ بناء واجهات المجتمع والربط الفوري (Real-time)
+// 🎨 2️⃣ بناء واجهات المجتمع والربط الفوري والتفاعلي
 // =========================================================
 window.renderCommunityBody = function() {
   const contentArea = document.getElementById('communityContent');
@@ -152,6 +144,17 @@ window.renderCommunityBody = function() {
       <div id="postsList" style="display: flex; flex-direction: column; gap: 10px;">
         <div class="comm-card"><p style="color:var(--text2); text-align:center;">جاري تحميل ساحة الخير... ✨</p></div>
       </div>
+
+      <!-- 📦 شيت خيارات مشاركة البوست المستقل الفريد من نوعه -->
+      <div class="overlay-dimmer" id="commShareDimmer" onclick="window.closeCommShareSheet()"></div>
+      <div class="action-sheet" id="commShareSheet" style="z-index: 99999999;">
+        <div class="action-title">👥 خيارات مشاركة فائدة الأثر</div>
+        <div style="padding: 10px 0; display:flex; flex-direction:column; gap:8px;">
+          <button class="action-btn" onclick="window.executeCommShare('text')"><span>📝</span> مشاركة كنص منسق جاهز</button>
+          <button class="action-btn" onclick="window.executeCommShare('image')"><span>🖼️</span> تصميم ومشاركة كبطاقة فخمة</button>
+          <button class="action-btn action-cancel" onclick="window.closeCommShareSheet()"><span>✕</span> إلغاء</button>
+        </div>
+      </div>
     `;
     window.listenToPosts(userGender);
   } else {
@@ -162,7 +165,7 @@ window.renderCommunityBody = function() {
           <p style="color: var(--text2); text-align:center;">جاري الاتصال بمجلس الذكر... 🕊️</p>
         </div>
         <div style="display:flex; gap:8px;">
-          <input id="chatInput" type="text" placeholder="اكتب رسالتك الفورية..." style="flex:1; padding:12px; background:var(--card); border:1px solid var(--border); color:var(--text); border-radius:25px; outline:none;" onkeypress="if(event.key==='Enter') window.sendChatMessageToFirebase()"/>
+          <input id="chatMessageInp" type="text" placeholder="اكتب رسالتك الفورية..." style="flex:1; padding:12px; background:var(--card); border:1px solid var(--border); color:var(--text); border-radius:25px; outline:none;" onkeypress="if(event.key==='Enter') window.sendChatMessageToFirebase()"/>
           <button onclick="window.sendChatMessageToFirebase()" style="background:var(--gold); color:#111; border:none; width:45px; height:45px; border-radius:50%; font-size:18px; cursor:pointer;">🕊️</button>
         </div>
       </div>
@@ -172,7 +175,7 @@ window.renderCommunityBody = function() {
 };
 
 // =========================================================
-// 🔥 3️⃣ منطق التعامل مع قاعدة البيانات (Firestore Operations)
+// 🔥 3️⃣ العمليات الذكية للـ Firestore والتفاعل
 // =========================================================
 window.sendPostToFirebase = async function() {
   const input = document.getElementById('postInput');
@@ -186,6 +189,7 @@ window.sendPostToFirebase = async function() {
       name: userName,
       text: input.value.trim(),
       gender: userGender,
+      likes: [], // مصفوفة فارغة لحفظ الـ UIDs أو الأسامي اللي عملت لايك
       createdAt: serverTimestamp()
     });
     input.value = "";
@@ -194,22 +198,38 @@ window.sendPostToFirebase = async function() {
 
 window.listenToPosts = function(gender) {
   const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(50));
+  const myName = localStorage.getItem('athr_user_name');
   
   unsubscribePosts = onSnapshot(q, (snapshot) => {
     const listArea = document.getElementById('postsList');
     if (!listArea) return;
 
     let html = "";
-    snapshot.forEach((doc) => {
-      const data = doc.data();
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      const docId = docSnap.id;
+      
       if (data.gender === gender) {
+        const likesArr = data.likes || [];
+        const hasLiked = likesArr.includes(myName);
+        
         html += `
           <div class="comm-card" style="border-right: 3px solid var(--gold); text-align: right;">
             <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
               <strong style="color:var(--gold); font-size:14px;">✨ ${data.name}</strong>
-              <small style="color:var(--text2); font-size:11px;">الآن</small>
+              <small style="color:var(--text2); font-size:11px;">منذ قليل</small>
             </div>
             <p style="color:var(--text); font-family:'Amiri', serif; font-size:15px; line-height:1.5; white-space: pre-wrap;">${data.text}</p>
+            
+            <!-- أزرار الإعجاب والمشاركة الفخمة عل الساحة عل طول -->
+            <div class="post-actions">
+              <button onclick="window.togglePostLike('${docId}', ${hasLiked})" class="action-item-btn ${hasLiked ? 'like-btn-heart' : ''}">
+                ${hasLiked ? '❤️' : '🤍'} تفاعل (${likesArr.length})
+              </button>
+              <button onclick="window.openCommShareSheet(\`${data.text.replace(/"/g, '&quot;')}\`, '${data.name}')" class="action-item-btn">
+                🔗 مشاركة الأثر
+              </button>
+            </div>
           </div>
         `;
       }
@@ -218,8 +238,106 @@ window.listenToPosts = function(gender) {
   });
 };
 
+// تشغيل نظام زيادة وإلغاء اللايك فوري
+window.togglePostLike = async function(docId, hasLiked) {
+  const myName = localStorage.getItem('athr_user_name');
+  const postRef = doc(db, "posts", docId);
+  try {
+    if (hasLiked) {
+      await updateDoc(postRef, { likes: arrayRemove(myName) });
+    } else {
+      await updateDoc(postRef, { likes: arrayUnion(myName) });
+    }
+  } catch (e) { console.error("فشل التفاعل:", e); }
+};
+
+// فتح واغلاق شيت المشاركة
+window.openCommShareSheet = function(text, author) {
+  currentSharePostText = text;
+  currentSharePostAuthor = author;
+  document.getElementById('commShareDimmer').classList.add('show');
+  document.getElementById('commShareSheet').classList.add('show');
+};
+
+window.closeCommShareSheet = function() {
+  document.getElementById('commShareDimmer').classList.remove('show');
+  document.getElementById('commShareSheet').classList.remove('show');
+};
+
+// تنفيذ مشاركة النص أو البطاقة كصورة طحن
+window.executeCommShare = function(type) {
+  window.closeCommShareSheet();
+  const fullFormattedText = `✨ *من فوائد مجتمع أثر كُون ذا أثر*:\n\n"${currentSharePostText}"\n\n✍️ الناشر: الأثر الطيب لـ [${currentSharePostAuthor}]\n🕊️ صدقة جارية`;
+  
+  if (type === 'text') {
+    if (navigator.share) {
+      navigator.share({ title: 'فوائد أثر', text: fullFormattedText });
+    } else {
+      navigator.clipboard.writeText(fullFormattedText);
+      alert('تم نسخ نص الفائدة المباركة بنجاح! ✓');
+    }
+  } else {
+    // 🖼️ توليد بطاقة تصميم روعة فخمة بـ Canvas متحرك فوري
+    const canvas = document.createElement('canvas');
+    canvas.width = 1080; canvas.height = 1350; // مقاس بوست انستجرام الفخم الكبير
+    const ctx = canvas.getContext('2d');
+
+    // رسم خلفية ليلية إسلامية راقية بالتدريج اللوني
+    const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    grad.addColorStop(0, '#060c07'); grad.addColorStop(1, '#0e1a10');
+    ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // زركشة الحواف الذهبية المحترفة بالملي
+    ctx.strokeStyle = '#d4af37'; ctx.lineWidth = 8;
+    ctx.strokeRect(30, 30, canvas.width - 60, canvas.height - 60);
+    ctx.strokeStyle = 'rgba(212,175,55,0.2)'; ctx.lineWidth = 2;
+    ctx.strokeRect(45, 40, canvas.width - 90, canvas.height - 80);
+
+    // ضخ النصوص باتجاه النص العربي المعتمد
+    ctx.textAlign = "center"; ctx.direction = "rtl";
+    
+    ctx.fillStyle = '#d4af37'; ctx.font = "bold 35px 'Amiri', serif";
+    ctx.fillText("🌿 قَطُوفٌ مِنْ مَجْلَسِ أَثَرٍ الشَّرْعِيِّ 🌿", 540, 150);
+
+    ctx.fillStyle = '#ffffff'; ctx.font = "40px 'Amiri', serif";
+    
+    // تقسيم النص التلقائي الذكي على سطرين أو تلاتة حسب الطول
+    const words = currentSharePostText.split(' ');
+    let line = ''; let y = 350; const lineHeight = 75;
+    for (let n = 0; n < words.length; n++) {
+      let testLine = line + words[n] + ' ';
+      if (ctx.measureText(testLine).width > 850 && n > 0) {
+        ctx.fillText(line.trim(), 540, y);
+        line = words[n] + ' '; y += lineHeight;
+      } else { line = testLine; }
+    }
+    ctx.fillText(line.trim(), 540, y);
+
+    // ذيل البطاقة بختم الناشر والتطبيق الرسمي
+    ctx.fillStyle = 'rgba(212,175,55,0.8)'; ctx.font = "bold 30px 'Amiri', serif";
+    ctx.fillText(`✍️ كاتب الأثر: ${currentSharePostAuthor}`, 540, canvas.height - 180);
+    ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.font = "24px sans-serif";
+    ctx.fillText("• برنامج كُن ذا أثر الإيماني المتكامل •", 540, canvas.height - 110);
+
+    // النشر أو التحميل المباشر للمعرض
+    canvas.toBlob((blob) => {
+      const imgFile = new File([blob], "Athr_Community_Post.png", { type: "image/png" });
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [imgFile] })) {
+        navigator.share({ files: [imgFile], title: 'أثر طيب' });
+      } else {
+        const link = document.createElement('a'); link.download = 'Athr_Post.png';
+        link.href = canvas.toDataURL(); link.click();
+        alert("تم حفظ بطاقة التصميم الفخمة في معرض الصور بجهازك بنجاح! 🖼️🔥");
+      }
+    });
+  }
+};
+
+// =========================================================
+// شات المجموعات (المجلس الفوري الخفيف)
+// =========================================================
 window.sendChatMessageToFirebase = async function() {
-  const input = document.getElementById('chatInput');
+  const input = document.getElementById('chatMessageInp');
   if (!input || !input.value.trim()) return;
 
   const userGender = localStorage.getItem('athr_user_gender');
@@ -233,23 +351,22 @@ window.sendChatMessageToFirebase = async function() {
       createdAt: serverTimestamp()
     });
     input.value = "";
-  } catch (e) { console.error("خطأ في الإرسال:", e); }
+  } catch (e) { console.error("خطأ إرسال الرسالة:", e); }
 };
 
 window.listenToChats = function(gender) {
-  const q = query(collection(db, "chats"), orderBy("createdAt", "asc"), limit(100));
-  
+  const q = query(collection(db, "chats"), orderBy("createdAt", "asc"), limit(60));
   unsubscribeChats = onSnapshot(q, (snapshot) => {
     const chatArea = document.getElementById('chatMessages');
     if (!chatArea) return;
 
     let html = "";
-    snapshot.forEach((doc) => {
-      const data = doc.data();
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
       if (data.gender === gender) {
         const isMe = data.name === localStorage.getItem('athr_user_name');
         html += `
-          <div style="align-self: ${isMe ? 'flex-start' : 'flex-end'}; background: ${isMe ? 'rgba(212,175,55,0.1)' : 'var(--card)'}; border: 1px solid ${isMe ? 'var(--gold)' : 'var(--border)'}; padding: 8px 14px; border-radius: 12px; max-width: 80%; text-align: right;">
+          <div style="align-self: ${isMe ? 'flex-start' : 'flex-end'}; background: ${isMe ? 'rgba(212,175,55,0.12)' : 'rgba(255,255,255,0.03)'}; border: 1px solid ${isMe ? 'var(--gold)' : 'var(--border)'}; padding: 8px 14px; border-radius: 12px; max-width: 85%; text-align: right; margin-bottom: 5px;">
             <span style="display:block; font-size:11px; color:var(--gold); font-weight:bold; margin-bottom:2px;">${data.name}</span>
             <span style="color:var(--text); font-size:14px;">${data.text}</span>
           </div>
