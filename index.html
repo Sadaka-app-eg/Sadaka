@@ -3045,7 +3045,15 @@ function openActionMenu(index) {
   const ayah = currentAyahsData[index];
   document.getElementById('actionAyahTitle').textContent = `الآية ﴿${toAr(ayah.numberInSurah)}﴾ — سورة ${currentSurah.name}`;
   // عرض بداية نص الآية
-  const preview = ayah.text.length > 80 ? ayah.text.slice(0,80)+'...' : ayah.text;
+    // تنظيف البسملة من أول آية في المعاينة برضه عشان تظهر "الم" بس
+  let cleanPreview = ayah.text;
+  if (currentSurah.n !== 1 && currentSurah.n !== 9 && ayah.numberInSurah === 1) {
+    cleanPreview = cleanPreview.replace(/^بِسْمِ[\s\S]+?رَّحِيمِ\s*/, '');
+    cleanPreview = cleanPreview.replace(/^بِسْمِ[\s\S]+?الرَّحِيمِ\s*/, '');
+  }
+  
+  // عرض بداية نص الآية بعد التنظيف
+  const preview = cleanPreview.length > 80 ? cleanPreview.slice(0,80)+'...' : cleanPreview;
   document.getElementById('actionAyahPreview').textContent = preview;
   // تحديث نص زر التحديد
   const isSelected = selectedAyahsQueue.includes(index);
