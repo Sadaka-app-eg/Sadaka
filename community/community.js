@@ -348,7 +348,9 @@ window.listenToPosts = function(gender) {
           <div class="comm-card" style="border-right: 3px solid var(--gold); text-align: right; margin-bottom: 15px;">
             <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
               <strong style="color:var(--gold); font-size:14px;">✨ ${data.name}</strong>
-              <small style="color:var(--text2); font-size:11px;">منذ قليل</small>
+              <small style="color:var(--text2); font-size:11px;">
+  ${window.formatPostTime(data.createdAt)}
+</small>
             </div>
             ${data.text ? `<p style="color:var(--text); font-family:'Amiri', serif; font-size:15px; line-height:1.5; white-space: pre-wrap;">${data.text}</p>` : ''}
             
@@ -699,3 +701,45 @@ document.addEventListener('click', function() {
 });
 
 setTimeout(() => { window.checkCommunityUser(); }, 200);
+window.formatPostTime = function(createdAt) {
+  if (!createdAt) return "منذ قليل";
+  
+  // تحويل Timestamp الفايربيز لتاريخ ميلادي
+  const postDate = createdAt.toDate();
+  const nowDate = new Date();
+  const diffInSeconds = Math.floor((nowDate - postDate) / 1000);
+  
+  if (diffInSeconds < 60) return "الآن";
+  
+  const diffInMinutes = Math.floor(diffInSeconds / 60);
+  if (diffInMinutes < 60) {
+    if (diffInMinutes === 1) return "منذ دقيقة";
+    if (diffInMinutes === 2) return "منذ دقيقتين";
+    if (diffInMinutes >= 3 && diffInMinutes <= 10) return `منذ ${diffInMinutes} دقائق`;
+    return `منذ ${diffInMinutes} دقيقة`;
+  }
+  
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) {
+    if (diffInHours === 1) return "منذ ساعة";
+    if (diffInHours === 2) return "منذ ساعتين";
+    if (diffInHours >= 3 && diffInHours <= 10) return `منذ ${diffInHours} ساعات`;
+    return `منذ ${diffInHours} ساعة`;
+  }
+  
+  const diffInDays = Math.floor(diffInHours / 24);
+  if (diffInDays < 7) {
+    if (diffInDays === 1) return "منذ يوم";
+    if (diffInDays === 2) return "منذ يومين";
+    if (diffInDays >= 3 && diffInDays <= 6) return `منذ ${diffInDays} أيام`;
+  }
+  
+  // لو البوست قديم (أكير من أسبوع) يطبع التاريخ والوقت بشكل فخم
+  return postDate.toLocaleDateString('ar-EG', { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
