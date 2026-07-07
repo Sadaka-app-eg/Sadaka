@@ -1,5 +1,5 @@
 // =========================================================
-// 🚀 ربط واستدعاء مكتبات الفايربيز وتطوير التفاعل بالملي
+// 🚀 ربط مجتمع أثر بسيرفر رفع ميديا مجاني 100% بدون فيزا
 // =========================================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore, collection, addDoc, doc, updateDoc, arrayUnion, arrayRemove, onSnapshot, query, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -18,23 +18,45 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// 🔑 مفتاح الرفع المجاني المفتوح لتطبيقك (ImgBB API Key)
+const IMGBB_API_KEY = "69ba2eb5653068e3a24c568ec75d1f87";
+
 const WOMEN_SECRET_CODE = "Athr2026"; 
 window.currentCommunityTab = 'feed'; 
 let unsubscribePosts = null; 
 let unsubscribeChats = null;
 
-// متغيرات مؤقتة لحفظ بيانات البوست المراد مشاركته
 let currentSharePostText = "";
 let currentSharePostAuthor = "";
+let selectedMediaFile = null; 
 
 // =========================================================
 // 🛠️ 1️⃣ نظام التحقق وإعداد الحساب
 // =========================================================
 window.checkCommunityUser = function() {
-  const userGender = localStorage.getItem('athr_user_gender');
-  const userName = localStorage.getItem('athr_user_name');
   const contentArea = document.getElementById('communityContent');
   if (!contentArea) return;
+
+  const googleUser = localStorage.getItem('user_display_name'); 
+  
+  if (!googleUser) {
+    contentArea.innerHTML = `
+      <div class="comm-card" style="text-align: center; padding: 40px 15px; font-family: 'Amiri', serif; direction: rtl;">
+        <div style="font-size: 50px; margin-bottom: 15px;">🔒</div>
+        <h3 style="color: var(--gold); margin-bottom: 12px; font-size: 22px;">عذراً، هذا القسم خاص بالمسجلين</h3>
+        <p style="color: var(--text2); font-size: 14px; margin-bottom: 25px; line-height: 1.6;">
+          لحماية خصوصية المجتمع ومنع الحسابات الوهمية، يشترط ربط حسابك بجوجل أولاً لتتمكن من نشر الفوائد والمشاركة في مجالس الذكر.
+        </p>
+        <button onclick="window.triggerHeaderGoogleLogin()" style="background: var(--gold); color: #111; border: none; padding: 12px 30px; border-radius: 25px; font-weight: bold; font-family: 'Amiri', serif; font-size: 15px; cursor: pointer; box-shadow: 0 4px 15px rgba(212,175,55,0.2); transition: 0.2s;">
+          🔑 ربط الحساب بجوجل الآن
+        </button>
+      </div>
+    `;
+    return;
+  }
+
+  const userGender = localStorage.getItem('athr_user_gender');
+  const userName = localStorage.getItem('athr_user_name');
 
   if (!userGender || !userName) {
     window.renderSetupScreen();
@@ -139,18 +161,27 @@ window.renderCommunityBody = function() {
       <div style="color: var(--gold); font-family: 'Amiri', serif; margin-bottom: 10px; font-size: 14px; text-align: right; font-weight: bold;">📍 ${communityLabel}</div>
       <div class="comm-card" style="display:flex; gap:10px; flex-direction:column;">
         <textarea id="postInput" placeholder="اكتب فائدة قرآنية أو تذكير بالخير يا ${userName}..." style="width:100%; height:80px; background:transparent; color:var(--text); border:1px solid var(--border); border-radius:8px; padding:10px; resize:none; outline:none; font-family:'Amiri',serif;"></textarea>
-        <button onclick="window.sendPostToFirebase()" style="background:var(--gold); color:#111; border:none; padding:8px 20px; border-radius:8px; font-weight:bold; align-self:flex-start; cursor:pointer;">نشر الفائدة ✨</button>
+        
+        <div id="mediaPreviewArea" style="display:none; margin: 10px 0; position:relative; max-height:180px; overflow:hidden; border-radius:8px; border:1px solid var(--border);"></div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:5px;">
+          <label style="background:rgba(255,255,255,0.04); border:1px solid var(--border); color:var(--text); padding:8px 15px; border-radius:20px; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+            🖼️ إضافة صورة للفائدة
+            <input type="file" id="postMediaInput" accept="image/*" style="display:none;" onchange="window.handleMediaSelection(this)" />
+          </label>
+          
+          <button id="submitPostBtn" onclick="window.sendPostToFirebase()" style="background:var(--gold); color:#111; border:none; padding:8px 25px; border-radius:20px; font-weight:bold; cursor:pointer;">نشر الفائدة ✨</button>
+        </div>
       </div>
       <div id="postsList" style="display: flex; flex-direction: column; gap: 10px;">
         <div class="comm-card"><p style="color:var(--text2); text-align:center;">جاري تحميل ساحة الخير... ✨</p></div>
       </div>
 
-      <!-- 📦 شيت خيارات مشاركة البوست المستقل الفريد من نوعه -->
       <div class="overlay-dimmer" id="commShareDimmer" onclick="window.closeCommShareSheet()"></div>
       <div class="action-sheet" id="commShareSheet" style="z-index: 99999999;">
         <div class="action-title">👥 خيارات مشاركة فائدة الأثر</div>
         <div style="padding: 10px 0; display:flex; flex-direction:column; gap:8px;">
-          <button class="action-btn" onclick="window.executeCommShare('text')"><span>📝</span> مشاركة كنص منسق جاهز</button>
+          <button class="action-btn" onclick="window.executeCommShare('text')"><span>📝</span> مشاركة كنص مبرمج جاهز</button>
           <button class="action-btn" onclick="window.executeCommShare('image')"><span>🖼️</span> تصميم ومشاركة كبطاقة فخمة</button>
           <button class="action-btn action-cancel" onclick="window.closeCommShareSheet()"><span>✕</span> إلغاء</button>
         </div>
@@ -175,25 +206,105 @@ window.renderCommunityBody = function() {
 };
 
 // =========================================================
-// 🔥 3️⃣ العمليات الذكية للـ Firestore والتفاعل
+// 📂 معالجة ومعاينة الميديا المفتوحة من جهاز المستخدم
+// =========================================================
+window.handleMediaSelection = function(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  selectedMediaFile = file;
+  const poolArea = document.getElementById('communityContent');
+  const previewContainerId = 'mediaPreviewContainer';
+  
+  let previewBox = document.getElementById(sidebarMediaPreviewId);
+  if(!previewBox) {
+    previewBox = document.createElement('div');
+    previewBox.id = 'mediaPreviewBox';
+    previewBox.style.cssText = "margin-top:10px; position:relative; text-align:center;";
+    const postInput = document.getElementById('postInput');
+    postInput.parentNode.insertBefore(p, postInput.nextSibling);
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    previewBox.innerHTML = `
+      <div style="position:relative; display:inline-block; max-width:100%;">
+        <img src="${e.target.result}" style="max-height:150px; border-radius:8px; border:1px solid var(--gold);" />
+        <button onclick="window.clearSelectedMedia()" style="position:absolute; top:-8px; left:-8px; background:#ff4d4d; color:white; border:none; width:24px; height:24px; border-radius:50%; font-weight:bold; cursor:pointer; font-size:12px;">✕</button>
+      </div>`;
+  };
+  reader.readAsDataURL(file);
+};
+
+window.clearSelectedMedia = function() {
+  selectedMediaFile = null;
+  const previewBox = document.getElementById('mediaPreviewBox');
+  if(previewBox) previewBox.remove();
+};
+
+// =========================================================
+// 🔥 3️⃣ الرفع المجاني والنشر عبر السيرفر البديل بدون فيزا
 // =========================================================
 window.sendPostToFirebase = async function() {
-  const input = document.getElementById('postInput');
-  if (!input || !input.value.trim()) return;
+  const textInput = document.getElementById('postInput');
+  if (!textInput) return;
+  const text = textInput.value.trim();
+
+  if (!text && !selectedMediaFile) {
+    alert("فضلاً، اكتب نصاً أو اختر صورة للنشر ✨");
+    return;
+  }
 
   const userGender = localStorage.getItem('athr_user_gender');
   const userName = localStorage.getItem('athr_user_name');
+  const submitBtn = document.getElementById('submitPostBtn');
 
   try {
+    submitBtn.disabled = true;
+    submitBtn.textContent = "جاري النشر... ⏳";
+
+    let mediaUrl = "";
+    let mediaType = "none";
+
+    // إذا كان هناك ملف ميديا، يتم رفعه فوراً عبر سيرفر ميديا مجاني بديل
+    if (selectedMediaFile) {
+      const formData = new FormData();
+      formData.append("image", selectedMediaFile);
+
+      const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+        method: "POST",
+        body: formData
+      });
+
+      const resData = await response.json();
+      if (resData.success) {
+        mediaUrl = resData.data.url; // رابط الصورة المباشر والنهائي
+        mediaType = "image";
+      } else {
+        throw new Error("سيرفر الميديا المجاني لم يستجب.");
+      }
+    }
+
+    // كتابة وحفظ البوست بنجاح في الفايرستور النصي المجاني 100%
     await addDoc(collection(db, "posts"), {
       name: userName,
-      text: input.value.trim(),
+      text: text,
       gender: userGender,
-      likes: [], // مصفوفة فارغة لحفظ الـ UIDs أو الأسامي اللي عملت لايك
+      mediaUrl: mediaUrl,   
+      mediaType: mediaType, 
+      likes: [],
       createdAt: serverTimestamp()
     });
-    input.value = "";
-  } catch (e) { console.error("خطأ في النشر:", e); }
+
+    textInput.value = "";
+    window.clearSelectedMedia();
+  } catch (e) {
+    console.error("خطأ في النشر:", e);
+    alert("عذراً، حدثت مشكلة في شبكة رفع الصور المجانية، جرب مجدداً ⚠️");
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = "نشر الفائدة ✨";
+  }
 };
 
 window.listenToPosts = function(gender) {
@@ -213,20 +324,26 @@ window.listenToPosts = function(gender) {
         const likesArr = data.likes || [];
         const hasLiked = likesArr.includes(myName);
         
+        let mediaHtml = "";
+        if (data.mediaUrl && data.mediaType === 'image') {
+          mediaHtml = `<img src="${data.mediaUrl}" style="width:100%; border-radius:8px; margin-top:10px; max-height:300px; object-fit:contain; background:#000;" />`;
+        }
+
         html += `
           <div class="comm-card" style="border-right: 3px solid var(--gold); text-align: right;">
             <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
               <strong style="color:var(--gold); font-size:14px;">✨ ${data.name}</strong>
               <small style="color:var(--text2); font-size:11px;">منذ قليل</small>
             </div>
-            <p style="color:var(--text); font-family:'Amiri', serif; font-size:15px; line-height:1.5; white-space: pre-wrap;">${data.text}</p>
+            ${data.text ? `<p style="color:var(--text); font-family:'Amiri', serif; font-size:15px; line-height:1.5; white-space: pre-wrap;">${data.text}</p>` : ''}
             
-            <!-- أزرار الإعجاب والمشاركة الفخمة عل الساحة عل طول -->
+            ${mediaHtml}
+            
             <div class="post-actions">
               <button onclick="window.togglePostLike('${docId}', ${hasLiked})" class="action-item-btn ${hasLiked ? 'like-btn-heart' : ''}">
                 ${hasLiked ? '❤️' : '🤍'} تفاعل (${likesArr.length})
               </button>
-              <button onclick="window.openCommShareSheet(\`${data.text.replace(/"/g, '&quot;')}\`, '${data.name}')" class="action-item-btn">
+              <button onclick="window.openCommShareSheet(\`${data.text ? data.text.replace(/"/g, '&quot;') : 'أثر طيب'}\`, '${data.name}')" class="action-item-btn">
                 🔗 مشاركة الأثر
               </button>
             </div>
@@ -238,7 +355,6 @@ window.listenToPosts = function(gender) {
   });
 };
 
-// تشغيل نظام زيادة وإلغاء اللايك فوري
 window.togglePostLike = async function(docId, hasLiked) {
   const myName = localStorage.getItem('athr_user_name');
   const postRef = doc(db, "posts", docId);
@@ -251,7 +367,6 @@ window.togglePostLike = async function(docId, hasLiked) {
   } catch (e) { console.error("فشل التفاعل:", e); }
 };
 
-// فتح واغلاق شيت المشاركة
 window.openCommShareSheet = function(text, author) {
   currentSharePostText = text;
   currentSharePostAuthor = author;
@@ -264,7 +379,6 @@ window.closeCommShareSheet = function() {
   document.getElementById('commShareSheet').classList.remove('show');
 };
 
-// تنفيذ مشاركة النص أو البطاقة كصورة طحن
 window.executeCommShare = function(type) {
   window.closeCommShareSheet();
   const fullFormattedText = `✨ *من فوائد مجتمع أثر كُون ذا أثر*:\n\n"${currentSharePostText}"\n\n✍️ الناشر: الأثر الطيب لـ [${currentSharePostAuthor}]\n🕊️ صدقة جارية`;
@@ -277,31 +391,23 @@ window.executeCommShare = function(type) {
       alert('تم نسخ نص الفائدة المباركة بنجاح! ✓');
     }
   } else {
-    // 🖼️ توليد بطاقة تصميم روعة فخمة بـ Canvas متحرك فوري
     const canvas = document.createElement('canvas');
-    canvas.width = 1080; canvas.height = 1350; // مقاس بوست انستجرام الفخم الكبير
+    canvas.width = 1080; canvas.height = 1350; 
     const ctx = canvas.getContext('2d');
 
-    // رسم خلفية ليلية إسلامية راقية بالتدريج اللوني
     const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
     grad.addColorStop(0, '#060c07'); grad.addColorStop(1, '#0e1a10');
     ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // زركشة الحواف الذهبية المحترفة بالملي
     ctx.strokeStyle = '#d4af37'; ctx.lineWidth = 8;
     ctx.strokeRect(30, 30, canvas.width - 60, canvas.height - 60);
-    ctx.strokeStyle = 'rgba(212,175,55,0.2)'; ctx.lineWidth = 2;
-    ctx.strokeRect(45, 40, canvas.width - 90, canvas.height - 80);
 
-    // ضخ النصوص باتجاه النص العربي المعتمد
     ctx.textAlign = "center"; ctx.direction = "rtl";
-    
     ctx.fillStyle = '#d4af37'; ctx.font = "bold 35px 'Amiri', serif";
     ctx.fillText("🌿 قَطُوفٌ مِنْ مَجْلَسِ أَثَرٍ الشَّرْعِيِّ 🌿", 540, 150);
 
     ctx.fillStyle = '#ffffff'; ctx.font = "40px 'Amiri', serif";
     
-    // تقسيم النص التلقائي الذكي على سطرين أو تلاتة حسب الطول
     const words = currentSharePostText.split(' ');
     let line = ''; let y = 350; const lineHeight = 75;
     for (let n = 0; n < words.length; n++) {
@@ -313,13 +419,9 @@ window.executeCommShare = function(type) {
     }
     ctx.fillText(line.trim(), 540, y);
 
-    // ذيل البطاقة بختم الناشر والتطبيق الرسمي
     ctx.fillStyle = 'rgba(212,175,55,0.8)'; ctx.font = "bold 30px 'Amiri', serif";
     ctx.fillText(`✍️ كاتب الأثر: ${currentSharePostAuthor}`, 540, canvas.height - 180);
-    ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.font = "24px sans-serif";
-    ctx.fillText("• برنامج كُن ذا أثر الإيماني المتكامل •", 540, canvas.height - 110);
 
-    // النشر أو التحميل المباشر للمعرض
     canvas.toBlob((blob) => {
       const imgFile = new File([blob], "Athr_Community_Post.png", { type: "image/png" });
       if (navigator.share && navigator.canShare && navigator.canShare({ files: [imgFile] })) {
