@@ -148,10 +148,25 @@ function playAdhan(prayerKey) {
 
   const settings = getAdhanSettings();
   adhanAudioEl.src = getAdhanFileForPrayer(prayerKey);
-  adhanAudioEl.volume = settings.volume !== undefined ? settings.volume : 1;
-  adhanAudioEl.play().catch(err => console.error('تعذر تشغيل الأذان:', err));
+     adhanAudioEl.play()
+    .then(() => {
+      // 🌟 حيلة الـ MediaSession لمخادعة إشعارات الأندرويد وقت الأذان الفعلي
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: `حان الآن وقت أذان ${adhanPrayerNamesAr[prayerKey]} 🕌`,
+          artist: 'تطبيق كُن ذا أثر',
+          album: ' ', // مسافة مخفية تمنع المتصفح من وضع روابطه تلقائياً
+          artwork: [
+            { src: 'icon.png', sizes: '192x192', type: 'image/png' },
+            { src: 'icon.png', sizes: '512x512', type: 'image/png' }
+          ]
+        });
+      }
+    })
+    .catch(err => console.error('تعذر تشغيل الأذان:', err));
 
   showAdhanBanner(prayerKey);
+
 }
 
 function showAdhanBanner(prayerKey) {
@@ -277,10 +292,22 @@ window.previewAdhanAudioFile = function(filePath) {
   const settings = getAdhanSettings();
   adhanPreviewAudioObj.volume = settings.volume !== undefined ? parseFloat(settings.volume) : 1;
 
-  adhanPreviewAudioObj.play()
+    adhanPreviewAudioObj.play()
     .then(() => {
-      // 5. لما يشتغل بنجاح، نلف على كل الزراير ونغير الزرار النشط فقط
       updatePreviewButtonsUI(filePath);
+
+      // 🌟 حيلة الـ MediaSession لمخادعة إشعارات الأندرويد أثناء الاستماع للمعاينة
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: 'معاينة صوت الأذان الشريف 📢',
+          artist: 'تطبيق كُن ذا أثر',
+          album: ' ', // مسافة مخفية
+          artwork: [
+            { src: 'icon.png', sizes: '192x192', type: 'image/png' },
+            { src: 'icon.png', sizes: '512x512', type: 'image/png' }
+          ]
+        });
+      }
     })
     .catch(e => console.error("عطل تشغيل المعاينة:", e));
 
