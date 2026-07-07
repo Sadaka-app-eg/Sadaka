@@ -164,8 +164,9 @@ window.processCommunitySubmit = function() {
   window.renderCommunityBody();
 };
 
-// =========================================================
-// 🎨 2️⃣ بناء واجهات المجتمع والربط الفوري والتفاعلي
+
+  // =========================================================
+// 🎨 2️⃣ بناء واجهات المجتمع والربط الفوري والتفاعلي (محدث بالكامل)
 // =========================================================
 window.renderCommunityBody = function() {
   const contentArea = document.getElementById('communityContent');
@@ -212,7 +213,8 @@ window.renderCommunityBody = function() {
       </div>
     `;
     window.listenToPosts(userGender);
-  } else {
+
+  } else if (window.currentCommunityTab === 'chat') {
     contentArea.innerHTML = `
       <div style="display:flex; flex-direction:column; height: 100%; min-height: 400px; justify-content:space-between; gap:10px;">
         <div style="color: var(--gold); font-family: 'Amiri', serif; font-size: 14px; text-align: right; font-weight: bold;">📍 ${chatLabel}</div>
@@ -226,8 +228,35 @@ window.renderCommunityBody = function() {
       </div>
     `;
     window.listenToChats(userGender);
+
+  } else if (window.currentCommunityTab === 'fajr') {
+    contentArea.innerHTML = `
+      <div style="color: var(--gold); font-family: 'Amiri', serif; margin-bottom: 15px; font-size: 14px; text-align: right; font-weight: bold;">🕌 مجلس الاستيقاظ لصلاة الفجر</div>
+      
+      <div class="comm-card" style="text-align: right; margin-bottom:15px;">
+        <h4 style="color:var(--gold); margin-bottom:8px;">حملة "أقم صلاتك تنر حياتك" 🕊️</h4>
+        <p style="color:var(--text2); font-size:12px; margin-bottom:12px;">سجل رقمك هنا ليقوم متطوع اليوم بالاتصال بك وإيقاظك لصلاة الفجر جماعة.</p>
+        <div style="display:flex; gap:8px;">
+          <input id="fajrPhoneInp" type="tel" placeholder="اكتب رقم موبايلك هنا..." style="flex:1; padding:10px; background:#000; border:1px solid var(--border); color:var(--text); border-radius:8px; outline:none;" />
+          <button onclick="window.registerForFajr()" style="background:var(--gold); color:#111; border:none; padding:0 20px; border-radius:8px; font-weight:bold; cursor:pointer;">سجلني للفضل ✨</button>
+        </div>
+      </div>
+
+      <div class="comm-card" style="text-align: right; margin-bottom:15px; border: 1px dashed var(--gold);">
+        <h4 style="color:var(--gold); margin-bottom:5px;">🧔 هل تود أن تكون متطوع اليوم؟</h4>
+        <p style="color:var(--text2); font-size:12px; margin-bottom:10px;">الدال على الخير كفاعله، سجل كمتطوع لتظهر لك أرقام الأخوة لإيقاظهم.</p>
+        <button onclick="window.becomeFajrVolunteer()" style="background:transparent; color:var(--gold); border:1px solid var(--gold); padding:8px 15px; border-radius:50px; font-weight:bold; cursor:pointer; font-size:12px;">تفعيل لوحة المتطوع 🔑</button>
+      </div>
+
+      <div id="fajrVolunteersSection" style="display:none;">
+        <div style="color: var(--text); font-size: 13px; text-align: right; margin-bottom: 8px; font-weight:bold;">📋 قائمة طالبي الإيقاظ للفجر اليوم:</div>
+        <div id="fajrUsersList" style="display: flex; flex-direction: column; gap: 8px;"></div>
+      </div>
+    `;
   }
 };
+
+        
 
 // =========================================================
 // 📂 معالجة ومعاينة الميديا المفتوحة من جهاز المستخدم
@@ -542,10 +571,12 @@ window.listenToChats = function(gender) {
 
 window.switchCommunityTab = function(tab) {
   window.currentCommunityTab = tab;
-  document.getElementById('tabFeedBtn').classList.toggle('active', tab === 'feed');
-  document.getElementById('tabChatBtn').classList.toggle('active', tab === 'chat');
+  if(document.getElementById('tabFeedBtn')) document.getElementById('tabFeedBtn').classList.toggle('active', tab === 'feed');
+  if(document.getElementById('tabChatBtn')) document.getElementById('tabChatBtn').classList.toggle('active', tab === 'chat');
+  if(document.getElementById('tabFajrBtn')) document.getElementById('tabFajrBtn').classList.toggle('active', tab === 'fajr');
   window.checkCommunityUser();
 };
+
 
 // =========================================================
 // 💬 4️⃣ نظام تشغيل وإدارة التعليقات الحية (Comments)
@@ -741,5 +772,65 @@ window.formatPostTime = function(createdAt) {
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit'
+  });
+};
+// 1️⃣ دالة تسجيل اسم ورقم المستخدم الراغب في الاستيقاظ
+window.registerForFajr = async function() {
+  const phoneInp = document.getElementById('fajrPhoneInp');
+  if (!phoneInp || !phoneInp.value.trim()) { alert('فضلاً، أدخل رقم هاتفك أولاً.'); return; }
+  
+  const myName = localStorage.getItem('athr_user_name');
+  const userGender = localStorage.getItem('athr_user_gender');
+
+  try {
+    await addDoc(collection(db, "fajr_list"), {
+      name: myName,
+      phone: phoneInp.value.trim(),
+      gender: userGender, // عشان الرجال يتصلوا بالرجال والنساء بالنساء صوناً للخصوصية
+      createdAt: serverTimestamp()
+    });
+    phoneInp.value = "";
+    alert('تم تسجيلك بنجاح في قائمة الفجر المباركة! تقبل الله طاعتك وغفر ذنبك ورزقك البركة ✨');
+  } catch (e) {
+    console.error(e);
+  }
+};
+
+// 2️⃣ دالة تفعيل لوحة المتطوع وعرض الأرقام
+window.becomeFajrVolunteer = function() {
+  document.getElementById('fajrVolunteersSection').style.display = 'block';
+  const userGender = localStorage.getItem('athr_user_gender');
+  window.listenToFajrList(userGender);
+};
+
+// 3️⃣ جلب أرقام الناس حيّاً من الفايربيز حسب جنس المجلس
+window.listenToFajrList = function(gender) {
+  const q = query(collection(db, "fajr_list"), orderBy("createdAt", "desc"), limit(40));
+  
+  onSnapshot(q, (snapshot) => {
+    const listArea = document.getElementById('fajrUsersList');
+    if (!listArea) return;
+
+    let html = "";
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      
+      // حماية الخصوصية: الرجال يشوفوا الرجال فقط، والأخوات يشوفوا الأخوات فقط
+      if (data.gender === gender) {
+        html += `
+          <div class="comm-card" style="display:flex; justify-content:space-between; align-items:center; padding:10px 15px; background:rgba(255,255,255,0.02);">
+            <div style="text-align:right;">
+              <strong style="color:var(--text); font-size:14px;">✨ ${data.name}</strong>
+              <span style="display:block; color:var(--text2); font-size:12px; direction:ltr;">${data.phone}</span>
+            </div>
+            <!-- زرار الاتصال الذكي المباشر من تليفون المتطوع -->
+            <a href="tel:${data.phone}" onclick="window.createFloatingEmoji(event, '📞')" style="background:var(--gold); color:#111; text-decoration:none; padding:6px 14px; border-radius:20px; font-size:12px; font-weight:bold;">
+              📞 اتصل الآن
+            </a>
+          </div>
+        `;
+      }
+    });
+    listArea.innerHTML = html || `<div class="comm-card"><p style="color:var(--text2); text-align:center; font-size:12px;">لا توجد أسماء مسجلة حالياً في هذا المجلس.</p></div>`;
   });
 };
