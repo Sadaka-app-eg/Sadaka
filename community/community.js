@@ -187,23 +187,73 @@ window.renderCommunityBody = function() {
         </div>
       </div>
     `;
-    window.listenToPosts(userGender);
-  } else {
-    contentArea.innerHTML = `
-      <div style="display:flex; flex-direction:column; height: 100%; min-height: 400px; justify-content:space-between; gap:10px;">
-        <div style="color: var(--gold); font-family: 'Amiri', serif; font-size: 14px; text-align: right; font-weight: bold;">📍 ${chatLabel}</div>
-        <div id="chatMessages" style="flex:1; overflow-y:auto; padding:15px; background: rgba(0,0,0,0.3); border-radius: 12px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; max-height: 320px;">
-          <p style="color: var(--text2); text-align:center;">جاري الاتصال بمجلس الذكر... 🕊️</p>
-        </div>
-        <div style="display:flex; gap:8px;">
-          <input id="chatMessageInp" type="text" placeholder="اكتب رسالتك الفورية..." style="flex:1; padding:12px; background:var(--card); border:1px solid var(--border); color:var(--text); border-radius:25px; outline:none;" onkeypress="if(event.key==='Enter') window.sendChatMessageToFirebase()"/>
-          <button onclick="window.sendChatMessageToFirebase()" style="background:var(--gold); color:#111; border:none; width:45px; height:45px; border-radius:50%; font-size:18px; cursor:pointer;">🕊️</button>
-        </div>
-      </div>
-    `;
-    window.listenToChats(userGender);
-  }
+    window.listenToPosts = function(gender) {
+  const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(50));
+  const myName = localStorage.getItem('athr_user_name');
+  
+  unsubscribePosts = onSnapshot(q, (snapshot) => {
+    const listArea = document.getElementById('postsList');
+    if (!listArea) return;
+
+    let html = "";
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      const docId = docSnap.id;
+      
+      if (data.gender === gender) {
+        const likesArr = data.likes || [];
+        const hasLiked = likesArr.includes(myName);
+        
+        let mediaHtml = "";
+        if (data.mediaUrl && data.mediaType === 'image') {
+          mediaHtml = `<img src="${data.mediaUrl}" style="width:100%; border-radius:8px; margin-top:10px; max-height:300px; object-fit:contain; background:#000;" />`;
+        }
+
+        html += `
+          <div class="comm-card" style="border-right: 3px solid var(--gold); text-align: right; margin-bottom: 15px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+              <strong style="color:var(--gold); font-size:14px;">✨ ${data.name}</strong>
+              <small style="color:var(--text2); font-size:11px;">منذ قليل</small>
+            </div>
+            ${data.text ? `<p style="color:var(--text); font-family:'Amiri', serif; font-size:15px; line-height:1.5; white-space: pre-wrap;">${data.text}</p>` : ''}
+            
+            ${mediaHtml}
+            
+            <div class="post-actions" style="display:flex; gap:10px; margin-top:10px; border-bottom:1px dashed var(--border); padding-bottom:8px;">
+              <button onclick="window.togglePostLike('${docId}', ${hasLiked})" class="action-item-btn ${hasLiked ? 'like-btn-heart' : ''}">
+                ${hasLiked ? '❤️' : '🤍'} تفاعل (${likesArr.length})
+              </button>
+              
+              <!-- زرار فتح/قفل صندوق التعليقات -->
+              <button onclick="window.toggleCommentsSection('${docId}')" class="action-item-btn">
+                💬 التعليقات
+              </button>
+
+              <button onclick="window.openCommShareSheet(\`${data.text ? data.text.replace(/"/g, '&quot;') : 'أثر طيب'}\`, '${data.name}')" class="action-item-btn">
+                🔗 مشاركة
+              </button>
+            </div>
+
+            <!-- 💬 صندوق التعليقات المخفي (يظهر عند الضغط) -->
+            <div id="commentsWrapper-${docId}" style="display:none; padding-top:10px;">
+              <!-- هنا هتنزل الكومنتات من الفايربيز ديناميكياً -->
+              <div id="commentsList-${docId}" style="max-height:200px; overflow-y:auto; display:flex; flex-direction:column; gap:6px; margin-bottom:8px;"></div>
+              
+              <!-- فورم كتابة تعليق جديد -->
+              <div style="display:flex; gap:6px;">
+                <input id="commentInput-${docId}" type="text" placeholder="اكتب تعليقاً طيباً..." style="flex:1; padding:8px 12px; background:#000; border:1px solid var(--border); color:var(--text); border-radius:20px; font-size:13px; outline:none;" onkeypress="if(event.key==='Enter') window.sendComment('${docId}')" />
+                <button onclick="window.sendComment('${docId}')" style="background:var(--gold); color:#111; border:none; padding:0 15px; border-radius:20px; font-size:13px; font-weight:bold; cursor:pointer;">إرسال</button>
+              </div>
+            </div>
+
+          </div>
+        `;
+      }
+    });
+    listArea.innerHTML = html || `<div class="comm-card"><p style="color:var(--text2); text-align:center;">الساحة فارغة، انشر أثرك الطيب الحين...</p></div>`;
+  });
 };
+
 
 // =========================================================
 // 📂 معالجة ومعاينة الميديا المفتوحة من جهاز المستخدم
@@ -488,3 +538,62 @@ window.switchCommunityTab = function(tab) {
 };
 
 setTimeout(() => { window.checkCommunityUser(); }, 200);
+// 1️⃣ دالة لفتح وإغلاق صندوق التعليقات وتحميلها فورياً عند الفتح
+window.toggleCommentsSection = function(docId) {
+  const wrapper = document.getElementById(`commentsWrapper-${docId}`);
+  if (!wrapper) return;
+
+  if (wrapper.style.display === "none") {
+    wrapper.style.display = "block";
+    window.listenToComments(docId); // ابدأ اسمع للكومنتات بتاعة البوست ده بس
+  } else {
+    wrapper.style.display = "none";
+  }
+};
+
+// 2️⃣ دالة إرسال التعليق وحفظه في الـ Subcollection
+window.sendComment = async function(docId) {
+  const input = document.getElementById(`commentInput-${docId}`);
+  if (!input || !input.value.trim()) return;
+
+  const myName = localStorage.getItem('athr_user_name');
+  const commentText = input.value.trim();
+
+  try {
+    // حفظ التعليق جوه كولكشن فرعي تابع للبوست الحالي
+    const commentsRef = collection(db, "posts", docId, "comments");
+    await addDoc(commentsRef, {
+      name: myName,
+      text: commentText,
+      createdAt: serverTimestamp()
+    });
+    input.value = ""; // تصفية الانبوت بعد الإرسال
+  } catch (e) {
+    console.error("خطأ في إرسال التعليق:", e);
+  }
+};
+
+// 3️⃣ دالة الاستماع الحي للتعليقات الخاصة بكل بوست
+window.listenToComments = function(docId) {
+  const commentsRef = collection(db, "posts", docId, "comments");
+  const q = query(commentsRef, orderBy("createdAt", "asc"));
+
+  onSnapshot(q, (snapshot) => {
+    const listArea = document.getElementById(`commentsList-${docId}`);
+    if (!listArea) return;
+
+    let html = "";
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      html += `
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border); padding: 6px 10px; border-radius: 8px; font-size: 13px;">
+          <strong style="color: var(--gold); display: inline-block; margin-left: 5px;">${data.name}:</strong>
+          <span style="color: var(--text); white-space: pre-wrap;">${data.text}</span>
+        </div>
+      `;
+    });
+    
+    listArea.innerHTML = html || `<p style="color: var(--text2); font-size:11px; text-align:center; margin:5px 0;">لا توجد تعليقات بعد، كن الأول! ✨</p>`;
+    listArea.scrollTop = listArea.scrollHeight; // سكرول لآخر كومنت تلقائياً
+  });
+};
