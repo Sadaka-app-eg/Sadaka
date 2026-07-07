@@ -63,10 +63,23 @@ window.renderSetupScreen = function() {
         </div>
       </div>
 
+            <!-- حقل كود التفعيل السري للأخوات -->
       <div id="femaleCodeContainer" style="display: none; margin-bottom: 25px; text-align: right;">
         <label style="color: var(--gold); display: block; margin-bottom: 6px; font-size: 14px;">⚠️ كود التفعيل للأخوات (مطلوب):</label>
         <input id="commFemaleCodeInp" type="password" placeholder="أدخلي كود الخصوصية السري..." style="width: 100%; padding: 12px; background: #000; border: 1px solid var(--gold); color: var(--text); border-radius: 8px; outline: none; text-align: center;" />
+        
+        <!-- الرابط السحري للتواصل مع المشرفة -->
+        <small style="display:block; color: var(--text2); margin-top: 8px; font-size: 12px; line-height: 1.6; text-align: center;">
+          * هذا القسم مغلق لحماية خصوصية الأخوات. <br>
+          للحصول على كود التفعيل، يرجى التواصل مع الأخت المشرفة عبر: <br>
+          <a href="https://wa.me/201234567890?text=السلام%20عليكم%20ورحمة%20الله%20وبركاته،%20أريد%20الحصول%20على%20كود%20تفعيل%20مجلس%20النساء%20في%20تطبيق%20أثر" 
+             target="_blank" 
+             style="color: var(--gold); text-decoration: underline; font-weight: bold; display: inline-block; margin-top: 4px;">
+             💬 رابط الواتساب المباشر للمشرفة اضغطي هنا
+          </a>
+        </small>
       </div>
+
 
       <button onclick="window.processCommunitySubmit()" style="width: 100%; background: var(--gold); color: #111; border: none; padding: 14px; border-radius: 8px; font-weight: bold; font-family: 'Amiri', serif; font-size: 16px; cursor: pointer; transition: 0.2s;">دخول مجتمع أثر 🚀</button>
     </div>
