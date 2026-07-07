@@ -251,29 +251,76 @@ let adhanPreviewAudioObj = new Audio();
 
   
 
-// دالة تشغيل وإيقاف المعاينة الذكية الفورية
+// دالة تشغيل وإيقاف المعاينة وتغيير شكل الأزرار تلقائياً
 window.previewAdhanAudioFile = function(filePath) {
-  if (!adhanPreviewAudioObj.paused && adhanPreviewAudioObj.src.includes(filePath)) {
-    // لو شغال وضغطت تاني يفرمل الصوت
+  
+  // 1. لو نفس الملف شغال وضغطت عليه تاني -> وقفه ورجع الأزرار لطبيعتها
+  if (adhanPreviewAudioObj && !adhanPreviewAudioObj.paused && adhanPreviewAudioObj.src.endsWith(filePath)) {
     adhanPreviewAudioObj.pause();
-    adhanPreviewAudioObj.src = "";
-  } else {
-    // إيقاف أي صوت شغال في الخلفية أولاً منعاً للتداخل
-    if (typeof stopAdhanPlayback === 'function') {
-      stopAdhanPlayback();
-    }
-    
-    // ضبط المسار وإجبار المتصفح على قراءة القيمة المحدثة
-    adhanPreviewAudioObj.src = filePath;
-
-    // 🌟 السطور الجديدة مكانها هنا بالظبط قبل الـ play لضبط الصوت لحظياً:
-    const settings = getAdhanSettings();
-    adhanPreviewAudioObj.volume = settings.volume !== undefined ? settings.volume : 1;
-
-    // تشغيل ملف المعاينة بأمان
-    adhanPreviewAudioObj.play().catch(e => console.error("عطل معاينة:", e));
+    adhanPreviewAudioObj.currentTime = 0;
+    resetAllPreviewButtons(); // دالة هترجع كل الزراير لـ "▶ استماع"
+    return;
   }
+
+  // 2. لو في صوت تاني شغال (مؤذن آخر) -> وقفه الأول
+  if (adhanPreviewAudioObj && !adhanPreviewAudioObj.paused) {
+    adhanPreviewAudioObj.pause();
+  }
+
+  // 3. إيقاف الأذان الأساسي لو شغال
+  if (typeof stopAdhanPlayback === 'function') {
+    stopAdhanPlayback();
+  }
+  
+  // 4. تشغيل الملف الجديد
+  adhanPreviewAudioObj.src = filePath;
+  const settings = getAdhanSettings();
+  adhanPreviewAudioObj.volume = settings.volume !== undefined ? parseFloat(settings.volume) : 1;
+
+  adhanPreviewAudioObj.play()
+    .then(() => {
+      // 5. لما يشتغل بنجاح، نلف على كل الزراير ونغير الزرار النشط فقط
+      updatePreviewButtonsUI(filePath);
+    })
+    .catch(e => console.error("عطل تشغيل المعاينة:", e));
+
+  // 6. لما الصوت يخلص لوحده، رجع الأزرار لطبيعتها تلقائياً
+  adhanPreviewAudioObj.onended = function() {
+    resetAllPreviewButtons();
+  };
 };
+
+// دالة مساعدة لتحديث نصوص الأزرار على الشاشة
+function updatePreviewButtonsUI(activePath) {
+  // بنجيب كل زراير الاستماع اللي في الصفحة
+  const buttons = document.querySelectorAll('#azanSettingsPage button');
+  buttons.forEach(btn => {
+    if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(activePath)) {
+      // الزرار اللي شغال حالياً
+      btn.innerHTML = '⏸ إيقاف';
+      btn.style.background = 'var(--gold)';
+      btn.style.color = '#111';
+    } else if (btn.innerHTML === '⏸ إيقاف') {
+      // رجع أي زرار تاني كان شغال
+      btn.innerHTML = '▶ استماع';
+      btn.style.background = 'var(--bg3)';
+      btn.style.color = 'var(--gold)';
+    }
+  });
+}
+
+// دالة مساعدة لإعادة تعيين كل الأزرار لـ "▶ استماع"
+function resetAllPreviewButtons() {
+  const buttons = document.querySelectorAll('#azanSettingsPage button');
+  buttons.forEach(btn => {
+    if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes('previewAdhanAudioFile')) {
+      btn.innerHTML = '▶ استماع';
+      btn.style.background = 'var(--bg3)';
+      btn.style.color = 'var(--gold)';
+    }
+  });
+}
+
 
 
 window.selectFajrCardMuathin = function(id) {
