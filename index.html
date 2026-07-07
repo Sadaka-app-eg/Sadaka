@@ -2707,7 +2707,10 @@ if (id === 'settingsPage') {
   if(id === 'obeyPlanPage' && typeof window.initObeyPlanPage === 'function') {
     window.initObeyPlanPage();
   }
-  
+  if(id === 'prayForThemPage' && typeof window.initPrayForThemPage === 'function') {
+  window.initPrayForThemPage();
+}
+
   updateStats();
 }
 
