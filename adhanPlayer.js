@@ -319,4 +319,8 @@ document.addEventListener('DOMContentLoaded', () => {
     startAdhanWatcher();
   }
   updateAdhanToggleUI();
+  // السطر السحري لتشغيل الكروت فوراً عند الإقلاع
+  if(typeof renderAdhanCardsUI === 'function') renderAdhanCardsUI();
 });
+
+
