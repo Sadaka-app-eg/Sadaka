@@ -162,7 +162,7 @@ window.renderCommunityBody = function() {
       <div class="comm-card" style="display:flex; gap:10px; flex-direction:column;">
         <textarea id="postInput" placeholder="اكتب فائدة قرآنية أو تذكير بالخير يا ${userName}..." style="width:100%; height:80px; background:transparent; color:var(--text); border:1px solid var(--border); border-radius:8px; padding:10px; resize:none; outline:none; font-family:'Amiri',serif;"></textarea>
         
-        <div id="mediaPreviewArea" style="display:none; margin: 10px 0; position:relative; max-height:180px; overflow:hidden; border-radius:8px; border:1px solid var(--border);"></div>
+        <div id="mediaPreviewBox" style="margin-top:10px; position:relative; text-align:center;"></div>
 
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:5px;">
           <label style="background:rgba(255,255,255,0.04); border:1px solid var(--border); color:var(--text); padding:8px 15px; border-radius:20px; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px;">
@@ -187,7 +187,117 @@ window.renderCommunityBody = function() {
         </div>
       </div>
     `;
-    window.listenToPosts = function(gender) {
+    window.listenToPosts(userGender);
+  } else {
+    contentArea.innerHTML = `
+      <div style="display:flex; flex-direction:column; height: 100%; min-height: 400px; justify-content:space-between; gap:10px;">
+        <div style="color: var(--gold); font-family: 'Amiri', serif; font-size: 14px; text-align: right; font-weight: bold;">📍 ${chatLabel}</div>
+        <div id="chatMessages" style="flex:1; overflow-y:auto; padding:15px; background: rgba(0,0,0,0.3); border-radius: 12px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; max-height: 320px;">
+          <p style="color: var(--text2); text-align:center;">جاري الاتصال بمجلس الذكر... 🕊️</p>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <input id="chatMessageInp" type="text" placeholder="اكتب رسالتك الفورية..." style="flex:1; padding:12px; background:var(--card); border:1px solid var(--border); color:var(--text); border-radius:25px; outline:none;" onkeypress="if(event.key==='Enter') window.sendChatMessageToFirebase()"/>
+          <button onclick="window.sendChatMessageToFirebase()" style="background:var(--gold); color:#111; border:none; width:45px; height:45px; border-radius:50%; font-size:18px; cursor:pointer;">🕊️</button>
+        </div>
+      </div>
+    `;
+    window.listenToChats(userGender);
+  }
+};
+
+// =========================================================
+// 📂 معالجة ومعاينة الميديا المفتوحة من جهاز المستخدم
+// =========================================================
+window.handleMediaSelection = function(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  selectedMediaFile = file;
+  const previewBox = document.getElementById('mediaPreviewBox');
+  if(!previewBox) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    previewBox.innerHTML = `
+      <div style="position:relative; display:inline-block; max-width:100%; margin-bottom:10px;">
+        <img src="${e.target.result}" style="max-height:150px; border-radius:8px; border:1px solid var(--gold);" />
+        <button onclick="window.clearSelectedMedia()" style="position:absolute; top:-8px; left:-8px; background:#ff4d4d; color:white; border:none; width:24px; height:24px; border-radius:50%; font-weight:bold; cursor:pointer; font-size:12px;">✕</button>
+      </div>`;
+  };
+  reader.readAsDataURL(file);
+};
+
+window.clearSelectedMedia = function() {
+  selectedMediaFile = null;
+  const previewBox = document.getElementById('mediaPreviewBox');
+  if(previewBox) previewBox.innerHTML = "";
+};
+
+// =========================================================
+// 🔥 3️⃣ الرفع المجاني والنشر عبر السيرفر البديل بدون فيزا
+// =========================================================
+window.sendPostToFirebase = async function() {
+  const textInput = document.getElementById('postInput');
+  if (!textInput) return;
+  const text = textInput.value.trim();
+
+  if (!text && !selectedMediaFile) {
+    alert("فضلاً، اكتب نصاً أو اختر صورة للنشر ✨");
+    return;
+  }
+
+  const userGender = localStorage.getItem('athr_user_gender');
+  const userName = localStorage.getItem('athr_user_name');
+  const submitBtn = document.getElementById('submitPostBtn');
+
+  try {
+    submitBtn.disabled = true;
+    submitBtn.textContent = "جاري النشر... ⏳";
+
+    let mediaUrl = "";
+    let mediaType = "none";
+
+    if (selectedMediaFile) {
+      const formData = new FormData();
+      formData.append("image", selectedMediaFile);
+
+      const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+        method: "POST",
+        body: formData
+      });
+
+      const resData = await response.json();
+      if (resData.success) {
+        mediaUrl = resData.data.url; 
+        mediaType = "image";
+      } else {
+        throw new Error("سيرفر الميديا المجاني لم يستجب.");
+      }
+    }
+
+    await addDoc(collection(db, "posts"), {
+      name: userName,
+      text: text,
+      gender: userGender,
+      mediaUrl: mediaUrl,   
+      mediaType: mediaType, 
+      likes: [],
+      createdAt: serverTimestamp()
+    });
+
+    textInput.value = "";
+    window.clearSelectedMedia();
+  } catch (e) {
+    console.error("خطأ في النشر:", e);
+    alert("عذراً، حدثت مشكلة في شبكة رفع الصور المجانية، جرب مجدداً ⚠️");
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = "نشر الفائدة ✨";
+  }
+};
+
+// دالة العرض الحي للبوستات مع دعم أزرار الكومنتات
+window.listenToPosts = function(gender) {
   const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(50));
   const myName = localStorage.getItem('athr_user_name');
   
@@ -224,7 +334,6 @@ window.renderCommunityBody = function() {
                 ${hasLiked ? '❤️' : '🤍'} تفاعل (${likesArr.length})
               </button>
               
-              <!-- زرار فتح/قفل صندوق التعليقات -->
               <button onclick="window.toggleCommentsSection('${docId}')" class="action-item-btn">
                 💬 التعليقات
               </button>
@@ -234,168 +343,14 @@ window.renderCommunityBody = function() {
               </button>
             </div>
 
-            <!-- 💬 صندوق التعليقات المخفي (يظهر عند الضغط) -->
+            <!-- 💬 صندوق التعليقات المخفي -->
             <div id="commentsWrapper-${docId}" style="display:none; padding-top:10px;">
-              <!-- هنا هتنزل الكومنتات من الفايربيز ديناميكياً -->
               <div id="commentsList-${docId}" style="max-height:200px; overflow-y:auto; display:flex; flex-direction:column; gap:6px; margin-bottom:8px;"></div>
               
-              <!-- فورم كتابة تعليق جديد -->
               <div style="display:flex; gap:6px;">
                 <input id="commentInput-${docId}" type="text" placeholder="اكتب تعليقاً طيباً..." style="flex:1; padding:8px 12px; background:#000; border:1px solid var(--border); color:var(--text); border-radius:20px; font-size:13px; outline:none;" onkeypress="if(event.key==='Enter') window.sendComment('${docId}')" />
                 <button onclick="window.sendComment('${docId}')" style="background:var(--gold); color:#111; border:none; padding:0 15px; border-radius:20px; font-size:13px; font-weight:bold; cursor:pointer;">إرسال</button>
               </div>
-            </div>
-
-          </div>
-        `;
-      }
-    });
-    listArea.innerHTML = html || `<div class="comm-card"><p style="color:var(--text2); text-align:center;">الساحة فارغة، انشر أثرك الطيب الحين...</p></div>`;
-  });
-};
-
-
-// =========================================================
-// 📂 معالجة ومعاينة الميديا المفتوحة من جهاز المستخدم
-// =========================================================
-window.handleMediaSelection = function(input) {
-  const file = input.files[0];
-  if (!file) return;
-
-  selectedMediaFile = file;
-  const poolArea = document.getElementById('communityContent');
-  const previewContainerId = 'mediaPreviewContainer';
-  
-  let previewBox = document.getElementById(sidebarMediaPreviewId);
-  if(!previewBox) {
-    previewBox = document.createElement('div');
-    previewBox.id = 'mediaPreviewBox';
-    previewBox.style.cssText = "margin-top:10px; position:relative; text-align:center;";
-    const postInput = document.getElementById('postInput');
-    postInput.parentNode.insertBefore(p, postInput.nextSibling);
-  }
-
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    previewBox.innerHTML = `
-      <div style="position:relative; display:inline-block; max-width:100%;">
-        <img src="${e.target.result}" style="max-height:150px; border-radius:8px; border:1px solid var(--gold);" />
-        <button onclick="window.clearSelectedMedia()" style="position:absolute; top:-8px; left:-8px; background:#ff4d4d; color:white; border:none; width:24px; height:24px; border-radius:50%; font-weight:bold; cursor:pointer; font-size:12px;">✕</button>
-      </div>`;
-  };
-  reader.readAsDataURL(file);
-};
-
-window.clearSelectedMedia = function() {
-  selectedMediaFile = null;
-  const previewBox = document.getElementById('mediaPreviewBox');
-  if(previewBox) previewBox.remove();
-};
-
-// =========================================================
-// 🔥 3️⃣ الرفع المجاني والنشر عبر السيرفر البديل بدون فيزا
-// =========================================================
-window.sendPostToFirebase = async function() {
-  const textInput = document.getElementById('postInput');
-  if (!textInput) return;
-  const text = textInput.value.trim();
-
-  if (!text && !selectedMediaFile) {
-    alert("فضلاً، اكتب نصاً أو اختر صورة للنشر ✨");
-    return;
-  }
-
-  const userGender = localStorage.getItem('athr_user_gender');
-  const userName = localStorage.getItem('athr_user_name');
-  const submitBtn = document.getElementById('submitPostBtn');
-
-  try {
-    submitBtn.disabled = true;
-    submitBtn.textContent = "جاري النشر... ⏳";
-
-    let mediaUrl = "";
-    let mediaType = "none";
-
-    // إذا كان هناك ملف ميديا، يتم رفعه فوراً عبر سيرفر ميديا مجاني بديل
-    if (selectedMediaFile) {
-      const formData = new FormData();
-      formData.append("image", selectedMediaFile);
-
-      const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-        method: "POST",
-        body: formData
-      });
-
-      const resData = await response.json();
-      if (resData.success) {
-        mediaUrl = resData.data.url; // رابط الصورة المباشر والنهائي
-        mediaType = "image";
-      } else {
-        throw new Error("سيرفر الميديا المجاني لم يستجب.");
-      }
-    }
-
-    // كتابة وحفظ البوست بنجاح في الفايرستور النصي المجاني 100%
-    await addDoc(collection(db, "posts"), {
-      name: userName,
-      text: text,
-      gender: userGender,
-      mediaUrl: mediaUrl,   
-      mediaType: mediaType, 
-      likes: [],
-      createdAt: serverTimestamp()
-    });
-
-    textInput.value = "";
-    window.clearSelectedMedia();
-  } catch (e) {
-    console.error("خطأ في النشر:", e);
-    alert("عذراً، حدثت مشكلة في شبكة رفع الصور المجانية، جرب مجدداً ⚠️");
-  } finally {
-    submitBtn.disabled = false;
-    submitBtn.textContent = "نشر الفائدة ✨";
-  }
-};
-
-window.listenToPosts = function(gender) {
-  const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(50));
-  const myName = localStorage.getItem('athr_user_name');
-  
-  unsubscribePosts = onSnapshot(q, (snapshot) => {
-    const listArea = document.getElementById('postsList');
-    if (!listArea) return;
-
-    let html = "";
-    snapshot.forEach((docSnap) => {
-      const data = docSnap.data();
-      const docId = docSnap.id;
-      
-      if (data.gender === gender) {
-        const likesArr = data.likes || [];
-        const hasLiked = likesArr.includes(myName);
-        
-        let mediaHtml = "";
-        if (data.mediaUrl && data.mediaType === 'image') {
-          mediaHtml = `<img src="${data.mediaUrl}" style="width:100%; border-radius:8px; margin-top:10px; max-height:300px; object-fit:contain; background:#000;" />`;
-        }
-
-        html += `
-          <div class="comm-card" style="border-right: 3px solid var(--gold); text-align: right;">
-            <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
-              <strong style="color:var(--gold); font-size:14px;">✨ ${data.name}</strong>
-              <small style="color:var(--text2); font-size:11px;">منذ قليل</small>
-            </div>
-            ${data.text ? `<p style="color:var(--text); font-family:'Amiri', serif; font-size:15px; line-height:1.5; white-space: pre-wrap;">${data.text}</p>` : ''}
-            
-            ${mediaHtml}
-            
-            <div class="post-actions">
-              <button onclick="window.togglePostLike('${docId}', ${hasLiked})" class="action-item-btn ${hasLiked ? 'like-btn-heart' : ''}">
-                ${hasLiked ? '❤️' : '🤍'} تفاعل (${likesArr.length})
-              </button>
-              <button onclick="window.openCommShareSheet(\`${data.text ? data.text.replace(/"/g, '&quot;') : 'أثر طيب'}\`, '${data.name}')" class="action-item-btn">
-                🔗 مشاركة الأثر
-              </button>
             </div>
           </div>
         `;
@@ -537,21 +492,21 @@ window.switchCommunityTab = function(tab) {
   window.checkCommunityUser();
 };
 
-setTimeout(() => { window.checkCommunityUser(); }, 200);
-// 1️⃣ دالة لفتح وإغلاق صندوق التعليقات وتحميلها فورياً عند الفتح
+// =========================================================
+// 💬 4️⃣ نظام تشغيل وإدارة التعليقات الحية (Comments)
+// =========================================================
 window.toggleCommentsSection = function(docId) {
   const wrapper = document.getElementById(`commentsWrapper-${docId}`);
   if (!wrapper) return;
 
   if (wrapper.style.display === "none") {
     wrapper.style.display = "block";
-    window.listenToComments(docId); // ابدأ اسمع للكومنتات بتاعة البوست ده بس
+    window.listenToComments(docId); 
   } else {
     wrapper.style.display = "none";
   }
 };
 
-// 2️⃣ دالة إرسال التعليق وحفظه في الـ Subcollection
 window.sendComment = async function(docId) {
   const input = document.getElementById(`commentInput-${docId}`);
   if (!input || !input.value.trim()) return;
@@ -560,20 +515,18 @@ window.sendComment = async function(docId) {
   const commentText = input.value.trim();
 
   try {
-    // حفظ التعليق جوه كولكشن فرعي تابع للبوست الحالي
     const commentsRef = collection(db, "posts", docId, "comments");
     await addDoc(commentsRef, {
       name: myName,
       text: commentText,
       createdAt: serverTimestamp()
     });
-    input.value = ""; // تصفية الانبوت بعد الإرسال
+    input.value = ""; 
   } catch (e) {
     console.error("خطأ في إرسال التعليق:", e);
   }
 };
 
-// 3️⃣ دالة الاستماع الحي للتعليقات الخاصة بكل بوست
 window.listenToComments = function(docId) {
   const commentsRef = collection(db, "posts", docId, "comments");
   const q = query(commentsRef, orderBy("createdAt", "asc"));
@@ -586,7 +539,7 @@ window.listenToComments = function(docId) {
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
       html += `
-        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border); padding: 6px 10px; border-radius: 8px; font-size: 13px;">
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border); padding: 6px 10px; border-radius: 8px; font-size: 13px; margin-bottom:4px;">
           <strong style="color: var(--gold); display: inline-block; margin-left: 5px;">${data.name}:</strong>
           <span style="color: var(--text); white-space: pre-wrap;">${data.text}</span>
         </div>
@@ -594,6 +547,8 @@ window.listenToComments = function(docId) {
     });
     
     listArea.innerHTML = html || `<p style="color: var(--text2); font-size:11px; text-align:center; margin:5px 0;">لا توجد تعليقات بعد، كن الأول! ✨</p>`;
-    listArea.scrollTop = listArea.scrollHeight; // سكرول لآخر كومنت تلقائياً
+    listArea.scrollTop = listArea.scrollHeight; 
   });
 };
+
+setTimeout(() => { window.checkCommunityUser(); }, 200);
