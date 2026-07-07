@@ -205,8 +205,27 @@ window.seekRare = function (element, url) {
   }
 };
 
-// متابعة أحداث المشغل لتحديث الواجهة
-window.rareAudioPlayer.onplay = () => window.renderRareRecitations();
+// متابعة أحداث المشغل لتحديث الواجهة وضبط إشعارات الأندرويد للتلاوات الخاشعة
+window.rareAudioPlayer.onplay = () => {
+  window.renderRareRecitations();
+
+  // 🌟 حيلة الـ MediaSession لتغيير الإشعار من أذان إلى تلاوة خاشعة فوراً باسم الشيخ
+  if ('mediaSession' in navigator && window.currentRareUrl) {
+    // جلب بيانات التلاوة الحالية من المصفوفة بناءً على الرابط الشغال
+    const currentTrack = window.rareRecitations.find(item => item.url === window.currentRareUrl);
+    const trackName = currentTrack ? currentTrack.name.replace('🎙️', '').trim() : 'تلاوة خاشعة مؤثرة';
+
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: trackName,             // هيعرض اسم الشيخ ورقم التلاوة الحالية الشغالة تلقائياً
+      artist: 'تطبيق كُن ذا أثر',     // اسم تطبيقك الفخم
+      album: ' ',                   // مسافة مخفية لحجب روابط جيت هاب وكروم
+      artwork: [
+        { src: 'icon.png', sizes: '192x192', type: 'image/png' },
+        { src: 'icon.png', sizes: '512x512', type: 'image/png' }
+      ]
+    });
+  }
+};
 window.rareAudioPlayer.onpause = () => window.renderRareRecitations();
 
 // لما التلاوة تخلص: لو تايمر النوم شغال كمّل التالي تلقائيًا، غير كدا وقف عادي
