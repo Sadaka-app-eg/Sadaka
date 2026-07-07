@@ -1,5 +1,5 @@
 // =========================================================
-// 🚀 ربط مجتمع أثر بسيرفر رفع ميديا مجاني 100% بدون فيزا
+// 🚀 ربط مجتمع أثر بسيرفر رفع ميديا وتأثيرات تفاعلية 2026
 // =========================================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore, collection, addDoc, doc, updateDoc, arrayUnion, arrayRemove, onSnapshot, query, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -29,6 +29,21 @@ let unsubscribeChats = null;
 let currentSharePostText = "";
 let currentSharePostAuthor = "";
 let selectedMediaFile = null; 
+
+// حقن ستايل النقطة الخضراء المتحركة ديناميكياً في الصفحة لجمال الشات
+const style = document.createElement('style');
+style.innerHTML = `
+  @keyframes pulse {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(76, 175, 80, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+  }
+  .online-dot {
+    width: 7px; height: 7px; background: #4CAF50; border-radius: 50%;
+    display: inline-block; animation: pulse 2s infinite; margin-left: 6px; vertical-align: middle;
+  }
+`;
+document.head.appendChild(style);
 
 // =========================================================
 // 🛠️ 1️⃣ نظام التحقق وإعداد الحساب
@@ -68,9 +83,9 @@ window.checkCommunityUser = function() {
 window.renderSetupScreen = function() {
   const contentArea = document.getElementById('communityContent');
   contentArea.innerHTML = `
-    <div class="comm-card" style="text-align: center; padding: 25px 15px; font-family: 'Amiri', serif; direction: rtl;">
-      <h3 style="color: var(--gold); margin-bottom: 12px; font-size: 22px;">مرحباً بك في مجتمع أثر ✨</h3>
-      <p style="color: var(--text2); font-size: 13px; margin-bottom: 20px;">يرجى تدوين الاسم وتحديد المجلس (يتم الفصل التام والكامل بين الرجال والنساء صوناً للخصوصية)</p>
+    <div class="comm-card" style="text-align: center; padding: 25px 15px; font-family: 'Amiri', serif; direction: rtl; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid rgba(212,175,55,0.2);">
+      <h3 style="color: var(--gold); margin-bottom: 12px; font-size: 24px; letter-spacing: 1px;">مرحباً بك في مجتمع أثر ✨</h3>
+      <p style="color: var(--text2); font-size: 13px; margin-bottom: 20px; line-height: 1.6;">يرجى تدوين الاسم وتحديد المجلس (يتم الفصل التام والكامل بين الرجال والنساء صوناً للخصوصية)</p>
       
       <div style="margin-bottom: 18px; text-align: right;">
         <label style="color: var(--text); display: block; margin-bottom: 6px; font-size: 14px;">الاسم (مستعار أو حقيقي):</label>
@@ -80,8 +95,8 @@ window.renderSetupScreen = function() {
       <div style="margin-bottom: 20px; text-align: right;">
         <label style="color: var(--text); display: block; margin-bottom: 8px; font-size: 14px;">اختر المجلس الفقهي المناسب لحسابك:</label>
         <div style="display: flex; gap: 12px; margin-bottom: 15px;">
-          <button onclick="window.selectGenderSetup('male')" id="btnSelectMale" style="flex: 1; background: rgba(255,255,255,0.02); color: var(--text); border: 1px solid var(--border); padding: 12px; border-radius: 8px; cursor: pointer; font-family: 'Amiri', serif; font-weight: bold; transition: 0.2s;">🧔 مجلس الرجال</button>
-          <button onclick="window.selectGenderSetup('female')" id="btnSelectFemale" style="flex: 1; background: rgba(255,255,255,0.02); color: var(--text); border: 1px solid var(--border); padding: 12px; border-radius: 8px; cursor: pointer; font-family: 'Amiri', serif; font-weight: bold; transition: 0.2s;">🧕 مجلس النساء</button>
+          <button onclick="window.selectGenderSetup('male')" id="btnSelectMale" style="flex: 1; background: rgba(255,255,255,0.02); color: var(--text); border: 1px solid var(--border); padding: 12px; border-radius: 8px; cursor: pointer; font-family: 'Amiri', serif; font-weight: bold; transition: 0.3s; font-size:15px;">🧔 مجلس الرجال</button>
+          <button onclick="window.selectGenderSetup('female')" id="btnSelectFemale" style="flex: 1; background: rgba(255,255,255,0.02); color: var(--text); border: 1px solid var(--border); padding: 12px; border-radius: 8px; cursor: pointer; font-family: 'Amiri', serif; font-weight: bold; transition: 0.3s; font-size:15px;">🧕 مجلس النساء</button>
         </div>
       </div>
 
@@ -95,7 +110,7 @@ window.renderSetupScreen = function() {
         </small>
       </div>
 
-      <button onclick="window.processCommunitySubmit()" style="width: 100%; background: var(--gold); color: #111; border: none; padding: 14px; border-radius: 8px; font-weight: bold; font-family: 'Amiri', serif; font-size: 16px; cursor: pointer; transition: 0.2s;">دخول مجتمع أثر 🚀</button>
+      <button onclick="window.processCommunitySubmit()" style="width: 100%; background: var(--gold); color: #111; border: none; padding: 14px; border-radius: 8px; font-weight: bold; font-family: 'Amiri', serif; font-size: 16px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 15px rgba(212,175,55,0.2);">دخول مجتمع أثر 🚀</button>
     </div>
   `;
   window.selectedSetupGender = null;
@@ -137,6 +152,9 @@ window.processCommunitySubmit = function() {
 
   localStorage.setItem('athr_user_name', nameInp.value.trim());
   localStorage.setItem('athr_user_gender', window.selectedSetupGender);
+  
+  // تفعيل تأثير النجوم الترحيبي الفخم عند نجاح التسجيل
+  setTimeout(() => { window.triggerSparksEffect(); }, 100);
   window.renderCommunityBody();
 };
 
@@ -287,6 +305,10 @@ window.sendPostToFirebase = async function() {
 
     textInput.value = "";
     window.clearSelectedMedia();
+    
+    // 🌟 تشغيل ميزة التناثر النوراني عند نجاح النشر
+    window.triggerSparksEffect();
+
   } catch (e) {
     console.error("خطأ في النشر:", e);
     alert("عذراً، حدثت مشكلة في شبكة رفع الصور المجانية، جرب مجدداً ⚠️");
@@ -296,7 +318,6 @@ window.sendPostToFirebase = async function() {
   }
 };
 
-// دالة العرض الحي للبوستات مع دعم أزرار الكومنتات
 window.listenToPosts = function(gender) {
   const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(50));
   const myName = localStorage.getItem('athr_user_name');
@@ -330,7 +351,7 @@ window.listenToPosts = function(gender) {
             ${mediaHtml}
             
             <div class="post-actions" style="display:flex; gap:10px; margin-top:10px; border-bottom:1px dashed var(--border); padding-bottom:8px;">
-              <button onclick="window.togglePostLike('${docId}', ${hasLiked})" class="action-item-btn ${hasLiked ? 'like-btn-heart' : ''}">
+              <button onclick="window.togglePostLike(event, '${docId}', ${hasLiked})" class="action-item-btn ${hasLiked ? 'like-btn-heart' : ''}">
                 ${hasLiked ? '❤️' : '🤍'} تفاعل (${likesArr.length})
               </button>
               
@@ -343,7 +364,6 @@ window.listenToPosts = function(gender) {
               </button>
             </div>
 
-            <!-- 💬 صندوق التعليقات المخفي -->
             <div id="commentsWrapper-${docId}" style="display:none; padding-top:10px;">
               <div id="commentsList-${docId}" style="max-height:200px; overflow-y:auto; display:flex; flex-direction:column; gap:6px; margin-bottom:8px;"></div>
               
@@ -360,9 +380,15 @@ window.listenToPosts = function(gender) {
   });
 };
 
-window.togglePostLike = async function(docId, hasLiked) {
+window.togglePostLike = async function(event, docId, hasLiked) {
   const myName = localStorage.getItem('athr_user_name');
   const postRef = doc(db, "posts", docId);
+  
+  // ❤️ تشغيل تأثير لايك القلوب الطائرة فورا عند الضغط إذا لم يكن متفاعلاً سابقاً
+  if (!hasLiked && event) {
+    window.createFloatingEmoji(event, '❤️');
+  }
+
   try {
     if (hasLiked) {
       await updateDoc(postRef, { likes: arrayRemove(myName) });
@@ -474,7 +500,9 @@ window.listenToChats = function(gender) {
         const isMe = data.name === localStorage.getItem('athr_user_name');
         html += `
           <div style="align-self: ${isMe ? 'flex-start' : 'flex-end'}; background: ${isMe ? 'rgba(212,175,55,0.12)' : 'rgba(255,255,255,0.03)'}; border: 1px solid ${isMe ? 'var(--gold)' : 'var(--border)'}; padding: 8px 14px; border-radius: 12px; max-width: 85%; text-align: right; margin-bottom: 5px;">
-            <span style="display:block; font-size:11px; color:var(--gold); font-weight:bold; margin-bottom:2px;">${data.name}</span>
+            <span style="display:block; font-size:11px; color:var(--gold); font-weight:bold; margin-bottom:2px;">
+              <span class="online-dot"></span>${data.name}
+            </span>
             <span style="color:var(--text); font-size:14px;">${data.text}</span>
           </div>
         `;
@@ -549,6 +577,60 @@ window.listenToComments = function(docId) {
     listArea.innerHTML = html || `<p style="color: var(--text2); font-size:11px; text-align:center; margin:5px 0;">لا توجد تعليقات بعد، كن الأول! ✨</p>`;
     listArea.scrollTop = listArea.scrollHeight; 
   });
+};
+
+// =========================================================
+// ✨ 5️⃣ دوال الحركات الجمالية والتأثيرات (FX Functions)
+// =========================================================
+
+// تأثير تناثر النجوم النورانية ✨ عند نشر الفائدة بنجاح
+window.triggerSparksEffect = function() {
+  for (let i = 0; i < 25; i++) {
+    const spark = document.createElement('div');
+    spark.innerHTML = '✨';
+    spark.style.position = 'fixed';
+    spark.style.left = Math.random() * 100 + 'vw';
+    spark.style.top = Math.random() * 100 + 'vh';
+    spark.style.fontSize = Math.random() * 20 + 12 + 'px';
+    spark.style.zIndex = '999999';
+    spark.style.pointerEvents = 'none';
+    spark.style.transition = 'all 1.5s ease-out';
+    spark.style.opacity = '1';
+    
+    document.body.appendChild(spark);
+
+    setTimeout(() => {
+      spark.style.transform = `translateY(-60px) scale(0.4) rotate(${Math.random() * 180}deg)`;
+      spark.style.opacity = '0';
+    }, 50);
+
+    setTimeout(() => spark.remove(), 1500);
+  }
+};
+
+// تأثير القلب الأحمر الطائر ❤️ عند التفاعل مع الفوائد والبوستات
+window.createFloatingEmoji = function(event, emoji = '❤️') {
+  if (!event || !event.target) return;
+  const bounding = event.target.getBoundingClientRect();
+  const element = document.createElement('div');
+  
+  element.innerHTML = emoji;
+  element.style.position = 'fixed';
+  element.style.left = (bounding.left + bounding.width / 2 - 10) + 'px';
+  element.style.top = bounding.top + 'px';
+  element.style.fontSize = '22px';
+  element.style.zIndex = '99999';
+  element.style.pointerEvents = 'none';
+  element.style.transition = 'all 1.2s ease-in-out';
+  
+  document.body.appendChild(element);
+
+  setTimeout(() => {
+    element.style.transform = `translateY(-140px) translateX(${Math.random() * 50 - 25}px) scale(1.6)`;
+    element.style.opacity = '0';
+  }, 50);
+
+  setTimeout(() => element.remove(), 1200);
 };
 
 setTimeout(() => { window.checkCommunityUser(); }, 200);
