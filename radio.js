@@ -9,7 +9,7 @@ window.islamicRadioStations = [
     
   // إذاعات علوم القرآن والتفسير (المسارات الرسمية الدقيقة من السيرفر الشغال)
   { id: "roqia", name: "إذاعة الرقية الشرعية 🌿", url: "https://qurango.net/radio/roqiah" },
-  { id: "tafseer_all", name: "إذاعة تفسير القرآن الكريم 📖", url: "https://qurango.net/radio/tafseer" },
+  { id: "tafseer_all", name: "إذاعة تفسير القرآن الكريم (ابن عثيمين) 📖", url: "https://qurango.net/radio/tafseer" },
   { id: "sakina", name: "إذاعة آيات السكينة 🕊️", url: "https://qurango.net/radio/sakeenah" },
   { id: "mukhtasar_tafseer", name: "المختصر في تفسير القرآن 📚", url: "https://qurango.net/radio/mukhtasartafsir" },
   { id: "tabari", name: "تفسير الطبري (الخلاصة) 📝", url: "https://qurango.net/radio/tabri" },
@@ -82,9 +82,28 @@ window.selectAndPlayRadio = function(url, name) {
   status.textContent = "جاري الاتصال بمصدر البث الحي...";
   btn.textContent = "⏳";
 
-  player.play()
-    .then(() => { btn.textContent = "⏸"; })
+    player.play()
+    .then(() => { 
+      btn.textContent = "⏸"; 
+
+      // 🌟 السحر هنا: تحديث فوري للوحة الإشعارات باسم الإذاعة الشغالة حالياً
+      if ('mediaSession' in navigator) {
+        // توليد المسار الكامل للأيقونة لتفادي مشاكل الـ PWA
+        const fullIconUrl = window.location.origin + window.location.pathname.replace(/[^\/]*$/, '') + 'icon.png';
+
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: name,              // هيعرض اسم الإذاعة الشغالة (مثال: إذاعة القرآن من القاهرة 🇪🇬)
+          artist: 'أثر',            // اسم تطبيقك الموحد
+          album: ' ',               // مسافة مخفية لحجب الروابط
+          artwork: [
+            { src: fullIconUrl, sizes: '192x192', type: 'image/png' },
+            { src: fullIconUrl, sizes: '512x512', type: 'image/png' }
+          ]
+        });
+      }
+    })
     .catch(err => {
+
       console.error("Radio play failed:", err);
       status.textContent = "جاري إعادة الاتصال بالبث الاحتياطي...";
       setTimeout(() => {
