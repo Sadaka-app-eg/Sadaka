@@ -3225,11 +3225,8 @@ function toggleAudio() {
       const num3 = String(num).padStart(3, '0');
 
       let audioSourceUrl = '';
-
-      // استخدام القارئ المحدد من الـ Select
       const reciter = document.getElementById('reciterSelect').value;
       
-      // السيرفرات الأساسية المضمونة (مُحدثة)
       const reciterUrls = {
         'minsh': `https://server10.mp3quran.net/minsh/${num3}.mp3`,
         'husary': `https://server13.mp3quran.net/husr/${num3}.mp3`,
@@ -3244,16 +3241,35 @@ function toggleAudio() {
       };
       
       audioSourceUrl = reciterUrls[reciter];
-
       audio.src = audioSourceUrl;
-      audio.play().catch(e => console.error("خطأ تشغيل:", e));
       
-      isPlaying = true;
-      document.getElementById('playBtn').textContent = '⏸';
-      document.getElementById('audioStatus').textContent = `يُشغّل سورة ${currentSurah.name}`;
+      audio.play()
+        .then(() => {
+          isPlaying = true;
+          document.getElementById('playBtn').textContent = '⏸';
+          document.getElementById('audioStatus').textContent = `يُشغّل سورة ${currentSurah.name}`;
+
+          // 🌟 السحر هنا: تحديث فوري للإشعارات باسم السورة كاملة ويمسح الإذاعة
+          if ('mediaSession' in navigator) {
+            const fullIconUrl = window.location.origin + window.location.pathname.replace(/[^\/]*$/, '') + 'icon.png';
+
+            navigator.mediaSession.metadata = new MediaMetadata({
+              title: `سورة ${currentSurah.name} كاملة 📖`, // اسم السورة منور فوق
+              artist: 'أثر',
+              album: ' ', // مسافة مخفية لحجب الروابط
+              artwork: [
+                { src: fullIconUrl, sizes: '192x192', type: 'image/png' },
+                { src: fullIconUrl, sizes: '512x512', type: 'image/png' }
+              ]
+            });
+          }
+        })
+        .catch(e => console.error("خطأ تشغيل السورة:", e));
     }
   }
 }
+
+  
 
   
 function playNextInQueue() {
