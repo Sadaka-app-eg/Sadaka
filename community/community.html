@@ -1,1 +1,19 @@
+<!-- مجتمع أثر التفاعلي -->
+<div id="communityContainer" style="display: flex; flex-direction: column; height: 100%; direction: rtl;">
+  
+  <!-- هيدر المجتمع والتبويب العلوي -->
+  <div class="community-header">
+    <h3 class="community-title">مجتمع أثر 👥</h3>
+    <div class="community-tabs">
+      <button id="tabFeedBtn" class="comm-tab-btn active" onclick="window.switchCommunityTab('feed')">📝 ساحة الأثر</button>
+      <button id="tabChatBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('chat')">💬 مجلس الذكر</button>
+    </div>
+  </div>
+
+  <!-- المحتوى المتغير (يتم ضخه بالـ JS) -->
+  <div id="communityContent" class="community-content">
+    <!-- هنا بتنزل المنشورات أو غرف الشات حسب الاختيار -->
+  </div>
+
+</div>
 
