@@ -205,7 +205,7 @@ function stopAdhanPlayback() {
  // متغير عالمي للتحكم في صوت المعاينة المباشر
 let adhanPreviewAudioObj = new Audio();
 
-function renderAdhanCardsUI() {
+ function renderAdhanCardsUI() {
   const settings = getAdhanSettings();
   
   // 1. رندرة كروت الفجر
@@ -214,12 +214,15 @@ function renderAdhanCardsUI() {
     fajrContainer.innerHTML = fajrAdhanOptions.map(o => {
       const isSelected = settings.fajrMuathin === o.id;
       return `
-        <div class="surah-item" style="border-right: 3px solid ${isSelected ? 'var(--gold)' : 'var(--border)'}; margin-bottom: 0px; padding: 14px; display: flex; align-items: center; justify-content: space-between;">
-          <div style="display: flex; align-items: center; gap: 10px; cursor: pointer; flex: 1;" onclick="window.selectFajrCardMuathin('${o.id}')">
-            <div class="surah-num" style="background: ${isSelected ? 'var(--gold)' : 'var(--bg3)'}; color: ${isSelected ? '#111' : 'var(--text2)'};">${isSelected ? '✓' : '🌅'}</div>
-            <div class="surah-name" style="${isSelected ? 'color: var(--gold); font-weight: bold;' : ''}">${o.label}</div>
+        <div class="surah-item" style="border-right: 3px solid ${isSelected ? 'var(--gold)' : 'var(--border)'}; margin-bottom: 0px; padding: 14px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 10px; cursor: pointer; flex: 1; min-width: 0;" onclick="window.selectFajrCardMuathin('${o.id}')">
+            <div class="surah-num" style="background: ${isSelected ? 'var(--gold)' : 'var(--bg3)'}; color: ${isSelected ? '#111' : 'var(--text2)'}; flex-shrink: 0;">${isSelected ? '✓' : '🌅'}</div>
+            <div class="surah-name" style="${isSelected ? 'color: var(--gold); font-weight: bold;' : ''}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${o.label}</div>
           </div>
-          <button onclick="window.previewAdhanAudioFile('${o.file}')" style="background: var(--bg3); border: 1px solid var(--border); color: var(--gold); padding: 6px 14px; border-radius: 10px; font-size: 12px; cursor: pointer; font-family: 'Amiri', serif;">▶ استماع</button>
+          <div style="display: flex; gap: 6px; flex-shrink: 0;">
+            <button onclick="window.previewAdhanAudioFile('${o.file}')" style="background: var(--bg3); border: 1px solid var(--border); color: var(--gold); padding: 6px 10px; border-radius: 10px; font-size: 12px; cursor: pointer; font-family: 'Amiri', serif;">▶ استماع</button>
+            <a href="${o.file}" download="${o.label}.mp3" style="background: rgba(212,175,55,0.1); border: 1px solid var(--gold); color: var(--gold); padding: 6px 10px; border-radius: 10px; font-size: 12px; text-decoration: none; font-family: 'Amiri', serif; display: inline-block; text-align: center;">📥 تحميل</a>
+          </div>
         </div>
       `;
     }).join('');
@@ -231,17 +234,22 @@ function renderAdhanCardsUI() {
     regularContainer.innerHTML = regularAdhanOptions.map(o => {
       const isSelected = settings.regularMuathin === o.id;
       return `
-        <div class="surah-item" style="border-right: 3px solid ${isSelected ? 'var(--green)' : 'var(--border)'}; margin-bottom: 0px; padding: 14px; display: flex; align-items: center; justify-content: space-between;">
-          <div style="display: flex; align-items: center; gap: 10px; cursor: pointer; flex: 1;" onclick="window.selectRegularCardMuathin('${o.id}')">
-            <div class="surah-num" style="background: ${isSelected ? 'var(--green)' : 'var(--bg3)'}; color: ${isSelected ? '#fff' : 'var(--text2)'};">${isSelected ? '✓' : '🕌'}</div>
-            <div class="surah-name" style="${isSelected ? 'color: var(--green); font-weight: bold;' : ''}">${o.label}</div>
+        <div class="surah-item" style="border-right: 3px solid ${isSelected ? 'var(--green)' : 'var(--border)'}; margin-bottom: 0px; padding: 14px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 10px; cursor: pointer; flex: 1; min-width: 0;" onclick="window.selectRegularCardMuathin('${o.id}')">
+            <div class="surah-num" style="background: ${isSelected ? 'var(--green)' : 'var(--bg3)'}; color: ${isSelected ? '#fff' : 'var(--text2)'}; flex-shrink: 0;">${isSelected ? '✓' : '🕌'}</div>
+            <div class="surah-name" style="${isSelected ? 'color: var(--green); font-weight: bold;' : ''}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${o.label}</div>
           </div>
-          <button onclick="window.previewAdhanAudioFile('${o.file}')" style="background: var(--bg3); border: 1px solid var(--border); color: var(--gold); padding: 6px 14px; border-radius: 10px; font-size: 12px; cursor: pointer; font-family: 'Amiri', serif;">▶ استماع</button>
+          <div style="display: flex; gap: 6px; flex-shrink: 0;">
+            <button onclick="window.previewAdhanAudioFile('${o.file}')" style="background: var(--bg3); border: 1px solid var(--border); color: var(--gold); padding: 6px 10px; border-radius: 10px; font-size: 12px; cursor: pointer; font-family: 'Amiri', serif;">▶ استماع</button>
+            <a href="${o.file}" download="${o.label}.mp3" style="background: rgba(212,175,55,0.1); border: 1px solid var(--gold); color: var(--gold); padding: 6px 10px; border-radius: 10px; font-size: 12px; text-decoration: none; font-family: 'Amiri', serif; display: inline-block; text-align: center;">📥 تحميل</a>
+          </div>
         </div>
       `;
     }).join('');
   }
 }
+
+  
 
 // دالة تشغيل وإيقاف المعاينة الذكية الفورية
 window.previewAdhanAudioFile = function(filePath) {
