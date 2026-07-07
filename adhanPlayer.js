@@ -3,24 +3,26 @@
 // ==========================================================
 
 // نسخ أذان الفجر المتاحة (فيها "الصلاة خير من النوم")
+// نسخ أذان الفجر المتاحة (المسار المباشر الصحيح)
 const fajrAdhanOptions = [
-  { id: 'adhan_2', label: 'مؤذن الفجر ١', file: 'adhan/adhan_2.mp3' },
-  { id: 'adhan_22', label: 'مؤذن الفجر ٢', file: 'adhan/adhan_22.mp3' },
-  { id: 'adhan_222', label: 'مؤذن الفجر ٣', file: 'adhan/adhan_222.mp3' },
-  { id: 'adhan_2222', label: 'مؤذن الفجر ٤', file: 'adhan/adhan_2222.mp3' },
+  { id: 'adhan_2', label: 'مؤذن الفجر ١', file: 'adhan_2.mp3' },
+  { id: 'adhan_22', label: 'مؤذن الفجر ٢', file: 'adhan_22.mp3' },
+  { id: 'adhan_222', label: 'مؤذن الفجر ٣', file: 'adhan_222.mp3' },
+  { id: 'adhan_2222', label: 'مؤذن الفجر ٤', file: 'adhan_2222.mp3' },
 ];
 
-// مؤذنو باقي الصلوات (الظهر، العصر، المغرب، العشاء)
+// مؤذنو باقي الصلوات (المسار المباشر الصحيح)
 const regularAdhanOptions = [
-  { id: 'adhan_1', label: 'مؤذن ١', file: 'adhan/adhan_1.mp3' },
-  { id: 'adhan_3', label: 'مؤذن ٢', file: 'adhan/adhan_3.mp3' },
-  { id: 'adhan_4', label: 'مؤذن ٣', file: 'adhan/adhan_4.mp3' },
-  { id: 'adhan_5', label: 'مؤذن ٤', file: 'adhan/adhan_5.mp3' },
-  { id: 'adhan_6', label: 'مؤذن ٥', file: 'adhan/adhan_6.mp3' },
-  { id: 'adhan_7', label: 'مؤذن ٦', file: 'adhan/adhan_7.mp3' },
-  { id: 'adhan_8', label: 'مؤذن ٧', file: 'adhan/adhan_8.mp3' },
-  { id: 'adhan_9', label: 'مؤذن ٨', file: 'adhan/adhan_9.mp3' },
+  { id: 'adhan_1', label: 'مؤذن ١', file: 'adhan_1.mp3' },
+  { id: 'adhan_3', label: 'مؤذن ٢', file: 'adhan_3.mp3' },
+  { id: 'adhan_4', label: 'مؤذن ٣', file: 'adhan_4.mp3' },
+  { id: 'adhan_5', label: 'مؤذن ٤', file: 'adhan_5.mp3' },
+  { id: 'adhan_6', label: 'مؤذن ٥', file: 'adhan_6.mp3' },
+  { id: 'adhan_7', label: 'مؤذن ٦', file: 'adhan_7.mp3' },
+  { id: 'adhan_8', label: 'مؤذن ٧', file: 'adhan_8.mp3' },
+  { id: 'adhan_9', label: 'مؤذن ٨', file: 'adhan_9.mp3' },
 ];
+
 
 const adhanPrayerNamesAr = {
   Fajr: 'الفجر',
