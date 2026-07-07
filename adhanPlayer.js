@@ -253,17 +253,28 @@ let adhanPreviewAudioObj = new Audio();
 
 // دالة تشغيل وإيقاف المعاينة الذكية الفورية
 window.previewAdhanAudioFile = function(filePath) {
-  if (!adhanPreviewAudioObj.paused && adhanPreviewAudioObj.src.endsWith(filePath)) {
+  if (!adhanPreviewAudioObj.paused && adhanPreviewAudioObj.src.includes(filePath)) {
     // لو شغال وضغطت تاني يفرمل الصوت
     adhanPreviewAudioObj.pause();
     adhanPreviewAudioObj.src = "";
   } else {
-    // إيقاف أي صوت شغال في الخلفية أولاً منعا للتداخل
-    if(typeof stopAdhanPlayback === 'function') stopAdhanPlayback();
+    // إيقاف أي صوت شغال في الخلفية أولاً منعاً للتداخل
+    if (typeof stopAdhanPlayback === 'function') {
+      stopAdhanPlayback();
+    }
+    
+    // ضبط المسار وإجبار المتصفح على قراءة القيمة المحدثة
     adhanPreviewAudioObj.src = filePath;
-    adhanPreviewAudioObj.play().catch(e => alert("اضغط تفعيل التنبيه أولاً للسماح للمتصفح ببث الميديا 🔔"));
+
+    // 🌟 السطور الجديدة مكانها هنا بالظبط قبل الـ play لضبط الصوت لحظياً:
+    const settings = getAdhanSettings();
+    adhanPreviewAudioObj.volume = settings.volume !== undefined ? settings.volume : 1;
+
+    // تشغيل ملف المعاينة بأمان
+    adhanPreviewAudioObj.play().catch(e => console.error("عطل معاينة:", e));
   }
 };
+
 
 window.selectFajrCardMuathin = function(id) {
   changeFajrMuathin(id);
@@ -309,9 +320,21 @@ function updateAdhanToggleUI() {
 
 function changeAdhanVolume(value) {
   const settings = getAdhanSettings();
-  settings.volume = parseFloat(value);
+  const vol = parseFloat(value);
+  settings.volume = vol;
   saveAdhanSettings(settings);
+
+  // السحر هنا: لو الأذان الأساسي شغال، خليه يوطى أو يعلى فوراً بالملي
+  if (adhanAudioEl) {
+    adhanAudioEl.volume = vol;
+  }
+  
+  // ولو صوت المعاينة (زرار استماع) شغال، خليه يتأثر برضه لحظياً
+  if (adhanPreviewAudioObj) {
+    adhanPreviewAudioObj.volume = vol;
+  }
 }
+
 
 function testAdhanSound() {
   playAdhan('Dhuhr');
