@@ -314,16 +314,29 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
   display: flex;
   gap: 8px;
   z-index: 400;
-  background: rgba(11, 18, 12, 0.85);
-  backdrop-filter: blur(8px);
+  background: rgba(139, 105, 20, 0.05); /* خلفية شفافة خفيفة جدًا ومندمجة بالكامل */
+  backdrop-filter: blur(4px);
   padding: 6px 14px;
   border-radius: 20px;
   max-width: 90vw;
   overflow-x: auto;
   scrollbar-width: none;
-  border: 1px solid var(--border);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  border: 1px solid rgba(139, 105, 20, 0.15); /* حواف خفيفة لتحديد الشريط */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
+
+/* تعديل لون أرقام الصفحات غير النشطة لتظهر بوضوح فوق الخلفية الفاتحة */
+.page-dot {
+  color: #6e614c !important;
+  background: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* الحفاظ على لون الصفحة النشطة ذهبي ومميز */
+.page-dot.active {
+  background: var(--gold) !important;
+  color: #111 !important;
+}
+
 .light .page-dots {
   background: rgba(247, 244, 235, 0.9);
 }
@@ -4414,17 +4427,23 @@ window.scrollToMushafIndex = function(index) {
   const slider = document.getElementById('mushafSlider');
   if (!slider) return;
   
-  const isRTL = window.getComputedStyle(slider).direction === 'rtl';
-  if (isRTL) {
-    slider.scrollLeft = - (index * window.innerWidth);
-    // حل بديل للمتصفحات القديمة التي لا تدعم القيم السالبة في السكرول العكسي
-    if (slider.scrollLeft === 0 && index > 0) {
-      slider.scrollLeft = slider.scrollWidth - slider.clientWidth - (index * window.innerWidth);
+  // حيلة برمجية بسيطة لكسر تجميد المتصفح عند الصفحة الأولى
+  slider.scrollLeft = slider.scrollLeft === 0 ? (window.getComputedStyle(slider).direction === 'rtl' ? -1 : 1) : slider.scrollLeft;
+
+  setTimeout(() => {
+    const isRTL = window.getComputedStyle(slider).direction === 'rtl';
+    if (isRTL) {
+      slider.scrollLeft = - (index * window.innerWidth);
+      // حل بديل للمتصفحات القديمة
+      if (slider.scrollLeft === 0 && index > 0) {
+        slider.scrollLeft = slider.scrollWidth - slider.clientWidth - (index * window.innerWidth);
+      }
+    } else {
+      slider.scrollLeft = index * window.innerWidth;
     }
-  } else {
-    slider.scrollLeft = index * window.innerWidth;
-  }
+  }, 10);
 };
+
 
 // دالة جلب خريطة الآيات ورسمها فوق الصفحة بالملي
 function loadPageAyatMapping(pageNo) {
