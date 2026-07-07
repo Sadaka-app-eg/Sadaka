@@ -305,9 +305,55 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
 .ayah-sign{color:#8b6914;margin:0 3px;font-size:20px;}
 
 /* Page nav dots */
-.page-dots{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);display:flex;gap:5px;z-index:10;}
-.page-dot{width:6px;height:6px;border-radius:50%;background:rgba(139,105,20,0.3);transition:background 0.2s;}
-.page-dot.active{background:#8b6914;}
+/* شريط أرقام الصفحات المتطور أسفل المصحف */
+.page-dots {
+  position: fixed;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  z-index: 400;
+  background: rgba(11, 18, 12, 0.85);
+  backdrop-filter: blur(8px);
+  padding: 6px 14px;
+  border-radius: 20px;
+  max-width: 90vw;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+.light .page-dots {
+  background: rgba(247, 244, 235, 0.9);
+}
+.page-dots::-webkit-scrollbar { display: none; }
+
+.page-dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  font-size: 12px;
+  font-family: 'Amiri', serif;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  padding: 0 4px;
+}
+.page-dot.active {
+  background: var(--gold);
+  color: #111;
+  border-color: var(--gold);
+  transform: scale(1.12);
+  box-shadow: 0 2px 8px rgba(212,175,55,0.4);
+}
 
 /* ===== AZKAR ===== */
 .azkar-cats{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:5px;scrollbar-width:none;}
@@ -916,17 +962,23 @@ body.in-subpage .back-to-home-btn {
     <div class="ayah">﴿ إِنَّا نَحْنُ نُحْيِي الْمَوْتَىٰ وَنَكْتُبُ مَا قَدَّمُوا وَآثَارَهُمْ ﴾</div>
   </div>
 
-  <!-- كروت الإحصائيات (التسبيح والذكر والمهام) -->
+    <!-- كروت الإحصائيات (التسبيح والذكر والمهام) -->
   <div class="stats">
-    <div class="stat-card"><div class="stat-num" id="statTasbeh">0</div><div class="stat-label">تسبيحة اليوم</div></div>
-    <div class="stat-card" style="position: relative;">
-      <div class="stat-num" id="statAzkar">0</div>
+    <div class="stat-card" onclick="window.showHistoryStatsPopup('tasbeh')" style="cursor: pointer;">
+      <div class="stat-num" id="statTasbeh">٠</div>
+      <div class="stat-label">تسبيحة اليوم</div>
+      <div style="font-size: 10px; color: var(--text2); margin-top: 6px; border-top: 1px dashed var(--border); padding-top: 4px; opacity: 0.7;">📊 اضغط لعرض إحصائياتك</div>
+    </div>
+    <div class="stat-card" style="position: relative; cursor: pointer;" onclick="window.showHistoryStatsPopup('azkar')">
+      <div class="stat-num" id="statAzkar">٠</div>
       <div class="stat-label">ذكر اليوم</div>
-      <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border); font-size: 13px; color: var(--gold); font-weight: bold; font-family: 'Amiri', serif;">
-        المهام اليومية: <span id="dailyTasksCounter" style="font-size: 16px;">٠</span> / ٩
+      <div style="font-size: 10px; color: var(--text2); margin-top: 6px; border-top: 1px dashed var(--border); padding-top: 4px; opacity: 0.7; margin-bottom: 8px;">📊 اضغط لعرض إحصائياتك</div>
+      <div style="margin-top: 4px; padding-top: 6px; border-top: 1px solid var(--border); font-size: 12px; color: var(--gold); font-weight: bold; font-family: 'Amiri', serif;">
+        المهام اليومية: <span id="dailyTasksCounter" style="font-size: 14px;">٠</span> / ٩
       </div>
     </div>
   </div>
+
 <div class="flame-companion-wrap" id="flameCompanionWrap">
   <div class="flame-stage" id="flameStage">
     <div class="flame-base"></div>
@@ -2928,26 +2980,34 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {  cu
     document.getElementById('mushafSlider').innerHTML = sliderHtml;
 
     // تشغيل نظام الـ Dots الطبيعي بتاعك
-    if (pageNums.length > 1) {
-      const dotsHtml = pageNums.map((_, i) =>
-        `<div class="page-dot ${i===0?'active':''}" id="dot_${i}"></div>`
+        
+    
+          // نظام شريط أرقام الصفحات التفاعلي للنص العثماني
+    if (pageNums.length > 0) {
+      const dotsHtml = pageNums.map((pageNum, i) =>
+        `<div class="page-dot ${i===0?'active':''}" id="dot_${i}" onclick="window.scrollToMushafIndex(${i})">${toAr(pageNum)}</div>`
       ).join('');
       document.getElementById('pageDots').innerHTML = dotsHtml;
 
       const slider = document.getElementById('mushafSlider');
-      slider.addEventListener('scroll', () => {
+      slider.onscroll = () => {
         const idx = Math.round(slider.scrollLeft / window.innerWidth);
         localStorage.setItem('last_page_index', idx);
-        const d = document.getElementById('dot_'+idx);
-        if(d) d.classList.add('active');
+        
         pageNums.forEach((_, j) => {
-          if(j !== idx) {
-            const od = document.getElementById('dot_'+j);
-            if(od) od.classList.remove('remove');
+          const d = document.getElementById('dot_' + j);
+          if (d) {
+            if (j === idx) {
+              d.classList.add('active');
+              d.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            } else {
+              d.classList.remove('active');
+            }
           }
         });
-      }, {passive:true});
+      };
     }
+
 
     if (targetPageNumber !== null) {
   setTimeout(() => {
@@ -4302,6 +4362,28 @@ if (targetPageNumber !== null) {
 
     // حقن العناصر مباشرة في الـ DOM
     slider.innerHTML = imgElements.join('');
+    // بناء نظام شريط أرقام الصفحات التفاعلي لوضع المصحف
+    if (pages.length > 0) {
+      const dotsHtml = pages.map((pageNum, i) =>
+        `<div class="page-dot ${i===targetPageIndex?'active':''}" id="dot_${i}" onclick="window.scrollToMushafIndex(${i})">${toAr(pageNum)}</div>`
+      ).join('');
+      document.getElementById('pageDots').innerHTML = dotsHtml;
+
+      slider.onscroll = () => {
+        const idx = Math.round(slider.scrollLeft / window.innerWidth);
+        pages.forEach((_, j) => {
+          const d = document.getElementById('dot_' + j);
+          if (d) {
+            if (j === idx) {
+              d.classList.add('active');
+              d.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            } else {
+              d.classList.remove('active');
+            }
+          }
+        });
+      };
+    }
 
     // 🔥 الأمان التام: ندمج التأخير البسيط مع التوجيه الذكي الذي يدعم اتجاه الـ RTL
     setTimeout(() => {
@@ -4328,6 +4410,21 @@ if (targetPageNumber !== null) {
 }
                                     
                       
+window.scrollToMushafIndex = function(index) {
+  const slider = document.getElementById('mushafSlider');
+  if (!slider) return;
+  
+  const isRTL = window.getComputedStyle(slider).direction === 'rtl';
+  if (isRTL) {
+    slider.scrollLeft = - (index * window.innerWidth);
+    // حل بديل للمتصفحات القديمة التي لا تدعم القيم السالبة في السكرول العكسي
+    if (slider.scrollLeft === 0 && index > 0) {
+      slider.scrollLeft = slider.scrollWidth - slider.clientWidth - (index * window.innerWidth);
+    }
+  } else {
+    slider.scrollLeft = index * window.innerWidth;
+  }
+};
 
 // دالة جلب خريطة الآيات ورسمها فوق الصفحة بالملي
 function loadPageAyatMapping(pageNo) {
@@ -4483,16 +4580,113 @@ document.addEventListener('DOMContentLoaded', () => {
   const savedBg = localStorage.getItem('home_bg_choice') || 'none';
   applyHomeBg(savedBg);
 });
+// دالة تجلب السجل التاريخي للإحصائيات (تخزين هيكلي مجمع)
+function getHistoryLog() {
+  return JSON.parse(localStorage.getItem('athr_history_log') || '{}');
+}
+
+// دالة تحديث الإحصائيات مع تصفير يومي ذكي بناءً على التاريخ الحالي
 function updateStats() {
   const savedName = localStorage.getItem('user_display_name');
+  const statTasbeh = document.getElementById('statTasbeh');
+  const statAzkar = document.getElementById('statAzkar');
+  
+  if (!statTasbeh || !statAzkar) return;
+
   if (!savedName) {
-    document.getElementById('statTasbeh').textContent = 0;
-    document.getElementById('statAzkar').textContent = 0;
-  } else {
-    document.getElementById('statTasbeh').textContent = tasbehCount;
-    document.getElementById('statAzkar').textContent = totalAzkar;
+    statTasbeh.textContent = toAr(0);
+    statAzkar.textContent = toAr(0);
+    return;
   }
+
+  const today = getTodayDateKey();
+  const log = getHistoryLog();
+
+  // جلب قيم اليوم الحالي فقط (لو مش موجودة تظهر 0 أوتوماتيكياً لأن اليوم جديد)
+  const todayTasbeh = log[today]?.tasbeh || 0;
+  const todayAzkar = log[today]?.azkar || 0;
+
+  statTasbeh.textContent = toAr(todayTasbeh);
+  statAzkar.textContent = toAr(todayAzkar);
 }
+
+// تعديل دالة زيادة التسبيح لتسجل بالتاريخ
+const oldIncrementTasbeh = incrementTasbeh;
+incrementTasbeh = function() {
+  const savedName = localStorage.getItem('user_display_name');
+  if (!savedName) { alert('⚠️ عذراً، يجب تسجيل الدخول أولاً لحفظ وإظهار إحصائياتك الصالحة!'); return; }
+
+  const today = getTodayDateKey();
+  let log = getHistoryLog();
+  if (!log[today]) log[today] = { tasbeh: 0, azkar: 0 };
+  
+  log[today].tasbeh++;
+  localStorage.setItem('athr_history_log', JSON.stringify(log));
+
+  // زيادة العدادات العامة لضمان ثبات بقية وظائف التطبيق
+  tasbehCount++;
+  tasbehTotal++;
+  localStorage.setItem('tasbehCount', tasbehCount);
+  localStorage.setItem('tasbehTotal', tasbehTotal);
+  
+  const el = document.getElementById('tasbehCount');
+  if(el) {
+    el.textContent = tasbehCount;
+    el.classList.add('bump');
+    setTimeout(()=>el.classList.remove('bump'),150);
+  }
+  const typeEl = document.getElementById('tasbehType');
+  if(typeEl) document.getElementById('tasbehLabel').textContent = typeEl.value;
+  const barEl = document.getElementById('tasbehBar');
+  if(barEl) barEl.style.width = Math.min((tasbehCount%33)/33*100,100)+'%';
+  const totalEl = document.getElementById('tasbehTotal');
+  if(totalEl) totalEl.textContent = 'الإجمالي الكلي: '+tasbehTotal+' تسبيحة';
+  
+  updateStats();
+  boostFlame(0.5);
+};
+
+// تعديل دالة زيادة الذكر لتسجل بالتاريخ
+const oldCountZekr = countZekr;
+countZekr = function(cat, i, max) {
+  const savedName = localStorage.getItem('user_display_name');
+  if (!savedName) { alert('⚠️ عذراً، يجب تسجيل الدخول أولاً لحفظ وإظهار إحصائيات الأذكار!'); return; }
+
+  const key = cat+'_'+i;
+  if((zekrCounts[key]||0) >= max) return;
+  
+  zekrCounts[key] = (zekrCounts[key]||0) + 1;
+  totalAzkar++;
+  
+  const today = getTodayDateKey();
+  let log = getHistoryLog();
+  if (!log[today]) log[today] = { tasbeh: 0, azkar: 0 };
+  log[today].azkar++;
+  localStorage.setItem('athr_history_log', JSON.stringify(log));
+
+  const cur = zekrCounts[key];
+  const pct = Math.min(cur/max*100,100);
+  const zcEl = document.getElementById('zc_'+cat+'_'+i);
+  if(zcEl) zcEl.textContent = cur;
+  const barEl = document.getElementById('bar_'+cat+'_'+i);
+  if(barEl) barEl.style.width = pct+'%';
+  
+  if(cur >= max) {
+    const doneEl = document.getElementById('done_'+cat+'_'+i);
+    if(doneEl) doneEl.style.display='inline-block';
+    if(zcEl) zcEl.style.color='#4caf50';
+    const cardEl = document.getElementById('zcard_'+cat+'_'+i);
+    if(cardEl) cardEl.classList.add('done-card');
+  }
+  
+  localStorage.setItem('zekrCounts', JSON.stringify(zekrCounts));
+  localStorage.setItem('totalAzkar', totalAzkar);
+
+  updateStats();
+  boostFlame(1);
+  checkCategoryCompleted(cat);
+};
+
 
  // كود استعادة التبويب الأخير تلقائياً بعد التحديث لثبات التطبيق
 // كود استعادة البيانات وتشغيل الدوال عند فتح التطبيق (محدث)
@@ -6338,6 +6532,67 @@ function spawnFlameParticle() {
   stage.appendChild(p);
   setTimeout(() => p.remove(), 2300);
 }
+  window.showHistoryStatsPopup = function(type) {
+  const label = type === 'tasbeh' ? 'التسبيح والتهليل' : 'الأذكار المأثورة';
+  
+  const modalHTML = `
+    <div id="historyStatsModal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); display:flex; align-items:center; justify-content:center; z-index:9999999; font-family:'Amiri', serif; direction:rtl; padding:20px;">
+      <div style="background:var(--bg2); border:1px solid var(--border); width:100%; max-width:380px; border-radius:20px; padding:24px; text-align:center; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+        <div style="font-size:38px; margin-bottom:10px;">📊</div>
+        <h3 style="color:var(--gold); margin:0 0 8px; font-size:18px;">سجل إحصائيات ${label}</h3>
+        <p style="color:var(--text2); font-size:12px; margin-bottom:16px;">حدد نطاق الأيام لحساب مجموع أثرك الطيّب فيه:</p>
+        
+        <!-- حقل إدخال مخصص لاختيار عدد الأيام بروقان -->
+        <div style="display:flex; justify-content:center; align-items:center; gap:10px; margin-bottom:20px;">
+          <span style="font-size:14px; color:var(--text);">آخر</span>
+          <input type="number" id="historyDaysInput" value="30" min="1" max="365" 
+                 style="width:70px; padding:8px; border-radius:10px; background:var(--bg); color:var(--text); border:1px solid var(--border); text-align:center; font-family:'Amiri',serif; font-size:16px; font-weight:bold; outline:none;"
+                 oninput="window.reCalculateHistorySum('${type}')">
+          <span style="font-size:14px; color:var(--text);">يوم سابق</span>
+        </div>
+
+        <!-- وعاء استقبال النتيجة المحسوبة -->
+        <div id="historyResultBox" style="background:var(--card); border:1px solid var(--border); padding:16px; border-radius:14px; margin-bottom:20px;">
+          <!-- سيتم ضخ الإحصائية هنا تلقائياً -->
+        </div>
+
+        <button onclick="document.getElementById('historyStatsModal').remove()" style="background:var(--gold); color:#111; border:none; padding:10px 30px; border-radius:20px; font-weight:700; cursor:pointer; font-family:'Amiri',serif; width:100%;">إغلاق النافذة</button>
+      </div>
+    </div>`;
+    
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+  window.reCalculateHistorySum(type); // الحساب الفوري لأول مرة بناءً على الـ 30 يوم الافتراضية
+};
+
+// دالة الحساب الحركي السريع للنطاق الزمني المُختار
+window.reCalculateHistorySum = function(type) {
+  const input = document.getElementById('historyDaysInput');
+  const resultBox = document.getElementById('historyResultBox');
+  if (!input || !resultBox) return;
+
+  const daysCount = parseInt(input.value) || 30;
+  const log = getHistoryLog();
+  let totalSum = 0;
+
+  const now = new Date();
+  // الالتفاف حول الأيام وحساب المجموع العكسي بدقة بالملي
+  for (let i = 0; i < daysCount; i++) {
+    const d = new Date();
+    d.setDate(now.getDate() - i);
+    const dateKey = d.toLocaleDateString('en-CA'); // yyyy-mm-dd الثابت للتطبيق
+    
+    if (log[dateKey]) {
+      totalSum += log[dateKey][type] || 0;
+    }
+  }
+
+  const label = type === 'tasbeh' ? 'تسبيحة' : 'ذكر';
+  resultBox.innerHTML = `
+    <div style="font-size: 13px; color: var(--text2); margin-bottom: 6px;">مجموع عباداتك في آخر (${toAr(daysCount)}) يوم:</div>
+    <div style="font-size: 28px; font-weight: bold; color: var(--gold); font-family:'Amiri', serif;">${toAr(totalSum)} <span style="font-size:16px; color:var(--text); font-weight:normal;">${label}</span></div>
+  `;
+};
+
 </script>
  <script src="asma2.js"></script>
  <script src="khatma.js"></script>
