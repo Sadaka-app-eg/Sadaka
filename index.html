@@ -996,14 +996,15 @@ body.in-subpage .back-to-home-btn {
  <div class="surah-screen" id="surahScreen">
  <button class="toggle-controls-btn" onclick="toggleControls()">☰</button>
  <button class="bookmark-jump-btn" onclick="jumpToBookmark()" title="اذهب لعلامة الوقف">🔖</button>
-  <div class="surah-header" style="position: relative;">
+    <div class="surah-header" style="position: relative;">
   <button class="back-btn" onclick="closeSurah()">→</button>
   
-  <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 2px;">
-    <h2 id="surahScreenTitle" style="margin: 0; font-size: 15px;">السورة</h2>
-    
-    
+  <div style="flex: 1; display: flex; align-items: center; justify-content: space-between; padding: 0 10px;">
+    <button class="icon-btn" onclick="window.navSurah(-1)" style="font-size: 16px; border-radius: 8px; width: 30px; height: 30px;">◀</button>
+    <h2 id="surahScreenTitle" style="margin: 0; font-size: 16px; text-align: center;">السورة</h2>
+    <button class="icon-btn" onclick="window.navSurah(1)" style="font-size: 16px; border-radius: 8px; width: 30px; height: 30px;">▶</button>
   </div>
+
 
   <button class="icon-btn" onclick="toggleFavSurah()" id="favSurahBtn">🤍</button>
   <button class="icon-btn" id="nightModeBtn" onclick="toggleMushafNight()">🌙</button>
@@ -1816,13 +1817,18 @@ body.in-subpage .back-to-home-btn {
 <!-- TAFSEER MODAL -->
 <div class="modal-overlay" id="tafseerModal">
   <div class="modal">
-    <h3 id="modalTitle">📖 التفسير الميسر</h3>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+      <button class="icon-btn" onclick="window.navTafseer(-1)" style="font-size: 14px; border-radius: 8px; width: 30px; height: 30px;" title="الآية السابقة">◀</button>
+      <h3 id="modalTitle" style="margin: 0; font-size: 15px;">📖 التفسير الميسر</h3>
+      <button class="icon-btn" onclick="window.navTafseer(1)" style="font-size: 14px; border-radius: 8px; width: 30px; height: 30px;" title="الآية التالية">▶</button>
+    </div>
     <div class="modal-ayah" id="modalAyahText"></div>
     <p id="modalText"></p>
     <div class="modal-source" id="modalSource"></div>
     <button class="modal-close" onclick="closeModals()">إغلاق</button>
   </div>
 </div>
+
 
 <div id="share-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; align-items:center; justify-content:center;">
   <div style="background:#1a1a1a; padding:25px; border-radius:20px; text-align:center; width:80%; border:2px solid #c5a059;">
@@ -2980,6 +2986,20 @@ function closeSurah() {
   localStorage.setItem('surah_screen_open', '0'); // ← ضيف السطر ده
   stopAudio();
 }
+  window.navSurah = function(direction) {
+  if (!currentSurah) return;
+  let nextNum = currentSurah.n + direction;
+  if (nextNum < 1) nextNum = 114; // يلف لآخر سورة لو رجع من الفاتحة
+  if (nextNum > 114) nextNum = 1; // يلف للفاتحة لو تخطى الناس
+  
+  if (mushafMode === 'qcf') {
+    openSurah(nextNum);
+    setTimeout(() => { renderQcfPages(0); }, 300);
+  } else {
+    openSurah(nextNum);
+  }
+};
+
 function toggleFavSurah() {
   if(!currentSurah) return;
   const key = 's'+currentSurah.n;
@@ -3047,13 +3067,55 @@ function actionTafseer() {
   closeActionMenu();
   const a = currentAyahsData[activeAyahIndex];
   document.getElementById('modalTitle').textContent = `📝 تفسير الآية ${toAr(a.numberInSurah)} — سورة ${currentSurah.name}`;
-  document.getElementById('modalAyahText').textContent = a.text;
+  
+  // تنظيف البسملة من الآية الأولى بروقان في التفسير
+  let cleanText = a.text;
+  if (currentSurah.n !== 1 && currentSurah.n !== 9 && a.numberInSurah === 1) {
+    cleanText = cleanText.replace(/^بِسْمِ[\s\S]+?رَّحِيمِ\s*/, '');
+    cleanText = cleanText.replace(/^بِسْمِ[\s\S]+?الرَّحِيمِ\s*/, '');
+  }
+  
+  document.getElementById('modalAyahText').textContent = cleanText;
   document.getElementById('modalText').textContent = a.tafseer;
   document.getElementById('modalSource').textContent = '📚 المصدر: التفسير الميسر (مجمع الملك فهد)';
   const modal = document.getElementById('tafseerModal');
   modal.style.zIndex = '1000003';
   modal.classList.add('show');
 }
+window.navTafseer = function(direction) {
+  // التأكد إن فيه آية مفتوحة حالياً جوه مصفوفة السورة
+  if (activeAyahIndex === null || !currentAyahsData.length) return;
+  
+  let nextIndex = activeAyahIndex + direction;
+  
+  // التحقق من حدود السورة (متطلعش برة أول أو آخر آية)
+  if (nextIndex < 0) {
+    alert("📢 هذه هي الآية الأولى في السورة!");
+    return;
+  }
+  if (nextIndex >= currentAyahsData.length) {
+    alert("📢 هذه هي الآية الأخيرة في السورة!");
+    return;
+  }
+  
+  // تحديث المؤشر النشط وعرض التفسير الجديد فوراً
+  activeAyahIndex = nextIndex;
+  
+  const a = currentAyahsData[activeAyahIndex];
+  document.getElementById('modalTitle').textContent = `📝 تفسير الآية ${toAr(a.numberInSurah)} — سورة ${currentSurah.name}`;
+  
+  // تنظيف البسملة لو نقلنا ووصلنا للآية الأولى
+  let cleanText = a.text;
+  if (currentSurah.n !== 1 && currentSurah.n !== 9 && a.numberInSurah === 1) {
+    cleanText = cleanText.replace(/^بِسْمِ[\s\S]+?رَّحِيمِ\s*/, '');
+    cleanText = cleanText.replace(/^بِسْمِ[\s\S]+?الرَّحِيمِ\s*/, '');
+  }
+  
+  document.getElementById('modalAyahText').textContent = cleanText;
+  document.getElementById('modalText').textContent = a.tafseer;
+};
+
+  
 // متغيرات عالمية للتحكم في وضع التحديد الذكي
 window.isPickingEndAyah = false;
 window.firstSelectedAyahIndex = null;
