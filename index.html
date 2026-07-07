@@ -2623,11 +2623,18 @@ function toggleMenu() {
 
 // دالة التنقل بين الصفحات مع دعم ملء الشاشة الكاملة والعودة للرئيسية
 function showPage(id, el) {
-  // إغلاق المنيو الجانبي أوتوماتيكياً فور اختيار أي تبويب
+    // إغلاق المنيو الجانبي وإخفاء طبقة التعتيم تماماً لفك تجميد الشاشة
   const menu = document.getElementById('tabsMenu');
   const overlay = document.getElementById('menuOverlay');
   if(menu) menu.classList.remove('open');
-  if(overlay) overlay.classList.remove('show');
+  if(overlay) {
+    overlay.classList.remove('show');
+    overlay.style.display = 'none'; // أمان إضافي لإلغاء وجود الطبقة تماماً من الشاشة
+  }
+  // إرجاع السكرول الطبيعي للموبايل وفك الـ fixed
+  document.body.style.overflow = '';
+  document.body.style.position = '';
+  document.body.style.width = '';
 
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
