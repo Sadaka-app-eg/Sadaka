@@ -888,8 +888,8 @@ body.in-subpage .back-to-home-btn {
     </div>
 
         <!-- 2. زر المؤذن (في المنتصف بالظبط بروقان) -->
-    <div onclick="showPage('azanSettingsPage', null)" style="cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; max-width: 85px;">
-      <div style="background: #ffffff; width: 100%; height: 65px; border-radius: 18px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(0,0,0,0.1); border: 1px solid var(--border);">
+    <div onclick="showPage('azanSettingsPage', null); if(typeof renderAdhanCardsUI === 'function') renderAdhanCardsUI();" style="cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; max-width: 85px;">
+   <div style="background: #ffffff; width: 100%; height: 65px; border-radius: 18px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(0,0,0,0.1); border: 1px solid var(--border);">
         <span style="font-size: 30px;">📢</span>
       </div>
       <span style="font-size: 13px; color: var(--text); font-family: 'Amiri', serif; font-weight: bold; white-space: nowrap;">الأذان</span>
