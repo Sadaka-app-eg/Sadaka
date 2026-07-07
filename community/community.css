@@ -1,0 +1,57 @@
+/* تنسيقات مجتمع أثر */
+.community-header {
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  padding: 15px;
+  text-align: center;
+}
+
+.community-title {
+  font-family: 'Amiri', serif;
+  color: var(--gold);
+  margin-bottom: 12px;
+  font-size: 20px;
+}
+
+.community-tabs {
+  display: flex;
+  background: #000;
+  border-radius: 25px;
+  padding: 4px;
+  gap: 5px;
+}
+
+.comm-tab-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text2);
+  padding: 10px;
+  border-radius: 20px;
+  font-family: 'Amiri', serif;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.2s ease-in-out;
+}
+
+.comm-tab-btn.active {
+  background: var(--gold);
+  color: #111;
+}
+
+.community-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 15px;
+  background: #0a0a0a;
+}
+
+/* ستايل كروت المنشورات والشات */
+.comm-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 12px;
+}
