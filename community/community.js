@@ -1,5 +1,5 @@
-// =========================================================
-// 🚀 ربط مجتمع أثر بسيرفر رفع ميديا وتأثيرات تفاعلية 2026
+ // =========================================================
+// 🚀 ربط مجتمع أثر بسيرفر رفع ميديا وتأثيرات تفاعلية ومطولة 2026
 // =========================================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore, collection, addDoc, doc, updateDoc, arrayUnion, arrayRemove, onSnapshot, query, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -30,13 +30,20 @@ let currentSharePostText = "";
 let currentSharePostAuthor = "";
 let selectedMediaFile = null; 
 
-// حقن ستايل النقطة الخضراء المتحركة ديناميكياً في الصفحة لجمال الشات
+let pressTimer;
+window.isLongPress = false;
+
+// حقن ستايل الأنميشن والنقطة الخضراء ديناميكياً
 const style = document.createElement('style');
 style.innerHTML = `
   @keyframes pulse {
     0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); }
     70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(76, 175, 80, 0); }
     100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
   }
   .online-dot {
     width: 7px; height: 7px; background: #4CAF50; border-radius: 50%;
@@ -84,7 +91,7 @@ window.renderSetupScreen = function() {
   const contentArea = document.getElementById('communityContent');
   contentArea.innerHTML = `
     <div class="comm-card" style="text-align: center; padding: 25px 15px; font-family: 'Amiri', serif; direction: rtl; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid rgba(212,175,55,0.2);">
-      <h3 style="color: var(--gold); margin-bottom: 12px; font-size: 24px; letter-spacing: 1px;">مرحباً بك في مجتمع أثر ✨</h3>
+      <h3 style="color: var(--gold); margin-bottom: 12px; font-size: 24px;">مرحباً بك في مجتمع أثر ✨</h3>
       <p style="color: var(--text2); font-size: 13px; margin-bottom: 20px; line-height: 1.6;">يرجى تدوين الاسم وتحديد المجلس (يتم الفصل التام والكامل بين الرجال والنساء صوناً للخصوصية)</p>
       
       <div style="margin-bottom: 18px; text-align: right;">
@@ -153,7 +160,6 @@ window.processCommunitySubmit = function() {
   localStorage.setItem('athr_user_name', nameInp.value.trim());
   localStorage.setItem('athr_user_gender', window.selectedSetupGender);
   
-  // تفعيل تأثير النجوم الترحيبي الفخم عند نجاح التسجيل
   setTimeout(() => { window.triggerSparksEffect(); }, 100);
   window.renderCommunityBody();
 };
@@ -305,8 +311,6 @@ window.sendPostToFirebase = async function() {
 
     textInput.value = "";
     window.clearSelectedMedia();
-    
-    // 🌟 تشغيل ميزة التناثر النوراني عند نجاح النشر
     window.triggerSparksEffect();
 
   } catch (e) {
@@ -351,9 +355,30 @@ window.listenToPosts = function(gender) {
             ${mediaHtml}
             
             <div class="post-actions" style="display:flex; gap:10px; margin-top:10px; border-bottom:1px dashed var(--border); padding-bottom:8px;">
-              <button onclick="window.togglePostLike(event, '${docId}', ${hasLiked})" class="action-item-btn ${hasLiked ? 'like-btn-heart' : ''}">
-                ${hasLiked ? '❤️' : '🤍'} تفاعل (${likesArr.length})
-              </button>
+              
+              <!-- نظام التفاعلات المطور يدعم الضغط المطول والعادي -->
+              <div style="position: relative; display: inline-block;">
+                <button 
+                  onmousedown="window.startReactionPress(event, '${docId}')" 
+                  onmouseup="window.endReactionPress(event, '${docId}', ${hasLiked})" 
+                  ontouchstart="window.startReactionPress(event, '${docId}')" 
+                  ontouchend="window.endReactionPress(event, '${docId}', ${hasLiked})"
+                  onclick="if(!window.isLongPress) window.togglePostLike(event, '${docId}', ${hasLiked})"
+                  class="action-item-btn"
+                >
+                  ✨ تفاعل (${likesArr.length})
+                </button>
+                
+                <!-- 🌟 قائمة التفاعلات السريعة العائمة -->
+                <div id="reactionMenu-${docId}" style="display:none; position: absolute; bottom: 40px; right: 0; background: #111; border: 1px solid var(--gold); border-radius: 30px; padding: 5px 10px; gap: 8px; z-index: 99999; box-shadow: 0 4px 15px rgba(0,0,0,0.5); animation: fadeIn 0.2s;">
+                  <span onclick="window.selectCustomReaction(event, '${docId}', '👍')" style="cursor:pointer; font-size:20px; transition:0.2s;" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">👍</span>
+                  <span onclick="window.selectCustomReaction(event, '${docId}', '❤️')" style="cursor:pointer; font-size:20px; transition:0.2s;" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">❤️</span>
+                  <span onclick="window.selectCustomReaction(event, '${docId}', '🤝')" style="cursor:pointer; font-size:20px; transition:0.2s;" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">🤝</span>
+                  <span onclick="window.selectCustomReaction(event, '${docId}', '😮')" style="cursor:pointer; font-size:20px; transition:0.2s;" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">😮</span>
+                  <span onclick="window.selectCustomReaction(event, '${docId}', '😢')" style="cursor:pointer; font-size:20px; transition:0.2s;" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">😢</span>
+                  <span onclick="window.selectCustomReaction(event, '${docId}', '😡')" style="cursor:pointer; font-size:20px; transition:0.2s;" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">😡</span>
+                </div>
+              </div>
               
               <button onclick="window.toggleCommentsSection('${docId}')" class="action-item-btn">
                 💬 التعليقات
@@ -364,6 +389,7 @@ window.listenToPosts = function(gender) {
               </button>
             </div>
 
+            <!-- 💬 صندوق التعليقات المخفي -->
             <div id="commentsWrapper-${docId}" style="display:none; padding-top:10px;">
               <div id="commentsList-${docId}" style="max-height:200px; overflow-y:auto; display:flex; flex-direction:column; gap:6px; margin-bottom:8px;"></div>
               
@@ -380,13 +406,12 @@ window.listenToPosts = function(gender) {
   });
 };
 
-window.togglePostLike = async function(event, docId, hasLiked) {
+window.togglePostLike = async function(event, docId, hasLiked, emoji = '❤️') {
   const myName = localStorage.getItem('athr_user_name');
   const postRef = doc(db, "posts", docId);
   
-  // ❤️ تشغيل تأثير لايك القلوب الطائرة فورا عند الضغط إذا لم يكن متفاعلاً سابقاً
   if (!hasLiked && event) {
-    window.createFloatingEmoji(event, '❤️');
+    window.createFloatingEmoji(event, emoji);
   }
 
   try {
@@ -580,10 +605,33 @@ window.listenToComments = function(docId) {
 };
 
 // =========================================================
-// ✨ 5️⃣ دوال الحركات الجمالية والتأثيرات (FX Functions)
+// ✨ 5️⃣ نظام الضغط المطول وإدارة تفاعلات الإيموجي المتعددة
 // =========================================================
+window.startReactionPress = function(event, docId) {
+  window.isLongPress = false;
+  pressTimer = setTimeout(() => {
+    window.isLongPress = true;
+    const menu = document.getElementById(`reactionMenu-${docId}`);
+    if (menu) menu.style.display = 'flex';
+  }, 500); 
+};
 
-// تأثير تناثر النجوم النورانية ✨ عند نشر الفائدة بنجاح
+window.endReactionPress = function(event, docId, hasLiked) {
+  clearTimeout(pressTimer);
+};
+
+window.selectCustomReaction = async function(event, docId, emoji) {
+  event.stopPropagation();
+  const menu = document.getElementById(`reactionMenu-${docId}`);
+  if (menu) menu.style.display = 'none';
+  
+  window.createFloatingEmoji(event, emoji);
+  window.togglePostLike(null, docId, false, emoji);
+};
+
+// =========================================================
+// ✨ 6️⃣ دوال الحركات الجمالية والتأثيرات (FX Functions)
+// =========================================================
 window.triggerSparksEffect = function() {
   for (let i = 0; i < 25; i++) {
     const spark = document.createElement('div');
@@ -608,17 +656,24 @@ window.triggerSparksEffect = function() {
   }
 };
 
-// تأثير القلب الأحمر الطائر ❤️ عند التفاعل مع الفوائد والبوستات
 window.createFloatingEmoji = function(event, emoji = '❤️') {
-  if (!event || !event.target) return;
-  const bounding = event.target.getBoundingClientRect();
-  const element = document.createElement('div');
+  let leftPos = window.innerWidth / 2;
+  let topPos = window.innerHeight / 2;
+
+  if (event && event.target) {
+    const bounding = event.target.getBoundingClientRect();
+    if(bounding.width > 0) {
+      leftPos = bounding.left + bounding.width / 2 - 10;
+      topPos = bounding.top;
+    }
+  }
   
+  const element = document.createElement('div');
   element.innerHTML = emoji;
   element.style.position = 'fixed';
-  element.style.left = (bounding.left + bounding.width / 2 - 10) + 'px';
-  element.style.top = bounding.top + 'px';
-  element.style.fontSize = '22px';
+  element.style.left = leftPos + 'px';
+  element.style.top = topPos + 'px';
+  element.style.fontSize = '24px';
   element.style.zIndex = '99999';
   element.style.pointerEvents = 'none';
   element.style.transition = 'all 1.2s ease-in-out';
@@ -632,5 +687,11 @@ window.createFloatingEmoji = function(event, emoji = '❤️') {
 
   setTimeout(() => element.remove(), 1200);
 };
+
+// إخفاء قوائم التفاعلات تلقائياً لو المستخدم داس في أي حتة فاضية في الشاشة
+document.addEventListener('click', function() {
+  const menus = document.querySelectorAll('[id^="reactionMenu-"]');
+  menus.forEach(m => m.style.display = 'none');
+});
 
 setTimeout(() => { window.checkCommunityUser(); }, 200);
