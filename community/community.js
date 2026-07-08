@@ -830,9 +830,14 @@ window.listenToInbox = function(myName) {
     });
 
     listArea.innerHTML = html || `<div class="comm-card"><p style="color:var(--text2); text-align:center; font-size:13px;">لا توجد محادثات بعد. ابدأ محادثة من بروفايل أي شخص ✨</p></div>`;
+  }, (error) => {
+    console.error("Inbox error:", error);
+    const listArea = document.getElementById('inboxList');
+    if (listArea) {
+      listArea.innerHTML = `<div class="comm-card"><p style="color:#ff6b6b; text-align:center; font-size:12px; direction:ltr;">${error.code}: ${error.message}</p></div>`;
+    }
   });
-};
-
+};  
 window.openConversationFromInbox = function(targetUser, roomId) {
   window.activePrivateRoomId = roomId;
   window.currentPrivateTargetUser = targetUser;
