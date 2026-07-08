@@ -16,7 +16,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const IMGBB_API_KEY = "69ba2eb5653068e3a24c568ec75d1f87";
+const IMGBB_API_KEY = "3b0e9c0cb3ddf5475324fa1a126a4e3e";
 const WOMEN_SECRET_CODE = "Athr2026"; 
 
 window.currentCommunityTab = 'feed'; 
