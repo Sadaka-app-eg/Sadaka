@@ -2,8 +2,7 @@
 // 🚀 شبكة مجتمع أثر الاجتماعية الإسلامية المتكاملة - إصدار 2026 المطور (نسخة مصححة الميديا)
 // =========================================================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, addDoc, doc, updateDoc, getDoc, setDoc, arrayUnion, arrayRemove, onSnapshot, query, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
- 
+import { getFirestore, collection, addDoc, doc, updateDoc, getDoc, setDoc, arrayUnion, arrayRemove, onSnapshot, query, where, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"; 
 const firebaseConfig = {
   apiKey: "AIzaSyCuLaDRVQ9SWSO7zs2WL3D-ANj-wHeoYWg",
   authDomain: "sadaka-app-6637e.firebaseapp.com",
@@ -723,12 +722,25 @@ window.startPrivateChatWithUser = function(targetUser) {
   const roomId = [myName, targetUser].sort().join("___");
   window.activePrivateRoomId = roomId;
   window.currentPrivateTargetUser = targetUser;
+  window.markConversationSeen(roomId, myName);
 
   window.currentCommunityTab = 'private';
   window.renderCommunityBody();
 };
 
+window.markConversationSeen = async function(roomId, myName) {
+  try {
+    await setDoc(doc(db, "chat_rooms", roomId), { lastSeenBy: arrayUnion(myName) }, { merge: true });
+  } catch(e) { console.error(e); }
+};  
+  
+
 window.renderPrivateChatDashboard = function() {
+  if (!window.activePrivateRoomId) {
+    window.renderInboxList();
+    return;
+  }
+
   const contentArea = document.getElementById('communityContent');
   const target = window.currentPrivateTargetUser || "محادثة خاصة";
   
@@ -743,7 +755,7 @@ window.renderPrivateChatDashboard = function() {
     <div style="display:flex; flex-direction:column; height: 100%; min-height: 420px; justify-content:space-between; gap:10px; direction:rtl;">
       <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(212,175,55,0.05); padding:10px; border-radius:8px; border:1px solid var(--border);">
         <strong style="color:var(--gold);">💬 المحادثة الخاصة مع: ${target}</strong>
-        <button onclick="window.switchCommunityTab('feed')" style="background:transparent; color:var(--text2); border:none; cursor:pointer; font-size:12px; text-decoration:underline;">✕ خروج</button>
+        <button onclick="window.activePrivateRoomId=null; window.currentPrivateTargetUser=null; window.renderPrivateChatDashboard();" style="background:transparent; color:var(--text2); border:none; cursor:pointer; font-size:12px; text-decoration:underline;">‹ رجوع للصندوق</button>
       </div>
 
       <div id="privateChatMessages" style="flex:1; overflow-y:auto; padding:15px; background: rgba(0,0,0,0.4); border-radius: 12px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; max-height: 280px;">
@@ -763,6 +775,69 @@ window.renderPrivateChatDashboard = function() {
     </div>
   `;
   window.listenToPrivateMessages();
+};
+
+window.renderInboxList = function() {
+  const contentArea = document.getElementById('communityContent');
+  const myName = localStorage.getItem('athr_user_name');
+
+  contentArea.innerHTML = `
+    <div class="community-tabs" style="margin-bottom: 15px;">
+      <button id="tabFeedBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('feed')">📝 ساحة الأثر</button>
+      <button id="tabChatBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('chat')">💬 مجلس الذكر</button>
+      <button id="tabFajrBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('fajr')">🕌 استيقاظ الفجر</button>
+      <button id="tabPrivateBtn" class="comm-tab-btn active" onclick="window.switchCommunityTab('private')">📥 الرسائل الخاصة</button>
+    </div>
+
+    <div style="color: var(--gold); font-family: 'Amiri', serif; margin-bottom: 15px; font-size: 14px; text-align: right; font-weight: bold;">📥 صندوق رسائلك الخاصة</div>
+
+    <div id="inboxList" style="display:flex; flex-direction:column; gap:8px;">
+      <p style="color:var(--text2); text-align:center;">جاري تحميل المحادثات... ✨</p>
+    </div>
+  `;
+
+  window.listenToInbox(myName);
+};
+
+window.listenToInbox = function(myName) {
+  if (window.unsubscribeInbox) window.unsubscribeInbox();
+  if (!myName) return;
+
+  const q = query(collection(db, "chat_rooms"), where("participants", "array-contains", myName), orderBy("updatedAt", "desc"), limit(50));
+
+  window.unsubscribeInbox = onSnapshot(q, (snapshot) => {
+    const listArea = document.getElementById('inboxList');
+    if (!listArea) return;
+
+    let html = "";
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      const otherUser = (data.participants || []).find(p => p !== myName);
+      if (!otherUser) return;
+
+      const isUnread = data.lastSender !== myName && !(data.lastSeenBy || []).includes(myName);
+
+      html += `
+        <div class="comm-card" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer; padding:12px 15px;" onclick="window.openConversationFromInbox('${otherUser}', '${docSnap.id}')">
+          <div style="text-align:right;">
+            <strong style="color:${isUnread ? 'var(--gold)' : 'var(--text)'}; font-size:14px;">${otherUser} ${isUnread ? '🔴' : ''}</strong>
+            <p style="color:var(--text2); font-size:12px; margin:4px 0 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:220px;">
+              ${data.lastSender === myName ? 'أنت: ' : ''}${data.lastMessage || '📷 صورة'}
+            </p>
+          </div>
+          <span style="color:var(--text2); font-size:11px;">${data.updatedAt ? window.formatPostTime(data.updatedAt) : ''}</span>
+        </div>`;
+    });
+
+    listArea.innerHTML = html || `<div class="comm-card"><p style="color:var(--text2); text-align:center; font-size:13px;">لا توجد محادثات بعد. ابدأ محادثة من بروفايل أي شخص ✨</p></div>`;
+  });
+};
+
+window.openConversationFromInbox = function(targetUser, roomId) {
+  window.activePrivateRoomId = roomId;
+  window.currentPrivateTargetUser = targetUser;
+  window.markConversationSeen(roomId, localStorage.getItem('athr_user_name'));
+  window.renderPrivateChatDashboard();
 };
 
 window.handlePrivateChatMediaSelection = function(input) {
@@ -799,12 +874,20 @@ window.sendPrivateMessage = async function() {
       sender: myName,
       text: text,
       mediaUrl: imgUrl,
-      mediaType: type, // تم توحيد مسمى نوع الحقل ليتطابق مع مخرجات القراءة
+      mediaType: type,
       createdAt: serverTimestamp()
     });
 
+    await setDoc(doc(db, "chat_rooms", window.activePrivateRoomId), {
+      participants: [myName, window.currentPrivateTargetUser],
+      lastMessage: text || "📷 صورة",
+      lastSender: myName,
+      lastSeenBy: [myName],
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+
     input.value = "";
-    selectedChatPrivateFile = null;
+   selectedChatPrivateFile = null;
     document.getElementById('privateMediaPreviewBox').innerHTML = "";
   } catch(e) { console.error(e); } finally { sendBtn.disabled = false; }
 };
@@ -844,6 +927,10 @@ window.listenToPrivateMessages = function() {
 // 🕌 7️⃣ حملة الفجر وإدارة التأثيرات الجمالية والمطولة
 // =========================================================
 window.switchCommunityTab = function(tab) {
+  if (tab === 'private') {
+    window.activePrivateRoomId = null;
+    window.currentPrivateTargetUser = null;
+  }
   window.currentCommunityTab = tab;
   window.checkCommunityUser();
 };
