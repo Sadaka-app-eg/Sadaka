@@ -544,7 +544,7 @@ window.listenToPosts = function(gender) {
 
         let mediaHtml = "";
         if (data.mediaUrl && data.mediaType === 'image') {
-          mediaHtml = `<img src="${data.mediaUrl}" style="width:100%; border-radius:8px; margin-top:10px; max-height:300px; object-fit:contain; background:#000;" />`;
+          mediaHtml = `<img src="${data.mediaUrl}" onclick="window.openImageLightbox('${data.mediaUrl}')" style="width:100%; border-radius:8px; margin-top:10px; max-height:300px; object-fit:contain; background:#000; cursor:pointer;" />`;
         }
 
         html += `
@@ -923,7 +923,7 @@ window.listenToPrivateMessages = function() {
       
       let mediaHtml = "";
       if(data.mediaUrl && data.mediaType === 'image') {
-        mediaHtml = `<img src="${data.mediaUrl}" style="max-width:100%; border-radius:8px; margin-top:5px; max-height:150px; display:block;" />`;
+        mediaHtml = `<img src="${data.mediaUrl}" onclick="window.openImageLightbox('${data.mediaUrl}')" style="max-width:100%; border-radius:8px; margin-top:5px; max-height:150px; display:block; cursor:pointer;" />`;
       }
 
       html += `
@@ -1055,4 +1055,17 @@ window.formatPostTime = function(timestamp) {
   if (diffInHours < 24) return `منذ ${diffInHours} ساعة`;
   
   return date.toLocaleDateString('ar-EG', { day: 'numeric', month: 'short' });
+};
+window.openImageLightbox = function(imageUrl) {
+  let lightbox = document.getElementById('athrImageLightbox');
+  if(!lightbox) {
+    lightbox = document.createElement('div');
+    lightbox.id = 'athrImageLightbox';
+    lightbox.style.cssText = "position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.92); display:flex; align-items:center; justify-content:center; z-index:999999999; padding:15px;";
+    lightbox.onclick = function() { lightbox.style.display = 'none'; };
+    document.body.appendChild(lightbox);
+  }
+  lightbox.innerHTML = `<img src="${imageUrl}" style="max-width:100%; max-height:100%; border-radius:8px; object-fit:contain;" onclick="event.stopPropagation();" />
+    <button onclick="document.getElementById('athrImageLightbox').style.display='none'" style="position:fixed; top:15px; left:15px; background:rgba(255,255,255,0.15); color:white; border:none; width:36px; height:36px; border-radius:50%; font-size:18px; cursor:pointer;">✕</button>`;
+  lightbox.style.display = 'flex';
 };
