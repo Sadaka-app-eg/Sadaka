@@ -962,3 +962,23 @@ document.addEventListener('click', function() {
 });
 
 setTimeout(() => { window.checkCommunityUser(); }, 300);
+// دالة ذكية لتنسيق وقت المنشورات حياً ومنع كراش الساحة
+window.formatPostTime = function(timestamp) {
+  if (!timestamp) return "منذ قليل ⏳";
+  
+  // تحويل الفايرباز تيمستامب لتاريخ جافا سكريبت طبيعي
+  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+  const now = new Date();
+  const diffInSeconds = Math.floor((now - date) / 1000);
+  
+  if (diffInSeconds < 60) return "الآن ✨";
+  
+  const diffInMinutes = Math.floor(diffInSeconds / 60);
+  if (diffInMinutes < 60) return `منذ ${diffInMinutes} دقيقة`;
+  
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) return `منذ ${diffInHours} ساعة`;
+  
+  // لو بقاله أكتر من يوم يعرض التاريخ العادي بروقان
+  return date.toLocaleDateString('ar-EG', { day: 'numeric', month: 'short' });
+};
