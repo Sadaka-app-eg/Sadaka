@@ -532,14 +532,14 @@ window.listenToPosts = function(gender) {
   const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(50));
   const myName = localStorage.getItem('athr_user_name');
   
-  unsubscribePosts = onSnapshot(q, async (snapshot) => {
+  unsubscribePosts = onSnapshot(q, (snapshot) => {
     const listArea = document.getElementById('postsList');
     if (!listArea) return;
 
     let html = "";
     
-    // استخدام حلقة فور عادية لضمان قراءة البروفايلات بالترتيب
-    for (const docSnap of snapshot.docs) {
+    // استخدام forEach السريع غير الحاضر لمنع تعليق أو تجميد الواجهة (No await block)
+    snapshot.docs.forEach((docSnap) => {
       const data = docSnap.data();
       const docId = docSnap.id;
       
@@ -547,19 +547,9 @@ window.listenToPosts = function(gender) {
         const likesArr = data.likes || [];
         const hasLiked = likesArr.includes(myName);
         
-        // 🔍 جلب بيانات كاتب البوست حياً لمعرفة نقاطه وصورته الشخصية
+        // البيانات الافتراضية للبوست حتى تكتمل الخلفية
         let userAvatar = "https://www.gstatic.com/firebasejs/ui/2.0.0/images/temporary-avatar.png";
         let nameClass = "regular-user-text";
-        
-        try {
-          const userDoc = await getDoc(doc(db, "users_profiles", data.name));
-          if (userDoc.exists()) {
-            const uData = userDoc.data();
-            userAvatar = uData.avatar || userAvatar;
-            const styleInfo = window.getUserNameClassAndStyle(uData.points);
-            nameClass = styleInfo.class;
-          }
-        } catch(e) { console.error("Profile fetch error:", e); }
 
         let mediaHtml = "";
         if (data.mediaUrl && data.mediaType === 'image') {
@@ -571,8 +561,8 @@ window.listenToPosts = function(gender) {
             <div style="display:flex; justify-content:space-between; margin-bottom:10px; align-items:center;">
               
               <div style="display:flex; align-items:center; gap:8px; cursor:pointer;" onclick="window.openUserProfileCard('${data.name}')">
-                <img src="${userAvatar}" style="width:35px; height:35px; border-radius:50%; border:1px solid var(--gold); object-fit:cover;" />
-                <strong class="${nameClass}" style="font-size:14px; text-decoration:underline;">✨ ${data.name}</strong>
+                <img src="${userAvatar}" id="avatar-post-${docId}" style="width:35px; height:35px; border-radius:50%; border:1px solid var(--gold); object-fit:cover;" />
+                <strong class="${nameClass}" id="name-post-${docId}" style="font-size:14px; text-decoration:underline;">✨ ${data.name}</strong>
               </div>
               
               <small style="color:var(--text2); font-size:11px;">${window.formatPostTime(data.createdAt)}</small>
@@ -610,16 +600,35 @@ window.listenToPosts = function(gender) {
               <div id="commentsList-${docId}" style="max-height:200px; overflow-y:auto; display:flex; flex-direction:column; gap:6px; margin-bottom:8px;"></div>
               <div style="display:flex; gap:6px;">
                 <input id="commentInput-${docId}" type="text" placeholder="اكتب تعليقاً طيباً..." style="flex:1; padding:8px 12px; background:#000; border:1px solid var(--border); color:var(--text); border-radius:20px; font-size:13px; outline:none;" onkeypress="if(event.key==='Enter') window.sendComment('${docId}')" />
+                <input id="commentInput-${docId}" type="text" placeholder="اكتب تعليقاً طيباً..." style="flex:1; padding:8px 12px; background:#000; border:1px solid var(--border); color:var(--text); border-radius:20px; font-size:13px; outline:none;" onkeypress="if(event.key==='Enter') window.sendComment('${docId}')" />
                 <button onclick="window.sendComment('${docId}')" style="background:var(--gold); color:#111; border:none; padding:0 15px; border-radius:20px; font-size:13px; font-weight:bold; cursor:pointer;">إرسال</button>
               </div>
             </div>
           </div>
         `;
+        
+        // ضخ غير متزامن منفصل (Async Background Task) لتحديث الصور دون تعطيل الصفحة
+        getDoc(doc(db, "users_profiles", data.name)).then(userDoc => {
+          if (userDoc.exists()) {
+            const uData = userDoc.data();
+            const avatarImg = document.getElementById(`avatar-post-${docId}`);
+            const nameTxt = document.getElementById(`name-post-${docId}`);
+            
+            if (uData.avatar && avatarImg) avatarImg.src = uData.avatar;
+            if (nameTxt && typeof window.getUserNameClassAndStyle === 'function') {
+              const styleInfo = window.getUserNameClassAndStyle(uData.points);
+              nameTxt.className = styleInfo.class;
+            }
+          }
+        }).catch(e => console.log("Profile async fetch skip:", e));
       }
-    }
+    });
+
     listArea.innerHTML = html || `<div class="comm-card"><p style="color:var(--text2); text-align:center;">الساحة فارغة، انشر أثرك الطيب الحين...</p></div>`;
   });
 };
+
+                
             
             
 
