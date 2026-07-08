@@ -486,13 +486,23 @@ window.sendPostToFirebase = async function() {
 
     let mediaUrl = ""; let mediaType = "none";
     if (selectedMediaFile) {
-      const formData = new FormData();
-      formData.append("image", selectedMediaFile);
-      const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: formData });
-      const resData = await response.json();
-      if (resData.success) { mediaUrl = resData.data.url; mediaType = "image"; }
+      try {
+        const formData = new FormData();
+        formData.append("image", selectedMediaFile);
+        const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: formData });
+        const resData = await response.json();
+        if (resData.success) { 
+          mediaUrl = resData.data.url; 
+          mediaType = "image"; 
+        } else {
+          console.error("imgbb upload failed:", resData);
+          alert("⚠️ فشل رفع الصورة:\n" + (resData.error?.message || JSON.stringify(resData)));
+        }
+      } catch (uploadErr) {
+        console.error("imgbb network error:", uploadErr);
+        alert("⚠️ خطأ في الاتصال أثناء رفع الصورة:\n" + uploadErr.message);
+      }
     }
-
     await addDoc(collection(db, "posts"), {
       name: userName,
       text: text,
