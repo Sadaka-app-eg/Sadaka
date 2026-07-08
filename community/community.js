@@ -61,6 +61,22 @@ window.checkCommunityUser = async function() {
   const contentArea = document.getElementById('communityContent');
   if (!contentArea) return;
 
+  // 🚨 نظام الطرد الفوري والتحديث الإجباري لكل الحسابات القديمة
+  const CURRENT_VERSION = "v2_profile_update"; // إصدار السستم الجديد
+  const userVersion = localStorage.getItem('athr_app_version');
+
+  if (userVersion !== CURRENT_VERSION) {
+    // طرد فوري ومسح البيانات القديمة لتهيئة الحساب الجديد
+    localStorage.removeItem('athr_user_name');
+    localStorage.removeItem('athr_user_gender');
+    // نضع الإصدار الجديد عشان ميتطردش تاني بعد ما يسجل
+    localStorage.setItem('athr_app_version', CURRENT_VERSION);
+    
+    // إعادة تحميل خفيفة لإنعاش السستم
+    setTimeout(() => { window.checkCommunityUser(); }, 100);
+    return;
+  }
+
   // حماية الأقسام المغلقة والمحادثات لغير المسجلين
   if (window.currentCommunityTab !== 'feed') {
     const googleUser = localStorage.getItem('user_display_name');
@@ -73,6 +89,7 @@ window.checkCommunityUser = async function() {
   const userGender = localStorage.getItem('athr_user_gender');
   const userName = localStorage.getItem('athr_user_name');
 
+  // لو مسجل بجوجل بس لسه ملوش اسم ثنائي أو بروفايل، يفتح له الشاشة فوراً
   if (localStorage.getItem('user_display_name') && (!userGender || !userName)) {
     window.renderSetupScreen();
   } else {
@@ -80,6 +97,8 @@ window.checkCommunityUser = async function() {
   }
 };
 
+
+ 
 window.renderAuthRequiredBlock = function() {
   const contentArea = document.getElementById('communityContent');
   contentArea.innerHTML = `
