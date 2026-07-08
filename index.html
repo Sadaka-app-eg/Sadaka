@@ -902,6 +902,8 @@ body.in-subpage .back-to-home-btn {
 <div class="tab" onclick="showPage('settingsPage', this)">⚙️ الإعدادات وحسابي</div>
 <div class="tab" onclick="showPage('janazaPage',this)">🕊️ قسم الجنائز</div>
 <div class="tab" onclick="showPage('shareKhairPage',this)">💝 شارك في الخير</div>
+  <div class="tab" onclick="showPage('shareAppPage', this)">💝 ساهم في تطوير التطبيق</div>
+
 </div>
 
 
@@ -1752,6 +1754,15 @@ body.in-subpage .back-to-home-btn {
     </div>
   </div>
 </div>
+  <div class="page" id="shareAppPage">
+  <div style="text-align: center; margin-bottom: 16px;">
+    <h2 style="color: var(--gold); font-family: 'Amiri', serif; font-size: 24px;">💝 سَاهِمْ فِي نَشْرِ وَتَطْوِيرِ التَّطْبِيقِ</h2>
+    <p style="color: var(--text2); font-size: 12px; font-family: 'Amiri', serif;">شاركنا الأجر والفضل لتوسيع نطاق الأثر الطيب للجميع</p>
+  </div>
+  
+  <div id="shareAppPageContainer"></div>
+</div>
+
 <!-- BLESSINGS JOURNAL PAGE -->
 <div class="page" id="blessingsPage">
   <div style="text-align: center; margin-bottom: 16px;">
@@ -2769,6 +2780,9 @@ if (id === 'settingsPage') {
   }
   if(id === 'prayForThemPage' && typeof window.initPrayForThemPage === 'function') {
   window.initPrayForThemPage();
+}
+if(id === 'shareAppPage' && typeof window.initShareAppPage === 'function') {
+  window.initShareAppPage();
 }
 
   updateStats();
@@ -6710,6 +6724,7 @@ window.reCalculateHistorySum = function(type) {
   <script src="athrAcademy.js"></script>
 <script src="adhanPlayer.js"></script>
   <script src="prayforthem/prayforthem.js"></script>
+<script src="shareApp.js"></script>
 
  <script type="module">
   // الغاء مفعول دالة الـ load القديمة تماماً لكسر حلقة إعادة تسجيل الدخول
