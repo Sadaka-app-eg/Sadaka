@@ -3336,100 +3336,6 @@ function showRandomDailyBenefit() {
   }
 }
 
-// تشغيل الفائدة العشوائية والفقه كافتراضي
-document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(() => {
-    if (document.getElementById('islamicCardsContainer')) {
-      switchSubContent('fiqh');
-      showRandomDailyBenefit();
-    }
-  }, 800);
-});
-window.currentQuizId = 1;
-window.currentQuestionIdx = 0;
-window.userScore = 0;
-
-// 1️⃣ دالة رسم قائمة الاختبارات العشرة ليختار منها المستخدم
-window.renderQuizList = function() {
-  const container = document.getElementById('quizContentArea'); // تأكد من الـ ID في الـ HTML عندك
-  if (!container) return;
-
-  let html = `
-    <div style="text-align:center; font-family:'Amiri', serif; direction:rtl; padding:10px;">
-      <h3 style="color:var(--gold); margin-bottom:15px;">🧠 الموسوعة العلمية والمسابقات الثقافية</h3>
-      <p style="color:var(--text2); font-size:13px; margin-bottom:20px;">اختر واحداً من الاختبارات العشرة الدقيقة لتحدي حصيلتك الشرعية والعلمية:</p>
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-  `;
-
-  for (let i = 1; i <= 10; i++) {
-    html += `
-      <button onclick="window.startSpecificQuiz(${i})" style="background:var(--card); color:var(--text); border:1px solid var(--border); padding:15px 10px; border-radius:12px; font-family:'Amiri',serif; font-size:14px; font-weight:bold; cursor:pointer; transition:0.2s;" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">
-        🕌 الاختبار رقم (${i})
-      </button>
-    `;
-  }
-
-  html += `</div></div>`;
-  container.innerHTML = html;
-};
-
-// 2️⃣ دالة بدء اختبار معين وتصفير العدادات
-window.startSpecificQuiz = function(quizId) {
-  window.currentQuizId = quizId;
-  window.currentQuestionIdx = 0;
-  window.userScore = 0;
-  window.renderQuizQuestion();
-};
-
-// 3️⃣ دالة رسم السؤال الحالي والاختيارات الأربعة
-window.renderQuizQuestion = function() {
-  const container = document.getElementById('quizContentArea');
-  if (!container) return;
-
-  const questions = window.quizData[window.currentQuizId];
-  const currentQ = questions[window.currentQuestionIdx];
-
-  container.innerHTML = `
-    <div style="text-align:right; font-family:'Amiri', serif; direction:rtl; padding:5px;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px dashed var(--border); padding-bottom:10px;">
-        <span style="color:var(--gold); font-size:13px; font-weight:bold;">🧠 قسم: ${currentQ.tag}</span>
-        <span style="color:var(--text2); font-size:12px;">السؤال ${window.currentQuestionIdx + 1} من 10</span>
-      </div>
-      
-      <h3 style="color:var(--text); font-size:17px; line-height:1.5; margin-bottom:20px;">${currentQ.q}</h3>
-      
-      <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
-        ${currentQ.options.map((opt, idx) => `
-          <button onclick="window.submitQuizAnswer(${idx})" style="width:100%; text-align:right; background:rgba(255,255,255,0.02); color:var(--text); border:1px solid var(--border); padding:14px 15px; border-radius:8px; font-family:'Amiri',serif; font-size:14px; cursor:pointer; transition:0.2s;" onmouseover="this.style.background='rgba(212,175,55,0.05)'" onmouseout="this.style.background='rgba(255,255,255,0.02)'">
-            ${idx + 1}. ${opt}
-          </button>
-        `).join('')}
-      </div>
-      
-      <button onclick="window.renderQuizList()" style="background:transparent; color:var(--text2); border:none; cursor:pointer; font-size:12px; text-decoration:underline;">✕ إلغاء الاختبار والعودة للقائمة</button>
-    </div>
-  `;
-};
-
-// 4️⃣ دالة معالجة ضغط الاختيار وحساب السكور والانتقال للسؤال التالي
-window.submitQuizAnswer = function(selectedIdx) {
-  const questions = window.quizData[window.currentQuizId];
-  const currentQ = questions[window.currentQuestionIdx];
-
-  // لو الإجابة صح، زود السكور
-  if (selectedIdx === currentQ.correct) {
-    window.userScore++;
-  }
-
-  window.currentQuestionIdx++;
-
-  // لو لسه فيه أسئلة اعرض التالي، لو خلص الـ 10 اعرض شاشة التقييم الفخمة
-  if (window.currentQuestionIdx < questions.length) {
-    window.renderQuizQuestion();
-  } else {
-    window.renderQuizResult();
-  }
-};
 
 // 5️⃣ شات تقييم النتيجة النهائي (ممتاز، جيد جداً، بحاجة لإعادة)
 window.renderQuizResult = function() {
@@ -3474,3 +3380,4 @@ setTimeout(() => {
     window.renderQuizList();
   }
 }, 300);
+  
