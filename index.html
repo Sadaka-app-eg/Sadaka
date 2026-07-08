@@ -6741,71 +6741,86 @@ window.reCalculateHistorySum = function(type) {
   window.signInWithPopup = signInWithPopup;
   window.signOut = signOut;
 
-  // فحص حالة المستخدم وجلب الاسم وعرضه فوراً بدون تداخل
-  // فحص حالة المستخدم وجلب الاسم وعرضه فوراً بدون تداخل
+  // =========================================================================
+// 🔒 نظام إدارة الجلسات المطور والآمن - معالجة الطرد والتعليق 2026
+// =========================================================================
+
+// فحص حالة المستخدم وجلب الاسم وعرضه فوراً بدون تداخل أو Loop لا نهائي
 onAuthStateChanged(auth, (user) => {
   if (user) {
-    // لو المستخدم مسجل دخول بالفعل بجوجل
+    // تحقق أمان إضافي: لو السيستم طرد المستخدم بسبب الـ Version، لا تقم بإعادة تسجيله تلقائياً
+    if (localStorage.getItem('athr_app_version') === "v2_profile_update" && !localStorage.getItem('athr_user_name')) {
+      // مستخدم قديم تم تصفيره، ننتظر أن يقوم بإعداد بروفايله الجديد ولا نعمل Auto-Login
+      const overlay = document.getElementById('authOverlay');
+      if (overlay) overlay.remove();
+      return;
+    }
+
     const savedName = localStorage.getItem('user_display_name');
     if (savedName) {
-      if (typeof finishLogin === 'function') finishLogin(savedName);
+      if (typeof window.realFinishLogin === 'function') window.realFinishLogin(savedName);
     } else {
-      // لو أول مرة يسجل ومفيش اسم متسجل محلياً، نجيبه من الفايرستور
       getDoc(doc(db, "users", user.uid)).then(snap => {
         if (snap.exists() && snap.data().name) {
           localStorage.setItem('user_display_name', snap.data().name);
-          if (typeof finishLogin === 'function') finishLogin(snap.data().name);
+          if (typeof window.realFinishLogin === 'function') window.realFinishLogin(snap.data().name);
         } else {
-          // لو حسابه جديد خالص وموش اسم، نأخذ الاسم الأول من حساب جوجل بتاعه تلقائياً
           const firstName = user.displayName ? user.displayName.split(' ')[0] : 'المستخدم';
           localStorage.setItem('user_display_name', firstName);
-          if (typeof finishLogin === 'function') finishLogin(firstName);
+          if (typeof window.realFinishLogin === 'function') window.realFinishLogin(firstName);
         }
       });
     }
   } else {
-    // لو مش مسجل، يفتح كزائر طبيعي جداً بدون أي حجب أو شاشات هاتف
+    // تنظيف كامل شامل في حالة عدم وجود مستخدم نشط معتمد من سيرفر الفايرباز
+    localStorage.removeItem('user_display_name');
+    localStorage.removeItem('athr_user_name');
+    localStorage.removeItem('athr_user_gender');
     const overlay = document.getElementById('authOverlay');
     if (overlay) overlay.remove();
+    
+    // تحديث الواجهة فوراً لوضع الزائر
+    if (typeof updateSettingsAccountBox === 'function') updateSettingsAccountBox();
   }
 });
 
-
-
-  
-// دالة تشغيل الدخول بجوجل من زرار الهيدر
+// دالة تشغيل الدخول / الخروج بجوجل من زرار الهيدر والإعدادات بشكل قاطع
 window.triggerHeaderGoogleLogin = function() {
   const savedName = localStorage.getItem('user_display_name');
-  if (savedName) {
-    // لو مسجل وداس عليه، نسأله لو عايز يعمل تسجيل خروج
-    if (confirm('هل ترغب في تسجيل الخروج من الحساب؟')) {
+  
+  if (savedName || auth.currentUser) {
+    if (confirm('هل ترغب في تسجيل الخروج من الحساب وتطهير الجلسة الحالية؟')) {
+      // 1. مسح كل الكاش والبيانات المحلية فوراً لمنع الـ Auto-Login
       localStorage.removeItem('user_display_name');
-      if (window.firebaseAuth) {
-        window.firebaseAuth.signOut().then(() => location.reload());
-      } else {
-        location.reload();
-      }
+      localStorage.removeItem('athr_user_name');
+      localStorage.removeItem('athr_user_gender');
+      
+      // 2. أمر خروج رسمي وقاطع لسيرفرات الفايرباز
+      signOut(auth).then(() => {
+        alert("🔒 تم تسجيل الخروج وتطهير الجلسة بنجاح.");
+        window.location.reload(); // ريفريش نظيف لإعادة تهيئة واجهة الزائر
+      }).catch(err => {
+        console.error('حدث خطأ أثناء سحب الجلسة:', err);
+        window.location.reload();
+      });
     }
     return;
   }
 
-  // لو مش مسجل، نفتح الـ Popup الافتراضي بتاعك فوراً
-  if (typeof window.signInWithPopup === 'function' && window.firebaseAuth && window.GoogleAuthProvider) {
-    const provider = new window.GoogleAuthProvider();
-    window.signInWithPopup(window.firebaseAuth, provider)
+  // نظام تسجيل الدخول الآمن (Popup)
+  if (GoogleAuthProvider && signInWithPopup) {
+    const provider = new GoogleAuthProvider();
+    signInWithPopup(auth, provider)
       .then((result) => {
-        // فحص الاسم وعرض شاشة كتابة الاسم لو مش موجود في الداتابيز
         const user = result.user;
         const firstName = user.displayName ? user.displayName.split(' ')[0] : 'المستخدم';
-        
-        // حفظ تمهيدي
         localStorage.setItem('user_display_name', firstName);
-        window.finishLogin(firstName);
-        alert(`✨ أهلاً بك يا ${firstName}، تم ربط حسابك بنجاح!`);
+        window.location.reload(); // إنعاش كامل للسيستم لربط شاشات مجتمع أثر فوراً
       })
-      .catch(err => console.error('خطأ تسجيل دخول الهيدر:', err));
-  } else {
-    alert("⏳ جاري تهيئة خدمات الاتصال، جرب كمان ثانية واحدة...");
+      .catch(err => {
+        console.error('خطأ تسجيل دخول الهيدر:', err);
+        alert("⚠️ فشل الاتصال بالسيرفر، تأكد من جودة الإنترنت لديك.");
+      });
   }
 };
 
