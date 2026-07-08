@@ -538,7 +538,6 @@ window.listenToPosts = function(gender) {
 
     let html = "";
     
-    // استخدام forEach السريع غير الحاضر لمنع تعليق أو تجميد الواجهة (No await block)
     snapshot.docs.forEach((docSnap) => {
       const data = docSnap.data();
       const docId = docSnap.id;
@@ -547,7 +546,6 @@ window.listenToPosts = function(gender) {
         const likesArr = data.likes || [];
         const hasLiked = likesArr.includes(myName);
         
-        // البيانات الافتراضية للبوست حتى تكتمل الخلفية
         let userAvatar = "https://www.gstatic.com/firebasejs/ui/2.0.0/images/temporary-avatar.png";
         let nameClass = "regular-user-text";
 
@@ -600,14 +598,12 @@ window.listenToPosts = function(gender) {
               <div id="commentsList-${docId}" style="max-height:200px; overflow-y:auto; display:flex; flex-direction:column; gap:6px; margin-bottom:8px;"></div>
               <div style="display:flex; gap:6px;">
                 <input id="commentInput-${docId}" type="text" placeholder="اكتب تعليقاً طيباً..." style="flex:1; padding:8px 12px; background:#000; border:1px solid var(--border); color:var(--text); border-radius:20px; font-size:13px; outline:none;" onkeypress="if(event.key==='Enter') window.sendComment('${docId}')" />
-                <input id="commentInput-${docId}" type="text" placeholder="اكتب تعليقاً طيباً..." style="flex:1; padding:8px 12px; background:#000; border:1px solid var(--border); color:var(--text); border-radius:20px; font-size:13px; outline:none;" onkeypress="if(event.key==='Enter') window.sendComment('${docId}')" />
                 <button onclick="window.sendComment('${docId}')" style="background:var(--gold); color:#111; border:none; padding:0 15px; border-radius:20px; font-size:13px; font-weight:bold; cursor:pointer;">إرسال</button>
               </div>
             </div>
           </div>
         `;
         
-        // ضخ غير متزامن منفصل (Async Background Task) لتحديث الصور دون تعطيل الصفحة
         getDoc(doc(db, "users_profiles", data.name)).then(userDoc => {
           if (userDoc.exists()) {
             const uData = userDoc.data();
@@ -627,6 +623,8 @@ window.listenToPosts = function(gender) {
     listArea.innerHTML = html || `<div class="comm-card"><p style="color:var(--text2); text-align:center;">الساحة فارغة، انشر أثرك الطيب الحين...</p></div>`;
   });
 };
+  
+                    
 
                 
             
