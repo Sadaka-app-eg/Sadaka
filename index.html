@@ -1877,6 +1877,64 @@ body.in-subpage .back-to-home-btn {
 <div class="page" id="prayForThemPage">
   <div id="prayForThemPageContainer"></div>
 </div>
+<div id="athrProfileModal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); z-index: 99999999; align-items: center; justify-content: center; direction: rtl; padding: 15px;">
+  <div class="comm-card" style="width: 100%; max-width: 360px; text-align: center; border: 1px solid var(--gold); padding: 25px 15px; background: #070c07; position: relative; animation: fadeIn 0.3s;">
+    <button onclick="document.getElementById('athrProfileModal').style.display='none'" style="position: absolute; top: 12px; left: 12px; background: transparent; color: #ff4d4d; border: none; font-size: 18px; cursor: pointer; font-weight: bold;">✕</button>
+    
+    <img id="popUserAvatar" src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/temporary-avatar.png" style="width: 90px; height: 90px; border-radius: 50%; border: 2px solid var(--gold); object-fit: cover; margin-bottom: 12px; box-shadow: 0 4px 15px rgba(212,175,55,0.2);" />
+    
+    <h3 id="popUserName" style="font-family: 'Amiri', serif; font-size: 20px; margin-bottom: 4px;">---</h3>
+    <div id="popUserBadgeContainer" style="margin-bottom: 15px;"></div>
+
+    <div style="background: rgba(0,0,0,0.4); border: 1px solid var(--border); padding: 10px; border-radius: 8px; text-align: right; margin-bottom: 20px;">
+      <small style="color: var(--gold); display: block; margin-bottom: 4px; font-size: 11px;">✍️ النبذة التعريفية (Bio):</small>
+      <p id="popUserBio" style="color: var(--text); font-size: 13px; font-family: 'Amiri', serif; line-height: 1.5; margin: 0; white-space: pre-wrap;">---</p>
+    </div>
+
+    <button id="popStartChatBtn" style="width: 100%; background: var(--gold); color: #111; border: none; padding: 12px; border-radius: 25px; font-weight: bold; font-family: 'Amiri', serif; cursor: pointer; font-size: 14px; box-shadow: 0 4px 12px rgba(212,175,55,0.25);">
+      💬 بدء محادثة خاصة (واتساب ستايل)
+    </button>
+  </div>
+</div>
+<div id="privateChatModal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 100005; flex-direction: column; direction: rtl;">
+  
+  <div style="background: var(--card); border-bottom: 1px solid var(--border); padding: 15px; display: flex; align-items: center; justify-content: space-between;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <img id="chatTargetAvatar" src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/temporary-avatar.png" style="width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--gold); object-fit: cover;" />
+      <div style="text-align: right;">
+        <strong id="chatTargetName" style="color: var(--text); font-size: 14px; display: block;">---</strong>
+        <small style="color: #40a9ff; font-size: 11px; display: block;">🔒 محادثة مشفرة ومقيدة بالمجالس</small>
+      </div>
+    </div>
+    <button onclick="window.closePrivateChatSheet()" style="background: rgba(255,255,255,0.05); border: none; color: var(--text); padding: 8px 16px; border-radius: 20px; font-size: 13px; cursor: pointer; font-weight: bold; font-family: 'Amiri', serif;">
+      رجوع للساحة ←
+    </button>
+  </div>
+
+  <div id="privateChatMessages" style="flex: 1; overflow-y: auto; padding: 15px; background: #0a0a0a; display: flex; flex-direction: column; gap: 10px;">
+    </div>
+
+  <div style="background: var(--card); padding: 12px; border-top: 1px solid var(--border); display: flex; gap: 8px; align-items: center;">
+    
+    <label style="background: rgba(212,175,55,0.1); color: var(--gold); border: 1px solid rgba(212,175,55,0.3); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; flex-shrink: 0;">
+      📎
+      <input type="file" id="privateChatMediaInput" accept="image/*" style="display: none;" onchange="window.handlePrivateChatMediaSelection(this)" />
+    </label>
+
+    <input id="privateChatMessageInp" type="text" placeholder="اكتب رسالة خاصة آمنة..." style="flex: 1; background: #000; border: 1px solid var(--border); color: var(--text); padding: 12px 15px; border-radius: 25px; font-size: 14px; outline: none;" onkeypress="if(event.key==='Enter') window.sendPrivateMessage()" />
+    
+    <button id="sendPrivateMsgBtn" onclick="window.sendPrivateMessage()" style="background: var(--gold); color: #111; border: none; width: 42px; height: 42px; border-radius: 50%; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+      🕊️
+    </button>
+  </div>
+</div>
+
+<style>
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>
 
 <!-- OVERLAY DIMMER -->
 <div class="overlay-dimmer" id="overlayDimmer" onclick="closeActionMenu()"></div>
