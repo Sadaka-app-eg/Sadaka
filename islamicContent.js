@@ -3121,7 +3121,7 @@ scholars: [
   if (subCat === 'qa') {
     container.innerHTML = `
       <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-bottom:20px;">
-        <button onclick="renderQA('aqeeda')" class="mode-btn">العقيدة</button>
+        <button onclick="renderQA('aqeedah')" class="mode-btn">العقيدة</button>
         <button onclick="renderQA('fiqh')" class="mode-btn">الفقه</button>
         <button onclick="renderQA('seerah')" class="mode-btn">السيرة</button>
         <button onclick="renderQA('quran')" class="mode-btn">القرآن</button>
