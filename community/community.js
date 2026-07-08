@@ -563,8 +563,8 @@ window.listenToPosts = function(gender) {
                 <strong class="${nameClass}" id="name-post-${docId}" style="font-size:14px; text-decoration:underline;">✨ ${data.name}</strong>
               </div>
               
-              <small style="color:var(--text2); font-size:11px;">${window.formatPostTime(data.createdAt)}</small>
-            </div>
+              <small style="color:var(--text2); font-size:11px;">${data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString('ar-EG', {day:'numeric', month:'short'}) : 'الآن ✨'}</small>
+    </div>
             
             ${data.text ? `<p style="color:var(--text); font-family:'Amiri', serif; font-size:15px; line-height:1.5; white-space: pre-wrap;">${data.text}</p>` : ''}
             ${mediaHtml}
