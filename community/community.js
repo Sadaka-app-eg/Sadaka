@@ -513,12 +513,14 @@ window.listenToPosts = function(gender) {
   const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(50));
   const myName = localStorage.getItem('athr_user_name');
   
-  unsubscribePosts = onSnapshot(q, (snapshot) => {
+  unsubscribePosts = onSnapshot(q, async (snapshot) => {
     const listArea = document.getElementById('postsList');
     if (!listArea) return;
 
     let html = "";
-    snapshot.forEach(async (docSnap) => {
+    
+    // استخدام حلقة فور عادية لضمان قراءة البروفايلات بالترتيب
+    for (const docSnap of snapshot.docs) {
       const data = docSnap.data();
       const docId = docSnap.id;
       
@@ -526,6 +528,20 @@ window.listenToPosts = function(gender) {
         const likesArr = data.likes || [];
         const hasLiked = likesArr.includes(myName);
         
+        // 🔍 جلب بيانات كاتب البوست حياً لمعرفة نقاطه وصورته الشخصية
+        let userAvatar = "https://www.gstatic.com/firebasejs/ui/2.0.0/images/temporary-avatar.png";
+        let nameClass = "regular-user-text";
+        
+        try {
+          const userDoc = await getDoc(doc(db, "users_profiles", data.name));
+          if (userDoc.exists()) {
+            const uData = userDoc.data();
+            userAvatar = uData.avatar || userAvatar;
+            const styleInfo = window.getUserNameClassAndStyle(uData.points);
+            nameClass = styleInfo.class;
+          }
+        } catch(e) { console.error("Profile fetch error:", e); }
+
         let mediaHtml = "";
         if (data.mediaUrl && data.mediaType === 'image') {
           mediaHtml = `<img src="${data.mediaUrl}" style="width:100%; border-radius:8px; margin-top:10px; max-height:300px; object-fit:contain; background:#000;" />`;
@@ -533,10 +549,16 @@ window.listenToPosts = function(gender) {
 
         html += `
           <div class="comm-card" style="border-right: 3px solid var(--gold); text-align: right; margin-bottom: 15px;">
-            <div style="display:flex; justify-content:space-between; margin-bottom:6px; align-items:center;">
-              <strong onclick="window.openUserProfileCard('${data.name}')" style="color:var(--gold); font-size:14px; cursor:pointer; text-decoration:underline;">✨ ${data.name}</strong>
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px; align-items:center;">
+              
+              <div style="display:flex; align-items:center; gap:8px; cursor:pointer;" onclick="window.openUserProfileCard('${data.name}')">
+                <img src="${userAvatar}" style="width:35px; height:35px; border-radius:50%; border:1px solid var(--gold); object-fit:cover;" />
+                <strong class="${nameClass}" style="font-size:14px; text-decoration:underline;">✨ ${data.name}</strong>
+              </div>
+              
               <small style="color:var(--text2); font-size:11px;">${window.formatPostTime(data.createdAt)}</small>
             </div>
+            
             ${data.text ? `<p style="color:var(--text); font-family:'Amiri', serif; font-size:15px; line-height:1.5; white-space: pre-wrap;">${data.text}</p>` : ''}
             ${mediaHtml}
             
@@ -575,10 +597,12 @@ window.listenToPosts = function(gender) {
           </div>
         `;
       }
-    });
+    }
     listArea.innerHTML = html || `<div class="comm-card"><p style="color:var(--text2); text-align:center;">الساحة فارغة، انشر أثرك الطيب الحين...</p></div>`;
   });
 };
+            
+            
 
 window.togglePostLike = async function(event, docId, hasLiked, emoji = '❤️') {
   const myName = localStorage.getItem('athr_user_name');
