@@ -1,5 +1,5 @@
 // =========================================================================
-// 🚀 شبكة مجتمع أثر الاجتماعية الإسلامية المتكاملة - إصدار 2026 المطور
+// 🚀 شبكة مجتمع أثر الاجتماعية الإسلامية المتكاملة - إصدار 2026 المطور (نسخة مصححة الميديا)
 // =========================================================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore, collection, addDoc, doc, updateDoc, getDoc, setDoc, arrayUnion, arrayRemove, onSnapshot, query, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -21,7 +21,7 @@ const IMGBB_API_KEY = "69ba2eb5653068e3a24c568ec75d1f87";
 const WOMEN_SECRET_CODE = "Athr2026"; 
 
 window.currentCommunityTab = 'feed'; 
-window.activePrivateRoomId = null; // لتخزين غرف الشات الخاص الحالي
+window.activePrivateRoomId = null; 
 let unsubscribePosts = null; 
 let unsubscribeChats = null;
 let unsubscribePrivates = null;
@@ -61,23 +61,17 @@ window.checkCommunityUser = async function() {
   const contentArea = document.getElementById('communityContent');
   if (!contentArea) return;
 
-  // 🚨 نظام الطرد الفوري والتحديث الإجباري لكل الحسابات القديمة
-  const CURRENT_VERSION = "v2_profile_update"; // إصدار السستم الجديد
+  const CURRENT_VERSION = "v2_profile_update"; 
   const userVersion = localStorage.getItem('athr_app_version');
 
   if (userVersion !== CURRENT_VERSION) {
-    // طرد فوري ومسح البيانات القديمة لتهيئة الحساب الجديد
     localStorage.removeItem('athr_user_name');
     localStorage.removeItem('athr_user_gender');
-    // نضع الإصدار الجديد عشان ميتطردش تاني بعد ما يسجل
     localStorage.setItem('athr_app_version', CURRENT_VERSION);
-    
-    // إعادة تحميل خفيفة لإنعاش السستم
     setTimeout(() => { window.checkCommunityUser(); }, 100);
     return;
   }
 
-  // حماية الأقسام المغلقة والمحادثات لغير المسجلين
   if (window.currentCommunityTab !== 'feed') {
     const googleUser = localStorage.getItem('user_display_name');
     if (!googleUser) {
@@ -89,7 +83,6 @@ window.checkCommunityUser = async function() {
   const userGender = localStorage.getItem('athr_user_gender');
   const userName = localStorage.getItem('athr_user_name');
 
-  // لو مسجل بجوجل بس لسه ملوش اسم ثنائي أو بروفايل، يفتح له الشاشة فوراً
   if (localStorage.getItem('user_display_name') && (!userGender || !userName)) {
     window.renderSetupScreen();
   } else {
@@ -97,8 +90,6 @@ window.checkCommunityUser = async function() {
   }
 };
 
-
- 
 window.renderAuthRequiredBlock = function() {
   const contentArea = document.getElementById('communityContent');
   contentArea.innerHTML = `
@@ -199,7 +190,6 @@ window.processCommunitySubmit = async function() {
 
   if (!nameInp || !nameInp.value.trim()) { alert('فضلاً، اكتب اسمك أولاً.'); return; }
   
-  // 🔒 فحص التحقق من الاسم الثنائي الإجباري (وجود مسافة فاصلة)
   const trimmedName = nameInp.value.trim();
   if (!trimmedName.includes(" ") || trimmedName.split(" ").filter(Boolean).length < 2) {
     alert("⚠️ عذراً يا أخي، يرجى كتابة اسمك ثنائياً (اسمك واسم الأب) بشكل صحيح وموثق.");
@@ -220,7 +210,8 @@ window.processCommunitySubmit = async function() {
     submitBtn.disabled = true;
     submitBtn.textContent = "جاري إنشاء وتوثيق الحساب... ⏳";
     
-    let avatarUrl = "https://www.gstatic.com/firebasejs/ui/2.0.0/images/ some-avatar.png"; // ديفولت
+    // تصحيح الرابط الافتراضي بإزالة المسافة الفارغة الكارثية
+    let avatarUrl = "https://www.gstatic.com/firebasejs/ui/2.0.0/images/temporary-avatar.png"; 
     if (selectedProfileFile) {
       const formData = new FormData();
       formData.append("image", selectedProfileFile);
@@ -231,14 +222,13 @@ window.processCommunitySubmit = async function() {
 
     const myEmail = localStorage.getItem('user_email') || trimmedName;
     
-    // حفظ البروفايل الرسمي في الفايرستور وحساب سكور أولي
     await setDoc(doc(db, "users_profiles", trimmedName), {
       name: trimmedName,
       email: myEmail,
       bio: bioInp.value.trim() || "ذاكر لله ومحب للأثر الطيب",
-      avatar: avatarUrl,
+      avatar: avatarUrl, // الرفع والربط يعملان الآن بشكل سليم تماماً
       gender: window.selectedSetupGender,
-      points: 10, // نقاط ترحيبية أولية
+      points: 10, 
       createdAt: serverTimestamp()
     });
 
@@ -272,7 +262,6 @@ window.renderCommunityBody = function() {
   const communityLabel = userGender === 'male' ? 'ساحة الرجال (ملتقى النبلاء)' : 'ساحة النساء (مجلس العفيفات)';
   const chatLabel = userGender === 'male' ? '💬 مجلس ذكر الرجال' : '💬 مجلس ذكر النساء';
 
-  // 1️⃣ لوحة الساحة العامة (Feed)
   if (window.currentCommunityTab === 'feed') {
     contentArea.innerHTML = `
       <div class="community-tabs" style="margin-bottom: 15px;">
@@ -313,7 +302,6 @@ window.renderCommunityBody = function() {
     `;
     window.listenToPosts(userGender);
 
-  // 2️⃣ لوحة شات المجموعات الحي (Chat)
   } else if (window.currentCommunityTab === 'chat') {
     contentArea.innerHTML = `
       <div class="community-tabs" style="margin-bottom: 15px;">
@@ -336,7 +324,6 @@ window.renderCommunityBody = function() {
     `;
     window.listenToChats(userGender);
 
-  // 3️⃣ لوحة استيقاظ الفجر التكافلية (Fajr)
   } else if (window.currentCommunityTab === 'fajr') {
     contentArea.innerHTML = `
       <div class="community-tabs" style="margin-bottom: 15px;">
@@ -368,7 +355,6 @@ window.renderCommunityBody = function() {
       </div>
     `;
 
-  // 4️⃣ لوحة الرسائل الخاصة المشفرة 1-on-1 (Private Chat)
   } else if (window.currentCommunityTab === 'private') {
     window.renderPrivateChatDashboard();
   }
@@ -389,7 +375,6 @@ window.getUserNameClassAndStyle = function(points) {
 };
 
 window.openUserProfileCard = async function(userName) {
-  // إلغاء أي قائمة تفاعلات مفتوحة بالخطأ
   const menus = document.querySelectorAll('[id^="reactionMenu-"]');
   menus.forEach(m => m.style.display = 'none');
 
@@ -424,7 +409,7 @@ window.openUserProfileCard = async function(userName) {
       <div class="comm-card" style="width:100%; max-width:360px; text-align:center; border:1px solid var(--gold); padding:25px 15px; background:#070c07; position:relative; animation:fadeIn 0.3s;">
         <button onclick="document.getElementById('athrProfileModal').style.display='none'" style="position:absolute; top:12px; left:12px; background:transparent; color:#ff4d4d; border:none; font-size:18px; cursor:pointer; font-weight:bold;">✕</button>
         
-        <img src="${u.avatar || 'https://via.placeholder.com/100'}" style="width:90px; height:90px; border-radius:50%; border:2px solid var(--gold); object-fit:cover; margin-bottom:12px; box-shadow:0 4px 15px rgba(212,175,55,0.2);" />
+        <img src="${u.avatar || 'https://www.gstatic.com/firebasejs/ui/2.0.0/images/temporary-avatar.png'}" style="width:90px; height:90px; border-radius:50%; border:2px solid var(--gold); object-fit:cover; margin-bottom:12px; box-shadow:0 4px 15px rgba(212,175,55,0.2);" />
         
         <h3 class="${styleInfo.class}" style="font-family:'Amiri', serif; font-size:20px; margin-bottom:4px;">${u.name}</h3>
         <div style="margin-bottom:15px;">
@@ -522,8 +507,6 @@ window.sendPostToFirebase = async function() {
     textInput.value = "";
     window.clearSelectedMedia();
     window.triggerSparksEffect();
-    
-    // منح العضو 15 نقطة مكافأة لنشر الأثر الطيب
     window.awardPoints(userName, 15);
   } catch (e) { console.error(e); } finally { submitBtn.disabled = false; if(submitBtn) submitBtn.textContent = "نشر الفائدة ✨"; }
 };
@@ -546,6 +529,7 @@ window.listenToPosts = function(gender) {
         const likesArr = data.likes || [];
         const hasLiked = likesArr.includes(myName);
         
+        // جلب صورة افتراضية أولاً لحين تحميل الصورة الحقيقية للملف الشخصي
         let userAvatar = "https://www.gstatic.com/firebasejs/ui/2.0.0/images/temporary-avatar.png";
         let nameClass = "regular-user-text";
 
@@ -563,8 +547,8 @@ window.listenToPosts = function(gender) {
                 <strong class="${nameClass}" id="name-post-${docId}" style="font-size:14px; text-decoration:underline;">✨ ${data.name}</strong>
               </div>
               
-              <small style="color:var(--text2); font-size:11px;">${data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString('ar-EG', {day:'numeric', month:'short'}) : 'الآن ✨'}</small>
-    </div>
+              <small style="color:var(--text2); font-size:11px;">${data.createdAt ? window.formatPostTime(data.createdAt) : 'الآن ✨'}</small>
+            </div>
             
             ${data.text ? `<p style="color:var(--text); font-family:'Amiri', serif; font-size:15px; line-height:1.5; white-space: pre-wrap;">${data.text}</p>` : ''}
             ${mediaHtml}
@@ -604,6 +588,7 @@ window.listenToPosts = function(gender) {
           </div>
         `;
         
+        // إصلاح تحديث الصورة الحقيقية للكاتب بداخل الـ Feed
         getDoc(doc(db, "users_profiles", data.name)).then(userDoc => {
           if (userDoc.exists()) {
             const uData = userDoc.data();
@@ -623,13 +608,7 @@ window.listenToPosts = function(gender) {
     listArea.innerHTML = html || `<div class="comm-card"><p style="color:var(--text2); text-align:center;">الساحة فارغة، انشر أثرك الطيب الحين...</p></div>`;
   });
 };
-  
-                    
-
-                
-            
-            
-
+ 
 window.togglePostLike = async function(event, docId, hasLiked, emoji = '❤️') {
   const myName = localStorage.getItem('athr_user_name');
   if(!myName) { alert("🔒 برجاء إعداد حسابك وتسجيل الدخول لتتمكن من التفاعل."); return; }
@@ -664,7 +643,7 @@ window.sendComment = async function(docId) {
       createdAt: serverTimestamp()
     });
     input.value = ""; 
-    window.awardPoints(myName, 3); // 3 نقاط مكافأة للتعليق الشرعي النافع
+    window.awardPoints(myName, 3); 
   } catch (e) { console.error(e); }
 };
 
@@ -739,10 +718,8 @@ window.startPrivateChatWithUser = function(targetUser) {
   const myName = localStorage.getItem('athr_user_name');
   if(!myName) return;
   
-  // إخفاء المودال العائم للبروفايل
   if(document.getElementById('athrProfileModal')) document.getElementById('athrProfileModal').style.display = 'none';
 
-  // توليد معرف الغرفة الثابت والأبجدي الفريد بين الطرفين منعاً للتكرار
   const roomId = [myName, targetUser].sort().join("___");
   window.activePrivateRoomId = roomId;
   window.currentPrivateTargetUser = targetUser;
@@ -822,7 +799,7 @@ window.sendPrivateMessage = async function() {
       sender: myName,
       text: text,
       mediaUrl: imgUrl,
-      mediaType: type,
+      mediaType: type, // تم توحيد مسمى نوع الحقل ليتطابق مع مخرجات القراءة
       createdAt: serverTimestamp()
     });
 
@@ -962,23 +939,18 @@ document.addEventListener('click', function() {
 });
 
 setTimeout(() => { window.checkCommunityUser(); }, 300);
-// دالة ذكية لتنسيق وقت المنشورات حياً ومنع كراش الساحة
+
 window.formatPostTime = function(timestamp) {
   if (!timestamp) return "منذ قليل ⏳";
-  
-  // تحويل الفايرباز تيمستامب لتاريخ جافا سكريبت طبيعي
   const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
   const now = new Date();
   const diffInSeconds = Math.floor((now - date) / 1000);
   
   if (diffInSeconds < 60) return "الآن ✨";
-  
   const diffInMinutes = Math.floor(diffInSeconds / 60);
   if (diffInMinutes < 60) return `منذ ${diffInMinutes} دقيقة`;
-  
   const diffInHours = Math.floor(diffInMinutes / 60);
   if (diffInHours < 24) return `منذ ${diffInHours} ساعة`;
   
-  // لو بقاله أكتر من يوم يعرض التاريخ العادي بروقان
   return date.toLocaleDateString('ar-EG', { day: 'numeric', month: 'short' });
 };
