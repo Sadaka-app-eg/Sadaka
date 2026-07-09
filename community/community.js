@@ -60,13 +60,21 @@ document.head.appendChild(style);
   myAccBtn.style.cssText = "position:fixed; top:14px; right:15px; z-index:999999; background:rgba(212,175,55,0.12); color:#d4af37; border:1px solid #d4af37; padding:8px 16px; border-radius:20px; font-family:'Amiri',serif; font-weight:bold; font-size:13px; cursor:pointer; backdrop-filter:blur(4px); display:none;";
   document.body.appendChild(myAccBtn);
 
+  function isElementVisible(el){
+    if(!el) return false;
+    if(el.offsetParent === null) return false; 
+    const rect = el.getBoundingClientRect();
+    return rect.width > 0 && rect.height > 0;
+  }
+
   function updateAccBtnVisibility(){
-    const inCommunity = !!document.getElementById('communityContent');
-    myAccBtn.style.display = inCommunity ? 'block' : 'none';
+    const communityEl = document.getElementById('communityContent');
+    myAccBtn.style.display = isElementVisible(communityEl) ? 'block' : 'none';
   }
   updateAccBtnVisibility();
-  setInterval(updateAccBtnVisibility, 800);
+  setInterval(updateAccBtnVisibility, 500);
 })();
+ 
 // =========================================================
 // 🛠️ 1️⃣ نظام التحقق وإدارة الحسابات الذكي
 // =========================================================
