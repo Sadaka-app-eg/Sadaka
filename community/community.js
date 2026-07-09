@@ -163,15 +163,16 @@ window.renderSetupScreen = function() {
         </div>
       </div>
 
-   <div id="femaleCodeContainer" style="display: none; margin-bottom: 25px; text-align: right;">
-        <label style="color: var(--gold); display: block; margin-bottom: 6px; font-size: 14px;">⚠️ كود تفعيل مجلس الأخوات الموحد:</label>
-        <div style="margin-bottom: 12px; text-align: right;">
-          <a href="https://wa.me/201123181731?text=%D8%A7%D9%84%D8%B3%D9%84%D8%A7%D9%85%20%D8%B9%D9%84%D9%8A%D9%83%D9%85%20%D9%85%D8%B4%D8%B1%D9%81%D8%AA%D9%86%D8%A7%20%D8%A7%D9%84%D9%81%D8%A7%D8%B6%D9%84%D8%A9%D8%8C%20%D8%A3%D9%88%D8%AF%20%D8%A7%D9%84%D8%A7%D9%86%D8%B6%D9%85%D8%A7%D9%85%20%D8%A5%D9%84%D9%89%20%D9%85%D8%AC%D9%84%D8%B3%20%D8%A7%D9%84%D8%B9%D9%81%D9%8A%D9%81%D8%A7%D8%AA%20%D9%81%D9%8A%20%D9%BE%D8%A8%D9%83%D8%A9%20%D8%A3%D8%AB%D8%B1%D8%8C%20%D9%81%D9%81%D8%B6%D9%84%D8%A7%D9%8B%20%D8%A3%D8%B1%D8%AC%D9%88%20%D8%AA%D9%88%D8%AB%D9%8A%D9%82%20%D8%AD%D8%B3%D8%A7%D8%A8%D9%8A%20%D9%88%D8%A5%D8%B1%D8%B3%D8%A7%D9%84%20%D9%83%D9%85%D9%88%D8%AF%20%D8%A7%D9%84%D8%AA%D9%81%D8%B9%D9%8A%D9%84%20%D8%A7%D9%84%D8%B3%D8%B1%D9%8A%20%D9%84%D9%84%D8%AE%D8%B5%D9%88%D8%B5%D9%8A%D8%A9." target="_blank" style="display: inline-block; background: #25D366; color: #fff; padding: 8px 14px; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: bold; margin-bottom: 10px; font-family: 'Amiri', serif; box-shadow: 0 4px 10px rgba(37,211,102,0.2);">
-            💬 اضغط هنا لمراسلة المشرفة وطلب كود التفعيل
-          </a>
-        </div>
-        <input id="commFemaleCodeInp" type="password" placeholder="أدخلي كود الخصوصية السري..." style="width: 100%; padding: 12px; background: #000; border: 1px solid var(--gold); color: var(--text); border-radius: 8px; outline: none; text-align: center;" />
-      </div>
+   //  الكود المطور والمضمون للاستبدال
+<div id="femaleCodeContainer" style="display: none; margin-bottom: 25px; text-align: right;">
+    <label style="color: var(--gold); display: block; margin-bottom: 6px; font-size: 14px;">⚠️ كود تفعيل مجلس الأخوات الموحد:</label>
+    <div style="margin-bottom: 15px; text-align: right;">
+      <button type="button" onclick="window.open('https://wa.me/201123181731?text=%D8%A7%D9%84%D8%B3%D9%84%D8%A7%D9%85%20%D8%B9%D9%84%D9%8A%D9%83%D9%85%20%D9%85%D8%B3%D8%A1%D9%88%D9%84%D8%A9%20%D8%A7%D9%84%D8%AA%D9%88%D8%AB%D9%8A%D9%82%D8%8C%20%D8%A3%D8%B1%D8%AC%D9%88%20%D8%A5%D8%B1%D8%B3%D8%A7%D9%84%20%D9%83%D9%88%D8%AF%20%D8%AA%D9%81%D8%B9%D9%8A%D9%84%20%D9%85%DAC%D9%84%D8%B3%20%D8%A7%D9%84%D8%B9%D9%81%D9%8A%D9%81%D8%A7%D8%AA%20%D9%81%D9%8A%20%D8%A3%D8%AB%D8%B1', '_blank')" style="display: block; width: 100%; background: #25D366; color: #fff; border: none; padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; font-family: 'Amiri', serif; box-shadow: 0 4px 12px rgba(37,211,102,0.3); transition: 0.2s; text-align: center;">
+        💬 اضغطي هنا لمراسلة المشرفة وتلقي كود التفعيل فوراً
+      </button>
+    </div>
+    <input id="commFemaleCodeInp" type="password" placeholder="أدخلي كود الخصوصية السري..." style="width: 100%; padding: 12px; background: #000; border: 1px solid var(--gold); color: var(--text); border-radius: 8px; outline: none; text-align: center;" />
+</div>
 
       <button id="submitSetupBtn" onclick="window.processCommunitySubmit()" style="width: 100%; background: var(--gold); color: #111; border: none; padding: 14px; border-radius: 8px; font-weight: bold; font-family: 'Amiri', serif; font-size: 16px; cursor: pointer; transition: 0.2s;">حفظ الملف ودخول المجتمع 🚀</button>
     </div>
