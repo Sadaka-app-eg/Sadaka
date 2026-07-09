@@ -414,14 +414,13 @@ window.renderCommunityBody = function() {
 };
 
 // دالة مشتركة لعمل شريط التابات (نفس الشكل في كل الأقسام الجديدة)
-// أضف 'family' إلى قائمة التابات في كل الأماكن بالملف
 window.getSharedTabsHTML = function(activeTab) {
   const tabs = [
     { id: 'feed', label: '📝 ساحة الأثر' },
     { id: 'chat', label: '💬 مجلس الذكر' },
-    { id: 'family', label: '🏡 التنافس العائلي' }, // 👈 الزر الجديد المضاف للمجتمع
+    { id: 'family', label: '🏡 التنافس العائلي' },
     { id: 'fajr', label: '🕌 استيقاظ الفجر' },
-    { id: 'weekly', label: '🌟 hلقة الأسبوع' },
+    { id: 'weekly', label: '🌟 حلقة الأسبوع' }, // 👈 تم تصحيح حرف الـ h هنا
     { id: 'leaderboard', label: '🏆 لوحة الشرف' },
     { id: 'dua', label: '🤲 اطلب دعاء' },
     { id: 'featured', label: '✨ الأكثر تأثيراً' },
