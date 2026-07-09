@@ -556,6 +556,7 @@ window.openMyAccountModal = async function() {
         <div style="margin-bottom:12px;">
           <span class="${styleInfo.class}" style="font-size:12px; font-weight:bold;">🎖️ ${styleInfo.label}</span>
           <span style="color:var(--gold); font-size:12px; font-weight:bold; margin-right:10px;">✨ ${u.points || 0} نقطة أثر</span>
+          ${u.streakCount > 0 ? `<span style="color:#ff9d4d; font-size:12px; font-weight:bold; margin-right:10px;">🔥 ${u.streakCount} يوم</span>` : ''}
         </div>
 
         <div style="margin-bottom:15px; text-align:right;">
