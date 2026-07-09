@@ -163,17 +163,10 @@ window.renderSetupScreen = function() {
         </div>
       </div>
 
-   <div id="femaleCodeContainer" style="display: none; margin-bottom: 25px; text-align: right;">
+  <div id="femaleCodeContainer" style="display: none; margin-bottom: 25px; text-align: right;">
     <label style="color: var(--gold); display: block; margin-bottom: 6px; font-size: 14px;">⚠️ كود تفعيل مجلس الأخوات الموحد:</label>
     <div style="margin-bottom: 15px; text-align: right;">
-      <button type="button" onclick="
-        const baseMsg = '✨ *السلام عليكم ورحمة الله وبركاته* ✨\n\n' +
-                        '🕊️ *مشرفتنا الفاضلة الغالية،* \n' +
-                        'أود الانضمام إلى *مجلس العفيفات* في شبكة أثر المباركة.\n\n' +
-                        '🌱 *فضلاً، أرجو توثيق حسابي وإرسال كود التفعيل السري الخاص بالخصوصية.* \n\n' +
-                        'جزاكم الله خيراً ونفع بكم الأمة 🤍';
-        window.open('https://wa.me/201123181731?text=' + encodeURIComponent(baseMsg), '_blank');
-      " style="display: block; width: 100%; background: #25D366; color: #fff; border: none; padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; font-family: 'Amiri', serif; box-shadow: 0 4px 12px rgba(37,211,102,0.3); transition: 0.2s; text-align: center;">
+      <button type="button" onclick="const baseMsg = '✨ *السلام عليكم ورحمة الله وبركاته* ✨\n\n🕊️ *مشرفتنا الفاضلة الغالية،* \nأود الانضمام إلى *مجلس العفيفات* في شبكة أثر المباركة.\n\n🌱 *فضلاً، أرجو توثيق حسابي وإرسال كود التفعيل السري الخاص بالخصوصية.* \n\nجزاكم الله خيراً ونفع بكم الأمة 🤍'; window.open('https://wa.me/201123181731?text=' + encodeURIComponent(baseMsg), '_blank');" style="display: block; width: 100%; background: #25D366; color: #fff; border: none; padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; font-family: 'Amiri', serif; box-shadow: 0 4px 12px rgba(37,211,102,0.3); transition: 0.2s; text-align: center;">
         💬 اضغطي هنا لمراسلة المشرفة وطلب كود التفعيل
       </button>
     </div>
