@@ -54,10 +54,18 @@ style.innerHTML = `
 document.head.appendChild(style);
 (function(){
   const myAccBtn = document.createElement('button');
+  myAccBtn.id = 'athrMyAccountFloatBtn';
   myAccBtn.innerHTML = "👤 حسابي";
   myAccBtn.onclick = () => window.openMyAccountModal();
-  myAccBtn.style.cssText = "position:fixed; top:14px; right:15px; z-index:999999; background:rgba(212,175,55,0.12); color:#d4af37; border:1px solid #d4af37; padding:8px 16px; border-radius:20px; font-family:'Amiri',serif; font-weight:bold; font-size:13px; cursor:pointer; backdrop-filter:blur(4px);";
+  myAccBtn.style.cssText = "position:fixed; top:14px; right:15px; z-index:999999; background:rgba(212,175,55,0.12); color:#d4af37; border:1px solid #d4af37; padding:8px 16px; border-radius:20px; font-family:'Amiri',serif; font-weight:bold; font-size:13px; cursor:pointer; backdrop-filter:blur(4px); display:none;";
   document.body.appendChild(myAccBtn);
+
+  function updateAccBtnVisibility(){
+    const inCommunity = !!document.getElementById('communityContent');
+    myAccBtn.style.display = inCommunity ? 'block' : 'none';
+  }
+  updateAccBtnVisibility();
+  setInterval(updateAccBtnVisibility, 800);
 })();
 // =========================================================
 // 🛠️ 1️⃣ نظام التحقق وإدارة الحسابات الذكي
