@@ -184,6 +184,7 @@ window.sendWhatsAppToManager = function() {
   const baseMsg = "✨ *السلام عليكم ورحمة الله وبركاته* ✨\n\n🕊️ *مشرفتنا الفاضلة الغالية،* \nأود الانضمام إلى *مجلس العفيفات* في شبكة أثر المباركة.\n\n🌱 *فضلاً، أرجو توثيق حسابي وإرسال كود التفعيل السري الخاص بالخصوصية.*\n\nجزاكم الله خيراً ونفع بكم الأمة 🤍";
   window.open('https://wa.me/201123181731?text=' + encodeURIComponent(baseMsg), '_blank');
 };
+
 window.handleProfilePicSelection = function(input) {
   if(input.files[0]) {
     selectedProfileFile = input.files[0];
