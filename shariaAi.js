@@ -2,7 +2,7 @@
  * محرك الذكاء الاصطناعي الشرعي المنضبط
  * تطبيق كُن ذا أثر - باسم أحمد شيمي
  */ 
-
+ 
 // دالة الاتصال بالذكاء الاصطناعي الشرعي
 window.askShariaAI = async function() {
   const inputEl = document.getElementById('shariaQuestionInput');
