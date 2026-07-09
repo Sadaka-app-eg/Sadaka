@@ -899,21 +899,21 @@ window.deletePost = async function(docId) {
 // =========================================================
 // 💬 4️⃣ نظام تشغيل وإدارة التعليقات الحية (Comments)
 // =========================================================
-window.toggleCommentsSection = function(docId) {
+window.toggleCommentsSection = function(docId, colName = 'posts') {
   const wrapper = document.getElementById(`commentsWrapper-${docId}`);
   if (!wrapper) return;
-  if (wrapper.style.display === "none") { wrapper.style.display = "block"; window.listenToComments(docId); } 
+  if (wrapper.style.display === "none") { wrapper.style.display = "block"; window.listenToComments(docId, colName); } 
   else { wrapper.style.display = "none"; }
 };
 
-window.sendComment = async function(docId) {
+window.sendComment = async function(docId, colName = 'posts') {
   const input = document.getElementById(`commentInput-${docId}`);
   const myName = localStorage.getItem('athr_user_name');
   if(!myName) { alert("🔒 برجاء تسجيل الدخول أولاً للتعليق."); return; }
   if (!input || !input.value.trim()) return;
 
   try {
-    await addDoc(collection(db, "posts", docId, "comments"), {
+    await addDoc(collection(db, colName, docId, "comments"), {
       name: myName,
       text: input.value.trim(),
       createdAt: serverTimestamp()
@@ -924,8 +924,8 @@ window.sendComment = async function(docId) {
   } catch (e) { console.error(e); }
 };
 
-window.listenToComments = function(docId) {
-  const q = query(collection(db, "posts", docId, "comments"), orderBy("createdAt", "asc"));
+window.listenToComments = function(docId, colName = 'posts') {
+  const q = query(collection(db, colName, docId, "comments"), orderBy("createdAt", "asc"));
   onSnapshot(q, (snapshot) => {
     const listArea = document.getElementById(`commentsList-${docId}`);
     if (!listArea) return;
@@ -1749,9 +1749,20 @@ window.listenToDuaRequests = function() {
             <small style="color:var(--text2); font-size:11px;">${data.createdAt ? window.formatPostTime(data.createdAt) : 'الآن'}</small>
           </div>
           <p style="color:var(--text); font-size:14px; font-family:'Amiri', serif; line-height:1.5; margin-bottom:10px; white-space:pre-wrap;">${data.text}</p>
-          <button onclick="window.togglePrayForRequest('${docSnap.id}', ${hasPrayed})" style="background:${hasPrayed ? 'rgba(212,175,55,0.15)' : 'transparent'}; border:1px solid var(--gold); color:var(--gold); padding:6px 18px; border-radius:20px; font-size:13px; font-weight:bold; cursor:pointer;">
-            🤲 دعيت لك (${prayedArr.length})
-          </button>
+          <div style="display:flex; gap:10px; margin-bottom:6px;">
+            <button onclick="window.togglePrayForRequest('${docSnap.id}', ${hasPrayed})" style="background:${hasPrayed ? 'rgba(212,175,55,0.15)' : 'transparent'}; border:1px solid var(--gold); color:var(--gold); padding:6px 18px; border-radius:20px; font-size:13px; font-weight:bold; cursor:pointer;">
+              🤲 دعيت لك (${prayedArr.length})
+            </button>
+            <button onclick="window.toggleCommentsSection('${docSnap.id}', 'dua_requests')" class="action-item-btn">💬 التعليقات</button>
+          </div>
+
+          <div id="commentsWrapper-${docSnap.id}" style="display:none; padding-top:10px;">
+            <div id="commentsList-${docSnap.id}" style="max-height:200px; overflow-y:auto; display:flex; flex-direction:column; gap:6px; margin-bottom:8px;"></div>
+            <div style="display:flex; gap:6px;">
+              <input id="commentInput-${docSnap.id}" type="text" placeholder="اكتب دعوة أو كلمة طيبة..." style="flex:1; padding:8px 12px; background:#000; border:1px solid var(--border); color:var(--text); border-radius:20px; font-size:13px; outline:none;" onkeypress="if(event.key==='Enter') window.sendComment('${docSnap.id}', 'dua_requests')" />
+              <button onclick="window.sendComment('${docSnap.id}', 'dua_requests')" style="background:var(--gold); color:#111; border:none; padding:0 15px; border-radius:20px; font-size:13px; font-weight:bold; cursor:pointer;">إرسال</button>
+            </div>
+          </div>
         </div>`;
     });
     listArea.innerHTML = html || `<div class="comm-card"><p style="color:var(--text2); text-align:center; font-size:13px;">لا توجد طلبات دعاء حالياً.</p></div>`;
