@@ -1983,7 +1983,23 @@ window.renderFamilyChallengeTab = function() {
   `;
 
   if (savedRoomCode) {
-    window.listenToFamilyRoom(savedRoomCode);
+    // هنتحقق أولاً من السيرفر قبل ما نفتح الغرفة عمياني
+    getDoc(doc(db, "family_rooms", savedRoomCode)).then((snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        const membersObj = data.members || {};
+        // لو الحساب الحالي مش موجود في أعضاء الغرفة دي على السيرفر، اطرده لصفحة الكود
+        if (!membersObj[myName]) {
+          localStorage.removeItem('athr_family_room_code');
+          window.renderFamilySetupScreen();
+        } else {
+          window.listenToFamilyRoom(savedRoomCode);
+        }
+      } else {
+        localStorage.removeItem('athr_family_room_code');
+        window.renderFamilySetupScreen();
+      }
+    }).catch(() => window.renderFamilySetupScreen());
   } else {
     window.renderFamilySetupScreen();
   }
@@ -2095,8 +2111,16 @@ window.listenToFamilyRoom = function(roomCode) {
   const myName = localStorage.getItem('athr_user_name');
 
   unsubscribeFamilyRoom = onSnapshot(doc(db, "family_rooms", roomCode), (snap) => {
-    const dashboard = document.getElementById('familyMainDashboard');
-    if (!dashboard || !snap.exists()) return;
+   const dashboard = document.getElementById('familyMainDashboard');
+    if (!dashboard) return;
+    
+    // لو الغرفة مش موجودة أو الحساب مش جوة الأعضاء الحين اطرد الحساب فوراً
+    if (!snap.exists() || !snap.data().members || !snap.data().members[myName]) {
+      if (unsubscribeFamilyRoom) unsubscribeFamilyRoom();
+      localStorage.removeItem('athr_family_room_code');
+      window.renderFamilySetupScreen();
+      return;
+    }
 
     const data = snap.data();
     const membersObj = data.members || {};
