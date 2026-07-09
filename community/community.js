@@ -163,14 +163,22 @@ window.renderSetupScreen = function() {
         </div>
       </div>
 
-  <div id="femaleCodeContainer" style="display: none; margin-bottom: 25px; text-align: right;">
+    <div id="femaleCodeContainer" style="display: none; margin-bottom: 25px; text-align: right;">
+
     <label style="color: var(--gold); display: block; margin-bottom: 6px; font-size: 14px;">⚠️ كود تفعيل مجلس الأخوات الموحد:</label>
+
     <div style="margin-bottom: 15px; text-align: right;">
-      <button type="button" onclick="const baseMsg = '✨ *السلام عليكم ورحمة الله وبركاته* ✨\n\n🕊️ *مشرفتنا الفاضلة الغالية،* \nأود الانضمام إلى *مجلس العفيفات* في شبكة أثر المباركة.\n\n🌱 *فضلاً، أرجو توثيق حسابي وإرسال كود التفعيل السري الخاص بالخصوصية.* \n\nجزاكم الله خيراً ونفع بكم الأمة 🤍'; window.open('https://wa.me/201123181731?text=' + encodeURIComponent(baseMsg), '_blank');" style="display: block; width: 100%; background: #25D366; color: #fff; border: none; padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; font-family: 'Amiri', serif; box-shadow: 0 4px 12px rgba(37,211,102,0.3); transition: 0.2s; text-align: center;">
+
+      <button type="button" onclick="const msg = '✨ *السلام عليكم ورحمة الله وبركاته* ✨\n\n🕊️ *مشرفتنا الفاضلة الغالية،* \nأود الانضمام إلى *مجلس العفيفات* في شبكة أثر المباركة.\n\n🌱 *فضلاً، أرجو توثيق حسابي وإرسال كود التفعيل السري الخاص بالخصوصية.* \n\nجزاكم الله خيراً ونفع بكم الأمة 🤍'; window.open('https://wa.me/201123181731?text=' + encodeURIComponent(msg), '_blank')" style="display: block; width: 100%; background: #25D366; color: #fff; border: none; padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; font-family: 'Amiri', serif; box-shadow: 0 4px 12px rgba(37,211,102,0.3); transition: 0.2s; text-align: center;">
+
         💬 اضغطي هنا لمراسلة المشرفة وطلب كود التفعيل
+
       </button>
+
     </div>
+
     <input id="commFemaleCodeInp" type="password" placeholder="أدخلي كود الخصوصية السري..." style="width: 100%; padding: 12px; background: #000; border: 1px solid var(--gold); color: var(--text); border-radius: 8px; outline: none; text-align: center;" />
+
 </div>
 
       <button id="submitSetupBtn" onclick="window.processCommunitySubmit()" style="width: 100%; background: var(--gold); color: #111; border: none; padding: 14px; border-radius: 8px; font-weight: bold; font-family: 'Amiri', serif; font-size: 16px; cursor: pointer; transition: 0.2s;">حفظ الملف ودخول المجتمع 🚀</button>
