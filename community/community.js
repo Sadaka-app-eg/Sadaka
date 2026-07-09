@@ -163,12 +163,11 @@ window.renderSetupScreen = function() {
         </div>
       </div>
 
-   //  الكود المطور والمضمون للاستبدال
-<div id="femaleCodeContainer" style="display: none; margin-bottom: 25px; text-align: right;">
+   <div id="femaleCodeContainer" style="display: none; margin-bottom: 25px; text-align: right;">
     <label style="color: var(--gold); display: block; margin-bottom: 6px; font-size: 14px;">⚠️ كود تفعيل مجلس الأخوات الموحد:</label>
     <div style="margin-bottom: 15px; text-align: right;">
-      <button type="button" onclick="window.open('https://wa.me/201123181731?text=%D8%A7%D9%84%D8%B3%D9%84%D8%A7%D9%85%20%D8%B9%D9%84%D9%8A%D9%83%D9%85%20%D9%85%D8%B3%D8%A1%D9%88%D9%84%D8%A9%20%D8%A7%D9%84%D8%AA%D9%88%D8%AB%D9%8A%D9%82%D8%8C%20%D8%A3%D8%B1%D8%AC%D9%88%20%D8%A5%D8%B1%D8%B3%D8%A7%D9%84%20%D9%83%D9%88%D8%AF%20%D8%AA%D9%81%D8%B9%D9%8A%D9%84%20%D9%85%DAC%D9%84%D8%B3%20%D8%A7%D9%84%D8%B9%D9%81%D9%8A%D9%81%D8%A7%D8%AA%20%D9%81%D9%8A%20%D8%A3%D8%AB%D8%B1', '_blank')" style="display: block; width: 100%; background: #25D366; color: #fff; border: none; padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; font-family: 'Amiri', serif; box-shadow: 0 4px 12px rgba(37,211,102,0.3); transition: 0.2s; text-align: center;">
-        💬 اضغطي هنا لمراسلة المشرفة وتلقي كود التفعيل فوراً
+      <button type="button" onclick="const msg = 'السلام عليكم ورحمة الله وبركاته مشرفتنا الفاضلة، أود الانضمام إلى مجلس العفيفات في شبكة أثر، ففضلاً أرجو توثيق حسابي وإرسال كود التفعيل السري للخصوصية.'; window.open('https://wa.me/201123181731?text=' + encodeURIComponent(msg), '_blank')" style="display: block; width: 100%; background: #25D366; color: #fff; border: none; padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; font-family: 'Amiri', serif; box-shadow: 0 4px 12px rgba(37,211,102,0.3); transition: 0.2s; text-align: center;">
+        💬 اضغطي هنا لمراسلة المشرفة وطلب كود التفعيل
       </button>
     </div>
     <input id="commFemaleCodeInp" type="password" placeholder="أدخلي كود الخصوصية السري..." style="width: 100%; padding: 12px; background: #000; border: 1px solid var(--gold); color: var(--text); border-radius: 8px; outline: none; text-align: center;" />
