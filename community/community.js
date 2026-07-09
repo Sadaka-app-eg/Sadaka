@@ -405,15 +405,22 @@ window.renderCommunityBody = function() {
   } else if (window.currentCommunityTab === 'private') {
     window.renderPrivateChatDashboard();
   }
+    // أضف هذا الشرط داخل دالة renderCommunityBody مع بقية الأقسام
+  else if (window.currentCommunityTab === 'family') {
+    window.renderFamilyChallengeTab();
+  }
+
 };
 
 // دالة مشتركة لعمل شريط التابات (نفس الشكل في كل الأقسام الجديدة)
+// أضف 'family' إلى قائمة التابات في كل الأماكن بالملف
 window.getSharedTabsHTML = function(activeTab) {
   const tabs = [
     { id: 'feed', label: '📝 ساحة الأثر' },
     { id: 'chat', label: '💬 مجلس الذكر' },
+    { id: 'family', label: '🏡 التنافس العائلي' }, // 👈 الزر الجديد المضاف للمجتمع
     { id: 'fajr', label: '🕌 استيقاظ الفجر' },
-    { id: 'weekly', label: '🌟 حلقة الأسبوع' },
+    { id: 'weekly', label: '🌟 hلقة الأسبوع' },
     { id: 'leaderboard', label: '🏆 لوحة الشرف' },
     { id: 'dua', label: '🤲 اطلب دعاء' },
     { id: 'featured', label: '✨ الأكثر تأثيراً' },
@@ -423,6 +430,7 @@ window.getSharedTabsHTML = function(activeTab) {
     ${tabs.map(t => `<button class="comm-tab-btn ${t.id === activeTab ? 'active' : ''}" onclick="window.switchCommunityTab('${t.id}')">${t.label}</button>`).join('')}
   </div>`;
 };
+
 
 // =========================================================
 // 👤 3️⃣ محرك معالجة الألوان الملكية والبروفايل العائم ديناميكياً
@@ -1839,4 +1847,288 @@ window.listenToFeaturedPosts = function() {
     const listArea = document.getElementById('featuredList');
     if (listArea) listArea.innerHTML = `<div class="comm-card"><p style="color:#ff6b6b; text-align:center; font-size:12px; direction:ltr;">${err.code}: ${err.message}</p></div>`;
   });
+};
+// =========================================================================
+// 🏡 15️⃣ نظام "التنافس العائلي اللحظي" - متابعة الورد، الحفظ والختمان
+// =========================================================================
+let unsubscribeFamilyRoom = null;
+
+window.renderFamilyChallengeTab = function() {
+  const contentArea = document.getElementById('communityContent');
+  const myName = localStorage.getItem('athr_user_name');
+  const savedRoomCode = localStorage.getItem('athr_family_room_code');
+
+  if (!myName) {
+    contentArea.innerHTML = `${window.getSharedTabsHTML('family')}`;
+    window.renderAuthRequiredBlock();
+    return;
+  }
+
+  contentArea.innerHTML = `
+    ${window.getSharedTabsHTML('family')}
+    <div style="color: var(--gold); font-family: 'Amiri', serif; margin-bottom: 15px; font-size: 14px; text-align: right; font-weight: bold;">🏡 ميدان التنافس والترابط العائلي الإسلامي</div>
+    <div id="familyMainDashboard">
+      <div class="comm-card" style="text-align:center;"><p style="color:var(--text2);">جاري فحص اتصال الغرفة العائلية... ✨</p></div>
+    </div>
+  `;
+
+  if (savedRoomCode) {
+    window.listenToFamilyRoom(savedRoomCode);
+  } else {
+    window.renderFamilySetupScreen();
+  }
+};
+
+// شاشة إنشاء أو الانضمام لغرفة عائلية
+window.renderFamilySetupScreen = function() {
+  const dashboard = document.getElementById('familyMainDashboard');
+  if (!dashboard) return;
+
+  dashboard.innerHTML = `
+    <div class="comm-card" style="text-align: right; padding: 25px 15px; border: 1px dashed var(--gold);">
+      <h4 style="color:var(--gold); margin-bottom:10px;">🌟 أنشئ غرفة لطاعات عائلتك الحين</h4>
+      <p style="color:var(--text2); font-size:12px; margin-bottom:15px; line-height:1.6;">
+        يمكنك تأسيس حلقة تنافسية مغلقة تجمع أهل بيتك (الأب، الأم، الأولاد) لمتابعة وحفظ الأذكار والورد القرآني والختمات اليومية مع لوحة صدارة حية!
+      </p>
+      <button onclick="window.createNewFamilyRoom()" id="createFamilyBtn" style="width:100%; background:var(--gold); color:#111; border:none; padding:12px; border-radius:8px; font-weight:bold; cursor:pointer; font-family:'Amiri', serif;">➕ إنشاء غرفة عائلية وتوليد كود الدعوة</button>
+       
+      <div style="border-top:1px solid var(--border); margin:20px 0; position:relative; text-align:center;">
+        <span style="position:absolute; top:-10px; background:#0b0f0b; padding:0 10px; color:var(--text2); font-size:11px; left:45%;">أو</span>
+      </div>
+
+      <h4 style="color:var(--gold); margin-bottom:10px;">🔑 انضمام لغرفة عائلتك عبر الكود</h4>
+      <p style="color:var(--text2); font-size:12px; margin-bottom:12px;">إذا أرسل لك أحد أفراد عائلتك رمز الدخول، أدخله هنا لتنضم للمنافسة فوراً.</p>
+      <div style="display:flex; gap:8px;">
+        <input id="familyCodeInp" type="text" placeholder="اكتب كود الغرفة هنا (مثال: A79X)..." style="flex:1; padding:12px; background:#000; border:1px solid var(--border); color:var(--text); border-radius:8px; outline:none; text-align:center; font-weight:bold; text-transform:uppercase;" />
+        <button onclick="window.joinFamilyRoomViaCode()" id="joinFamilyBtn" style="background:transparent; color:var(--gold); border:1px solid var(--gold); padding:0 25px; border-radius:8px; font-weight:bold; cursor:pointer; font-family:'Amiri', serif;">دخول 🔑</button>
+      </div>
+    </div>
+  `;
+};
+
+// توليد كود غرفة عشوائي فريد
+window.createNewFamilyRoom = async function() {
+  const myName = localStorage.getItem('athr_user_name');
+  const btn = document.getElementById('createFamilyBtn');
+  btn.disabled = true; btn.textContent = "جاري حجز وتأمين الغرفة... ⏳";
+
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // استبعاد الحروف المتشابهة لتسهيل النقل
+  let roomCode = "";
+  for (let i = 0; i < 4; i++) roomCode += chars.charAt(Math.floor(Math.random() * chars.length));
+
+  try {
+    const roomRef = doc(db, "family_rooms", roomCode);
+    // هيكلة بيانات العضو الأول (المنشئ)
+    const initialMembers = {};
+    initialMembers[myName] = {
+      name: myName,
+      wirdCount: 0,
+      azkarCount: 0,
+      khatmaStatus: "لم تبدأ",
+      score: 0,
+      lastUpdated: new Date().toISOString()
+    };
+
+    await setDoc(roomRef, {
+      roomCode: roomCode,
+      creator: myName,
+      createdAt: serverTimestamp(),
+      members: initialMembers
+    });
+
+    localStorage.setItem('athr_family_room_code', roomCode);
+    window.listenToFamilyRoom(roomCode);
+  } catch(e) {
+    console.error(e);
+    alert("فشل إنشاء الغرفة، يرجى المحاولة مرة أخرى.");
+    btn.disabled = false; btn.textContent = "➕ إنشاء غرفة عائلية وتوليد كود الدعوة";
+  }
+};
+
+// الانضمام لغرفة قائمة عبر الكود
+window.joinFamilyRoomViaCode = async function() {
+  const codeInp = document.getElementById('familyCodeInp');
+  if(!codeInp || !codeInp.value.trim()) { alert("يرجى كتابة الكود أولاً."); return; }
+  const code = codeInp.value.trim().toUpperCase();
+  const myName = localStorage.getItem('athr_user_name');
+  const btn = document.getElementById('joinFamilyBtn');
+
+  try {
+    btn.disabled = true; btn.textContent = "تدقيق... ⏳";
+    const roomRef = doc(db, "family_rooms", code);
+    const snap = await getDoc(roomRef);
+
+    if(!snap.exists()) {
+      alert("⚠️ عذراً، هذا الكود غير مسجل أو منتهي الصلاحية.");
+      btn.disabled = false; btn.textContent = "دخول 🔑";
+      return;
+    }
+
+    // إضافة العضو الجديد للهيكل الداخلي للغرفة دون تدمير بيانات الأعضاء الباقيين
+    await updateDoc(roomRef, {
+      [`members.${myName}`]: {
+        name: myName,
+        wirdCount: 0,
+        azkarCount: 0,
+        khatmaStatus: "لم تبدأ",
+        score: 0,
+        lastUpdated: new Date().toISOString()
+      }
+    });
+
+    localStorage.setItem('athr_family_room_code', code);
+    window.listenToFamilyRoom(code);
+  } catch(e) {
+    console.error(e);
+    alert("حدث خطأ أثناء الانضمام للغرفة.");
+    btn.disabled = false; btn.textContent = "دخول 🔑";
+  }
+};
+
+// الاستماع اللحظي للغرفة العائلية وبناء لوحة التحكم والأعضاء مجتمعين
+window.listenToFamilyRoom = function(roomCode) {
+  if (unsubscribeFamilyRoom) unsubscribeFamilyRoom();
+  const myName = localStorage.getItem('athr_user_name');
+
+  unsubscribeFamilyRoom = onSnapshot(doc(db, "family_rooms", roomCode), (snap) => {
+    const dashboard = document.getElementById('familyMainDashboard');
+    if (!dashboard) return;
+
+    if (!snap.exists()) {
+      localStorage.removeItem('athr_family_room_code');
+      window.renderFamilySetupScreen();
+      return;
+    }
+
+    const data = snap.data();
+    const membersObj = data.members || {};
+    
+    // تحويل الكائن لمصفوفة وفرز الأعضاء تنازلياً حسب السكور (النقاط الأعلى أولاً)
+    const sortedMembers = Object.values(membersObj).sort((a, b) => (b.score || 0) - (a.score || 0));
+    const myData = membersObj[myName] || { wirdCount: 0, azkarCount: 0, khatmaStatus: "لم تبدأ", score: 0 };
+
+    let membersHtml = "";
+    const medals = ['🥇', '🥈', '🥉'];
+    
+    sortedMembers.forEach((m, index) => {
+      const rankBadge = index < 3 ? medals[index] : `#${index + 1}`;
+      const isCurrentMe = m.name === myName;
+      
+      membersHtml += `
+        <div class="comm-card" style="display:flex; justify-content:space-between; align-items:center; padding:12px; background:${isCurrentMe ? 'rgba(212,175,55,0.04)' : 'rgba(255,255,255,0.01)'}; border:${isCurrentMe ? '1px solid var(--gold)' : '1px solid var(--border)'}; margin-bottom:8px; text-align:right;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span style="font-size:18px;">${rankBadge}</span>
+            <div>
+              <strong style="color:${isCurrentMe ? 'var(--gold)' : 'var(--text)'}; font-size:14px;">${m.name} ${isCurrentMe ? '(أنت)' : ''}</strong>
+              <div style="font-size:11px; color:var(--text2); margin-top:4px;">
+                📖 الورد: <span style="color:var(--text); font-weight:bold;">${m.wirdCount || 0} صفحة</span> | 
+                📿 الأذكار: <span style="color:var(--text); font-weight:bold;">${m.azkarCount || 0} مرّة</span>
+              </div>
+              <div style="font-size:11px; color:var(--text2); margin-top:2px;">
+                🕋 الختمة الحالية: <span style="color:var(--gold); font-weight:bold;">${m.khatmaStatus || 'لم تبدأ'}</span>
+              </div>
+            </div>
+          </div>
+          <div style="text-align:center; background:rgba(212,175,55,0.1); border-radius:8px; padding:6px 12px; border:1px solid rgba(212,175,55,0.2);">
+            <div style="font-size:10px; color:var(--text2);">النقاط</div>
+            <div style="color:var(--gold); font-weight:bold; font-size:15px;">${m.score || 0}</div>
+          </div>
+        </div>
+      `;
+    });
+
+    dashboard.innerHTML = `
+      <div class="comm-card" style="display:flex; justify-content:space-between; align-items:center; padding:12px 15px; border-right:4px solid var(--gold); background:rgba(212,175,55,0.02); margin-bottom:15px; text-align:right;">
+        <div>
+          <span style="color:var(--text2); font-size:11px; display:block;">انقل الكود لأفراد العائلة للدخول معاً:</span>
+          <strong style="color:var(--gold); font-size:18px; font-family:'monospace'; letter-spacing:2px; display:block; margin-top:2px;">🔑 ${roomCode}</strong>
+        </div>
+        <button onclick="window.exitFamilyRoom()" style="background:transparent; color:#ff4d4d; border:1px solid #ff4d4d; padding:5px 12px; border-radius:20px; font-size:11px; cursor:pointer; font-family:'Amiri', serif;">🚪 مغادرة الغرفة</button>
+      </div>
+
+      <div style="color:var(--text); font-size:13px; font-weight:bold; text-align:right; margin-bottom:8px;">🏆 لوحة ترتيب أفراد البيت اللحظية:</div>
+      <div style="margin-bottom:20px;">${membersHtml}</div>
+
+      <div style="color:var(--gold); font-size:13px; font-weight:bold; text-align:right; margin-bottom:8px;">🎯 لوحة طاعاتك الفورية اليوم (سجّل لتتقدم عائلياً):</div>
+      <div class="comm-card" style="display:flex; flex-direction:column; gap:12px; text-align:right;">
+        
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="color:var(--text); font-size:13px;">📖 قرأت من الورد القرآني اليوم:</span>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <button onclick="window.updateFamilyStat('wird', 1)" style="background:var(--card); border:1px solid var(--border); color:var(--text); width:32px; height:32px; border-radius:50%; font-weight:bold; cursor:pointer;">+</button>
+            <strong style="color:var(--gold); font-size:14px; min-width:20px; text-align:center;">${myData.wirdCount || 0}</strong>
+            <span style="color:var(--text2); font-size:11px;">صفحة</span>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px dashed var(--border); padding-top:10px;">
+          <span style="color:var(--text); font-size:13px;">📿 رددت من الأذكار والتهليل والتسبيح اليوم:</span>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <button onclick="window.updateFamilyStat('azkar', 10)" style="background:var(--card); border:1px solid var(--border); color:var(--text); padding:0 10px; height:32px; border-radius:16px; font-size:12px; cursor:pointer;">+10 تسبيحات</button>
+            <strong style="color:var(--gold); font-size:14px; min-width:30px; text-align:center;">${myData.azkarCount || 0}</strong>
+          </div>
+        </div>
+
+        <div style="border-top:1px dashed var(--border); padding-top:10px;">
+          <label style="color:var(--text); display:block; margin-bottom:6px; font-size:13px;">🕋 حدّث موقف مكانك الحالي في الختمة (الورد المشترك):</label>
+          <div style="display:flex; gap:6px;">
+            <input id="familyKhatmaInp" type="text" value="${myData.khatmaStatus || ''}" placeholder="مثال: الجزء الثالث، الصفحة ٤٥..." style="flex:1; padding:8px; background:#000; border:1px solid var(--border); color:var(--text); border-radius:6px; outline:none; font-family:'Amiri', serif; font-size:13px;" />
+            <button onclick="window.updateFamilyKhatma()" style="background:transparent; color:var(--gold); border:1px solid var(--gold); padding:0 15px; border-radius:6px; font-size:12px; cursor:pointer; font-family:'Amiri', serif;">تحديث 📌</button>
+          </div>
+        </div>
+
+      </div>
+    `;
+  });
+};
+
+// دالة تحديث الإحصائيات وضخ النقاط تلقائياً
+window.updateFamilyStat = async function(type, incrementValue) {
+  const roomCode = localStorage.getItem('athr_family_room_code');
+  const myName = localStorage.getItem('athr_user_name');
+  if(!roomCode || !myName) return;
+
+  const roomRef = doc(db, "family_rooms", roomCode);
+  
+  try {
+    // حساب السكور الإضافي بناء على نوع العبادة (الصفحة = 5 نقاط، والتسبيحة = 0.5 نقطة)
+    const addedScore = type === 'wird' ? (incrementValue * 5) : (incrementValue * 0.5);
+
+    await updateDoc(roomRef, {
+      [`members.${myName}.${type}Count`]: increment(incrementValue),
+      [`members.${myName}.score`]: increment(addedScore),
+      [`members.${myName}.lastUpdated`]: new Date().toISOString()
+    });
+
+    window.awardPoints(myName, type === 'wird' ? 1 : 0.5); // تزويد البروفايل العام أيضاً
+  } catch(e) { console.error(e); }
+};
+
+// تحديث سطر الختمة يدوياً
+window.updateFamilyKhatma = async function() {
+  const inp = document.getElementById('familyKhatmaInp');
+  if(!inp) return;
+  const statusText = inp.value.trim();
+  if(!statusText) return;
+
+  const roomCode = localStorage.getItem('athr_family_room_code');
+  const myName = localStorage.getItem('athr_user_name');
+  const roomRef = doc(db, "family_rooms", roomCode);
+
+  try {
+    await updateDoc(roomRef, {
+      [`members.${myName}.khatmaStatus`]: statusText,
+      [`members.${myName}.score`]: increment(10), // مكافأة تحديث الحفظ والختمة
+      [`members.${myName}.lastUpdated`]: new Date().toISOString()
+    });
+    window.triggerSparksEffect();
+  } catch(e) { console.error(e); }
+};
+
+// مغادرة الغرفة العائلية
+window.exitFamilyRoom = function() {
+  if(!confirm("هل تود الخروج من هذه الغرفة العائلية؟ سيتم إزالة اسمك من لوحة الصدارة.")) return;
+  if(unsubscribeFamilyRoom) unsubscribeFamilyRoom();
+  localStorage.removeItem('athr_family_room_code');
+  window.renderFamilyChallengeTab();
 };
