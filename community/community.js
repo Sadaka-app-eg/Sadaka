@@ -333,6 +333,7 @@ window.renderCommunityBody = function() {
         <button id="tabFeedBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('feed')">📝 ساحة الأثر</button>
         <button id="tabChatBtn" class="comm-tab-btn active" onclick="window.switchCommunityTab('chat')">💬 مجلس الذكر</button>
         <button id="tabFajrBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('fajr')">🕌 استيقاظ الفجر</button>
+        <button id="tabFamilyBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('family')">🏡 التنافس العائلي</button>
         <button id="tabWeeklyBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('weekly')">🌟 حلقة الأسبوع</button>
         <button id="tabLeaderBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('leaderboard')">🏆 لوحة الشرف</button>
         <button id="tabDuaBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('dua')">🤲 اطلب دعاء</button>
