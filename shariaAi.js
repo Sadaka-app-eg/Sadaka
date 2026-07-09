@@ -1,29 +1,21 @@
 /**
- * محرك الذكاء الاصطناعي الشرعي المنضبط - النسخة المستقرة والمأمنة
+ * محرك الذكاء الاصطناعي الشرعي المنضبط - النسخة السحابية المؤمنة ضد أخطاء السكريبتات الأخرى
  * تطبيق كُن ذا أثر - باسم أحمد شيمي
  */
 
-// رابط الـ Worker (البروكسي السيرفري الآمن) الخاص بك على Cloudflare
 const SHARIA_AI_PROXY_URL = "https://sharia-ai-proxy.ahmedmohamedhosny100.workers.dev";
 
-/**
- * دالة تنظيف وتأمين مدخلات المستخدم لمنع ثغرات XSS
- */
 function escapeHtml(str) {
   const div = document.createElement('div');
   div.textContent = str;
   return div.innerHTML;
 }
 
-/**
- * الدالة الرئيسية للاتصال بالذكاء الاصطناعي الشرعي وضخ الأجوبة
- */
 async function askShariaAI() {
   const inputEl = document.getElementById('shariaQuestionInput');
   const btnEl = document.getElementById('shariaSendBtn');
   const chatArea = document.getElementById('shariaChatArea');
 
-  // التأكد من وجود العناصر في الواجهة أولاً
   if (!inputEl || !btnEl || !chatArea) return;
 
   const question = inputEl.value.trim();
@@ -31,12 +23,10 @@ async function askShariaAI() {
 
   const safeQuestion = escapeHtml(question);
 
-  // تجهيز الواجهة وتفعيل تأثير التحميل وحظر الضغط المتكرر
   inputEl.disabled = true;
   btnEl.disabled = true;
   btnEl.textContent = '⏳ جاري البحث والتدقيق...';
 
-  // ضخ سؤال المستخدم فوراً في شاشة المحادثة بتصميم شيك ومؤمن
   chatArea.innerHTML = `
     <div style="background: rgba(212,175,55,0.08); border: 1px solid var(--border); border-right: 4px solid var(--gold); padding: 14px; border-radius: 12px; margin-bottom: 16px; text-align: right;">
       <div style="font-size: 12px; color: var(--gold); font-weight: bold; margin-bottom: 4px;">❓ سؤالك:</div>
@@ -63,15 +53,12 @@ async function askShariaAI() {
       body: JSON.stringify({ systemPrompt, question })
     });
 
-    if (!response.ok) {
-      throw new Error(`سيرفر البروكسي رد بـ خطأ: ${response.status}`);
-    }
+    if (!response.ok) throw new Error(`سيرفر البروكسي رد بـ خطأ: ${response.status}`);
 
     const data = await response.json();
     let aiResponse = data.candidates[0].content.parts[0].text;
 
     aiResponse = escapeHtml(aiResponse);
-
     aiResponse = aiResponse.replace(/\*\*(.*?)\*\*/g, '<strong style="color:var(--gold); font-size:16px;">$1</strong>');
     aiResponse = aiResponse.replace(/\*(.*?)\*/g, '<span style="color:var(--green); font-style:italic;">$1</span>');
     aiResponse = aiResponse.replace(/\n/g, '<br>');
@@ -85,9 +72,6 @@ async function askShariaAI() {
         <div style="font-size: 16px; line-height: 2.1; color: var(--text); font-family: 'Amiri', serif; text-align: justify; direction: rtl;">
           ${aiResponse}
         </div>
-      </div>
-      <div style="text-align:center; font-size:11px; color:var(--text2); margin-bottom:14px; font-family:'Amiri', serif; opacity: 0.85;">
-        ⚠️ هذه الإجابة مولّدة استرشادياً، ويُنصح دوماً بمراجعة الهيئات الرسمية أو دار الإفتاء في النوازل الفردية الحساسة.
       </div>
     `;
 
@@ -111,14 +95,15 @@ async function askShariaAI() {
   chatArea.scrollIntoView({ behavior: 'smooth', block: 'end' });
 }
 
-// 🎯 ربط الدالة بالزرار برمجياً فور تحميل الـ DOM لضمان تخطي مشكلة الـ Modules والكاش
-document.addEventListener("DOMContentLoaded", function() {
+// 💥 التكتيك الأقوى: محاولة ربط الزرار كل نصف ثانية لضمان تخطي أي خطأ شلّ الصفحة
+const bindInterval = setInterval(() => {
   const shariaSendBtn = document.getElementById('shariaSendBtn');
   if (shariaSendBtn) {
-    // إزالة أي حدث قديم وإضافة الحدث الجديد بأمان
-    shariaSendBtn.addEventListener('click', askShariaAI);
+    shariaSendBtn.onclick = askShariaAI;
+    window.askShariaAI = askShariaAI;
+    clearInterval(bindInterval); // أول ما يلقطه ويقفل عليه بيمسح الـ Interval
   }
-});
+}, 500);
 
-// تثبيتها كدالة احتياطية على الـ window أيضاً
+// تثبيت احتياطي فوري
 window.askShariaAI = askShariaAI;
