@@ -1849,7 +1849,7 @@ window.listenToFeaturedPosts = function() {
   });
 };
 // =========================================================================
-// 🏡 15️⃣ نظام "التنافس العائلي اللحظي" - متابعة الورد، الحفظ والختمان
+// 🏡 15️⃣ نظام "التنافس العائلي اللحظي" - التحديات المخصصة والديناميكية
 // =========================================================================
 let unsubscribeFamilyRoom = null;
 
@@ -1879,7 +1879,6 @@ window.renderFamilyChallengeTab = function() {
   }
 };
 
-// شاشة إنشاء أو الانضمام لغرفة عائلية
 window.renderFamilySetupScreen = function() {
   const dashboard = document.getElementById('familyMainDashboard');
   if (!dashboard) return;
@@ -1888,10 +1887,10 @@ window.renderFamilySetupScreen = function() {
     <div class="comm-card" style="text-align: right; padding: 25px 15px; border: 1px dashed var(--gold);">
       <h4 style="color:var(--gold); margin-bottom:10px;">🌟 أنشئ غرفة لطاعات عائلتك الحين</h4>
       <p style="color:var(--text2); font-size:12px; margin-bottom:15px; line-height:1.6;">
-        يمكنك تأسيس حلقة تنافسية مغلقة تجمع أهل بيتك (الأب، الأم، الأولاد) لمتابعة وحفظ الأذكار والورد القرآني والختمات اليومية مع لوحة صدارة حية!
+        يمكنك تأسيس حلقة تنافسية مغلقة تجمع أهل بيتك لمتابعة الأذكار والورد القرآني، وإضافة تحديات مخصصة ومبتكرة للبيت كله مع لوحة صدارة حية!
       </p>
       <button onclick="window.createNewFamilyRoom()" id="createFamilyBtn" style="width:100%; background:var(--gold); color:#111; border:none; padding:12px; border-radius:8px; font-weight:bold; cursor:pointer; font-family:'Amiri', serif;">➕ إنشاء غرفة عائلية وتوليد كود الدعوة</button>
-       
+      
       <div style="border-top:1px solid var(--border); margin:20px 0; position:relative; text-align:center;">
         <span style="position:absolute; top:-10px; background:#0b0f0b; padding:0 10px; color:var(--text2); font-size:11px; left:45%;">أو</span>
       </div>
@@ -1899,32 +1898,30 @@ window.renderFamilySetupScreen = function() {
       <h4 style="color:var(--gold); margin-bottom:10px;">🔑 انضمام لغرفة عائلتك عبر الكود</h4>
       <p style="color:var(--text2); font-size:12px; margin-bottom:12px;">إذا أرسل لك أحد أفراد عائلتك رمز الدخول، أدخله هنا لتنضم للمنافسة فوراً.</p>
       <div style="display:flex; gap:8px;">
-        <input id="familyCodeInp" type="text" placeholder="اكتب كود الغرفة هنا (مثال: A79X)..." style="flex:1; padding:12px; background:#000; border:1px solid var(--border); color:var(--text); border-radius:8px; outline:none; text-align:center; font-weight:bold; text-transform:uppercase;" />
+        <input id="familyCodeInp" type="text" placeholder="A79X" style="flex:1; padding:12px; background:#000; border:1px solid var(--border); color:var(--text); border-radius:8px; outline:none; text-align:center; font-weight:bold; text-transform:uppercase;" />
         <button onclick="window.joinFamilyRoomViaCode()" id="joinFamilyBtn" style="background:transparent; color:var(--gold); border:1px solid var(--gold); padding:0 25px; border-radius:8px; font-weight:bold; cursor:pointer; font-family:'Amiri', serif;">دخول 🔑</button>
       </div>
     </div>
   `;
 };
 
-// توليد كود غرفة عشوائي فريد
 window.createNewFamilyRoom = async function() {
   const myName = localStorage.getItem('athr_user_name');
   const btn = document.getElementById('createFamilyBtn');
-  btn.disabled = true; btn.textContent = "جاري حجز وتأمين الغرفة... ⏳";
+  btn.disabled = true; btn.textContent = "جاري تأمين الغرفة... ⏳";
 
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // استبعاد الحروف المتشابهة لتسهيل النقل
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let roomCode = "";
   for (let i = 0; i < 4; i++) roomCode += chars.charAt(Math.floor(Math.random() * chars.length));
 
   try {
     const roomRef = doc(db, "family_rooms", roomCode);
-    // هيكلة بيانات العضو الأول (المنشئ)
     const initialMembers = {};
     initialMembers[myName] = {
       name: myName,
       wirdCount: 0,
       azkarCount: 0,
-      khatmaStatus: "لم تبدأ",
+      customChallenges: {}, // حفظ تكرار التحديات المخصصة لكل عضو
       score: 0,
       lastUpdated: new Date().toISOString()
     };
@@ -1933,7 +1930,8 @@ window.createNewFamilyRoom = async function() {
       roomCode: roomCode,
       creator: myName,
       createdAt: serverTimestamp(),
-      members: initialMembers
+      members: initialMembers,
+      customChallengeList: [] // قائمة أسماء التحديات المضافة في الغرفة
     });
 
     localStorage.setItem('athr_family_room_code', roomCode);
@@ -1941,11 +1939,10 @@ window.createNewFamilyRoom = async function() {
   } catch(e) {
     console.error(e);
     alert("فشل إنشاء الغرفة، يرجى المحاولة مرة أخرى.");
-    btn.disabled = false; btn.textContent = "➕ إنشاء غرفة عائلية وتوليد كود الدعوة";
+    btn.disabled = false;
   }
 };
 
-// الانضمام لغرفة قائمة عبر الكود
 window.joinFamilyRoomViaCode = async function() {
   const codeInp = document.getElementById('familyCodeInp');
   if(!codeInp || !codeInp.value.trim()) { alert("يرجى كتابة الكود أولاً."); return; }
@@ -1954,23 +1951,22 @@ window.joinFamilyRoomViaCode = async function() {
   const btn = document.getElementById('joinFamilyBtn');
 
   try {
-    btn.disabled = true; btn.textContent = "تدقيق... ⏳";
+    btn.disabled = true;
     const roomRef = doc(db, "family_rooms", code);
     const snap = await getDoc(roomRef);
 
     if(!snap.exists()) {
-      alert("⚠️ عذراً، هذا الكود غير مسجل أو منتهي الصلاحية.");
-      btn.disabled = false; btn.textContent = "دخول 🔑";
+      alert("⚠️ كود غير صحيح.");
+      btn.disabled = false;
       return;
     }
 
-    // إضافة العضو الجديد للهيكل الداخلي للغرفة دون تدمير بيانات الأعضاء الباقيين
     await updateDoc(roomRef, {
       [`members.${myName}`]: {
         name: myName,
         wirdCount: 0,
         azkarCount: 0,
-        khatmaStatus: "لم تبدأ",
+        customChallenges: {},
         score: 0,
         lastUpdated: new Date().toISOString()
       }
@@ -1980,32 +1976,24 @@ window.joinFamilyRoomViaCode = async function() {
     window.listenToFamilyRoom(code);
   } catch(e) {
     console.error(e);
-    alert("حدث خطأ أثناء الانضمام للغرفة.");
-    btn.disabled = false; btn.textContent = "دخول 🔑";
+    btn.disabled = false;
   }
 };
 
-// الاستماع اللحظي للغرفة العائلية وبناء لوحة التحكم والأعضاء مجتمعين
 window.listenToFamilyRoom = function(roomCode) {
   if (unsubscribeFamilyRoom) unsubscribeFamilyRoom();
   const myName = localStorage.getItem('athr_user_name');
 
   unsubscribeFamilyRoom = onSnapshot(doc(db, "family_rooms", roomCode), (snap) => {
     const dashboard = document.getElementById('familyMainDashboard');
-    if (!dashboard) return;
-
-    if (!snap.exists()) {
-      localStorage.removeItem('athr_family_room_code');
-      window.renderFamilySetupScreen();
-      return;
-    }
+    if (!dashboard || !snap.exists()) return;
 
     const data = snap.data();
     const membersObj = data.members || {};
+    const customChallengeList = data.customChallengeList || [];
     
-    // تحويل الكائن لمصفوفة وفرز الأعضاء تنازلياً حسب السكور (النقاط الأعلى أولاً)
     const sortedMembers = Object.values(membersObj).sort((a, b) => (b.score || 0) - (a.score || 0));
-    const myData = membersObj[myName] || { wirdCount: 0, azkarCount: 0, khatmaStatus: "لم تبدأ", score: 0 };
+    const myData = membersObj[myName] || { wirdCount: 0, azkarCount: 0, customChallenges: {}, score: 0 };
 
     let membersHtml = "";
     const medals = ['🥇', '🥈', '🥉'];
@@ -2014,24 +2002,45 @@ window.listenToFamilyRoom = function(roomCode) {
       const rankBadge = index < 3 ? medals[index] : `#${index + 1}`;
       const isCurrentMe = m.name === myName;
       
+      // بناء تفاصيل الطاعات المخصصة لكل فرد في الكارت بتاعه
+      let customDetailsHtml = "";
+      customChallengeList.forEach(chName => {
+        const count = (m.customChallenges && m.customChallenges[chName]) || 0;
+        if(count > 0) {
+          customDetailsHtml += ` | ${chName}: <span style="color:var(--gold); font-weight:bold;">${count} مرّة</span>`;
+        }
+      });
+
       membersHtml += `
         <div class="comm-card" style="display:flex; justify-content:space-between; align-items:center; padding:12px; background:${isCurrentMe ? 'rgba(212,175,55,0.04)' : 'rgba(255,255,255,0.01)'}; border:${isCurrentMe ? '1px solid var(--gold)' : '1px solid var(--border)'}; margin-bottom:8px; text-align:right;">
           <div style="display:flex; align-items:center; gap:10px;">
             <span style="font-size:18px;">${rankBadge}</span>
             <div>
               <strong style="color:${isCurrentMe ? 'var(--gold)' : 'var(--text)'}; font-size:14px;">${m.name} ${isCurrentMe ? '(أنت)' : ''}</strong>
-              <div style="font-size:11px; color:var(--text2); margin-top:4px;">
+              <div style="font-size:11px; color:var(--text2); margin-top:4px; line-height:1.5;">
                 📖 الورد: <span style="color:var(--text); font-weight:bold;">${m.wirdCount || 0} صفحة</span> | 
-                📿 الأذكار: <span style="color:var(--text); font-weight:bold;">${m.azkarCount || 0} مرّة</span>
-              </div>
-              <div style="font-size:11px; color:var(--text2); margin-top:2px;">
-                🕋 الختمة الحالية: <span style="color:var(--gold); font-weight:bold;">${m.khatmaStatus || 'لم تبدأ'}</span>
+                📿 الأذكار: <span style="color:var(--text); font-weight:bold;">${m.azkarCount || 0} مرّة</span>${customDetailsHtml}
               </div>
             </div>
           </div>
           <div style="text-align:center; background:rgba(212,175,55,0.1); border-radius:8px; padding:6px 12px; border:1px solid rgba(212,175,55,0.2);">
             <div style="font-size:10px; color:var(--text2);">النقاط</div>
             <div style="color:var(--gold); font-weight:bold; font-size:15px;">${m.score || 0}</div>
+          </div>
+        </div>
+      `;
+    });
+
+    // بناء واجهة الأزرار للتحديات المخصصة ديناميكياً وعرضها تحت الأذكار والورد
+    let customInputsHtml = "";
+    customChallengeList.forEach(chName => {
+      const currentChCount = (myData.customChallenges && myData.customChallenges[chName]) || 0;
+      customInputsHtml += `
+        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px dashed var(--border); padding-top:10px;">
+          <span style="color:var(--text); font-size:13px;">🎯 تحدي: ${chName}</span>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <button onclick="window.updateCustomChallengeStat('${chName}')" style="background:var(--card); border:1px solid var(--gold); color:var(--gold); width:32px; height:32px; border-radius:50%; font-weight:bold; cursor:pointer;">+</button>
+            <strong style="color:var(--gold); font-size:14px; min-width:20px; text-align:center;">${currentChCount}</strong>
           </div>
         </div>
       `;
@@ -2049,8 +2058,8 @@ window.listenToFamilyRoom = function(roomCode) {
       <div style="color:var(--text); font-size:13px; font-weight:bold; text-align:right; margin-bottom:8px;">🏆 لوحة ترتيب أفراد البيت اللحظية:</div>
       <div style="margin-bottom:20px;">${membersHtml}</div>
 
-      <div style="color:var(--gold); font-size:13px; font-weight:bold; text-align:right; margin-bottom:8px;">🎯 لوحة طاعاتك الفورية اليوم (سجّل لتتقدم عائلياً):</div>
-      <div class="comm-card" style="display:flex; flex-direction:column; gap:12px; text-align:right;">
+      <div style="color:var(--gold); font-size:13px; font-weight:bold; text-align:right; margin-bottom:8px;">🎯 لوحة طاعاتك الفورية اليوم:</div>
+      <div class="comm-card" style="display:flex; flex-direction:column; gap:12px; text-align:right; margin-bottom:15px;">
         
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <span style="color:var(--text); font-size:13px;">📖 قرأت من الورد القرآني اليوم:</span>
@@ -2069,21 +2078,43 @@ window.listenToFamilyRoom = function(roomCode) {
           </div>
         </div>
 
-        <div style="border-top:1px dashed var(--border); padding-top:10px;">
-          <label style="color:var(--text); display:block; margin-bottom:6px; font-size:13px;">🕋 حدّث موقف مكانك الحالي في الختمة (الورد المشترك):</label>
-          <div style="display:flex; gap:6px;">
-            <input id="familyKhatmaInp" type="text" value="${myData.khatmaStatus || ''}" placeholder="مثال: الجزء الثالث، الصفحة ٤٥..." style="flex:1; padding:8px; background:#000; border:1px solid var(--border); color:var(--text); border-radius:6px; outline:none; font-family:'Amiri', serif; font-size:13px;" />
-            <button onclick="window.updateFamilyKhatma()" style="background:transparent; color:var(--gold); border:1px solid var(--gold); padding:0 15px; border-radius:6px; font-size:12px; cursor:pointer; font-family:'Amiri', serif;">تحديث 📌</button>
-          </div>
-        </div>
+        <!-- حقن قائمة التحديات المضافة ديناميكياً هنا -->
+        ${customInputsHtml}
 
+      </div>
+
+      <!-- خانة إضافة تحدي جديد للغرفة -->
+      <div class="comm-card" style="text-align:right; border:1px dashed var(--border); background:rgba(255,255,255,0.01);">
+        <label style="color:var(--gold); display:block; margin-bottom:6px; font-size:13px; font-weight:bold;">➕ ابتكار تحدي عائلي جديد ومخصص لمجموعتكم:</label>
+        <div style="display:flex; gap:6px;">
+          <input id="newCustomChallengeInp" type="text" placeholder="مثال: صلاة الضحى، بر الوالدين، صدقة..." style="flex:1; padding:10px; background:#000; border:1px solid var(--border); color:var(--text); border-radius:6px; outline:none; font-family:'Amiri', serif; font-size:13px;" />
+          <button onclick="window.addNewCustomChallengeToRoom()" style="background:var(--gold); color:#111; border:none; padding:0 15px; border-radius:6px; font-size:13px; font-weight:bold; cursor:pointer; font-family:'Amiri', serif;">إضافة تحدي 🚀</button>
+        </div>
       </div>
     `;
   });
 };
 
-// دالة تحديث الإحصائيات وضخ النقاط تلقائياً
-window.updateFamilyStat = async function(type, incrementValue) {
+// دالة إضافة اسم التحدي الجديد في الـ Array السيرفري للغرفة
+window.addNewCustomChallengeToRoom = async function() {
+  const inp = document.getElementById('newCustomChallengeInp');
+  if(!inp || !inp.value.trim()) return;
+  const challengeName = inp.value.trim();
+
+  const roomCode = localStorage.getItem('athr_family_room_code');
+  if(!roomCode) return;
+
+  try {
+    const roomRef = doc(db, "family_rooms", roomCode);
+    await updateDoc(roomRef, {
+      customChallengeList: arrayUnion(challengeName)
+    });
+    window.triggerSparksEffect();
+  } catch(e) { console.error(e); }
+};
+
+// دالة زيادة عدد مرات التحدي المخصص وضخ 10 نقاط للمستخدم تلقائياً
+window.updateCustomChallengeStat = async function(challengeName) {
   const roomCode = localStorage.getItem('athr_family_room_code');
   const myName = localStorage.getItem('athr_user_name');
   if(!roomCode || !myName) return;
@@ -2091,43 +2122,35 @@ window.updateFamilyStat = async function(type, incrementValue) {
   const roomRef = doc(db, "family_rooms", roomCode);
   
   try {
-    // حساب السكور الإضافي بناء على نوع العبادة (الصفحة = 5 نقاط، والتسبيحة = 0.5 نقطة)
-    const addedScore = type === 'wird' ? (incrementValue * 5) : (incrementValue * 0.5);
+    await updateDoc(roomRef, {
+      [`members.${myName}.customChallenges.${challengeName}`]: increment(1),
+      [`members.${myName}.score`]: increment(10), // 10 نقاط لكل تحدي مخصص
+      [`members.${myName}.lastUpdated`]: new Date().toISOString()
+    });
+    window.awardPoints(myName, 2); // نقاط للبروفايل العام
+    window.createFloatingEmoji(null, '✨');
+  } catch(e) { console.error(e); }
+};
 
+window.updateFamilyStat = async function(type, incrementValue) {
+  const roomCode = localStorage.getItem('athr_family_room_code');
+  const myName = localStorage.getItem('athr_user_name');
+  if(!roomCode || !myName) return;
+
+  const roomRef = doc(db, "family_rooms", roomCode);
+  try {
+    const addedScore = type === 'wird' ? (incrementValue * 5) : (incrementValue * 0.5);
     await updateDoc(roomRef, {
       [`members.${myName}.${type}Count`]: increment(incrementValue),
       [`members.${myName}.score`]: increment(addedScore),
       [`members.${myName}.lastUpdated`]: new Date().toISOString()
     });
-
-    window.awardPoints(myName, type === 'wird' ? 1 : 0.5); // تزويد البروفايل العام أيضاً
+    window.awardPoints(myName, type === 'wird' ? 1 : 0.5);
   } catch(e) { console.error(e); }
 };
 
-// تحديث سطر الختمة يدوياً
-window.updateFamilyKhatma = async function() {
-  const inp = document.getElementById('familyKhatmaInp');
-  if(!inp) return;
-  const statusText = inp.value.trim();
-  if(!statusText) return;
-
-  const roomCode = localStorage.getItem('athr_family_room_code');
-  const myName = localStorage.getItem('athr_user_name');
-  const roomRef = doc(db, "family_rooms", roomCode);
-
-  try {
-    await updateDoc(roomRef, {
-      [`members.${myName}.khatmaStatus`]: statusText,
-      [`members.${myName}.score`]: increment(10), // مكافأة تحديث الحفظ والختمة
-      [`members.${myName}.lastUpdated`]: new Date().toISOString()
-    });
-    window.triggerSparksEffect();
-  } catch(e) { console.error(e); }
-};
-
-// مغادرة الغرفة العائلية
 window.exitFamilyRoom = function() {
-  if(!confirm("هل تود الخروج من هذه الغرفة العائلية؟ سيتم إزالة اسمك من لوحة الصدارة.")) return;
+  if(!confirm("هل تود الخروج من هذه الغرفة العائلية؟")) return;
   if(unsubscribeFamilyRoom) unsubscribeFamilyRoom();
   localStorage.removeItem('athr_family_room_code');
   window.renderFamilyChallengeTab();
