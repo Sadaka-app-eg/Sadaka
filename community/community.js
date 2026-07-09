@@ -1308,28 +1308,125 @@ window.becomeFajrVolunteer = function() {
   window.listenToFajrList(localStorage.getItem('athr_user_gender'));
 };
 
+// =========================================================================
+// 🕌 7️⃣ حملة الفجر المطورة - إيقاظ حي، حذف ذاتي، وتصفير يومي تلقائي
+// =========================================================================
+
+// دالة لجلب تاريخ اليوم الحالي بصيغة نصية ثابتة (YYYY-MM-DD) لتصفير القائمة يومياً
+window.getFajrTodayDateStr = function() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+};
+
+window.registerForFajr = async function() {
+  const phoneInp = document.getElementById('fajrPhoneInp');
+  if (!phoneInp || !phoneInp.value.trim()) { alert('فضلاً، أدخل رقم هاتفك أولاً.'); return; }
+  
+  const myName = localStorage.getItem('athr_user_name');
+  const userGender = localStorage.getItem('athr_user_gender');
+  const todayStr = window.getFajrTodayDateStr(); // ختم اليوم الحالي
+
+  try {
+    // تخزين الوثيقة باسم (تاريخ اليوم___اسم المستخدم) لمنع التكرار في نفس اليوم وتسهيل الحذف
+    const docId = `${todayStr}___${myName}`;
+    await setDoc(doc(db, "fajr_list", docId), { 
+      name: myName, 
+      phone: phoneInp.value.trim(), 
+      gender: userGender, 
+      dateStr: todayStr, // فلتر اليوم لضمان تنظيف القائمة تلقائياً
+      status: "pending", // pending = مستني، called = تم الإيقاظ بنجاح
+      calledBy: null,
+      createdAt: serverTimestamp() 
+    });
+    
+    phoneInp.value = "";
+    alert('تم تسجيلك بنجاح في قائمة الفجر المباركة لليوم! ✨');
+    window.triggerSparksEffect();
+  } catch (e) { console.error(e); }
+};
+
+window.becomeFajrVolunteer = function() {
+  document.getElementById('fajrVolunteersSection').style.display = 'block';
+  window.listenToFajrList(localStorage.getItem('athr_user_gender'));
+};
+
 window.listenToFajrList = function(gender) {
-  const q = query(collection(db, "fajr_list"), orderBy("createdAt", "desc"), limit(40));
+  const todayStr = window.getFajrTodayDateStr();
+  const myName = localStorage.getItem('athr_user_name');
+  
+  // 🎯 الفلتر السحري: يجيب فقط المسجلين بتاريخ (النهاردة) عشان القائمة تتصفر يومياً لوحدها
+  const q = query(
+    collection(db, "fajr_list"), 
+    where("dateStr", "==", todayStr), 
+    orderBy("createdAt", "desc")
+  );
+  
   onSnapshot(q, (snapshot) => {
     const listArea = document.getElementById('fajrUsersList');
     if (!listArea) return;
+    
     let html = "";
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
+      const docId = docSnap.id;
+      
       if (data.gender === gender) {
+        const isMe = data.name === myName;
+        const isCalled = data.status === "called";
+        
         html += `
-          <div class="comm-card" style="display:flex; justify-content:space-between; align-items:center; padding:10px 15px; background:rgba(255,255,255,0.02);">
+          <div class="comm-card" style="display:flex; justify-content:space-between; align-items:center; padding:12px 15px; background:${isCalled ? 'rgba(76,175,80,0.03)' : 'rgba(255,255,255,0.02)'}; border:${isCalled ? '1px solid #4CAF50' : '1px solid var(--border)'};">
             <div style="text-align:right;">
-              <strong onclick="window.openUserProfileCard('${data.name}')" style="color:var(--text); font-size:14px; cursor:pointer; text-decoration:underline;">✨ ${data.name}</strong>
-              <span style="display:block; color:var(--text2); font-size:12px; direction:ltr;">${data.phone}</span>
+              <strong onclick="window.openUserProfileCard('${data.name}')" style="color:${isCalled ? '#4CAF50' : 'var(--text)'}; font-size:14px; cursor:pointer; text-decoration:underline;">✨ ${data.name}</strong>
+              <span style="display:block; color:var(--text2); font-size:12px; direction:ltr; margin-top:2px;">${data.phone}</span>
+              ${isCalled ? `<small style="color:#4CAF50; display:block; margin-top:2px;">✓ تم إيقاظه بواسطة: ${data.calledBy}</small>` : ''}
             </div>
-            <a href="tel:${data.phone}" onclick="window.createFloatingEmoji(event, '📞')" style="background:var(--gold); color:#111; text-decoration:none; padding:6px 14px; border-radius:20px; font-size:12px; font-weight:bold;">📞 اتصل الآن</a>
+            
+            <div style="display:flex; gap:6px; align-items:center;">
+              ${isMe ? `
+                <!-- زرار حذف ذاتي للمستخدم لو كتب غلط أو صحي لوحده -->
+                <button onclick="window.deleteMyFajrRegistration('${docId}')" style="background:transparent; color:#ff4d4d; border:1px solid #ff4d4d; padding:6px 12px; border-radius:20px; font-size:11px; font-weight:bold; cursor:pointer;">🗑️ حذف نفسي</button>
+              ` : ''}
+
+              ${isCalled ? `
+                <!-- يظهر علامة صح ومقفول عشان محدش يرن تاني -->
+                <span style="background:rgba(76,175,80,0.15); color:#4CAF50; padding:6px 14px; border-radius:20px; font-size:12px; font-weight:bold;">✓ تم الإيقاظ</span>
+              ` : `
+                <!-- زر الاتصال والاتساق الذكي للـ متطوع -->
+                <a href="tel:${data.phone}" onclick="window.markAsAwake('${docId}')" style="background:var(--gold); color:#111; text-decoration:none; padding:6px 14px; border-radius:20px; font-size:12px; font-weight:bold; display:inline-block;">📞 اتصل الآن</a>
+              `}
+            </div>
           </div>`;
       }
     });
-    listArea.innerHTML = html || `<div class="comm-card"><p style="color:var(--text2); text-align:center; font-size:12px;">لا توجد أسماء مسجلة حالياً.</p></div>`;
+    
+    listArea.innerHTML = html || `<div class="comm-card"><p style="color:var(--text2); text-align:center; font-size:12px;">لا توجد أسماء مسجلة لفجر اليوم حتى الآن 🕌</p></div>`;
   });
 };
+
+// دالة تغيير الحالة لـ "تم الإيقاظ" لمنع التكرار والرن المزعج
+window.markAsAwake = async function(docId) {
+  const volunteerName = localStorage.getItem('athr_user_name') || "متطوع الطيب";
+  try {
+    const docRef = doc(db, "fajr_list", docId);
+    await updateDoc(docRef, {
+      status: "called",
+      calledBy: volunteerName
+    });
+    window.createFloatingEmoji(null, '✅');
+  } catch(e) { console.error("Error updating fajr status:", e); }
+};
+
+// دالة حذف الحساب الفوري من سكريبت الفجر
+window.deleteMyFajrRegistration = async function(docId) {
+  if(!confirm("هل تود حذف اسمك ورقمك من قائمة الإيقاظ للفجر اليوم؟")) return;
+  try {
+    await deleteDoc(doc(db, "fajr_list", docId));
+    alert("تم حذف بياناتك بنجاح من قائمة اليوم.");
+  } catch(e) { console.error("Error deleting fajr document:", e); }
+};
+
+          
 
 document.addEventListener('click', function() {
   const menus = document.querySelectorAll('[id^="reactionMenu-"]');
