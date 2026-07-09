@@ -1,5 +1,5 @@
 /**
- * محرك الذكاء الاصطناعي الشرعي المنضبط - نسخة معدّلة وآمنة 100%
+ * محرك الذكاء الاصطناعي الشرعي المنضبط - النسخة المستقرة والمأمنة
  * تطبيق كُن ذا أثر - باسم أحمد شيمي
  */
 
@@ -7,7 +7,7 @@
 const SHARIA_AI_PROXY_URL = "https://sharia-ai-proxy.ahmedmohamedhosny100.workers.dev";
 
 /**
- * دالة تنظيف وتأمين مدخلات المستخدم قبل رسمها (منع ثغرات الخرق الأمنية XSS)
+ * دالة تنظيف وتأمين مدخلات المستخدم لمنع ثغرات XSS
  */
 function escapeHtml(str) {
   const div = document.createElement('div');
@@ -18,33 +18,25 @@ function escapeHtml(str) {
 /**
  * الدالة الرئيسية للاتصال بالذكاء الاصطناعي الشرعي وضخ الأجوبة
  */
-/**
- * محرك الذكاء الاصطناعي الشرعي المنضبط - نسخة التنقيح واكتشاف الأخطاء
- * تطبيق كُن ذا أثر - باسم أحمد شيمي
- */
-
-const SHARIA_AI_PROXY_URL = "https://sharia-ai-proxy.ahmedmohamedhosny100.workers.dev";
-
-function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
-}
-
-window.askShariaAI = async function() {
+async function askShariaAI() {
   const inputEl = document.getElementById('shariaQuestionInput');
   const btnEl = document.getElementById('shariaSendBtn');
   const chatArea = document.getElementById('shariaChatArea');
+
+  // التأكد من وجود العناصر في الواجهة أولاً
+  if (!inputEl || !btnEl || !chatArea) return;
 
   const question = inputEl.value.trim();
   if (!question) { alert('من فضلك اكتب سؤالك الشرعي الفقهي أولاً 🙏'); return; }
 
   const safeQuestion = escapeHtml(question);
 
+  // تجهيز الواجهة وتفعيل تأثير التحميل وحظر الضغط المتكرر
   inputEl.disabled = true;
   btnEl.disabled = true;
   btnEl.textContent = '⏳ جاري البحث والتدقيق...';
 
+  // ضخ سؤال المستخدم فوراً في شاشة المحادثة بتصميم شيك ومؤمن
   chatArea.innerHTML = `
     <div style="background: rgba(212,175,55,0.08); border: 1px solid var(--border); border-right: 4px solid var(--gold); padding: 14px; border-radius: 12px; margin-bottom: 16px; text-align: right;">
       <div style="font-size: 12px; color: var(--gold); font-weight: bold; margin-bottom: 4px;">❓ سؤالك:</div>
@@ -65,31 +57,19 @@ window.askShariaAI = async function() {
 4. لا تذكر روابط إنترنت، بل اذكر نصوص الكتب والمصادر بوضوح باللغة العربية الفصحى.`;
 
   try {
-    console.log("🚀 جاري إرسال الطلب إلى الرابط:", SHARIA_AI_PROXY_URL);
-    
     const response = await fetch(SHARIA_AI_PROXY_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ systemPrompt, question })
     });
 
-    console.log("📥 استجابة السيرفر الواردة، الحالة (Status):", response.status);
-
-    // إذا السيرفر رجع خطأ، نحاول نقرأ النص الداخلي للخطأ عشان نفهم السبب
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`كود السيرفر: ${response.status} | تفاصيل: ${errorText}`);
+      throw new Error(`سيرفر البروكسي رد بـ خطأ: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log("📦 البيانات المستلمة بالكامل من الـ Worker:", data);
-
-    // فحص للتأكد من بنية الـ Response وهل تحتوي على خطأ من جيمني نفسه
-    if (data.error) {
-      throw new Error(`خطأ من جيمني: ${data.error.message || JSON.stringify(data.error)}`);
-    }
-
     let aiResponse = data.candidates[0].content.parts[0].text;
+
     aiResponse = escapeHtml(aiResponse);
 
     aiResponse = aiResponse.replace(/\*\*(.*?)\*\*/g, '<strong style="color:var(--gold); font-size:16px;">$1</strong>');
@@ -106,22 +86,20 @@ window.askShariaAI = async function() {
           ${aiResponse}
         </div>
       </div>
+      <div style="text-align:center; font-size:11px; color:var(--text2); margin-bottom:14px; font-family:'Amiri', serif; opacity: 0.85;">
+        ⚠️ هذه الإجابة مولّدة استرشادياً، ويُنصح دوماً بمراجعة الهيئات الرسمية أو دار الإفتاء في النوازل الفردية الحساسة.
+      </div>
     `;
 
     if (typeof boostFlame === 'function') boostFlame(5);
 
   } catch (error) {
-    // طباعة الخطأ بالتفصيل الممل في الـ Console الخاص بالمتصفح
-    console.error("❌ حدث خطأ مفصل أثناء تشغيل المحرك الشرعي:", error);
-
+    console.error(error);
     const loadingStatus = document.getElementById('shariaLoadingStatus');
     if (loadingStatus) loadingStatus.remove();
-    
-    // حقن الخطأ الحقيقي مباشرة على شاشة التطبيق عشان نشوفه في الموبايل أو المتصفح علطول
     chatArea.innerHTML += `
-      <div style="text-align:right; padding:15px; color:#ff6b6b; font-size:13px; font-family: 'monospace', sans-serif; background: rgba(255,0,0,0.05); border: 1px dashed #ff6b6b; border-radius: 12px;">
-        <strong>⚠️ تفاصيل الخطأ البرمجي الحقيقي:</strong><br>
-        <span style="direction: ltr; display: block; margin-top: 5px;">${error.message}</span>
+      <div style="text-align:center; padding:15px; color:#ff6b6b; font-size:13px; font-family: 'Amiri', serif;">
+        ⚠️ عذراً يا هندسة، فشل الاتصال بالبوابة الشرعية المؤمنة الآن. تأكد من سلامة اتصالك السحابي 🌐
       </div>
     `;
   }
@@ -131,4 +109,16 @@ window.askShariaAI = async function() {
   btnEl.textContent = '🎬 استشر الذكاء الاصطناعي الشرعي';
   inputEl.value = '';
   chatArea.scrollIntoView({ behavior: 'smooth', block: 'end' });
-};
+}
+
+// 🎯 ربط الدالة بالزرار برمجياً فور تحميل الـ DOM لضمان تخطي مشكلة الـ Modules والكاش
+document.addEventListener("DOMContentLoaded", function() {
+  const shariaSendBtn = document.getElementById('shariaSendBtn');
+  if (shariaSendBtn) {
+    // إزالة أي حدث قديم وإضافة الحدث الجديد بأمان
+    shariaSendBtn.addEventListener('click', askShariaAI);
+  }
+});
+
+// تثبيتها كدالة احتياطية على الـ window أيضاً
+window.askShariaAI = askShariaAI;
