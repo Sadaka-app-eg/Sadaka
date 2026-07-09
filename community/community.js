@@ -2,7 +2,7 @@
 // 🚀 شبكة مجتمع أثر الاجتماعية الإسلامية المتكاملة - إصدار 2026 المطور (نسخة مصححة الميديا)
 // =========================================================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, getDoc, setDoc, arrayUnion, arrayRemove, onSnapshot, query, where, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, getDoc, setDoc, arrayUnion, arrayRemove, onSnapshot, query, where, orderBy, limit, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 const firebaseConfig = {
   apiKey: "AIzaSyCuLaDRVQ9SWSO7zs2WL3D-ANj-wHeoYWg",
   authDomain: "sadaka-app-6637e.firebaseapp.com",
@@ -285,10 +285,14 @@ window.renderCommunityBody = function() {
 
   if (window.currentCommunityTab === 'feed') {
     contentArea.innerHTML = `
-      <div class="community-tabs" style="margin-bottom: 15px;">
+      <div class="community-tabs" style="margin-bottom: 15px; display:flex; gap:6px; overflow-x:auto; padding-bottom:4px;">
         <button id="tabFeedBtn" class="comm-tab-btn active" onclick="window.switchCommunityTab('feed')">📝 ساحة الأثر</button>
         <button id="tabChatBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('chat')">💬 مجلس الذكر</button>
         <button id="tabFajrBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('fajr')">🕌 استيقاظ الفجر</button>
+        <button id="tabWeeklyBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('weekly')">🌟 حلقة الأسبوع</button>
+        <button id="tabLeaderBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('leaderboard')">🏆 لوحة الشرف</button>
+        <button id="tabDuaBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('dua')">🤲 اطلب دعاء</button>
+        <button id="tabFeaturedBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('featured')">✨ الأكثر تأثيراً</button>
         <button id="tabPrivateBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('private')">📥 الرسائل الخاصة</button>
       </div>
 
@@ -325,10 +329,14 @@ window.renderCommunityBody = function() {
 
   } else if (window.currentCommunityTab === 'chat') {
     contentArea.innerHTML = `
-      <div class="community-tabs" style="margin-bottom: 15px;">
+      <div class="community-tabs" style="margin-bottom: 15px; display:flex; gap:6px; overflow-x:auto; padding-bottom:4px;">
         <button id="tabFeedBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('feed')">📝 ساحة الأثر</button>
         <button id="tabChatBtn" class="comm-tab-btn active" onclick="window.switchCommunityTab('chat')">💬 مجلس الذكر</button>
         <button id="tabFajrBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('fajr')">🕌 استيقاظ الفجر</button>
+        <button id="tabWeeklyBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('weekly')">🌟 حلقة الأسبوع</button>
+        <button id="tabLeaderBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('leaderboard')">🏆 لوحة الشرف</button>
+        <button id="tabDuaBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('dua')">🤲 اطلب دعاء</button>
+        <button id="tabFeaturedBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('featured')">✨ الأكثر تأثيراً</button>
         <button id="tabPrivateBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('private')">📥 الرسائل الخاصة</button>
       </div>
 
@@ -337,7 +345,9 @@ window.renderCommunityBody = function() {
         <div id="chatMessages" style="flex:1; overflow-y:auto; padding:15px; background: rgba(0,0,0,0.3); border-radius: 12px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; max-height: 320px;">
           <p style="color: var(--text2); text-align:center;">جاري الاتصال بمجلس الذكر... 🕊️</p>
         </div>
+        <div id="chatVoiceStatus" style="text-align:center; font-size:12px; color:var(--gold); display:none;"></div>
         <div style="display:flex; gap:8px;">
+          <button id="chatVoiceBtn" onclick="window.toggleVoiceRecording('group')" style="background:rgba(255,255,255,0.04); border:1px solid var(--border); color:var(--gold); width:45px; height:45px; border-radius:50%; font-size:16px; cursor:pointer; flex-shrink:0;">🎙️</button>
           <input id="chatMessageInp" type="text" placeholder="اكتب رسالتك الفورية..." style="flex:1; padding:12px; background:var(--card); border:1px solid var(--border); color:var(--text); border-radius:25px; outline:none;" onkeypress="if(event.key==='Enter') window.sendChatMessageToFirebase()"/>
           <button onclick="window.sendChatMessageToFirebase()" style="background:var(--gold); color:#111; border:none; width:45px; height:45px; border-radius:50%; font-size:18px; cursor:pointer;">🕊️</button>
         </div>
@@ -347,10 +357,14 @@ window.renderCommunityBody = function() {
 
   } else if (window.currentCommunityTab === 'fajr') {
     contentArea.innerHTML = `
-      <div class="community-tabs" style="margin-bottom: 15px;">
+      <div class="community-tabs" style="margin-bottom: 15px; display:flex; gap:6px; overflow-x:auto; padding-bottom:4px;">
         <button id="tabFeedBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('feed')">📝 ساحة الأثر</button>
         <button id="tabChatBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('chat')">💬 مجلس الذكر</button>
         <button id="tabFajrBtn" class="comm-tab-btn active" onclick="window.switchCommunityTab('fajr')">🕌 استيقاظ الفجر</button>
+        <button id="tabWeeklyBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('weekly')">🌟 حلقة الأسبوع</button>
+        <button id="tabLeaderBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('leaderboard')">🏆 لوحة الشرف</button>
+        <button id="tabDuaBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('dua')">🤲 اطلب دعاء</button>
+        <button id="tabFeaturedBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('featured')">✨ الأكثر تأثيراً</button>
         <button id="tabPrivateBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('private')">📥 الرسائل الخاصة</button>
       </div>
 
@@ -376,9 +390,38 @@ window.renderCommunityBody = function() {
       </div>
     `;
 
+  } else if (window.currentCommunityTab === 'weekly') {
+    window.renderWeeklyChallengeTab();
+
+  } else if (window.currentCommunityTab === 'leaderboard') {
+    window.renderLeaderboardTab();
+
+  } else if (window.currentCommunityTab === 'dua') {
+    window.renderDuaTab();
+
+  } else if (window.currentCommunityTab === 'featured') {
+    window.renderFeaturedTab();
+
   } else if (window.currentCommunityTab === 'private') {
     window.renderPrivateChatDashboard();
   }
+};
+
+// دالة مشتركة لعمل شريط التابات (نفس الشكل في كل الأقسام الجديدة)
+window.getSharedTabsHTML = function(activeTab) {
+  const tabs = [
+    { id: 'feed', label: '📝 ساحة الأثر' },
+    { id: 'chat', label: '💬 مجلس الذكر' },
+    { id: 'fajr', label: '🕌 استيقاظ الفجر' },
+    { id: 'weekly', label: '🌟 حلقة الأسبوع' },
+    { id: 'leaderboard', label: '🏆 لوحة الشرف' },
+    { id: 'dua', label: '🤲 اطلب دعاء' },
+    { id: 'featured', label: '✨ الأكثر تأثيراً' },
+    { id: 'private', label: '📥 الرسائل الخاصة' },
+  ];
+  return `<div class="community-tabs" style="margin-bottom: 15px; display:flex; gap:6px; overflow-x:auto; padding-bottom:4px;">
+    ${tabs.map(t => `<button class="comm-tab-btn ${t.id === activeTab ? 'active' : ''}" onclick="window.switchCommunityTab('${t.id}')">${t.label}</button>`).join('')}
+  </div>`;
 };
 
 // =========================================================
@@ -453,13 +496,24 @@ window.openUserProfileCard = async function(userName) {
   } catch(e) { console.error(e); }
 };
 
+window.getCurrentMonthId = function() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+};
+
 window.awardPoints = async function(userName, amount) {
   try {
     const userRef = doc(db, "users_profiles", userName);
     const snap = await getDoc(userRef);
     if(snap.exists()) {
       const currentPts = snap.data().points || 0;
-      await updateDoc(userRef, { points: currentPts + amount });
+      const monthKey = window.getCurrentMonthId();
+      const monthlyPoints = snap.data().monthlyPoints || {};
+      const currentMonthlyPts = monthlyPoints[monthKey] || 0;
+      await updateDoc(userRef, {
+        points: currentPts + amount,
+        [`monthlyPoints.${monthKey}`]: currentMonthlyPts + amount
+      });
     }
   } catch(e) { console.error(e); }
 };
@@ -829,8 +883,8 @@ window.togglePostLike = async function(event, docId, hasLiked, emoji = '❤️')
   const postRef = doc(db, "posts", docId);
   if (!hasLiked && event) window.createFloatingEmoji(event, emoji);
   try {
-    if (hasLiked) { await updateDoc(postRef, { likes: arrayRemove(myName) }); } 
-    else { await updateDoc(postRef, { likes: arrayUnion(myName) }); window.awardPoints(myName, 2); }
+    if (hasLiked) { await updateDoc(postRef, { likes: arrayRemove(myName), likesCount: increment(-1) }); } 
+    else { await updateDoc(postRef, { likes: arrayUnion(myName), likesCount: increment(1) }); window.awardPoints(myName, 2); }
   } catch (e) { console.error(e); }
 };
 window.deletePost = async function(docId) {
@@ -921,12 +975,15 @@ window.listenToChats = function(gender) {
       const data = docSnap.data();
       if (data.gender === gender) {
         const isMe = data.name === localStorage.getItem('athr_user_name');
+        const bodyHtml = data.messageType === 'audio' && data.audioUrl
+          ? `<audio controls src="${data.audioUrl}" style="max-width:220px; height:34px;"></audio>`
+          : `<span style="color:var(--text); font-size:14px;">${data.text}</span>`;
         html += `
           <div style="align-self: ${isMe ? 'flex-start' : 'flex-end'}; background: ${isMe ? 'rgba(212,175,55,0.12)' : 'rgba(255,255,255,0.03)'}; border: 1px solid ${isMe ? 'var(--gold)' : 'var(--border)'}; padding: 8px 14px; border-radius: 12px; max-width: 85%; text-align: right; margin-bottom: 5px;">
             <span onclick="window.openUserProfileCard('${data.name}')" style="display:block; font-size:11px; color:var(--gold); font-weight:bold; margin-bottom:2px; cursor:pointer; text-decoration:underline;">
               <span class="online-dot"></span>${data.name}
             </span>
-            <span style="color:var(--text); font-size:14px;">${data.text}</span>
+            ${bodyHtml}
           </div>`;
       }
     });
@@ -970,10 +1027,14 @@ window.renderPrivateChatDashboard = function() {
   const target = window.currentPrivateTargetUser || "محادثة خاصة";
   
   contentArea.innerHTML = `
-    <div class="community-tabs" style="margin-bottom: 15px;">
+    <div class="community-tabs" style="margin-bottom: 15px; display:flex; gap:6px; overflow-x:auto; padding-bottom:4px;">
       <button id="tabFeedBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('feed')">📝 ساحة الأثر</button>
       <button id="tabChatBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('chat')">💬 مجلس الذكر</button>
       <button id="tabFajrBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('fajr')">🕌 استيقاظ الفجر</button>
+      <button id="tabWeeklyBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('weekly')">🌟 حلقة الأسبوع</button>
+      <button id="tabLeaderBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('leaderboard')">🏆 لوحة الشرف</button>
+      <button id="tabDuaBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('dua')">🤲 اطلب دعاء</button>
+      <button id="tabFeaturedBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('featured')">✨ الأكثر تأثيراً</button>
       <button id="tabPrivateBtn" class="comm-tab-btn active" onclick="window.switchCommunityTab('private')">📥 الرسائل الخاصة</button>
     </div>
 
@@ -988,12 +1049,14 @@ window.renderPrivateChatDashboard = function() {
       </div>
 
       <div id="privateMediaPreviewBox" style="text-align:center; position:relative;"></div>
+      <div id="privateVoiceStatus" style="text-align:center; font-size:12px; color:var(--gold); display:none;"></div>
 
       <div style="display:flex; gap:6px; align-items:center;">
         <label style="background:rgba(255,255,255,0.03); border:1px solid var(--border); padding:10px; border-radius:50%; cursor:pointer; font-size:16px; width:42px; height:42px; display:flex; align-items:center; justify-content:center;">
           🖼️
           <input type="file" id="privateChatMediaInput" accept="image/*" style="display:none;" onchange="window.handlePrivateChatMediaSelection(this)" />
         </label>
+        <button id="privateVoiceBtn" onclick="window.toggleVoiceRecording('private')" style="background:rgba(255,255,255,0.03); border:1px solid var(--border); color:var(--gold); width:42px; height:42px; border-radius:50%; font-size:16px; cursor:pointer; flex-shrink:0;">🎙️</button>
         <input id="privateChatMessageInp" type="text" placeholder="اكتب رسالة خاصة آمنة..." style="flex:1; padding:12px; background:var(--card); border:1px solid var(--border); color:var(--text); border-radius:25px; outline:none;" onkeypress="if(event.key==='Enter') window.sendPrivateMessage()"/>
         <button id="sendPrivateMsgBtn" onclick="window.sendPrivateMessage()" style="background:var(--gold); color:#111; border:none; width:42px; height:42px; border-radius:50%; font-size:16px; cursor:pointer; font-weight:bold;">🕊️</button>
       </div>
@@ -1007,10 +1070,14 @@ window.renderInboxList = function() {
   const myName = localStorage.getItem('athr_user_name');
 
   contentArea.innerHTML = `
-    <div class="community-tabs" style="margin-bottom: 15px;">
+    <div class="community-tabs" style="margin-bottom: 15px; display:flex; gap:6px; overflow-x:auto; padding-bottom:4px;">
       <button id="tabFeedBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('feed')">📝 ساحة الأثر</button>
       <button id="tabChatBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('chat')">💬 مجلس الذكر</button>
       <button id="tabFajrBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('fajr')">🕌 استيقاظ الفجر</button>
+      <button id="tabWeeklyBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('weekly')">🌟 حلقة الأسبوع</button>
+      <button id="tabLeaderBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('leaderboard')">🏆 لوحة الشرف</button>
+      <button id="tabDuaBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('dua')">🤲 اطلب دعاء</button>
+      <button id="tabFeaturedBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('featured')">✨ الأكثر تأثيراً</button>
       <button id="tabPrivateBtn" class="comm-tab-btn active" onclick="window.switchCommunityTab('private')">📥 الرسائل الخاصة</button>
     </div>
 
@@ -1141,12 +1208,17 @@ window.listenToPrivateMessages = function() {
       if(data.mediaUrl && data.mediaType === 'image') {
         mediaHtml = `<img src="${data.mediaUrl}" onclick="window.openImageLightbox('${data.mediaUrl}')" style="max-width:100%; border-radius:8px; margin-top:5px; max-height:150px; display:block; cursor:pointer;" />`;
       }
+      let audioHtml = "";
+      if (data.messageType === 'audio' && data.audioUrl) {
+        audioHtml = `<audio controls src="${data.audioUrl}" style="max-width:220px; height:34px; margin-top:4px;"></audio>`;
+      }
 
       html += `
         <div style="align-self: ${isMe ? 'flex-start' : 'flex-end'}; background: ${isMe ? 'rgba(212,175,55,0.12)' : 'rgba(255,255,255,0.03)'}; border: 1px solid ${isMe ? 'var(--gold)' : 'var(--border)'}; padding: 8px 14px; border-radius: 12px; max-width: 80%; text-align: right;">
           <span style="display:block; font-size:10px; color:var(--text2); margin-bottom:2px;">${data.sender}</span>
           ${data.text ? `<span style="color:var(--text); font-size:13px;">${data.text}</span>` : ''}
           ${mediaHtml}
+          ${audioHtml}
         </div>`;
     });
     area.innerHTML = html || `<p style="color: var(--text2); text-align:center; font-size:12px;">لا توجد رسائل بينكما بعد، ابدأ بالسلام والخير ✨</p>`;
@@ -1284,4 +1356,476 @@ window.openImageLightbox = function(imageUrl) {
   lightbox.innerHTML = `<img src="${imageUrl}" style="max-width:100%; max-height:100%; border-radius:8px; object-fit:contain;" onclick="event.stopPropagation();" />
     <button onclick="document.getElementById('athrImageLightbox').style.display='none'" style="position:fixed; top:15px; left:15px; background:rgba(255,255,255,0.15); color:white; border:none; width:36px; height:36px; border-radius:50%; font-size:18px; cursor:pointer;">✕</button>`;
   lightbox.style.display = 'flex';
+};
+
+// =========================================================================
+// 🌟 10️⃣ نظام "حلقة الأسبوع" - تحدي جماعي أسبوعي مع شريط تقدم
+// =========================================================================
+// تحديات جاهزة تتغير تلقائياً كل أسبوع (مافيش حاجة يدوية ممكن "متشتغلش")
+const ATHR_WEEKLY_PRESETS = [
+  { title: "ختم جزء من القرآن هذا الأسبوع 📖", description: "اقرأ جزءاً كاملاً من كتاب الله قبل نهاية الأسبوع، ولو بصفحة يومياً." },
+  { title: "المحافظة على أذكار الصباح والمساء 🌅", description: "التزم بقول أذكار الصباح والمساء كاملة كل يوم هذا الأسبوع." },
+  { title: "قراءة 3 أحاديث نبوية يومياً 📗", description: "اقرأ واحفظ 3 أحاديث نبوية يومياً من كتاب رياض الصالحين أو غيره." },
+  { title: "صيام يومي الاثنين والخميس 🌙", description: "احرص على صيام الاثنين والخميس هذا الأسبوع اقتداءً بالسنة." },
+  { title: "صدقة يومية ولو بسيطة 🤲", description: "تصدق كل يوم هذا الأسبوع بأي شيء ولو قليلاً، فالصدقة تطفئ غضب الرب." },
+  { title: "قيام الليل (ولو ركعتين) 🕋", description: "حاول أن تقوم الليل بركعتين على الأقل كل ليلة هذا الأسبوع." },
+];
+
+// رقم الأسبوع الحالي بمعيار ISO عشان التحدي يتغير تلقائياً كل أسبوع
+window.getCurrentWeekId = function() {
+  const d = new Date();
+  const target = new Date(d.valueOf());
+  const dayNr = (d.getDay() + 6) % 7; // الاثنين = 0
+  target.setDate(target.getDate() - dayNr + 3);
+  const firstThursday = new Date(target.getFullYear(), 0, 4);
+  const weekNumber = 1 + Math.round(((target - firstThursday) / 86400000 - 3 + ((firstThursday.getDay() + 6) % 7)) / 7);
+  return `${target.getFullYear()}-W${String(weekNumber).padStart(2, '0')}`;
+};
+
+window.renderWeeklyChallengeTab = function() {
+  const contentArea = document.getElementById('communityContent');
+  const myName = localStorage.getItem('athr_user_name');
+
+  contentArea.innerHTML = `
+    ${window.getSharedTabsHTML('weekly')}
+    <div style="color: var(--gold); font-family: 'Amiri', serif; margin-bottom: 15px; font-size: 14px; text-align: right; font-weight: bold;">🌟 حلقة التحدي الأسبوعي الجماعي</div>
+    <div id="weeklyChallengeBox" class="comm-card" style="text-align:right;">
+      <p style="color:var(--text2); text-align:center;">جاري تحميل تحدي الأسبوع... ✨</p>
+    </div>
+  `;
+  window.listenToWeeklyChallenge(myName);
+};
+
+window.listenToWeeklyChallenge = async function(myName) {
+  const weekId = window.getCurrentWeekId();
+  const challengeRef = doc(db, "weekly_challenges", weekId);
+
+  try {
+    const existing = await getDoc(challengeRef);
+    if (!existing.exists()) {
+      // نختار تحدي تلقائي بناءً على رقم الأسبوع عشان يتغير كل أسبوع لوحده
+      const weekNum = parseInt(weekId.split('-W')[1], 10) || 0;
+      const preset = ATHR_WEEKLY_PRESETS[weekNum % ATHR_WEEKLY_PRESETS.length];
+      await setDoc(challengeRef, {
+        title: preset.title,
+        description: preset.description,
+        participants: [],
+        completed: [],
+        createdAt: serverTimestamp()
+      }, { merge: true });
+    }
+  } catch (e) { console.error("weekly challenge init error:", e); }
+
+  if (window.unsubscribeWeekly) window.unsubscribeWeekly();
+  window.unsubscribeWeekly = onSnapshot(challengeRef, (snap) => {
+    const box = document.getElementById('weeklyChallengeBox');
+    if (!box || !snap.exists()) return;
+    const data = snap.data();
+    const participants = data.participants || [];
+    const completed = data.completed || [];
+    const hasJoined = myName && participants.includes(myName);
+    const hasCompleted = myName && completed.includes(myName);
+    const progressPct = participants.length > 0 ? Math.round((completed.length / participants.length) * 100) : 0;
+
+    box.innerHTML = `
+      <h4 style="color:var(--gold); margin-bottom:8px;">${data.title}</h4>
+      <p style="color:var(--text2); font-size:13px; margin-bottom:15px; line-height:1.6;">${data.description}</p>
+
+      <div style="background:rgba(0,0,0,0.4); border-radius:20px; overflow:hidden; height:18px; margin-bottom:6px; border:1px solid var(--border);">
+        <div style="background:var(--gold); height:100%; width:${progressPct}%; transition:width 0.4s;"></div>
+      </div>
+      <p style="color:var(--text2); font-size:11px; margin-bottom:15px;">✅ ${completed.length} من ${participants.length} خلّصوا التحدي (${progressPct}%)</p>
+
+      ${!myName ? `<p style="color:var(--text2); font-size:12px; text-align:center;">🔒 سجل حسابك للمشاركة في التحدي.</p>` : `
+        <div style="display:flex; gap:8px;">
+          ${!hasJoined
+            ? `<button onclick="window.joinWeeklyChallenge()" style="flex:1; background:var(--gold); color:#111; border:none; padding:12px; border-radius:8px; font-weight:bold; cursor:pointer;">سجّل نفسك في التحدي ✋</button>`
+            : hasCompleted
+              ? `<div style="flex:1; text-align:center; color:var(--gold); font-weight:bold; padding:10px;">🎉 ما شاء الله، أنت خلّصت التحدي هذا الأسبوع!</div>`
+              : `<button onclick="window.completeWeeklyChallenge()" style="flex:1; background:transparent; border:1px solid var(--gold); color:var(--gold); padding:12px; border-radius:8px; font-weight:bold; cursor:pointer;">أنا خلّصت التحدي 🎉</button>`
+          }
+        </div>
+      `}
+    `;
+  }, (err) => console.error("weekly challenge listen error:", err));
+};
+
+window.joinWeeklyChallenge = async function() {
+  const myName = localStorage.getItem('athr_user_name');
+  if (!myName) return;
+  const weekId = window.getCurrentWeekId();
+  try {
+    await updateDoc(doc(db, "weekly_challenges", weekId), { participants: arrayUnion(myName) });
+    window.awardPoints(myName, 5);
+  } catch (e) { console.error(e); }
+};
+
+window.completeWeeklyChallenge = async function() {
+  const myName = localStorage.getItem('athr_user_name');
+  if (!myName) return;
+  const weekId = window.getCurrentWeekId();
+  try {
+    await updateDoc(doc(db, "weekly_challenges", weekId), { completed: arrayUnion(myName) });
+    window.triggerSparksEffect();
+    window.awardPoints(myName, 20);
+    window.updateUserStreak(myName);
+  } catch (e) { console.error(e); }
+};
+
+// =========================================================================
+// 🏆 11️⃣ لوحة أهل الخير - Leaderboard شهري يتصفر تلقائياً كل شهر
+// =========================================================================
+window.renderLeaderboardTab = function() {
+  const contentArea = document.getElementById('communityContent');
+  const monthNames = ["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
+  const now = new Date();
+
+  contentArea.innerHTML = `
+    ${window.getSharedTabsHTML('leaderboard')}
+    <div style="color: var(--gold); font-family: 'Amiri', serif; margin-bottom: 15px; font-size: 14px; text-align: right; font-weight: bold;">🏆 لوحة أهل الخير - ${monthNames[now.getMonth()]} ${now.getFullYear()}</div>
+    <p style="color:var(--text2); font-size:11px; text-align:center; margin-bottom:12px;">أعلى 10 في نقاط الأثر هذا الشهر، وتتصفر اللوحة أول كل شهر ✨</p>
+    <div id="leaderboardList" style="display:flex; flex-direction:column; gap:8px;">
+      <div class="comm-card"><p style="color:var(--text2); text-align:center;">جاري تحميل اللوحة... ✨</p></div>
+    </div>
+  `;
+  window.listenToLeaderboard();
+};
+
+window.listenToLeaderboard = function() {
+  const monthKey = window.getCurrentMonthId();
+  const userGender = localStorage.getItem('athr_user_gender') || 'male';
+  const myName = localStorage.getItem('athr_user_name');
+
+  // بدون where على gender عشان نتفادى الحاجة لعمل composite index يدوي في Firebase Console
+  if (window.unsubscribeLeaderboard) window.unsubscribeLeaderboard();
+  const q = query(collection(db, "users_profiles"), orderBy(`monthlyPoints.${monthKey}`, "desc"), limit(50));
+  window.unsubscribeLeaderboard = onSnapshot(q, (snapshot) => {
+    const listArea = document.getElementById('leaderboardList');
+    if (!listArea) return;
+
+    const medals = ['🥇','🥈','🥉'];
+    let html = "";
+    let rank = 0;
+    snapshot.docs.forEach((docSnap) => {
+      const u = docSnap.data();
+      if (u.gender !== userGender) return;
+      const monthlyPts = (u.monthlyPoints && u.monthlyPoints[monthKey]) || 0;
+      if (monthlyPts <= 0) return;
+      if (rank >= 10) return;
+      const isMe = u.name === myName;
+      html += `
+        <div class="comm-card" style="display:flex; justify-content:space-between; align-items:center; padding:10px 15px; ${isMe ? 'border:1px solid var(--gold);' : ''}" onclick="window.openUserProfileCard('${u.name}')">
+          <div style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+            <span style="font-size:18px;">${rank < 3 ? medals[rank] : `#${rank+1}`}</span>
+            <img src="${u.avatar || 'https://www.gstatic.com/firebasejs/ui/2.0.0/images/temporary-avatar.png'}" style="width:32px; height:32px; border-radius:50%; object-fit:cover; border:1px solid var(--gold);" />
+            <strong style="color:${isMe ? 'var(--gold)' : 'var(--text)'}; font-size:14px;">${u.name}</strong>
+          </div>
+          <span style="color:var(--gold); font-weight:bold; font-size:13px;">${monthlyPts} نقطة</span>
+        </div>`;
+      rank++;
+    });
+
+    listArea.innerHTML = html || `<div class="comm-card"><p style="color:var(--text2); text-align:center; font-size:13px;">لا يوجد نشاط مسجل بعد لهذا الشهر، ابدأ بالمشاركة لتتصدر اللوحة ✨</p></div>`;
+  }, (err) => {
+    console.error("leaderboard error:", err);
+    const listArea = document.getElementById('leaderboardList');
+    if (listArea) listArea.innerHTML = `<div class="comm-card"><p style="color:#ff6b6b; text-align:center; font-size:12px; direction:ltr;">${err.code}: ${err.message}</p></div>`;
+  });
+};
+
+// =========================================================================
+// 🎙️ 12️⃣ رسائل صوتية في مجلس الذكر الجماعي والمحادثات الخاصة
+// =========================================================================
+// ملحوظة: التسجيل بيتخزن كـ base64 جوه رسالة الفايرستور مباشرة (مفيش Firebase
+// Storage متفعل في المشروع)، فالتسجيل بيتوقف تلقائياً بعد 15 ثانية عشان يفضل
+// حجم الرسالة صغير وميضربش الحد الأقصى لحجم الوثيقة في Firestore (1 ميجا).
+window.athrVoiceState = { recorder: null, chunks: [], context: null, stream: null, autoStopTimer: null };
+
+window.toggleVoiceRecording = async function(context) {
+  if (window.athrVoiceState.recorder && window.athrVoiceState.recorder.state === 'recording') {
+    window.stopVoiceRecording();
+    return;
+  }
+  await window.startVoiceRecording(context);
+};
+
+window.startVoiceRecording = async function(context) {
+  const myName = localStorage.getItem('athr_user_name');
+  if (!myName) { alert('🔒 برجاء تسجيل حسابك أولاً.'); return; }
+
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    alert('⚠️ المتصفح ده مش بيدعم تسجيل الصوت.');
+    return;
+  }
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    window.athrVoiceState.stream = stream;
+    window.athrVoiceState.context = context;
+    window.athrVoiceState.chunks = [];
+
+    const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' });
+    window.athrVoiceState.recorder = recorder;
+
+    recorder.ondataavailable = (e) => { if (e.data.size > 0) window.athrVoiceState.chunks.push(e.data); };
+    recorder.onstop = () => window.handleVoiceRecordingStop(context);
+    recorder.start();
+
+    window.updateVoiceUI(context, true, 15);
+
+    let secondsLeft = 15;
+    window.athrVoiceState.autoStopTimer = setInterval(() => {
+      secondsLeft--;
+      window.updateVoiceUI(context, true, secondsLeft);
+      if (secondsLeft <= 0) window.stopVoiceRecording();
+    }, 1000);
+
+  } catch (e) {
+    console.error(e);
+    alert('⚠️ لم نتمكن من الوصول للمايكروفون، تأكد من إعطاء الإذن.');
+  }
+};
+
+window.stopVoiceRecording = function() {
+  const st = window.athrVoiceState;
+  if (st.autoStopTimer) { clearInterval(st.autoStopTimer); st.autoStopTimer = null; }
+  if (st.recorder && st.recorder.state === 'recording') st.recorder.stop();
+  if (st.stream) st.stream.getTracks().forEach(t => t.stop());
+};
+
+window.updateVoiceUI = function(context, recording, secondsLeft) {
+  const btnId = context === 'private' ? 'privateVoiceBtn' : 'chatVoiceBtn';
+  const statusId = context === 'private' ? 'privateVoiceStatus' : 'chatVoiceStatus';
+  const btn = document.getElementById(btnId);
+  const status = document.getElementById(statusId);
+  if (btn) {
+    btn.textContent = recording ? '⏹️' : '🎙️';
+    btn.style.background = recording ? 'rgba(255,77,77,0.15)' : 'rgba(255,255,255,0.04)';
+    btn.style.color = recording ? '#ff4d4d' : 'var(--gold)';
+  }
+  if (status) {
+    status.style.display = recording ? 'block' : 'none';
+    status.textContent = recording ? `🔴 جارِ التسجيل... (${secondsLeft} ث) اضغط ⏹️ للإيقاف والإرسال` : '';
+  }
+};
+
+window.handleVoiceRecordingStop = async function(context) {
+  window.updateVoiceUI(context, false, 0);
+  const chunks = window.athrVoiceState.chunks;
+  if (!chunks || chunks.length === 0) return;
+
+  const blob = new Blob(chunks, { type: 'audio/webm;codecs=opus' });
+
+  // تحذير بسيط لو التسجيل كبير بشكل غير متوقع
+  if (blob.size > 700000) {
+    alert('⚠️ التسجيل طويل جداً، حاول تسجل رسالة أقصر.');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = async function(e) {
+    const base64Audio = e.target.result;
+    if (context === 'group') {
+      await window.sendGroupVoiceMessage(base64Audio);
+    } else {
+      await window.sendPrivateVoiceMessage(base64Audio);
+    }
+  };
+  reader.readAsDataURL(blob);
+};
+
+window.sendGroupVoiceMessage = async function(base64Audio) {
+  const myName = localStorage.getItem('athr_user_name');
+  const userGender = localStorage.getItem('athr_user_gender');
+  try {
+    await addDoc(collection(db, "chats"), {
+      name: myName,
+      text: "",
+      audioUrl: base64Audio,
+      messageType: "audio",
+      gender: userGender,
+      createdAt: serverTimestamp()
+    });
+    window.awardPoints(myName, 1);
+    window.updateUserStreak(myName);
+  } catch (e) { console.error(e); alert('⚠️ حدث خطأ أثناء إرسال الرسالة الصوتية.'); }
+};
+
+window.sendPrivateVoiceMessage = async function(base64Audio) {
+  const myName = localStorage.getItem('athr_user_name');
+  if (!window.activePrivateRoomId) return;
+  try {
+    await addDoc(collection(db, "private_chats", window.activePrivateRoomId, "messages"), {
+      sender: myName,
+      text: "",
+      audioUrl: base64Audio,
+      messageType: "audio",
+      createdAt: serverTimestamp()
+    });
+    await setDoc(doc(db, "chat_rooms", window.activePrivateRoomId), {
+      participants: [myName, window.currentPrivateTargetUser],
+      lastMessage: "🎙️ رسالة صوتية",
+      lastSender: myName,
+      lastSeenBy: [myName],
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+    window.updateUserStreak(myName);
+  } catch (e) { console.error(e); alert('⚠️ حدث خطأ أثناء إرسال الرسالة الصوتية.'); }
+};
+
+// =========================================================================
+// 🤲 13️⃣ نظام "اطلب دعاء" - طلبات دعاء مع خيار عدم إظهار الاسم
+// =========================================================================
+window.renderDuaTab = function() {
+  const contentArea = document.getElementById('communityContent');
+  const myName = localStorage.getItem('athr_user_name');
+
+  contentArea.innerHTML = `
+    ${window.getSharedTabsHTML('dua')}
+    <div style="color: var(--gold); font-family: 'Amiri', serif; margin-bottom: 10px; font-size: 14px; text-align: right; font-weight: bold;">🤲 اطلب دعاء من إخوانك</div>
+
+    ${myName ? `
+    <div class="comm-card" style="display:flex; gap:10px; flex-direction:column; margin-bottom:15px;">
+      <textarea id="duaInput" placeholder="اكتب طلب الدعاء... (محتاج دعوة لظرف كذا)" style="width:100%; height:70px; background:transparent; color:var(--text); border:1px solid var(--border); border-radius:8px; padding:10px; resize:none; outline:none; font-family:'Amiri',serif;"></textarea>
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <label style="display:flex; align-items:center; gap:6px; color:var(--text2); font-size:12px; cursor:pointer;">
+          <input type="checkbox" id="duaAnonCheck" />
+          انشر بدون ظهور اسمي
+        </label>
+        <button onclick="window.sendDuaRequest()" style="background:var(--gold); color:#111; border:none; padding:8px 25px; border-radius:20px; font-weight:bold; cursor:pointer;">إرسال الطلب 🤲</button>
+      </div>
+    </div>` : `<p style="color:var(--text2); font-size:12px; text-align:center; margin-bottom:15px;">🔒 سجل حسابك لتتمكن من طلب الدعاء.</p>`}
+
+    <div id="duaList" style="display:flex; flex-direction:column; gap:10px;">
+      <div class="comm-card"><p style="color:var(--text2); text-align:center;">جاري تحميل طلبات الدعاء... ✨</p></div>
+    </div>
+  `;
+  window.listenToDuaRequests();
+};
+
+window.sendDuaRequest = async function() {
+  const input = document.getElementById('duaInput');
+  const anonCheck = document.getElementById('duaAnonCheck');
+  const myName = localStorage.getItem('athr_user_name');
+  const userGender = localStorage.getItem('athr_user_gender');
+  if (!input || !input.value.trim()) { alert('فضلاً، اكتب طلب الدعاء أولاً.'); return; }
+
+  try {
+    await addDoc(collection(db, "dua_requests"), {
+      text: input.value.trim(),
+      name: anonCheck && anonCheck.checked ? null : myName,
+      isAnonymous: !!(anonCheck && anonCheck.checked),
+      gender: userGender,
+      prayedBy: [],
+      createdAt: serverTimestamp()
+    });
+    input.value = "";
+    if (anonCheck) anonCheck.checked = false;
+    window.triggerSparksEffect();
+  } catch (e) { console.error(e); alert('⚠️ حدث خطأ أثناء إرسال الطلب.'); }
+};
+
+window.listenToDuaRequests = function() {
+  const userGender = localStorage.getItem('athr_user_gender') || 'male';
+  const myName = localStorage.getItem('athr_user_name');
+  const q = query(collection(db, "dua_requests"), orderBy("createdAt", "desc"), limit(40));
+
+  if (window.unsubscribeDua) window.unsubscribeDua();
+  window.unsubscribeDua = onSnapshot(q, (snapshot) => {
+    const listArea = document.getElementById('duaList');
+    if (!listArea) return;
+    let html = "";
+    snapshot.docs.forEach((docSnap) => {
+      const data = docSnap.data();
+      if (data.gender !== userGender) return;
+      const prayedArr = data.prayedBy || [];
+      const hasPrayed = myName && prayedArr.includes(myName);
+      const displayName = data.isAnonymous ? "أخ/أخت مجهول الهوية 🤍" : (data.name || "مجهول");
+
+      html += `
+        <div class="comm-card" style="text-align:right;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <strong style="color:var(--gold); font-size:13px;">${displayName}</strong>
+            <small style="color:var(--text2); font-size:11px;">${data.createdAt ? window.formatPostTime(data.createdAt) : 'الآن'}</small>
+          </div>
+          <p style="color:var(--text); font-size:14px; font-family:'Amiri', serif; line-height:1.5; margin-bottom:10px; white-space:pre-wrap;">${data.text}</p>
+          <button onclick="window.togglePrayForRequest('${docSnap.id}', ${hasPrayed})" style="background:${hasPrayed ? 'rgba(212,175,55,0.15)' : 'transparent'}; border:1px solid var(--gold); color:var(--gold); padding:6px 18px; border-radius:20px; font-size:13px; font-weight:bold; cursor:pointer;">
+            🤲 دعيت لك (${prayedArr.length})
+          </button>
+        </div>`;
+    });
+    listArea.innerHTML = html || `<div class="comm-card"><p style="color:var(--text2); text-align:center; font-size:13px;">لا توجد طلبات دعاء حالياً.</p></div>`;
+  }, (err) => console.error("dua listen error:", err));
+};
+
+window.togglePrayForRequest = async function(docId, hasPrayed) {
+  const myName = localStorage.getItem('athr_user_name');
+  if (!myName) { alert('🔒 برجاء تسجيل الدخول أولاً.'); return; }
+  try {
+    const ref = doc(db, "dua_requests", docId);
+    if (hasPrayed) { await updateDoc(ref, { prayedBy: arrayRemove(myName) }); }
+    else { await updateDoc(ref, { prayedBy: arrayUnion(myName) }); window.awardPoints(myName, 1); }
+  } catch (e) { console.error(e); }
+};
+
+// =========================================================================
+// ✨ 14️⃣ أرشيف "الأكثر تأثيراً" - البوستات اللي وصلت لعدد تفاعل معين
+// =========================================================================
+window.ATHR_FEATURED_THRESHOLD = 15; // غيّرها لو حابب ترفع أو تقلل الحد المطلوب للظهور
+
+window.renderFeaturedTab = function() {
+  const contentArea = document.getElementById('communityContent');
+  contentArea.innerHTML = `
+    ${window.getSharedTabsHTML('featured')}
+    <div style="color: var(--gold); font-family: 'Amiri', serif; margin-bottom: 10px; font-size: 14px; text-align: right; font-weight: bold;">✨ أرشيف الفوائد الأكثر تأثيراً (${window.ATHR_FEATURED_THRESHOLD}+ تفاعل)</div>
+    <div id="featuredList" style="display:flex; flex-direction:column; gap:10px;">
+      <div class="comm-card"><p style="color:var(--text2); text-align:center;">جاري التحميل... ✨</p></div>
+    </div>
+  `;
+  window.listenToFeaturedPosts();
+};
+
+window.listenToFeaturedPosts = function() {
+  const userGender = localStorage.getItem('athr_user_gender') || 'male';
+  const myName = localStorage.getItem('athr_user_name');
+  // بدون where على gender عشان نتفادى الحاجة لـ composite index يدوي
+  const q = query(collection(db, "posts"), orderBy("likesCount", "desc"), limit(40));
+
+  if (window.unsubscribeFeatured) window.unsubscribeFeatured();
+  window.unsubscribeFeatured = onSnapshot(q, (snapshot) => {
+    const listArea = document.getElementById('featuredList');
+    if (!listArea) return;
+    let html = "";
+    snapshot.docs.forEach((docSnap) => {
+      const data = docSnap.data();
+      const likesCount = data.likesCount || (data.likes || []).length;
+      if (data.gender !== userGender) return;
+      if (likesCount < window.ATHR_FEATURED_THRESHOLD) return;
+
+      const likesArr = data.likes || [];
+      const hasLiked = myName && likesArr.includes(myName);
+      let mediaHtml = "";
+      if (data.mediaUrl && data.mediaType === 'image') {
+        mediaHtml = `<img src="${data.mediaUrl}" onclick="window.openImageLightbox('${data.mediaUrl}')" style="width:100%; border-radius:8px; margin-top:10px; max-height:280px; object-fit:contain; background:#000; cursor:pointer;" />`;
+      }
+
+      html += `
+        <div class="comm-card" style="border-right: 3px solid var(--gold); text-align: right;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <strong onclick="window.openUserProfileCard('${data.name}')" style="color:var(--gold); font-size:14px; cursor:pointer; text-decoration:underline;">✨ ${data.name}</strong>
+            <small style="color:var(--text2); font-size:11px;">${data.createdAt ? window.formatPostTime(data.createdAt) : ''}</small>
+          </div>
+          ${data.text ? `<p style="color:var(--text); font-family:'Amiri', serif; font-size:15px; line-height:1.5; white-space:pre-wrap;">${data.text}</p>` : ''}
+          ${mediaHtml}
+          <div style="margin-top:10px; color:var(--gold); font-size:13px; font-weight:bold;">
+            ${hasLiked ? '✨' : '🤍'} ${likesCount} تفاعل
+          </div>
+        </div>`;
+    });
+    listArea.innerHTML = html || `<div class="comm-card"><p style="color:var(--text2); text-align:center; font-size:13px;">لسه مفيش بوستات وصلت للحد المطلوب من التفاعل.</p></div>`;
+  }, (err) => {
+    console.error("featured posts error:", err);
+    const listArea = document.getElementById('featuredList');
+    if (listArea) listArea.innerHTML = `<div class="comm-card"><p style="color:#ff6b6b; text-align:center; font-size:12px; direction:ltr;">${err.code}: ${err.message}</p></div>`;
+  });
 };
