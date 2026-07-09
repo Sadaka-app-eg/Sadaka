@@ -436,8 +436,8 @@ window.openUserProfileCard = async function(userName) {
         <div style="margin-bottom:15px;">
           <span class="profile-badge ${u.gender === 'male' ? 'badge-male' : 'badge-female'}">${u.gender === 'male' ? '🧔 مجلس الرجال' : '🧕 مجلس العفيفات'}</span>
           <span style="color:var(--gold); font-size:12px; font-weight:bold;">🎖️ ${styleInfo.label} (${u.points || 0} أثر)</span>
+          ${u.streakCount > 0 ? `<span style="color:#ff9d4d; font-size:12px; font-weight:bold; margin-right:8px;">🔥 ${u.streakCount} يوم متتالي</span>` : ''}
         </div>
-
         <div style="background:rgba(0,0,0,0.4); border:1px solid var(--border); padding:10px; border-radius:8px; text-align:right; margin-bottom:20px;">
           <small style="color:var(--gold); display:block; margin-bottom:4px; font-size:11px;">✍️ النبذة التعريفية (Bio):</small>
           <p style="color:var(--text); font-size:13px; font-family:'Amiri', serif; line-height:1.5; margin:0; white-space:pre-wrap;">${u.bio || 'لا توجد نبذة حالياً'}</p>
@@ -462,6 +462,45 @@ window.awardPoints = async function(userName, amount) {
       await updateDoc(userRef, { points: currentPts + amount });
     }
   } catch(e) { console.error(e); }
+};
+// =========================================================
+// 🔥 9️⃣ نظام سلسلة الأثر (Streak) اليومي
+// =========================================================
+window.getTodayDateStr = function() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+};
+
+window.updateUserStreak = async function(userName) {
+  if(!userName) return;
+  try {
+    const userRef = doc(db, "users_profiles", userName);
+    const snap = await getDoc(userRef);
+    if(!snap.exists()) return;
+    const data = snap.data();
+    const today = window.getTodayDateStr();
+    const lastActive = data.lastActiveDate || null;
+
+    if(lastActive === today) return; // النشاط اتحسب النهاردة بالفعل
+
+    let newStreak = 1;
+    if(lastActive) {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth()+1).padStart(2,'0')}-${String(yesterday.getDate()).padStart(2,'0')}`;
+      if(lastActive === yesterdayStr) {
+        newStreak = (data.streakCount || 0) + 1;
+      }
+    }
+
+    const longestStreak = Math.max(newStreak, data.longestStreak || 0);
+
+    await updateDoc(userRef, {
+      streakCount: newStreak,
+      longestStreak: longestStreak,
+      lastActiveDate: today
+    });
+  } catch(e) { console.error("Streak update error:", e); }
 };
 // =========================================================
 // 👤 8️⃣ نظام "حسابي" - إدارة الملف الشخصي والإعدادات
@@ -677,6 +716,7 @@ window.sendPostToFirebase = async function() {
     window.clearSelectedMedia();
     window.triggerSparksEffect();
     window.awardPoints(userName, 15);
+    window.updateUserStreak(userName);
   } catch (e) { console.error(e); } finally { submitBtn.disabled = false; if(submitBtn) submitBtn.textContent = "نشر الفائدة ✨"; }
 };
 
@@ -825,6 +865,7 @@ window.sendComment = async function(docId) {
     });
     input.value = ""; 
     window.awardPoints(myName, 3); 
+    window.updateUserStreak(myName);
   } catch (e) { console.error(e); }
 };
 
@@ -865,6 +906,7 @@ window.sendChatMessageToFirebase = async function() {
     });
     input.value = "";
     window.awardPoints(myName, 1);
+    window.updateUserStreak(myName);
   } catch (e) { console.error(e); }
 };
 
@@ -1074,8 +1116,9 @@ window.sendPrivateMessage = async function() {
     }, { merge: true });
 
     input.value = "";
-   selectedChatPrivateFile = null;
+    selectedChatPrivateFile = null;
     document.getElementById('privateMediaPreviewBox').innerHTML = "";
+    window.updateUserStreak(myName);
   } catch(e) { console.error(e); } finally { sendBtn.disabled = false; }
 };
 
