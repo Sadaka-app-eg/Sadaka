@@ -2,7 +2,7 @@
 // 🚀 شبكة مجتمع أثر الاجتماعية الإسلامية المتكاملة - إصدار 2026 المطور (نسخة مصححة الميديا)
 // =========================================================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, addDoc, doc, updateDoc, getDoc, setDoc, arrayUnion, arrayRemove, onSnapshot, query, where, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"; 
+import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, getDoc, setDoc, arrayUnion, arrayRemove, onSnapshot, query, where, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 const firebaseConfig = {
   apiKey: "AIzaSyCuLaDRVQ9SWSO7zs2WL3D-ANj-wHeoYWg",
   authDomain: "sadaka-app-6637e.firebaseapp.com",
@@ -52,7 +52,13 @@ style.innerHTML = `
   .badge-female { background: rgba(212,175,55,0.15); color: var(--gold); border: 1px solid rgba(212,175,55,0.3); }
 `;
 document.head.appendChild(style);
-
+(function(){
+  const myAccBtn = document.createElement('button');
+  myAccBtn.innerHTML = "👤 حسابي";
+  myAccBtn.onclick = () => window.openMyAccountModal();
+  myAccBtn.style.cssText = "position:fixed; top:14px; right:15px; z-index:999999; background:rgba(212,175,55,0.12); color:#d4af37; border:1px solid #d4af37; padding:8px 16px; border-radius:20px; font-family:'Amiri',serif; font-weight:bold; font-size:13px; cursor:pointer; backdrop-filter:blur(4px);";
+  document.body.appendChild(myAccBtn);
+})();
 // =========================================================
 // 🛠️ 1️⃣ نظام التحقق وإدارة الحسابات الذكي
 // =========================================================
@@ -441,7 +447,145 @@ window.awardPoints = async function(userName, amount) {
     }
   } catch(e) { console.error(e); }
 };
+// =========================================================
+// 👤 8️⃣ نظام "حسابي" - إدارة الملف الشخصي والإعدادات
+// =========================================================
+let selectedAccountAvatarFile = null;
+const NAME_CHANGE_COOLDOWN_DAYS = 60;
 
+window.openMyAccountModal = async function() {
+  const myName = localStorage.getItem('athr_user_name');
+  if(!myName) { alert("🔒 برجاء تسجيل حسابك أولاً."); return; }
+
+  let modal = document.getElementById('athrMyAccountModal');
+  if(!modal) {
+    modal = document.createElement('div');
+    modal.id = 'athrMyAccountModal';
+    modal.style.cssText = "position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.88); display:flex; align-items:center; justify-content:center; z-index:999999999; direction:rtl; padding:15px; overflow-y:auto;";
+    document.body.appendChild(modal);
+  }
+
+  modal.innerHTML = `<div class="comm-card" style="width:100%; max-width:380px; text-align:center;"><p style="color:var(--text2);">جاري تحميل بيانات حسابك... ✨</p></div>`;
+  modal.style.display = 'flex';
+
+  try {
+    const docRef = doc(db, "users_profiles", myName);
+    const docSnap = await getDoc(docRef);
+    if(!docSnap.exists()) { modal.style.display = 'none'; alert("لم يتم العثور على بياناتك."); return; }
+
+    const u = docSnap.data();
+    const styleInfo = window.getUserNameClassAndStyle(u.points);
+
+    let daysRemaining = 0;
+    if (u.lastNameChange && u.lastNameChange.toDate) {
+      const lastChange = u.lastNameChange.toDate();
+      const diffDays = Math.floor((new Date() - lastChange) / (1000 * 60 * 60 * 24));
+      daysRemaining = Math.max(0, NAME_CHANGE_COOLDOWN_DAYS - diffDays);
+    }
+    const nameLocked = daysRemaining > 0;
+
+    modal.innerHTML = `
+      <div class="comm-card" style="width:100%; max-width:380px; text-align:center; border:1px solid var(--gold); padding:25px 18px; background:#070c07; position:relative; animation:fadeIn 0.3s;">
+        <button onclick="document.getElementById('athrMyAccountModal').style.display='none'" style="position:absolute; top:12px; left:12px; background:transparent; color:#ff4d4d; border:none; font-size:18px; cursor:pointer; font-weight:bold;">✕</button>
+        <h3 style="color:var(--gold); font-family:'Amiri',serif; margin-bottom:18px;">⚙️ حسابي وإعداداتي</h3>
+
+        <div style="position:relative; display:inline-block; margin-bottom:8px;">
+          <img id="accAvatarPreview" src="${u.avatar || 'https://www.gstatic.com/firebasejs/ui/2.0.0/images/temporary-avatar.png'}" style="width:90px; height:90px; border-radius:50%; border:2px solid var(--gold); object-fit:cover;" />
+          <label style="position:absolute; bottom:0; left:0; background:var(--gold); color:#111; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:13px; border:2px solid #070c07;">
+            📸
+            <input type="file" accept="image/*" style="display:none;" onchange="window.handleAccountAvatarSelection(this)" />
+          </label>
+        </div>
+        <div id="accAvatarStatus" style="color:var(--text2); font-size:11px; margin-bottom:15px;"></div>
+
+        <div style="margin-bottom:12px;">
+          <span class="${styleInfo.class}" style="font-size:12px; font-weight:bold;">🎖️ ${styleInfo.label}</span>
+          <span style="color:var(--gold); font-size:12px; font-weight:bold; margin-right:10px;">✨ ${u.points || 0} نقطة أثر</span>
+        </div>
+
+        <div style="margin-bottom:15px; text-align:right;">
+          <label style="color:var(--text); display:block; margin-bottom:6px; font-size:13px;">الاسم:</label>
+          <input id="accNameInp" type="text" value="${u.name}" ${nameLocked ? 'disabled' : ''} style="width:100%; padding:10px; background:${nameLocked ? '#111' : '#000'}; border:1px solid var(--border); color:${nameLocked ? 'var(--text2)' : 'var(--text)'}; border-radius:8px; outline:none; font-family:'Amiri', serif;" />
+          ${nameLocked 
+            ? `<small style="color:#ff9d4d; display:block; margin-top:5px;">⏳ يمكنك تغيير اسمك بعد ${daysRemaining} يوم</small>` 
+            : `<small style="color:var(--text2); display:block; margin-top:5px;">⚠️ تغيير الاسم يتيح مرة كل ${NAME_CHANGE_COOLDOWN_DAYS} يوم</small>`}
+        </div>
+
+        <div style="margin-bottom:18px; text-align:right;">
+          <label style="color:var(--text); display:block; margin-bottom:6px; font-size:13px;">النبذة التعريفية (Bio):</label>
+          <textarea id="accBioInp" style="width:100%; height:60px; padding:10px; background:#000; border:1px solid var(--border); color:var(--text); border-radius:8px; outline:none; font-family:'Amiri', serif; resize:none;">${u.bio || ''}</textarea>
+        </div>
+
+        <button id="accSaveBtn" onclick="window.saveAccountChanges(${nameLocked})" style="width:100%; background:var(--gold); color:#111; border:none; padding:12px; border-radius:8px; font-weight:bold; font-family:'Amiri', serif; font-size:15px; cursor:pointer;">💾 حفظ التعديلات</button>
+      </div>
+    `;
+  } catch(e) { console.error(e); modal.style.display = 'none'; }
+};
+
+window.handleAccountAvatarSelection = function(input) {
+  const file = input.files[0];
+  if(!file) return;
+  selectedAccountAvatarFile = file;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById('accAvatarPreview').src = e.target.result;
+    document.getElementById('accAvatarStatus').textContent = "✓ صورة جديدة جاهزة، اضغط حفظ للتأكيد";
+    document.getElementById('accAvatarStatus').style.color = "var(--gold)";
+  };
+  reader.readAsDataURL(file);
+};
+
+window.saveAccountChanges = async function(nameLocked) {
+  const myName = localStorage.getItem('athr_user_name');
+  const nameInp = document.getElementById('accNameInp');
+  const bioInp = document.getElementById('accBioInp');
+  const saveBtn = document.getElementById('accSaveBtn');
+  const newName = nameInp ? nameInp.value.trim() : myName;
+
+  if (!nameLocked && newName !== myName) {
+    if (!newName.includes(" ") || newName.split(" ").filter(Boolean).length < 2) {
+      alert("⚠️ يرجى كتابة اسم ثنائي صحيح.");
+      return;
+    }
+  }
+
+  try {
+    saveBtn.disabled = true;
+    saveBtn.textContent = "جاري الحفظ... ⏳";
+
+    const updates = { bio: bioInp.value.trim() };
+
+    if (selectedAccountAvatarFile) {
+      const formData = new FormData();
+      formData.append("image", selectedAccountAvatarFile);
+      const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: formData });
+      const resData = await res.json();
+      if(resData.success) { updates.avatar = resData.data.url; }
+      else { alert("⚠️ فشل رفع الصورة الجديدة: " + (resData.error?.message || "خطأ غير معروف")); }
+    }
+
+    if (!nameLocked && newName !== myName) {
+      updates.name = newName;
+      updates.lastNameChange = serverTimestamp();
+    }
+
+    await updateDoc(doc(db, "users_profiles", myName), updates);
+
+    alert(updates.name 
+      ? "✅ تم تحديث اسمك. ملحوظة: بروفايلك وبوستاتك (القديمة والجديدة) هتظهر بالاسم الجديد، بس رسائل الشات القديمة هتفضل باسمك القديم." 
+      : "✅ تم حفظ التعديلات بنجاح.");
+
+    selectedAccountAvatarFile = null;
+    document.getElementById('athrMyAccountModal').style.display = 'none';
+    window.renderCommunityBody();
+  } catch(e) {
+    console.error(e);
+    alert("حدث خطأ أثناء الحفظ، يرجى إعادة المحاولة.");
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.textContent = "💾 حفظ التعديلات";
+  }
+};
 // =========================================================
 // 📂 معالجة الميديا والرفع الحي للبوستات
 // =========================================================
@@ -585,7 +729,8 @@ window.listenToPosts = function(gender) {
               </div>
               <button onclick="window.toggleCommentsSection('${docId}')" class="action-item-btn">💬 التعليقات</button>
               <button onclick="window.openCommShareSheet(\`${data.text ? data.text.replace(/"/g, '&quot;') : 'أثر طيب'}\`, '${data.name}')" class="action-item-btn">🔗 مشاركة</button>
-            </div>
+              ${data.name === myName ? `<button onclick="window.deletePost('${docId}')" class="action-item-btn" style="color:#ff6b6b;">🗑️ حذف</button>` : ''}
+              </div>
 
             <div id="commentsWrapper-${docId}" style="display:none; padding-top:10px;">
               <div id="commentsList-${docId}" style="max-height:200px; overflow-y:auto; display:flex; flex-direction:column; gap:6px; margin-bottom:8px;"></div>
@@ -597,7 +742,7 @@ window.listenToPosts = function(gender) {
           </div>
         `;
         
-        // إصلاح تحديث الصورة الحقيقية للكاتب بداخل الـ Feed
+        // إصلاح تحديث الصورة والاسم الحقيقي للكاتب بداخل الـ Feed
         getDoc(doc(db, "users_profiles", data.name)).then(userDoc => {
           if (userDoc.exists()) {
             const uData = userDoc.data();
@@ -605,9 +750,12 @@ window.listenToPosts = function(gender) {
             const nameTxt = document.getElementById(`name-post-${docId}`);
             
             if (uData.avatar && avatarImg) avatarImg.src = uData.avatar;
-            if (nameTxt && typeof window.getUserNameClassAndStyle === 'function') {
-              const styleInfo = window.getUserNameClassAndStyle(uData.points);
-              nameTxt.className = styleInfo.class;
+            if (nameTxt) {
+              nameTxt.textContent = `✨ ${uData.name || data.name}`;
+              if (typeof window.getUserNameClassAndStyle === 'function') {
+                const styleInfo = window.getUserNameClassAndStyle(uData.points);
+                nameTxt.className = styleInfo.class;
+              }
             }
           }
         }).catch(e => console.log("Profile async fetch skip:", e));
@@ -628,7 +776,15 @@ window.togglePostLike = async function(event, docId, hasLiked, emoji = '❤️')
     else { await updateDoc(postRef, { likes: arrayUnion(myName) }); window.awardPoints(myName, 2); }
   } catch (e) { console.error(e); }
 };
-
+window.deletePost = async function(docId) {
+  if (!confirm("هل أنت متأكد أنك تريد حذف هذا المنشور؟ لا يمكن التراجع عن هذا الإجراء.")) return;
+  try {
+    await deleteDoc(doc(db, "posts", docId));
+  } catch(e) {
+    console.error(e);
+    alert("حدث خطأ أثناء حذف المنشور.");
+  }
+};
 // =========================================================
 // 💬 4️⃣ نظام تشغيل وإدارة التعليقات الحية (Comments)
 // =========================================================
