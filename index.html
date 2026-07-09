@@ -6842,6 +6842,64 @@ window.triggerHeaderGoogleLogin = function() {
    
   
 </script>
+<script>
+(function(){
+  let appState = 'home';
+  function pushBackState(state){
+    appState = state;
+    history.pushState({ athrState: state }, '', '');
+  }
 
+  const _toggleMenu = window.toggleMenu;
+  window.toggleMenu = function(){
+    const menu = document.getElementById('tabsMenu');
+    const willOpen = menu && !menu.classList.contains('open');
+    _toggleMenu();
+    if (willOpen) pushBackState('menu');
+  };
+
+  const _showPage = window.showPage;
+  window.showPage = function(id, el){
+    _showPage(id, el);
+    pushBackState(id !== 'home' ? 'page:' + id : 'home');
+  };
+
+  const _openSurah = window.openSurah;
+  window.openSurah = async function(...args){
+    await _openSurah(...args);
+    pushBackState('surah');
+  };
+
+  const _closeSurah = window.closeSurah;
+  window.closeSurah = function(){
+    _closeSurah();
+    if (history.state && history.state.athrState === 'surah') history.back();
+  };
+
+  window.addEventListener('popstate', () => {
+    const insightModal = document.getElementById('insightModal');
+    const tafseerModal = document.getElementById('tafseerModal');
+    const profileModal = document.getElementById('athrProfileModal');
+    const congratsModal = document.getElementById('congratsModal');
+    const veil = document.getElementById('veilCurtain');
+    const menu = document.getElementById('tabsMenu');
+    const surahScreen = document.getElementById('surahScreen');
+
+    if (insightModal) { insightModal.remove(); pushBackState(appState); return; }
+    if (tafseerModal && tafseerModal.classList.contains('show')) { closeModals(); pushBackState(appState); return; }
+    if (profileModal && profileModal.style.display === 'flex') { profileModal.style.display = 'none'; pushBackState(appState); return; }
+    if (congratsModal) { congratsModal.remove(); pushBackState(appState); return; }
+    if (veil) { closeVeilCurtain(); pushBackState(appState); return; }
+    if (surahScreen && surahScreen.classList.contains('open')) { closeSurah(); return; }
+    if (menu && menu.classList.contains('open')) { toggleMenu(); return; }
+
+    const activePage = document.querySelector('.page.active');
+    if (activePage && activePage.id !== 'home') { showPage('home', null); return; }
+    // هنا يبقى إحنا فعلاً في الرئيسية بدون أي حاجة مفتوحة، السحب هيقفل التطبيق طبيعي
+  });
+
+  history.replaceState({ athrState: 'home' }, '', '');
+})();
+</script>
 </body>
     </html>
