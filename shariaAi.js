@@ -55,7 +55,7 @@ async function askShariaAI() {
 
     if (!response.ok) throw new Error(`سيرفر البروكسي رد بـ خطأ: ${response.status}`);
 
-    const data = await response.json();
+    const response = await fetch(`${SHARIA_AI_PROXY_URL}?t=${Date.now()}`, {
     let aiResponse = data.candidates[0].content.parts[0].text;
 
     aiResponse = escapeHtml(aiResponse);
