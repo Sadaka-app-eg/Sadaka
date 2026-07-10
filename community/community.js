@@ -52,6 +52,24 @@ style.innerHTML = `
   .badge-female { background: rgba(212,175,55,0.15); color: var(--gold); border: 1px solid rgba(212,175,55,0.3); }
 `;
 document.head.appendChild(style);
+// =========================================================================
+// 🟢 تحديث محرك التواجد الحي وحالة الاتصال (Online Status) لعام 2026
+// =========================================================================
+window.setUserOnlineStatus = async function() {
+  const myName = localStorage.getItem('athr_user_name');
+  if (!myName) return;
+  try {
+    await setDoc(doc(db, "users_status", myName), {
+      name: myName,
+      isOnline: true,
+      lastActive: serverTimestamp()
+    }, { merge: true });
+  } catch(e) { console.error(e); }
+};
+
+// تحديث التواجد بانتظام كل دقيقة وتحديث المعاينة
+setInterval(() => { if (localStorage.getItem('athr_user_name')) window.setUserOnlineStatus(); }, 60000);
+
 (function(){
   const myAccBtn = document.createElement('button');
   myAccBtn.id = 'athrMyAccountFloatBtn';
@@ -489,31 +507,100 @@ window.openUserProfileCard = async function(userName) {
     const u = docSnap.data();
     const styleInfo = window.getUserNameClassAndStyle(u.points);
     const myName = localStorage.getItem('athr_user_name');
+    // فحص حالة الاتصال (المؤشر الأخضر)
+    const statusSnap = await getDoc(doc(db, "users_status", u.name));
+    let isOnlineNow = false;
+    if (statusSnap.exists()) {
+      const sData = statusSnap.data();
+      if (sData.isOnline && sData.lastActive) {
+        const diffMs = new Date() - sData.lastActive.toDate();
+        if (diffMs < 120000) isOnlineNow = true; // متصل في آخر دقيقتين
+      }
+    }
 
-    modal.innerHTML = `
+    // فحص علاقة الصداقة لعرض الزرار المناسب
+    let friendBtnHtml = "";
+    if (myName && myName !== u.name) {
+      const friendDocId = [myName, u.name].sort().join("___");
+      const friendSnap = await getDoc(doc(db, "friends", friendDocId));
+      
+      if (friendSnap.exists()) {
+        const fData = friendSnap.data();
+        if (fData.status === "accepted") {
+          friendBtnHtml = `<span style="background:rgba(76,175,80,0.15); color:#4CAF50; padding:8px 16px; border-radius:20px; font-size:12px; font-weight:bold; display:inline-block; margin-top:10px;">🤝 أنتم أصدقاء في أثر</span>`;
+        } else if (fData.status === "pending") {
+          if (fData.sender === myName) {
+            friendBtnHtml = `<button disabled style="width:100%; background:#444; color:#aaa; border:none; padding:10px; border-radius:25px; font-size:13px; margin-top:10px;">⏳ تم إرسال طلب الصداقة</button>`;
+          } else {
+            friendBtnHtml = `<button onclick="window.acceptFriendRequest('${u.name}', '${friendDocId}')" style="width:100%; background:#4CAF50; color:#white; border:none; padding:10px; border-radius:25px; font-weight:bold; font-size:13px; margin-top:10px; cursor:pointer;">✅ قبول طلب الصداقة</button>`;
+          }
+        }
+      } else {
+        friendBtnHtml = `<button onclick="window.sendFriendRequest('${u.name}')" style="width:100%; background:transparent; color:var(--gold); border:1px solid var(--gold); padding:10px; border-radius:25px; font-weight:bold; font-size:13px; margin-top:10px; cursor:pointer;">➕ إرسال طلب صداقة</button>`;
+      }
+    }
+
+        modal.innerHTML = `
       <div class="comm-card" style="width:100%; max-width:360px; text-align:center; border:1px solid var(--gold); padding:25px 15px; background:#070c07; position:relative; animation:fadeIn 0.3s;">
         <button onclick="document.getElementById('athrProfileModal').style.display='none'" style="position:absolute; top:12px; left:12px; background:transparent; color:#ff4d4d; border:none; font-size:18px; cursor:pointer; font-weight:bold;">✕</button>
         
-        <img src="${u.avatar || 'https://www.gstatic.com/firebasejs/ui/2.0.0/images/temporary-avatar.png'}" style="width:90px; height:90px; border-radius:50%; border:2px solid var(--gold); object-fit:cover; margin-bottom:12px; box-shadow:0 4px 15px rgba(212,175,55,0.2);" />
+        <div style="position:relative; display:inline-block; margin-bottom:12px;">
+          <img src="${u.avatar || 'https://www.gstatic.com/firebasejs/ui/2.0.0/images/temporary-avatar.png'}" style="width:90px; height:90px; border-radius:50%; border:2px solid var(--gold); object-fit:cover; box-shadow:0 4px 15px rgba(212,175,55,0.2);" />
+          ${isOnlineNow ? `<div style="position:absolute; bottom:4px; right:4px; width:16px; height:16px; background:#4CAF50; border:3px solid #070c07; border-radius:50%; box-shadow:0 0 8px #4CAF50;"></div>` : ''}
+        </div>
         
-        <h3 class="${styleInfo.class}" style="font-family:'Amiri', serif; font-size:20px; margin-bottom:4px;">${u.name}</h3>
+        <h3 class="${styleInfo.class}" style="font-family:'Amiri', serif; font-size:20px; margin-bottom:4px;">
+          ${u.name} ${isOnlineNow ? `<span style="font-size:11px; color:#4CAF50; font-weight:normal;">(نشط الآن 🟢)</span>` : ''}
+        </h3>
         <div style="margin-bottom:15px;">
           <span class="profile-badge ${u.gender === 'male' ? 'badge-male' : 'badge-female'}">${u.gender === 'male' ? '🧔 مجلس الرجال' : '🧕 مجلس العفيفات'}</span>
           <span style="color:var(--gold); font-size:12px; font-weight:bold;">🎖️ ${styleInfo.label} (${u.points || 0} أثر)</span>
-          ${u.streakCount > 0 ? `<span style="color:#ff9d4d; font-size:12px; font-weight:bold; margin-right:8px;">🔥 ${u.streakCount} يوم متتالي</span>` : ''}
         </div>
-        <div style="background:rgba(0,0,0,0.4); border:1px solid var(--border); padding:10px; border-radius:8px; text-align:right; margin-bottom:20px;">
+        <div style="background:rgba(0,0,0,0.4); border:1px solid var(--border); padding:10px; border-radius:8px; text-align:right; margin-bottom:15px;">
           <small style="color:var(--gold); display:block; margin-bottom:4px; font-size:11px;">✍️ النبذة التعريفية (Bio):</small>
           <p style="color:var(--text); font-size:13px; font-family:'Amiri', serif; line-height:1.5; margin:0; white-space:pre-wrap;">${u.bio || 'لا توجد نبذة حالياً'}</p>
         </div>
 
+        ${friendBtnHtml}
+
         ${myName && myName !== u.name ? `
-          <button onclick="window.startPrivateChatWithUser('${u.name}')" style="width:100%; background:var(--gold); color:#111; border:none; padding:12px; border-radius:25px; font-weight:bold; font-family:'Amiri',serif; cursor:pointer; font-size:14px; box-shadow:0 4px 12px rgba(212,175,55,0.25);">
+          <button onclick="window.startPrivateChatWithUser('${u.name}')" style="width:100%; background:var(--gold); color:#111; border:none; padding:12px; border-radius:25px; font-weight:bold; font-family:'Amiri',serif; cursor:pointer; font-size:14px; margin-top:8px; box-shadow:0 4px 12px rgba(212,175,55,0.25);">
             💬 بدء محادثة خاصة (واتساب ستايل)
           </button>
         ` : ''}
       </div>
     `;
+
+  } catch(e) { console.error(e); }
+};
+// =========================================================================
+// 🤝 محرك إدارة طلبات الصداقة التفاعلي (Friendship Engine)
+// =========================================================================
+window.sendFriendRequest = async function(targetUser) {
+  const myName = localStorage.getItem('athr_user_name');
+  if (!myName) return;
+  const friendDocId = [myName, targetUser].sort().join("___");
+  try {
+    await setDoc(doc(db, "friends", friendDocId), {
+      participants: [myName, targetUser],
+      sender: myName,
+      status: "pending",
+      updatedAt: serverTimestamp()
+    });
+    alert(`✨ تم إرسال طلب الصداقة بنجاح إلى ${targetUser}`);
+    window.openUserProfileCard(targetUser); // تحديث فوري للكارت
+  } catch(e) { console.error(e); }
+};
+
+window.acceptFriendRequest = async function(targetUser, friendDocId) {
+  try {
+    await updateDoc(doc(db, "friends", friendDocId), {
+      status: "accepted",
+      updatedAt: serverTimestamp()
+    });
+    alert(`🎉 تهانينا! تم قبول الصداقة وأصبحتم أصدقاء في أثر الحين.`);
+    window.triggerSparksEffect();
+    window.openUserProfileCard(targetUser); // تحديث فوري للكارت
   } catch(e) { console.error(e); }
 };
 
@@ -829,7 +916,8 @@ window.listenToPosts = function(gender) {
               
               <div style="display:flex; align-items:center; gap:8px; cursor:pointer;" onclick="window.openUserProfileCard('${data.name}')">
                 <img src="${userAvatar}" id="avatar-post-${docId}" style="width:35px; height:35px; border-radius:50%; border:1px solid var(--gold); object-fit:cover;" />
-                <strong class="${nameClass}" id="name-post-${docId}" style="font-size:14px; text-decoration:underline;">✨ ${data.name}</strong>
+                                <strong class="${nameClass}" id="name-post-${docId}" style="font-size:14px; text-decoration:underline;">✨ ${data.name}</strong>
+                ${data.name !== myName ? `<span title="طلب صداقة سريع أو عرض الحساب" style="background:rgba(212,175,55,0.2); color:var(--gold); width:20px; height:20px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:12px; font-weight:bold; margin-right:4px;">+</span>` : ''}
               </div>
               
               <small style="color:var(--text2); font-size:11px;">${data.createdAt ? window.formatPostTime(data.createdAt) : 'الآن ✨'}</small>
@@ -859,7 +947,7 @@ window.listenToPosts = function(gender) {
                   <span onclick="window.selectCustomReaction(event, '${docId}', '😡')" style="cursor:pointer; font-size:20px;">😡</span>
                 </div>
               </div>
-              <button onclick="window.toggleCommentsSection('${docId}')" class="action-item-btn">💬 التعليقات</button>
+                            <button onclick="window.toggleCommentsSection('${docId}')" class="action-item-btn" id="comment-btn-${docId}">💬 التعليقات (..)</button>
               <button onclick="window.openCommShareSheet(\`${data.text ? data.text.replace(/"/g, '&quot;') : 'أثر طيب'}\`, '${data.name}')" class="action-item-btn">🔗 مشاركة</button>
               ${data.name === myName ? `<button onclick="window.deletePost('${docId}')" class="action-item-btn" style="color:#ff6b6b;">🗑️ حذف</button>` : ''}
               </div>
@@ -890,9 +978,19 @@ window.listenToPosts = function(gender) {
               }
             }
           }
-        }).catch(e => console.log("Profile async fetch skip:", e));
-      }
-    });
+                }.catch(e => console.log("Profile async fetch skip:", e));
+
+        // 👇 حط كود محرك حساب عدد التعليقات الحي هنا بالظبط:
+        onSnapshot(query(collection(db, "posts", docId, "comments")), (cSnap) => {
+          const cBtn = document.getElementById(`comment-btn-${docId}`);
+          if (cBtn) cBtn.textContent = `💬 التعليقات (${window.toAr ? window.toAr(cSnap.size) : cSnap.size})`;
+        });
+        
+      } // قوس إغلاق الـ if الخاص بـ (data.gender === gender)
+    }); // سطر 894 القديم (قفلة الـ forEach)
+
+    
+
 
     listArea.innerHTML = html || `<div class="comm-card"><p style="color:var(--text2); text-align:center;">الساحة فارغة، انشر أثرك الطيب الحين...</p></div>`;
   });
@@ -1447,6 +1545,8 @@ document.addEventListener('click', function() {
 });
 
 setTimeout(() => { window.checkCommunityUser(); }, 300);
+// تسجيل الدخول أونلاين فور فتح الشاشة
+if (localStorage.getItem('athr_user_name')) window.setUserOnlineStatus();
 
 window.formatPostTime = function(timestamp) {
   if (!timestamp) return "منذ قليل ⏳";
