@@ -903,7 +903,7 @@ body.in-subpage .back-to-home-btn {
 <div class="tab" onclick="showPage('janazaPage',this)">🕊️ قسم الجنائز</div>
 <div class="tab" onclick="showPage('shareKhairPage',this)">💝 شارك في الخير</div>
   <div class="tab" onclick="showPage('shareAppPage', this)">💝 ساهم في تطوير التطبيق</div>
-
+<div class="tab" onclick="showPage('heartMirrorPage',this)">🪞 مرآة القلب</div>
 </div>
 
 
@@ -1947,7 +1947,9 @@ body.in-subpage .back-to-home-btn {
 }
 </style>
  
- 
+ <div class="page" id="heartMirrorPage">
+  <div id="heartMirrorContainer"></div>
+ </div>
 
 <!-- OVERLAY DIMMER -->
 <div class="overlay-dimmer" id="overlayDimmer" onclick="closeActionMenu()"></div>
@@ -2786,7 +2788,9 @@ if (id === 'settingsPage') {
 if(id === 'shareAppPage' && typeof window.initShareAppPage === 'function') {
   window.initShareAppPage();
 }
-
+if(id === 'heartMirrorPage' && typeof window.initHeartMirrorPage === 'function') {
+  window.initHeartMirrorPage();
+ }
   updateStats();
 }
 
@@ -6727,7 +6731,7 @@ window.reCalculateHistorySum = function(type) {
 <script src="adhanPlayer.js"></script>
   <script src="prayforthem/prayforthem.js"></script>
 <script src="shareApp.js"></script>
-
+<script src="heartMirror.js"></script>
  <script type="module">
   // الغاء مفعول دالة الـ load القديمة تماماً لكسر حلقة إعادة تسجيل الدخول
   window.finishLogin = function(name) { if(typeof window.realFinishLogin === 'function') window.realFinishLogin(name); };
