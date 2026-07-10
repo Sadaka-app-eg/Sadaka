@@ -6568,7 +6568,7 @@ function getFlameState() {
   let state = JSON.parse(localStorage.getItem('flame_companion_state') || 'null');
 
   if (!state) {
-    state = { vitality: 40, lastActiveDate: today, lastDecayCheck: today };
+    state = { vitality: 0, lastActiveDate: today, lastDecayCheck: today };
     localStorage.setItem('flame_companion_state', JSON.stringify(state));
     return state;
   }
