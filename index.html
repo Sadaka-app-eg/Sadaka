@@ -6712,7 +6712,16 @@ window.reCalculateHistorySum = function(type) {
     <div style="font-size: 28px; font-weight: bold; color: var(--gold); font-family:'Amiri', serif;">${toAr(totalSum)} <span style="font-size:16px; color:var(--text); font-weight:normal;">${label}</span></div>
   `;
 };
-
+// دالة حساب الفرق بالأيام بين تاريخ معين والنهاردة
+// (موجب لو التاريخ في المستقبل، سالب لو في الماضي)
+function daysBetween(dateStr) {
+  const target = new Date(dateStr);
+  target.setHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const diffMs = target - today;
+  return Math.round(diffMs / (1000 * 60 * 60 * 24));
+}
 </script>
  <script src="asma2.js"></script>
  <script src="khatma.js"></script>
