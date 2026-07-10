@@ -1,4 +1,4 @@
-  // =========================================================================
+// =========================================================================
 // 🚀 شبكة مجتمع أثر الاجتماعية الإسلامية المتكاملة - إصدار 2026 المطور (نسخة مصححة الميديا)
 // =========================================================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -260,6 +260,9 @@ window.processCommunitySubmit = async function() {
       avatar: avatarUrl, // الرفع والربط يعملان الآن بشكل سليم تماماً
       gender: window.selectedSetupGender,
       points: 10, 
+      friends: [],
+      sentRequests: [],
+      receivedRequests: [],
       createdAt: serverTimestamp()
     });
 
@@ -489,6 +492,14 @@ window.openUserProfileCard = async function(userName) {
     const u = docSnap.data();
     const styleInfo = window.getUserNameClassAndStyle(u.points);
     const myName = localStorage.getItem('athr_user_name');
+    const online = window.isUserOnline(u.lastSeen);
+
+    let myDataForFriend = null;
+    if (myName) {
+      const myDocSnap = await getDoc(doc(db, "users_profiles", myName));
+      if (myDocSnap.exists()) myDataForFriend = myDocSnap.data();
+    }
+    const friendStatus = window.getFriendStatus(myDataForFriend, userName);
 
     modal.innerHTML = `
       <div class="comm-card" style="width:100%; max-width:360px; text-align:center; border:1px solid var(--gold); padding:25px 15px; background:#070c07; position:relative; animation:fadeIn 0.3s;">
@@ -496,7 +507,9 @@ window.openUserProfileCard = async function(userName) {
         
         <img src="${u.avatar || 'https://www.gstatic.com/firebasejs/ui/2.0.0/images/temporary-avatar.png'}" style="width:90px; height:90px; border-radius:50%; border:2px solid var(--gold); object-fit:cover; margin-bottom:12px; box-shadow:0 4px 15px rgba(212,175,55,0.2);" />
         
-        <h3 class="${styleInfo.class}" style="font-family:'Amiri', serif; font-size:20px; margin-bottom:4px;">${u.name}</h3>
+        <h3 class="${styleInfo.class}" style="font-family:'Amiri', serif; font-size:20px; margin-bottom:4px; display:flex; align-items:center; justify-content:center; gap:6px;">
+          ${u.name} ${online ? '<span class="online-dot"></span>' : ''}
+        </h3>
         <div style="margin-bottom:15px;">
           <span class="profile-badge ${u.gender === 'male' ? 'badge-male' : 'badge-female'}">${u.gender === 'male' ? '🧔 مجلس الرجال' : '🧕 مجلس العفيفات'}</span>
           <span style="color:var(--gold); font-size:12px; font-weight:bold;">🎖️ ${styleInfo.label} (${u.points || 0} أثر)</span>
@@ -508,6 +521,20 @@ window.openUserProfileCard = async function(userName) {
         </div>
 
         ${myName && myName !== u.name ? `
+          <div style="margin-bottom:10px;">
+            ${friendStatus === 'none' ? `
+              <button onclick="window.sendFriendRequest('${u.name}')" style="width:100%; background:transparent; border:1px solid var(--gold); color:var(--gold); padding:10px; border-radius:25px; font-weight:bold; cursor:pointer; font-size:13px;">➕ إضافة صديق</button>
+            ` : friendStatus === 'sent' ? `
+              <button disabled style="width:100%; background:rgba(255,255,255,0.03); border:1px solid var(--border); color:var(--text2); padding:10px; border-radius:25px; font-weight:bold; font-size:13px;">⏳ تم إرسال طلب الصداقة</button>
+            ` : friendStatus === 'received' ? `
+              <div style="display:flex; gap:8px;">
+                <button onclick="window.acceptFriendRequest('${u.name}')" style="flex:1; background:var(--gold); color:#111; border:none; padding:10px; border-radius:25px; font-weight:bold; cursor:pointer; font-size:13px;">✓ قبول الطلب</button>
+                <button onclick="window.declineFriendRequest('${u.name}')" style="flex:1; background:transparent; border:1px solid #ff4d4d; color:#ff4d4d; padding:10px; border-radius:25px; font-weight:bold; cursor:pointer; font-size:13px;">✕ رفض</button>
+              </div>
+            ` : `
+              <button onclick="window.removeFriend('${u.name}')" style="width:100%; background:rgba(76,175,80,0.1); border:1px solid #4CAF50; color:#4CAF50; padding:10px; border-radius:25px; font-weight:bold; cursor:pointer; font-size:13px;">🤝 أصدقاء (اضغط للإزالة)</button>
+            `}
+          </div>
           <button onclick="window.startPrivateChatWithUser('${u.name}')" style="width:100%; background:var(--gold); color:#111; border:none; padding:12px; border-radius:25px; font-weight:bold; font-family:'Amiri',serif; cursor:pointer; font-size:14px; box-shadow:0 4px 12px rgba(212,175,55,0.25);">
             💬 بدء محادثة خاصة (واتساب ستايل)
           </button>
@@ -577,6 +604,87 @@ window.updateUserStreak = async function(userName) {
     });
   } catch(e) { console.error("Streak update error:", e); }
 };
+
+// =========================================================
+// 🟢 نظام "آخر ظهور" (Online Presence Heartbeat)
+// =========================================================
+window.startPresenceHeartbeat = function() {
+  const myName = localStorage.getItem('athr_user_name');
+  if (!myName) return;
+  const beat = async () => {
+    try { await updateDoc(doc(db, "users_profiles", myName), { lastSeen: serverTimestamp() }); }
+    catch(e) {}
+  };
+  beat();
+  if (window.athrHeartbeatInterval) clearInterval(window.athrHeartbeatInterval);
+  window.athrHeartbeatInterval = setInterval(beat, 60000); // كل دقيقة
+};
+
+window.isUserOnline = function(lastSeenTimestamp) {
+  if (!lastSeenTimestamp || !lastSeenTimestamp.toDate) return false;
+  const diffMs = new Date() - lastSeenTimestamp.toDate();
+  return diffMs < 3 * 60 * 1000; // آخر 3 دقائق = أونلاين
+};
+
+// =========================================================
+// 🤝 نظام طلبات الصداقة
+// =========================================================
+window.getFriendStatus = function(myData, targetName) {
+  if (!myData) return 'none';
+  if ((myData.friends || []).includes(targetName)) return 'friends';
+  if ((myData.sentRequests || []).includes(targetName)) return 'sent';
+  if ((myData.receivedRequests || []).includes(targetName)) return 'received';
+  return 'none';
+};
+
+window.sendFriendRequest = async function(targetName) {
+  const myName = localStorage.getItem('athr_user_name');
+  if (!myName || myName === targetName) return;
+  try {
+    await updateDoc(doc(db, "users_profiles", myName), { sentRequests: arrayUnion(targetName) });
+    await updateDoc(doc(db, "users_profiles", targetName), { receivedRequests: arrayUnion(myName) });
+    window.createFloatingEmoji(null, '🤝');
+    window.openUserProfileCard(targetName);
+  } catch(e) { console.error(e); }
+};
+
+window.acceptFriendRequest = async function(targetName) {
+  const myName = localStorage.getItem('athr_user_name');
+  if (!myName) return;
+  try {
+    await updateDoc(doc(db, "users_profiles", myName), {
+      friends: arrayUnion(targetName),
+      receivedRequests: arrayRemove(targetName)
+    });
+    await updateDoc(doc(db, "users_profiles", targetName), {
+      friends: arrayUnion(myName),
+      sentRequests: arrayRemove(myName)
+    });
+    window.triggerSparksEffect();
+    window.openUserProfileCard(targetName);
+  } catch(e) { console.error(e); }
+};
+
+window.declineFriendRequest = async function(targetName) {
+  const myName = localStorage.getItem('athr_user_name');
+  if (!myName) return;
+  try {
+    await updateDoc(doc(db, "users_profiles", myName), { receivedRequests: arrayRemove(targetName) });
+    await updateDoc(doc(db, "users_profiles", targetName), { sentRequests: arrayRemove(myName) });
+    window.openUserProfileCard(targetName);
+  } catch(e) { console.error(e); }
+};
+
+window.removeFriend = async function(targetName) {
+  const myName = localStorage.getItem('athr_user_name');
+  if (!myName || !confirm("هل تريد إزالة هذا الشخص من قائمة أصدقائك؟")) return;
+  try {
+    await updateDoc(doc(db, "users_profiles", myName), { friends: arrayRemove(targetName) });
+    await updateDoc(doc(db, "users_profiles", targetName), { friends: arrayRemove(myName) });
+    window.openUserProfileCard(targetName);
+  } catch(e) { console.error(e); }
+};
+
 // =========================================================
 // 👤 8️⃣ نظام "حسابي" - إدارة الملف الشخصي والإعدادات
 // =========================================================
@@ -785,6 +893,7 @@ window.sendPostToFirebase = async function() {
       mediaUrl: mediaUrl,   
       mediaType: mediaType, 
       likes: [],
+      commentsCount: 0,
       createdAt: serverTimestamp()
     });
 
@@ -859,7 +968,7 @@ window.listenToPosts = function(gender) {
                   <span onclick="window.selectCustomReaction(event, '${docId}', '😡')" style="cursor:pointer; font-size:20px;">😡</span>
                 </div>
               </div>
-              <button onclick="window.toggleCommentsSection('${docId}')" class="action-item-btn">💬 التعليقات</button>
+              <button onclick="window.toggleCommentsSection('${docId}')" class="action-item-btn">💬 التعليقات (${data.commentsCount || 0})</button>
               <button onclick="window.openCommShareSheet(\`${data.text ? data.text.replace(/"/g, '&quot;') : 'أثر طيب'}\`, '${data.name}')" class="action-item-btn">🔗 مشاركة</button>
               ${data.name === myName ? `<button onclick="window.deletePost('${docId}')" class="action-item-btn" style="color:#ff6b6b;">🗑️ حذف</button>` : ''}
               </div>
@@ -883,7 +992,8 @@ window.listenToPosts = function(gender) {
             
             if (uData.avatar && avatarImg) avatarImg.src = uData.avatar;
             if (nameTxt) {
-              nameTxt.textContent = `✨ ${uData.name || data.name}`;
+              const isOnline = window.isUserOnline(uData.lastSeen);
+              nameTxt.innerHTML = `✨ ${uData.name || data.name} ${isOnline ? '<span class="online-dot"></span>' : ''}`;
               if (typeof window.getUserNameClassAndStyle === 'function') {
                 const styleInfo = window.getUserNameClassAndStyle(uData.points);
                 nameTxt.className = styleInfo.class;
@@ -939,6 +1049,7 @@ window.sendComment = async function(docId, colName = 'posts') {
       text: input.value.trim(),
       createdAt: serverTimestamp()
     });
+    await updateDoc(doc(db, colName, docId), { commentsCount: increment(1) });
     input.value = ""; 
     window.awardPoints(myName, 3); 
     window.updateUserStreak(myName);
@@ -1446,7 +1557,7 @@ document.addEventListener('click', function() {
   menus.forEach(m => m.style.display = 'none');
 });
 
-setTimeout(() => { window.checkCommunityUser(); }, 300);
+setTimeout(() => { window.checkCommunityUser(); window.startPresenceHeartbeat(); }, 300);
 
 window.formatPostTime = function(timestamp) {
   if (!timestamp) return "منذ قليل ⏳";
@@ -1654,9 +1765,6 @@ window.listenToLeaderboard = function() {
 // =========================================================================
 // 🎙️ 12️⃣ رسائل صوتية في مجلس الذكر الجماعي والمحادثات الخاصة
 // =========================================================================
-// ملحوظة: التسجيل بيتخزن كـ base64 جوه رسالة الفايرستور مباشرة (مفيش Firebase
-// Storage متفعل في المشروع)، فالتسجيل بيتوقف تلقائياً بعد 15 ثانية عشان يفضل
-// حجم الرسالة صغير وميضربش الحد الأقصى لحجم الوثيقة في Firestore (1 ميجا).
 window.athrVoiceState = { recorder: null, chunks: [], context: null, stream: null, autoStopTimer: null };
 
 window.toggleVoiceRecording = async function(context) {
@@ -1734,7 +1842,6 @@ window.handleVoiceRecordingStop = async function(context) {
 
   const blob = new Blob(chunks, { type: 'audio/webm;codecs=opus' });
 
-  // تحذير بسيط لو التسجيل كبير بشكل غير متوقع
   if (blob.size > 700000) {
     alert('⚠️ التسجيل طويل جداً، حاول تسجل رسالة أقصر.');
     return;
@@ -1835,6 +1942,7 @@ window.sendDuaRequest = async function() {
       isAnonymous: !!(anonCheck && anonCheck.checked),
       gender: userGender,
       prayedBy: [],
+      commentsCount: 0,
       createdAt: serverTimestamp()
     });
     input.value = "";
@@ -1871,7 +1979,7 @@ window.listenToDuaRequests = function() {
             <button onclick="window.togglePrayForRequest('${docSnap.id}', ${hasPrayed})" style="background:${hasPrayed ? 'rgba(212,175,55,0.15)' : 'transparent'}; border:1px solid var(--gold); color:var(--gold); padding:6px 18px; border-radius:20px; font-size:13px; font-weight:bold; cursor:pointer;">
               🤲 دعيت لك (${prayedArr.length})
             </button>
-            <button onclick="window.toggleCommentsSection('${docSnap.id}', 'dua_requests')" class="action-item-btn">💬 التعليقات</button>
+            <button onclick="window.toggleCommentsSection('${docSnap.id}', 'dua_requests')" class="action-item-btn">💬 التعليقات (${data.commentsCount || 0})</button>
           </div>
 
           <div id="commentsWrapper-${docSnap.id}" style="display:none; padding-top:10px;">
@@ -1917,7 +2025,6 @@ window.renderFeaturedTab = function() {
 window.listenToFeaturedPosts = function() {
   const userGender = localStorage.getItem('athr_user_gender') || 'male';
   const myName = localStorage.getItem('athr_user_name');
-  // بدون where على gender عشان نتفادى الحاجة لـ composite index يدوي
   const q = query(collection(db, "posts"), orderBy("likesCount", "desc"), limit(40));
 
   if (window.unsubscribeFeatured) window.unsubscribeFeatured();
@@ -1983,12 +2090,10 @@ window.renderFamilyChallengeTab = function() {
   `;
 
   if (savedRoomCode) {
-    // هنتحقق أولاً من السيرفر قبل ما نفتح الغرفة عمياني
     getDoc(doc(db, "family_rooms", savedRoomCode)).then((snap) => {
       if (snap.exists()) {
         const data = snap.data();
         const membersObj = data.members || {};
-        // لو الحساب الحالي مش موجود في أعضاء الغرفة دي على السيرفر، اطرده لصفحة الكود
         if (!membersObj[myName]) {
           localStorage.removeItem('athr_family_room_code');
           window.renderFamilySetupScreen();
@@ -2047,7 +2152,7 @@ window.createNewFamilyRoom = async function() {
       name: myName,
       wirdCount: 0,
       azkarCount: 0,
-      customChallenges: {}, // حفظ تكرار التحديات المخصصة لكل عضو
+      customChallenges: {},
       score: 0,
       lastUpdated: new Date().toISOString()
     };
@@ -2057,7 +2162,7 @@ window.createNewFamilyRoom = async function() {
       creator: myName,
       createdAt: serverTimestamp(),
       members: initialMembers,
-      customChallengeList: [] // قائمة أسماء التحديات المضافة في الغرفة
+      customChallengeList: []
     });
 
     localStorage.setItem('athr_family_room_code', roomCode);
@@ -2114,7 +2219,6 @@ window.listenToFamilyRoom = function(roomCode) {
    const dashboard = document.getElementById('familyMainDashboard');
     if (!dashboard) return;
     
-    // لو الغرفة مش موجودة أو الحساب مش جوة الأعضاء الحين اطرد الحساب فوراً
     if (!snap.exists() || !snap.data().members || !snap.data().members[myName]) {
       if (unsubscribeFamilyRoom) unsubscribeFamilyRoom();
       localStorage.removeItem('athr_family_room_code');
@@ -2136,7 +2240,6 @@ window.listenToFamilyRoom = function(roomCode) {
       const rankBadge = index < 3 ? medals[index] : `#${index + 1}`;
       const isCurrentMe = m.name === myName;
       
-      // بناء تفاصيل الطاعات المخصصة لكل فرد في الكارت بتاعه
       let customDetailsHtml = "";
       customChallengeList.forEach(chName => {
         const count = (m.customChallenges && m.customChallenges[chName]) || 0;
@@ -2165,7 +2268,6 @@ window.listenToFamilyRoom = function(roomCode) {
       `;
     });
 
-    // بناء واجهة الأزرار للتحديات المخصصة ديناميكياً وعرضها تحت الأذكار والورد
     let customInputsHtml = "";
     customChallengeList.forEach(chName => {
       const currentChCount = (myData.customChallenges && myData.customChallenges[chName]) || 0;
@@ -2212,12 +2314,10 @@ window.listenToFamilyRoom = function(roomCode) {
           </div>
         </div>
 
-        <!-- حقن قائمة التحديات المضافة ديناميكياً هنا -->
         ${customInputsHtml}
 
       </div>
 
-      <!-- خانة إضافة تحدي جديد للغرفة -->
       <div class="comm-card" style="text-align:right; border:1px dashed var(--border); background:rgba(255,255,255,0.01);">
         <label style="color:var(--gold); display:block; margin-bottom:6px; font-size:13px; font-weight:bold;">➕ ابتكار تحدي عائلي جديد ومخصص لمجموعتكم:</label>
         <div style="display:flex; gap:6px;">
@@ -2229,7 +2329,6 @@ window.listenToFamilyRoom = function(roomCode) {
   });
 };
 
-// دالة إضافة اسم التحدي الجديد في الـ Array السيرفري للغرفة
 window.addNewCustomChallengeToRoom = async function() {
   const inp = document.getElementById('newCustomChallengeInp');
   if(!inp || !inp.value.trim()) return;
@@ -2247,7 +2346,6 @@ window.addNewCustomChallengeToRoom = async function() {
   } catch(e) { console.error(e); }
 };
 
-// دالة زيادة عدد مرات التحدي المخصص وضخ 10 نقاط للمستخدم تلقائياً
 window.updateCustomChallengeStat = async function(challengeName) {
   const roomCode = localStorage.getItem('athr_family_room_code');
   const myName = localStorage.getItem('athr_user_name');
@@ -2258,10 +2356,10 @@ window.updateCustomChallengeStat = async function(challengeName) {
   try {
     await updateDoc(roomRef, {
       [`members.${myName}.customChallenges.${challengeName}`]: increment(1),
-      [`members.${myName}.score`]: increment(10), // 10 نقاط لكل تحدي مخصص
+      [`members.${myName}.score`]: increment(10),
       [`members.${myName}.lastUpdated`]: new Date().toISOString()
     });
-    window.awardPoints(myName, 2); // نقاط للبروفايل العام
+    window.awardPoints(myName, 2);
     window.createFloatingEmoji(null, '✨');
   } catch(e) { console.error(e); }
 };
