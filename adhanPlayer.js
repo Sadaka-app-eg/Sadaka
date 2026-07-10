@@ -319,16 +319,17 @@ window.previewAdhanAudioFile = function(filePath) {
 
 // دالة مساعدة لتحديث نصوص الأزرار على الشاشة
 function updatePreviewButtonsUI(activePath) {
-  // بنجيب كل زراير الاستماع اللي في الصفحة
   const buttons = document.querySelectorAll('#azanSettingsPage button');
   buttons.forEach(btn => {
-    if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(activePath)) {
+    const onclickAttr = btn.getAttribute('onclick') || '';
+    const isPreviewBtn = onclickAttr.includes('previewAdhanAudioFile');
+    if (isPreviewBtn && onclickAttr.includes(activePath)) {
       // الزرار اللي شغال حالياً
       btn.innerHTML = '⏸ إيقاف';
       btn.style.background = 'var(--gold)';
       btn.style.color = '#111';
-    } else if (btn.innerHTML === '⏸ إيقاف') {
-      // رجع أي زرار تاني كان شغال
+    } else if (isPreviewBtn && btn.innerHTML === '⏸ إيقاف') {
+      // رجع أي زرار استماع تاني كان شغال
       btn.innerHTML = '▶ استماع';
       btn.style.background = 'var(--bg3)';
       btn.style.color = 'var(--gold)';
@@ -340,7 +341,8 @@ function updatePreviewButtonsUI(activePath) {
 function resetAllPreviewButtons() {
   const buttons = document.querySelectorAll('#azanSettingsPage button');
   buttons.forEach(btn => {
-    if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes('previewAdhanAudioFile')) {
+    const onclickAttr = btn.getAttribute('onclick') || '';
+    if (onclickAttr.includes('previewAdhanAudioFile')) {
       btn.innerHTML = '▶ استماع';
       btn.style.background = 'var(--bg3)';
       btn.style.color = 'var(--gold)';
