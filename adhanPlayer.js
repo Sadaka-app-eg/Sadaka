@@ -220,7 +220,7 @@ function stopAdhanPlayback() {
  // متغير عالمي للتحكم في صوت المعاينة المباشر
 let adhanPreviewAudioObj = new Audio();
 
- function renderAdhanCardsUI() {
+function renderAdhanCardsUI() {
   const settings = getAdhanSettings();
   
   // 1. رندرة كروت الفجر
@@ -236,7 +236,7 @@ let adhanPreviewAudioObj = new Audio();
           </div>
           <div style="display: flex; gap: 6px; flex-shrink: 0;">
             <button onclick="window.previewAdhanAudioFile('${o.file}')" style="background: var(--bg3); border: 1px solid var(--border); color: var(--gold); padding: 6px 10px; border-radius: 10px; font-size: 12px; cursor: pointer; font-family: 'Amiri', serif;">▶ استماع</button>
-            <a href="${o.file}" download="${o.label}.mp3" style="background: rgba(212,175,55,0.1); border: 1px solid var(--gold); color: var(--gold); padding: 6px 10px; border-radius: 10px; font-size: 12px; text-decoration: none; font-family: 'Amiri', serif; display: inline-block; text-align: center;">📥 تحميل</a>
+            <button id="download_azan_${o.id}" onclick="window.downloadAdhanAudio('${o.id}', '${o.file}')" style="background: rgba(212,175,55,0.1); border: 1px solid var(--gold); color: var(--gold); padding: 6px 10px; border-radius: 10px; font-size: 12px; font-family: 'Amiri', serif; cursor: pointer;">📥 تحميل</button>
           </div>
         </div>
       `;
@@ -256,7 +256,7 @@ let adhanPreviewAudioObj = new Audio();
           </div>
           <div style="display: flex; gap: 6px; flex-shrink: 0;">
             <button onclick="window.previewAdhanAudioFile('${o.file}')" style="background: var(--bg3); border: 1px solid var(--border); color: var(--gold); padding: 6px 10px; border-radius: 10px; font-size: 12px; cursor: pointer; font-family: 'Amiri', serif;">▶ استماع</button>
-            <a href="${o.file}" download="${o.label}.mp3" style="background: rgba(212,175,55,0.1); border: 1px solid var(--gold); color: var(--gold); padding: 6px 10px; border-radius: 10px; font-size: 12px; text-decoration: none; font-family: 'Amiri', serif; display: inline-block; text-align: center;">📥 تحميل</a>
+            <button id="download_azan_${o.id}" onclick="window.downloadAdhanAudio('${o.id}', '${o.file}')" style="background: rgba(212,175,55,0.1); border: 1px solid var(--gold); color: var(--gold); padding: 6px 10px; border-radius: 10px; font-size: 12px; font-family: 'Amiri', serif; cursor: pointer;">📥 تحميل</button>
           </div>
         </div>
       `;
