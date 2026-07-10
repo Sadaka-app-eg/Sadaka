@@ -1,8 +1,8 @@
 {
   "name": "أثر - صدقة جارية",
   "short_name": "أثر",
-  "start_url": "/Sadaka/index.html",
-  "scope": "/Sadaka/",
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "fullscreen",
   "background_color": "#0a0a0a",
   "theme_color": "#111111",
