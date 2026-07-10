@@ -55,8 +55,7 @@ window.initShareAppPage = function() {
 // محرك المشاركة الرسمي الذكي
 window.executeGlobalAppShare = function() {
   // اللينك المعتمد المأخوذ من مسار المشروع الفعلي عندك على GitHub Pages
-  const appLink = window.location.origin + window.location.pathname;
-  
+  const appLink = "https://athar-two-pearl.vercel.app/";
   const shareText = `💎 *تطبيق كُن ذا أثر الإيماني المتكامل* 💎\n\nبرنامجك اليومي الشامل للاستقامة وطاعة الرحمن (مصحف المدينة، أذكار حية، مجالس ذكر تكافلية، ودفتر نعم وشعلة الأثر الحية) بدون إعلانات تماماً!\n\n👇 *رابط فتح وتثبيت التطبيق مباشرة:* \n${appLink}\n\n🌿 _انشره الآن واجعل لك أثراً طيباً وصدقة جارية لا تنقطع_ 🌿`;
 
   if (navigator.share) {
