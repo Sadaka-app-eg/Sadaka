@@ -36,6 +36,18 @@ window.initShareAppPage = function() {
         </div>
       </div>
 
+      <div style="background: var(--card); border-radius: 20px; padding: 24px; border: 1px solid var(--border); border-right: 4px solid #25D366; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+        <div style="font-size: 35px; margin-bottom: 10px; text-align: center;">💬</div>
+        <h3 style="color: #25D366; font-size: 18px; font-weight: bold; margin-bottom: 10px; text-align: center;">تحدث إلينا</h3>
+        <p style="color: var(--text2); font-size: 14px; line-height: 1.8; margin-bottom: 20px; text-align: justify;">
+          عندك اقتراح، ميزة حابب تشوفها، أو واجهتك مشكلة في التطبيق؟ نسعد بتواصلك معنا مباشرة على الواتساب في أي وقت.
+        </p>
+
+        <button onclick="window.openWhatsAppContact()" style="width: 100%; background: #25D366; color: #fff; border: none; padding: 14px; border-radius: 12px; font-weight: bold; font-family: 'Amiri', serif; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(37,211,102,0.25); transition: 0.2s;">
+          💬 تواصل معنا عبر الواتساب
+        </button>
+      </div>
+
     </div>
   `;
 };
@@ -56,4 +68,12 @@ window.executeGlobalAppShare = function() {
     navigator.clipboard.writeText(shareText);
     alert('📋 تم نسخ رابط التطبيق ورسالة النشر بنجاح! يمكنك الآن لصقها ومشاركتها في أي مكان بروقان. ✓');
   }
+};
+// دالة فتح واتساب للتواصل المباشر
+window.openWhatsAppContact = function() {
+  const phoneNumber = "201101579399"; // كود مصر + الرقم بدون الصفر
+  const message = `السلام عليكم ورحمة الله وبركاته 🌿\n\nتحية طيبة، أنا حد من مستخدمي تطبيق "كُن ذا أثر"، وحابب أتواصل معاكم بخصوص:\n\n`;
+  
+  const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+  window.open(whatsappUrl, '_blank');
 };
