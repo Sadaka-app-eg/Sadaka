@@ -904,6 +904,8 @@ body.in-subpage .back-to-home-btn {
 <div class="tab" onclick="showPage('shareKhairPage',this)">💝 شارك في الخير</div>
   <div class="tab" onclick="showPage('shareAppPage', this)">💝 ساهم في تطوير التطبيق</div>
 <div class="tab" onclick="showPage('heartMirrorPage',this)">🪞 مرآة القلب</div>
+<div class="tab" onclick="showPage('memorizationPage',this)">🧠 مصحح التسميع الصوتي</div>
+
 </div>
 
 
@@ -1950,7 +1952,50 @@ body.in-subpage .back-to-home-btn {
  <div class="page" id="heartMirrorPage">
   <div id="heartMirrorContainer"></div>
  </div>
+<!-- ========================================== -->
+<!-- 🧠 صفحة التسميع والمراجعة التفاعلية المستقلة -->
+<!-- ========================================== -->
+<div class="page" id="memorizationPage">
+  <div style="text-align: center; margin-bottom: 16px;">
+    <h2 style="color: var(--gold); font-family: 'Amiri', serif; font-size: 24px;">🧠 مُصَحِّحُ التَّسْمِيعِ الصَّوْتِيِّ الذَّكِيِّ</h2>
+    <p style="color: var(--text2); font-size: 13px; font-family: 'Amiri', serif;">راجع حفظك كلمة بكلمة مع تصحيح ذكي فوري وفري ومجاني</p>
+  </div>
 
+  <div style="background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--border); border-right: 4px solid var(--gold);">
+    
+    <!-- لوحة إعداد النص المراد تسميعه -->
+    <div id="memoInputArea">
+      <textarea id="memoTargetText" placeholder="اكتب أو الصق الكلمات أو الآيات المراد مراجعتها هنا (مثال: قل هو الله أحد الله الصمد)..." style="width:100%; min-height:120px; padding:14px; border-radius:12px; background:var(--bg2); color:var(--text); border:1px solid var(--border); font-family:'Amiri',serif; font-size:16px; resize:vertical; outline:none; margin-bottom:14px; line-height: 1.6;"></textarea>
+      <button onclick="window.initMemorizationSession()" style="width:100%; padding:14px; background:var(--gold); color:#111; border:none; border-radius:12px; font-family:'Amiri',serif; font-size:15px; font-weight:bold; cursor:pointer; box-shadow: 0 4px 15px rgba(212,175,55,0.2);">🎯 ابدأ جلسة التسميع الآن</button>
+    </div>
+
+    <!-- لوحة التسميع النشطة -->
+    <div id="memoActiveArea" style="display: none; text-align: center; margin-top: 10px;">
+      <!-- حاوية الكلمات والتقدم الحركي -->
+      <div id="memoWordsContainer" style="background: var(--bg2); border: 1px solid var(--border); padding: 20px; border-radius: 14px; font-size: 26px; line-height: 2.4; font-family: 'Amiri Quran', serif; text-align: justify; word-spacing: 4px; margin-bottom: 16px; max-height: 250px; overflow-y: auto; direction: rtl;"></div>
+      
+      <!-- حالة الميكروفون والأخطاء -->
+      <div id="memoStatusLabel" style="font-size: 14px; color: var(--text2); margin-bottom: 20px; font-family: 'Amiri', serif; line-height: 1.6;">جاري تشغيل محرك الصوت...</div>
+      
+      <!-- الأزرار والـ Fallback الذكي -->
+      <div style="display: flex; flex-direction: column; gap: 12px; align-items: center;">
+        <!-- زر الميكروفون الرئيسي -->
+        <button id="memoMicBtn" onclick="window.toggleMemoListening()" style="width: 68px; height: 64px; border-radius: 50%; background: rgba(212,175,55,0.12); border: 2px solid var(--gold); color: var(--gold); font-size: 26px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">🎙️</button>
+        
+        <!-- الأزرار اليدوية كـ Fallback للآيفون وسفاري -->
+        <div style="display: flex; gap: 10px; width: 100%; margin-top: 5px;">
+          <button onclick="window.manualMemoAdvance(true)" style="flex: 1; padding: 12px; background: var(--green); color: #fff; border: none; border-radius: 12px; font-size: 14px; font-family: 'Amiri', serif; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(76,175,80,0.15);">✓ كلمة صحيحة</button>
+          <button onclick="window.manualMemoAdvance(false)" style="flex: 1; padding: 12px; background: #ff4d4d; color: #fff; border: none; border-radius: 12px; font-size: 14px; font-family: 'Amiri', serif; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(255,77,77,0.15);">✕ كلمة خاطئة</button>
+        </div>
+
+        <button onclick="window.resetMemoSession()" style="background: transparent; border: none; color: var(--text2); font-size: 13px; font-family: 'Amiri', serif; cursor: pointer; margin-top: 8px; text-decoration: underline;">↺ إنهاء التسميع والعودة للبداية</button>
+      </div>
+    </div>
+
+  </div>
+
+  <button onclick="showPage('home', null)" style="width: 100%; background: var(--bg2); border: 1px solid var(--border); color: var(--gold); padding: 12px; border-radius: 12px; font-family: 'Amiri', serif; font-size: 15px; cursor: pointer; margin-top: 16px; font-weight: bold;">⬅ العودة للشاشة الرئيسية</button>
+</div>
 <!-- OVERLAY DIMMER -->
 <div class="overlay-dimmer" id="overlayDimmer" onclick="closeActionMenu()"></div>
 
