@@ -252,20 +252,29 @@ window.resetMemoSession = function() {
     if(pInp) pInp.remove();
 };
 
-// الربط مع واجهة اختيار المصحف الفعلي
+// 🔗 الربط المصلح والمضمون مع المصحف الشريف
 window.startMemoFromQuranSelection = function(startIdx, endIdx) {
-    if (!window.currentAyahsData) return;
+    // الفحص الذكي للمتغير سواء كان على الـ window أو في النطاق العام
+    let ayahsSource = window.currentAyahsData || (typeof currentAyahsData !== 'undefined' ? currentAyahsData : null);
+    
+    if (!ayahsSource) {
+        alert('تنبيه: لم نتمكن من لقط بيانات الآيات، تأكد من فتح السورة أولاً 📖');
+        return;
+    }
+
     let selectedTextCombined = "";
     for (let i = startIdx; i <= endIdx; i++) {
-        selectedTextCombined += window.currentAyahsData[i].text + " ";
+        if (ayahsSource[i]) {
+            selectedTextCombined += ayahsSource[i].text + " ";
+        }
     }
     
+    // الانتقال لصفحة التسميع وضخ النص بداخلها أوتوماتيكياً
     window.showPage('memorizationPage', null);
     setTimeout(() => {
         window.resetMemoSession();
         window.initMemorizationSession(selectedTextCombined.trim());
     }, 350);
 };
-
 // حقن أزرار الاختيار فور التحميل
 setTimeout(window.injectMemoModeSelectors, 500);
