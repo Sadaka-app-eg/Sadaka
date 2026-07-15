@@ -253,8 +253,9 @@ window.resetMemoSession = function() {
 };
 
 // 🔗 الربط المصلح والمضمون مع المصحف الشريف
+// 🔗 الربط النهائي والمضمون 100% مع المصحف الشريف
 window.startMemoFromQuranSelection = function(startIdx, endIdx) {
-    // الفحص الذكي للمتغير سواء كان على الـ window أو في النطاق العام
+    // 1. الفحص الذكي للمتغير سواء كان على الـ window أو في النطاق العام
     let ayahsSource = window.currentAyahsData || (typeof currentAyahsData !== 'undefined' ? currentAyahsData : null);
     
     if (!ayahsSource) {
@@ -269,8 +270,18 @@ window.startMemoFromQuranSelection = function(startIdx, endIdx) {
         }
     }
     
-    // الانتقال لصفحة التسميع وضخ النص بداخلها أوتوماتيكياً
-    window.showPage('memorizationPage', null);
+    // 2. البحث عن الزر الفعلي لصفحة التسميع في القائمة الجانبية لتمريره بأمان ومنع التجمد
+    let memoTabElement = null;
+    const tabs = document.querySelectorAll('.tabs .tab');
+    tabs.forEach(t => {
+        if (t.getAttribute('onclick') && t.getAttribute('onclick').includes('memorizationPage')) {
+            memoTabElement = t;
+        }
+    });
+
+    // 3. الانتقال الآمن وضخ النص فوراً
+    window.showPage('memorizationPage', memoTabElement);
+    
     setTimeout(() => {
         window.resetMemoSession();
         window.initMemorizationSession(selectedTextCombined.trim());
