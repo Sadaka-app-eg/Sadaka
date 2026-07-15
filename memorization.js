@@ -1,6 +1,6 @@
 /**
- * 🧠 مُصَحِّحُ التَّسْمِيعِ الصَّوْتِيِّ وَالنَّصِّيِّ (لوجيك تطبيق ترتيل) - كُن ذا أثر
- * إخفاء كامل للنص، تظهر الكلمة خضراء فور نطقها الصحيح، وحمراء عند الخطأ.
+ * 🧠 مُصَحِّحُ التَّسْمِيعِ الصَّوْتِيِّ وَالنَّصِّيِّ (محاكاة ذكية للوجيك ترتيل) - كُن ذا أثر
+ * نظام المطابقة العائمة لمنع "الجر" والأخطاء المتتالية عند اختلاف النطق أو التجويد.
  */
 
 window.memoWords = [];
@@ -10,14 +10,16 @@ window.recognition = null;
 window.isListening = false;
 window.currentMemoMode = 'voice';
 
+// تنظيف الحروف والرموز والتشكيل لرفع دقة المطابقة الصامتة
 window.cleanArabicText = function(text) {
     if (!text) return "";
     return text
         .replace(/[\u064B-\u065F]/g, "") // إزالة التشكيل
         .replace(/[أإآا]/g, "ا")         // توحيد الهمزات
-        .replace(/ة/g, "ه")              // التاء المربوطة
-        .replace(/ى/g, "ي")              // الألف المقصورة
-        .replace(/[0-9]/g, "")           // إزالة أرقام الآيات
+        .replace(/ة/g, "ه")              // التاء المربوطة والهاء
+        .replace(/ى/g, "ي")              // الألف المقصورة والياء
+        .replace(/[0-9]/g, "")           // إزالة الأرقام
+        .replace(/[ۖۗۚۛ区分۞۩]/g, "")    // إزالة علامات الوقف المصحفية
         .trim();
 };
 
@@ -113,7 +115,7 @@ window.initSpeechEngine = function() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     window.recognition = new SpeechRecognition();
     window.recognition.continuous = true;
-    window.recognition.interimResults = true; // تفعيل النتائج الفورية لسرعة استجابة "ترتيل"
+    window.recognition.interimResults = true; // نتائج فورية للحاق بالصوت
     window.recognition.lang = 'ar-SA';
 
     window.recognition.onstart = function() {
@@ -124,12 +126,12 @@ window.initSpeechEngine = function() {
     };
 
     window.recognition.onresult = function(event) {
-        let interimTranscript = '';
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-            if (event.results[i].isFinal) {
-                const words = event.results[i][0].transcript.trim().split(/\s+/);
-                words.forEach(w => window.handleSpokenOrWrittenWord(w));
-            }
+        // نأخذ آخر عبارة تم النطق بها بالكامل للتحليل الذكي
+        let lastResult = event.results[event.results.length - 1];
+        if (lastResult.isFinal) {
+            const words = lastResult[0].transcript.trim().split(/\s+/);
+            // معالجة الجملة المكتملة دفعة واحدة بنظام الفحص التدريجي
+            window.processSpokenPhrase(words);
         }
     };
 
@@ -137,6 +139,46 @@ window.initSpeechEngine = function() {
     window.recognition.onend = function() { window.stopListeningState(); };
 };
 
+// 🌟 محرك المطابقة الذكي المشابه لترتيل لمنع الإكسات العشوائية
+window.processSpokenPhrase = function(spokenWords) {
+    spokenWords.forEach(spokenWord => {
+        if (window.currentWordIndex >= window.memoWords.length) return;
+
+        // فحص الكلمة الحالية (الهدف)
+        let targetWord = window.memoWords[window.currentWordIndex];
+        let cleanTarget = window.cleanArabicText(targetWord);
+        let cleanSpoken = window.cleanArabicText(spokenWord);
+
+        if (!cleanSpoken) return;
+
+        // 1. التطابق المباشر أو الجزئي مع الكلمة الحالية
+        if (cleanTarget === cleanSpoken || cleanTarget.includes(cleanSpoken) || cleanSpoken.includes(cleanTarget)) {
+            window.currentWordIndex++;
+            window.renderMemoWordsUI();
+            return;
+        }
+
+        // 2. النظرة الاستباقية (Look-ahead): هل المستخدم تخطى الكلمة الحالية ونطق الكلمة التالية؟
+        if (window.currentWordIndex + 1 < window.memoWords.length) {
+            let nextTarget = window.cleanArabicText(window.memoWords[window.currentWordIndex + 1]);
+            if (nextTarget === cleanSpoken || nextTarget.includes(cleanSpoken)) {
+                // المستخدم غيّر أو أخطأ في الكلمة السابقة وتخطاها -> علم السابقة خطأ وتحرك فوراً مجاراةً لصوته
+                window.memoErrors.push(window.currentWordIndex);
+                window.currentWordIndex += 2; // تخطي الكلمة الحالية والتالية
+                window.renderMemoWordsUI();
+                if (navigator.vibrate) navigator.vibrate(80);
+                return;
+            }
+        }
+
+        // 3. إذا لم يتطابق مع الحالية ولا التالية، المتصفح التقط صوتاً عابراً أو حكماً تجويدياً غير دقيق؛ 
+        // ننتظر الكلمة التالية ولا نحكم بالخطأ فوراً لمنع "الجر" العشوائي للأحمر.
+    });
+
+    window.checkSessionEnd();
+};
+
+// تشغيل دالة الإدخال النصي الفردي كالمعتاد
 window.handleSpokenOrWrittenWord = function(word) {
     if (window.currentWordIndex >= window.memoWords.length) return;
 
@@ -145,10 +187,8 @@ window.handleSpokenOrWrittenWord = function(word) {
     const cleanInput = window.cleanArabicText(word);
 
     if (cleanTarget === cleanInput || cleanTarget.includes(cleanInput) || cleanInput.includes(cleanTarget)) {
-        // الكلمة صحيحة تماماً -> تظهر وتتحرك للكلمة التالية
         window.currentWordIndex++;
     } else {
-        // خطأ صوتي أو كتابي -> علمها كخطأ (أحمر) وانتقل لتنبيه المستخدم
         window.memoErrors.push(window.currentWordIndex);
         window.currentWordIndex++;
         if (navigator.vibrate) navigator.vibrate(80);
@@ -158,24 +198,20 @@ window.handleSpokenOrWrittenWord = function(word) {
     window.checkSessionEnd();
 };
 
-// 🌟 اللوجيك السحري لـ "ترتيل": النص القادم مخفي تماماً ولا يظهر إلا مع قراءتك
 window.renderMemoWordsUI = function() {
     const container = document.getElementById('memoWordsContainer');
     if (!container) return;
 
     container.innerHTML = window.memoWords.map((word, idx) => {
         if (idx === window.currentWordIndex) {
-            // الكلمة الحالية المنتظرة: تظهر بنقاط أو تظل فارغة (مخفية تماماً للغيب)
             return `<span id="mword_${idx}" style="display: inline-block; margin: 0 4px; color: var(--gold); font-weight: bold; border-bottom: 2px dashed var(--gold); min-width: 30px; text-align: center;">...</span>`;
         } else if (idx < window.currentWordIndex) {
-            // الكلمات التي نُطقت بالفعل
             if (window.memoErrors.includes(idx)) {
                 return `<span id="mword_${idx}" style="display: inline-block; margin: 0 4px; color: #ff4d4d; font-weight: bold; text-decoration: line-through;">${word} ❌</span>`;
             } else {
                 return `<span id="mword_${idx}" style="display: inline-block; margin: 0 4px; color: var(--green); font-weight: bold;">${word}</span>`;
             }
         } else {
-            // الكلمات المستقبلية: مخفية تماماً أوفلاين (ولا تظهر على الشاشة نهائياً)
             return `<span id="mword_${idx}" style="display: none;">${word}</span>`;
         }
     }).join(' ');
