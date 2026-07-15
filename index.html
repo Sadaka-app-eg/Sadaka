@@ -2005,8 +2005,12 @@ body.in-subpage .back-to-home-btn {
   <div class="action-ayah-preview" id="actionAyahPreview"></div>
   <button class="action-btn" onclick="actionTafseer()"><span>📝</span> التفسير الميسر</button>
   <button class="action-btn" onclick="actionSelect()"><span>✅</span> <span id="selectBtnTxt">تحديد للتشغيل</span></button>
+  
+  <!-- السطر الجديد هنا بالظبط تحت زرار التحديد المعتمد -->
+  <button class="action-btn" onclick="if(selectedAyahsQueue.length > 0) { window.startMemoFromQuranSelection(selectedAyahsQueue[0], selectedAyahsQueue[selectedAyahsQueue.length-1]); closeActionMenu(); } else { alert('يرجى تحديد الآيات أولاً عبر خيار التحديد للتشغيل 📝'); }"><span>🧠</span> تسميع النطاق المحدد</button>
+  
   <button class="action-btn" onclick="actionShare()"><span>🔗</span> مشاركة الآية</button>
- <button class="action-btn" onclick="actionBookmark()"><span>🔖</span> وقفت هنا</button>
+  <button class="action-btn" onclick="actionBookmark()"><span>🔖</span> وقفت هنا</button>
   <button class="action-btn action-cancel" onclick="closeActionMenu()"><span>✕</span> إغلاق</button>
 </div>
 
