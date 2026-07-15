@@ -1,17 +1,15 @@
 /**
- * 🧠 مُصَحِّحُ التَّسْمِيعِ الصَّوْتِيِّ وَالنَّصِّيِّ المُمِتَدِّ - كُن ذا أثر
- * النسخة المصلحة 100% لتفادي التجمد عبر تصدير الدوال للـ Scope العام
+ * 🧠 مُصَحِّحُ التَّسْمِيعِ الصَّوْتِيِّ وَالنَّصِّيِّ (لوجيك تطبيق ترتيل) - كُن ذا أثر
+ * إخفاء كامل للنص، تظهر الكلمة خضراء فور نطقها الصحيح، وحمراء عند الخطأ.
  */
- 
-// متغيرات الجلسة العامة
+
 window.memoWords = [];
 window.currentWordIndex = 0;
 window.memoErrors = [];
 window.recognition = null;
 window.isListening = false;
-window.currentMemoMode = 'voice'; // 'voice' أو 'text'
+window.currentMemoMode = 'voice';
 
-// 1. تنظيف النصوص لضمان دقة المقارنة الصوتية والنصية
 window.cleanArabicText = function(text) {
     if (!text) return "";
     return text
@@ -23,7 +21,6 @@ window.cleanArabicText = function(text) {
         .trim();
 };
 
-// 2. حقن أزرار اختيار الوضع
 window.injectMemoModeSelectors = function() {
     const inputArea = document.getElementById('memoInputArea');
     if (!inputArea) return;
@@ -33,12 +30,9 @@ window.injectMemoModeSelectors = function() {
         <div id="memoModeWrapper" style="margin-bottom: 14px; text-align: center;">
             <label style="color: var(--gold); font-size: 13px; display: block; margin-bottom: 8px; font-weight: bold;">🎯 اختر وضع التسميع المفضل:</label>
             <div style="display: flex; gap: 8px;">
-                <button id="btnMemoVoiceMode" onclick="window.setMemoMode('voice')" class="mode-btn active" style="flex:1; padding:10px; font-family:inherit;">🎙️ تسميع صوتي ذكي</button>
-                <button id="btnMemoTextMode" onclick="window.setMemoMode('text')" class="mode-btn" style="flex:1; padding:10px; font-family:inherit;">📝 تسميع كتابي (نصي)</button>
+                <button id="btnMemoVoiceMode" onclick="window.setMemoMode('voice')" class="mode-btn active" style="flex:1; padding:10px; font-family:inherit;">🎙️ تسميع صوتي (مثل ترتيل)</button>
+                <button id="btnMemoTextMode" onclick="window.setMemoMode('text')" class="mode-btn" style="flex:1; padding:10px; font-family:inherit;">📝 تسميع كتابي مخفي</button>
             </div>
-        </div>
-        <div id="quranSelectionHint" style="background: rgba(212,175,55,0.08); border: 1px dashed var(--gold); padding: 10px; border-radius: 10px; margin-bottom: 14px; font-size: 13px; text-align: center; color: var(--text);">
-            💡 <span style="color:var(--gold); font-weight:bold;">طريقة التسميع من المصحف:</span> حدد الآيات في المصحف عبر "تحديد للتشغيل"، ثم افتح الأكشن شيت واضغط "تسميع النطاق المحدد" للبدء فوراً.
         </div>
     `;
     inputArea.insertAdjacentHTML('afterbegin', modeHtml);
@@ -52,12 +46,11 @@ window.setMemoMode = function(mode) {
     if(btnText) btnText.classList.toggle('active', mode === 'text');
 };
 
-// 3. الدالة الرئيسية لبدء الجلسة (مكشوفة بالكامل للـ HTML الآن)
 window.initMemorizationSession = function(customText = null) {
     let rawText = customText || document.getElementById('memoTargetText').value.trim();
     
     if (!rawText) {
-        alert('الرجاء اختيار آيات من المصحف أو كتابة نص مراد تسميعه أولاً! 📝');
+        alert('الرجاء اختيار آيات من المصحف أو كتابة نص أولاً! 📝');
         return;
     }
 
@@ -85,21 +78,21 @@ window.setupInputInterfaceBasedOnMode = function() {
         if(micBtn) micBtn.style.display = 'flex';
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) {
-            if(statusLabel) statusLabel.innerHTML = `<span style="color:#ff4d4d; font-weight:bold;">🎙️ التسميع اليدوي:</span> جهازك لا يدعم التعرف الصوتي. تحول تلقائياً للوضع النصي.`;
+            if(statusLabel) statusLabel.innerHTML = `<span style="color:#ff4d4d; font-weight:bold;">🎙️ وضع اضطراري:</span> متصفحك لا يدعم الصوت، تحولنا للكتابة المَخفية.`;
             window.setMemoMode('text');
             window.setupInputInterfaceBasedOnMode();
             return;
         }
-        if(statusLabel) statusLabel.textContent = 'انقر على الميكروفون وابدأ التلاوة بصوت مسموع...';
+        if(statusLabel) statusLabel.textContent = 'اضغط المايك وابدأ التلاوة.. النص مخفي وسيظهر كلمة بكلمة مع صوتك ✨';
         window.initSpeechEngine();
     } else {
         if(micBtn) micBtn.style.display = 'none';
-        if(statusLabel) statusLabel.textContent = 'اكتب الكلمة التالية واضغط مسافة أو Enter بالتوالي:';
+        if(statusLabel) statusLabel.textContent = 'اكتب الكلمة التالية غيباً واضغط مسافة لتظهر إن كانت صحيحة:';
         
         const inputField = document.createElement('input');
         inputField.id = 'memoTextInputField';
         inputField.type = 'text';
-        inputField.placeholder = 'اكتب الكلمة النشطة هنا...';
+        inputField.placeholder = 'اكتب الكلمة التالية...';
         inputField.style.cssText = "width:100%; max-width:280px; padding:12px; border-radius:10px; background:var(--bg); color:var(--text); border:1px solid var(--gold); text-align:center; font-size:16px; font-family:inherit; outline:none; margin-bottom:12px;";
         
         inputField.addEventListener('keypress', function(e) {
@@ -120,20 +113,24 @@ window.initSpeechEngine = function() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     window.recognition = new SpeechRecognition();
     window.recognition.continuous = true;
-    window.recognition.interimResults = false;
+    window.recognition.interimResults = true; // تفعيل النتائج الفورية لسرعة استجابة "ترتيل"
     window.recognition.lang = 'ar-SA';
 
     window.recognition.onstart = function() {
         window.isListening = true;
         window.micBtnActiveStyle(true);
         const lbl = document.getElementById('memoStatusLabel');
-        if(lbl) lbl.textContent = '🎤 محرك أثر يستمع إليك الآن.. اتلُ آيات الله...';
+        if(lbl) lbl.textContent = '🎤 مصحح أثر يستمع لتلاوتك الآن.. اتلُ غيباً...';
     };
 
     window.recognition.onresult = function(event) {
-        const transcript = event.results[event.resultIndex][0].transcript.trim();
-        const spokenWords = transcript.split(/\s+/);
-        spokenWords.forEach(w => window.handleSpokenOrWrittenWord(w));
+        let interimTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+                const words = event.results[i][0].transcript.trim().split(/\s+/);
+                words.forEach(w => window.handleSpokenOrWrittenWord(w));
+            }
+        }
     };
 
     window.recognition.onerror = function() { window.stopListeningState(); };
@@ -148,8 +145,10 @@ window.handleSpokenOrWrittenWord = function(word) {
     const cleanInput = window.cleanArabicText(word);
 
     if (cleanTarget === cleanInput || cleanTarget.includes(cleanInput) || cleanInput.includes(cleanTarget)) {
+        // الكلمة صحيحة تماماً -> تظهر وتتحرك للكلمة التالية
         window.currentWordIndex++;
     } else {
+        // خطأ صوتي أو كتابي -> علمها كخطأ (أحمر) وانتقل لتنبيه المستخدم
         window.memoErrors.push(window.currentWordIndex);
         window.currentWordIndex++;
         if (navigator.vibrate) navigator.vibrate(80);
@@ -159,26 +158,26 @@ window.handleSpokenOrWrittenWord = function(word) {
     window.checkSessionEnd();
 };
 
+// 🌟 اللوجيك السحري لـ "ترتيل": النص القادم مخفي تماماً ولا يظهر إلا مع قراءتك
 window.renderMemoWordsUI = function() {
     const container = document.getElementById('memoWordsContainer');
     if (!container) return;
 
     container.innerHTML = window.memoWords.map((word, idx) => {
-        let colorStyle = 'color: var(--text2); opacity: 0.25;';
-        let borderStyle = '';
-
         if (idx === window.currentWordIndex) {
-            colorStyle = 'color: var(--gold); font-weight: bold; font-size: 28px;';
-            borderStyle = 'border-bottom: 2px solid var(--gold);';
+            // الكلمة الحالية المنتظرة: تظهر بنقاط أو تظل فارغة (مخفية تماماً للغيب)
+            return `<span id="mword_${idx}" style="display: inline-block; margin: 0 4px; color: var(--gold); font-weight: bold; border-bottom: 2px dashed var(--gold); min-width: 30px; text-align: center;">...</span>`;
         } else if (idx < window.currentWordIndex) {
+            // الكلمات التي نُطقت بالفعل
             if (window.memoErrors.includes(idx)) {
-                colorStyle = 'color: #ff4d4d; font-weight: bold;';
-                word += ' ❌'; // علامة حمراء واضحة للخطأ زي تطبيق ترتيل بالظبط
+                return `<span id="mword_${idx}" style="display: inline-block; margin: 0 4px; color: #ff4d4d; font-weight: bold; text-decoration: line-through;">${word} ❌</span>`;
             } else {
-                colorStyle = 'color: var(--green); font-weight: bold;';
+                return `<span id="mword_${idx}" style="display: inline-block; margin: 0 4px; color: var(--green); font-weight: bold;">${word}</span>`;
             }
+        } else {
+            // الكلمات المستقبلية: مخفية تماماً أوفلاين (ولا تظهر على الشاشة نهائياً)
+            return `<span id="mword_${idx}" style="display: none;">${word}</span>`;
         }
-        return `<span id="mword_${idx}" style="display: inline-block; margin: 0 4px; ${colorStyle} ${borderStyle}">${word}</span>`;
     }).join(' ');
 
     const activeWordEl = document.getElementById(`mword_${window.currentWordIndex}`);
@@ -234,7 +233,7 @@ window.checkSessionEnd = function() {
 
         document.getElementById('memoStatusLabel').innerHTML = `
             <div style="background: rgba(255,255,255,0.02); border: 1px dashed var(--border); padding: 14px; border-radius: 12px; margin-top: 10px; line-height: 1.8;">
-                <span style="color: var(--gold); font-weight: bold; display: block; margin-bottom: 6px; font-size: 16px;">🎉 اكتملت جلسة المراجعة!</span>
+                <span style="color: var(--gold); font-weight: bold; display: block; margin-bottom: 6px; font-size: 16px;">🎉 اكتملت جلسة المراجعة الغيبية!</span>
                 الكلمات الإجمالية: ${total} | الأخطاء: <span style="color:#ff4d4d; font-weight:bold;">${wrong}</span> | نسبة الإتقان: <span style="color:var(--green); font-weight:bold;">${accuracy}%</span>
             </div>
         `;
@@ -252,10 +251,7 @@ window.resetMemoSession = function() {
     if(pInp) pInp.remove();
 };
 
-// 🔗 الربط المصلح والمضمون مع المصحف الشريف
-// 🔗 الربط النهائي والمضمون 100% مع المصحف الشريف
 window.startMemoFromQuranSelection = function(startIdx, endIdx) {
-    // 1. الفحص الذكي للمتغير سواء كان على الـ window أو في النطاق العام
     let ayahsSource = window.currentAyahsData || (typeof currentAyahsData !== 'undefined' ? currentAyahsData : null);
     
     if (!ayahsSource) {
@@ -270,7 +266,6 @@ window.startMemoFromQuranSelection = function(startIdx, endIdx) {
         }
     }
     
-    // 2. البحث عن الزر الفعلي لصفحة التسميع في القائمة الجانبية لتمريره بأمان ومنع التجمد
     let memoTabElement = null;
     const tabs = document.querySelectorAll('.tabs .tab');
     tabs.forEach(t => {
@@ -279,7 +274,6 @@ window.startMemoFromQuranSelection = function(startIdx, endIdx) {
         }
     });
 
-    // 3. الانتقال الآمن وضخ النص فوراً
     window.showPage('memorizationPage', memoTabElement);
     
     setTimeout(() => {
@@ -287,5 +281,5 @@ window.startMemoFromQuranSelection = function(startIdx, endIdx) {
         window.initMemorizationSession(selectedTextCombined.trim());
     }, 350);
 };
-// حقن أزرار الاختيار فور التحميل
+
 setTimeout(window.injectMemoModeSelectors, 500);
