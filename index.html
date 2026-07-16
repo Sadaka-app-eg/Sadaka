@@ -3568,7 +3568,7 @@ window.handleAyahClick = function(idx) {
   window.firstSelectedAyahIndex = null;
 
   setTimeout(() => {
-    let repeatInput = prompt("🔂 تريد تكرار النطاق كم مرة؟ (1 للتكرار مرة واحدة):", "1");
+    let repeatInput = prompt("🔂 تريد تكرار الآية كم مرة؟ (1 للتكرار مرة واحدة):", "1");
     window.ayahRepeatCount = parseInt(repeatInput) || 1;
     window.currentAyahRepeatProgress = 1;
     updateAudioStatus();
@@ -3584,7 +3584,7 @@ window.handleAyahClick = function(idx) {
 function actionShare() {
   closeActionMenu();
   const a = currentAyahsData[activeAyahIndex];
-  const txt = `﴿ ${a.text} ﴾\n[سورة ${currentSurah.name}: الآية ${a.numberInSurah}]\n\n• صدقة جارية عن شيماء سعيد •`;
+  const txt = `﴿ ${a.text} ﴾\n[سورة ${currentSurah.name}: الآية ${a.numberInSurah}]\n\n• ليبقى الأثر •`;
   if(navigator.share) navigator.share({title:'آية من القرآن الكريم', text:txt});
   else { navigator.clipboard.writeText(txt); alert('تم نسخ الآية ✓'); }
 }
@@ -6019,7 +6019,7 @@ function shareAsText() {
   }
 
   // 2. بننسق النص بشكل فخم وجاهز للمشاركة
-  const fullText = `📚 *${currentShareTitle}*\n\n${currentShareText}\n\n• من المكتبة العلمية لتطبيق صدقة جارية •`;
+  const fullText = `📚 *${currentShareTitle}*\n\n${currentShareText}\n\n• من المكتبة العلمية لتطبيق أثر •`;
 
   // 3. بنفتح قائمة المشاركة الرسمية بتاعة الموبايل
   if (navigator.share) {
@@ -6185,7 +6185,7 @@ async function shareAsImage() {
     // --- كتابة الحقوق في أسفل الصورة ---
     ctx.fillStyle = "rgba(197, 160, 89, 0.7)";
     ctx.font = "30px sans-serif";
-    ctx.fillText("• تطبيق صدقة جارية •", 540, 1800);
+    ctx.fillText("• تطبيق أثر •", 540, 1800);
 
     canvas.toBlob(async (blob) => {
       const file = new File([blob], "Sadaka_Post.png", { type: "image/png" });
