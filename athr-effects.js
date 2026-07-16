@@ -4,6 +4,7 @@
 // تصميم وهندسة: خبير UX/UI ومهندس Front-End
 // مكتبة متكاملة ومستقلة تماماً لإضفاء طابع إسلامي ملكي انسيابي ذو أداء فائق (60FPS)
 // تم ربطها وهندستها لتتوافق مباشرة مع كلاسات ومعرفات الـ DOM الأصلي لتطبيقك.
+// التحديث المطور: تشغيل النجوم التلقائي + كارت التذكير بالدعاء العشوائي المخصص.
 // =========================================================================
 
 (function () {
@@ -28,6 +29,13 @@
   if (prefersReducedMotion) {
     CONFIG.motionEnabled = false;
   }
+
+  // 📋 مصفوفة الأسماء المخصصة بناءً على طلبك بالملي
+  const DUA_NAMES_POOL = [
+    "علي غانم",
+    "شيماء سعيد",
+    "زينب مسعد"
+  ];
 
   // -----------------------------------------------------------------------
   // 🎨 حقن الستايلات الشاملة (CSS Injection) المتوافقة مع ستايل تطبيقك
@@ -61,8 +69,8 @@
       100% { transform: translateY(105vh) rotate(360deg); opacity: 0; }
     }
     @keyframes athrTwinkleAnim {
-      0%, 100% { opacity: 0.1; transform: scale(0.8); }
-      50% { opacity: 0.8; transform: scale(1.2); }
+      0%, 100% { opacity: 0.05; transform: scale(0.7); }
+      50% { opacity: 0.75; transform: scale(1.15); text-shadow: 0 0 8px var(--athr-gold); }
     }
 
     /* 2️⃣ أشعة النور الذهبية الناعمة (Light Rays) */
@@ -221,7 +229,7 @@
       stroke: #f44336;
     }
 
-    /* 🔟 تقليب الصفحات (كتابة مصحف) */
+    /* 1️⃣٠️⃣ تقليب الصفحات (كتابة مصحف) */
     .athr-page-turn-active {
       animation: athrPageTurnAnim 0.75s cubic-bezier(0.645, 0.045, 0.355, 1) forwards;
       transform-origin: right center;
@@ -242,7 +250,7 @@
       100% { opacity: 1; filter: blur(0); transform: scale(1); }
     }
 
-    /* 1️⃣2️⃣ هالة تشغيل الصوتيات الدائرية المتسعة */
+    /* 1️⃣2️⃣ الهالة الصوتية لزر التشغيل الدائري */
     .athr-halo-container {
       position: relative;
       display: inline-flex;
@@ -265,7 +273,7 @@
       100% { transform: scale(1.45); opacity: 0; }
     }
 
-    /* 1️⃣3️⃣ الإطار الإسلامي الزخرفي الفاخر للبطاقات */
+    /* 1️⃣٣️⃣ الإطار الإسلامي الزخرفي الفاخر للبطاقات */
     .athr-frame {
       position: relative;
       border: 1px solid rgba(var(--athr-gold-rgb), 0.25);
@@ -301,7 +309,7 @@
     .athr-frame-corner-tr { top: 3px; right: 3px; border-radius: 50%; }
     .athr-frame-corner-bl { bottom: 3px; left: 3px; border-radius: 50%; }
 
-    /* 1️⃣4️⃣ الـ Skeleton Loading الإسلامي الهلالي */
+    /* 1️⃣٤️⃣ الـ Skeleton Loading الإسلامي الهلالي */
     .athr-skeleton-container {
       display: flex;
       flex-direction: column;
@@ -331,7 +339,7 @@
       50% { opacity: 0.8; transform: scale(1.1) rotate(10deg); }
     }
 
-    /* 1️⃣5️⃣ لوحة تهنئة إتمام العمل والعبادة (Toast) والكونفيتي */
+    /* 1️⃣٥️⃣ لوحة تهنئة إتمام العمل والعبادة (Toast) والكونفيتي */
     .athr-toast {
       position: fixed;
       bottom: 40px; left: 50%;
@@ -360,7 +368,7 @@
       100% { transform: translate3d(var(--x), var(--y), 0) rotate(360deg); opacity: 0; }
     }
 
-    /* 1️⃣6️⃣ الأثر المتبقي الذهبي أثناء السحب واللمس (Trail Effect) */
+    /* 1️⃣٦️⃣ الأثر المتبقي الذهبي أثناء السحب واللمس (Trail Effect) */
     .athr-trail-dot {
       position: absolute;
       width: 6px; height: 6px;
@@ -397,7 +405,7 @@
       top: 50%; left: 50%; transform: translate(-50%, -50%);
     }
 
-    /* 1️⃣8️⃣ الهلال المتحرك (Moon Animation) */
+    /* 1️⃣٨️⃣ الهلال المتحرك (Moon Animation) */
     .athr-moon-container { position: relative; width: 120px; height: 120px; }
     .athr-moon-body {
       width: 100px; height: 100px; border-radius: 50%;
@@ -411,7 +419,7 @@
       100% { transform: translateY(-10px) rotate(5deg); }
     }
 
-    /* 1️⃣9️⃣ الزجاج الخلفي للبطاقات (Glass Effect) */
+    /* 1️⃣٩️⃣ الزجاج الخلفي للبطاقات (Glass Effect) */
     .athr-glass {
       background: rgba(var(--athr-bg-rgb), 0.55);
       backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
@@ -444,9 +452,37 @@
       100% { transform: scale(1); opacity: 1; }
     }
 
+    /* 2️⃣2️⃣ كارت تذكير الدعاء العشوائي المطور (تأثير زجاجي راقٍ) */
+    .athr-dua-reminder-card {
+      position: fixed;
+      bottom: 25px;
+      right: 25px;
+      background: rgba(18, 30, 20, 0.85);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      border-right: 4px solid var(--athr-gold);
+      padding: 15px 20px;
+      border-radius: 14px;
+      color: #fff;
+      font-family: 'Amiri', serif;
+      z-index: 9999;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      transform: translateY(40px);
+      opacity: 0;
+      transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.6s ease;
+      max-width: 320px;
+      direction: rtl;
+      pointer-events: auto;
+    }
+    .athr-dua-reminder-card.athr-show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
     @media (prefers-reduced-motion: reduce) {
       .athr-particle, .athr-ray, .athr-fog-layer, .athr-fog-layer-2,
-      .athr-ambient-bg-animate, .athr-halo-ring, .athr-moon-body {
+      .athr-ambient-bg-animate, .athr-halo-ring, .athr-moon-body, .athr-dua-reminder-card {
         animation: none !important; transform: none !important;
       }
     }
@@ -495,6 +531,8 @@
   // 💫 مصفوفة محرك الأثر والجماليات الأساسية للربط والتكامل
   // -----------------------------------------------------------------------
   let activeFallingInterval = null;
+  let activeStarInterval = null;
+  let activeDuaInterval = null;
   const trailPool = [];
 
   const AthrEffects = {
@@ -502,6 +540,8 @@
       CONFIG.particlesEnabled = true; CONFIG.soundsEnabled = true;
       CONFIG.motionEnabled = true; CONFIG.glowEnabled = true;
       this.enableParticles();
+      this.startContinuousStars();
+      this.startContinuousDuaReminder();
       const bg = document.body;
       if (bg && CONFIG.motionEnabled) bg.classList.add('athr-ambient-bg-animate');
     },
@@ -509,7 +549,10 @@
     disable() {
       CONFIG.particlesEnabled = false; CONFIG.soundsEnabled = false;
       CONFIG.motionEnabled = false; CONFIG.glowEnabled = false;
-      this.disableParticles(); AudioEngine.stopAll();
+      this.disableParticles(); 
+      this.stopContinuousStars();
+      this.stopContinuousDuaReminder();
+      AudioEngine.stopAll();
       const bg = document.body;
       if (bg) bg.classList.remove('athr-ambient-bg-animate');
     },
@@ -528,6 +571,82 @@
         clearInterval(activeFallingInterval); activeFallingInterval = null;
       }
       document.querySelectorAll('.athr-particle').forEach(p => p.remove());
+    },
+
+    // 🌟 ميزة تشغيل النجوم المتلألئة بشكل دوري متواصل وتلقائي فوري
+    startContinuousStars() {
+      if (prefersReducedMotion) return;
+      if (!activeStarInterval) {
+        activeStarInterval = setInterval(() => {
+          this.spawnTwinklingStars(Math.floor(Math.random() * 3) + 2);
+        }, 4000); // ضخ نجوم جديدة كل 4 ثوانٍ بنعومة
+      }
+    },
+
+    stopContinuousStars() {
+      if (activeStarInterval) {
+        clearInterval(activeStarInterval);
+        activeStarInterval = null;
+      }
+    },
+
+    // 🌟 ميزة كارت تذكير الدعاء العشوائي المستمر والآمن
+    startContinuousDuaReminder() {
+      if (!activeDuaInterval) {
+        this._injectDuaCardUI();
+        activeDuaInterval = setInterval(() => {
+          this._cycleDuaReminder();
+        }, 18000); // تبديل وعرض كارت التذكير عشوائياً كل 18 ثانية
+        setTimeout(() => this._cycleDuaReminder(), 3000); // ظهور أول كارت عشوائي بعد فتح الصفحة بـ 3 ثوانٍ
+      }
+    },
+
+    stopContinuousDuaReminder() {
+      if (activeDuaInterval) {
+        clearInterval(activeDuaInterval);
+        activeDuaInterval = null;
+      }
+      document.getElementById('athrDuaReminder')?.remove();
+    },
+
+    _injectDuaCardUI() {
+      if (document.getElementById('athrDuaReminder')) return;
+      const card = document.createElement('div');
+      card.id = 'athrDuaReminder';
+      card.className = 'athr-dua-reminder-card';
+      document.body.appendChild(card);
+    },
+
+    _cycleDuaReminder() {
+      if (CONFIG.isBackground) return;
+      const card = document.getElementById('athrDuaReminder');
+      if (!card) return;
+
+      // إخفاء الكارت أولاً لتحديث الاسم الجديد بسلاسة
+      card.classList.remove('athr-show');
+
+      setTimeout(() => {
+        // السحر هنا: اختيار اسم عشوائي تماماً من التلاتة المحددين بناءً على طلبك
+        const randomIndex = Math.floor(Math.random() * DUA_NAMES_POOL.length);
+        const randomName = DUA_NAMES_POOL[randomIndex];
+        
+        card.innerHTML = `
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:20px;">🤲</span>
+            <div style="flex:1;">
+              <div style="font-size:11px; color:var(--athr-gold); font-weight:bold;">لَفْتَةٌ إِيمَانِيَّةٌ عَابِرَةٌ:</div>
+              <div style="font-size:14px; line-height:1.5; margin-top:2px;">لا تنسَ الدعاء لـ <strong style="color:var(--athr-gold);">${randomName}</strong> بالرحمة والمغفرة في صلاتك.</div>
+            </div>
+          </div>
+        `;
+        card.classList.add('athr-show');
+
+        // إخفاء الكارت تلقائياً بعد بقائه ظاهراً لمدة 7 ثوانٍ مريحة للعين
+        setTimeout(() => {
+          card.classList.remove('athr-show');
+        }, 7000);
+
+      }, 600);
     },
 
     setQuality(level) {
@@ -586,11 +705,11 @@
         star.className = 'athr-particle';
         star.textContent = '✦';
         star.style.cssText = `
-          top: ${Math.random() * 70}vh; left: ${Math.random() * 100}vw; color: var(--athr-gold);
-          font-size: ${Math.random() * 6 + 4}px; animation: athrTwinkleAnim ${Math.random() * 3 + 2}s ease-in-out infinite;
+          top: ${Math.random() * 85}vh; left: ${Math.random() * 100}vw; color: var(--athr-gold);
+          font-size: ${Math.random() * 5 + 4}px; animation: athrTwinkleAnim ${Math.random() * 2.5 + 2}s ease-in-out infinite;
         `;
         fragment.appendChild(star);
-        setTimeout(() => star.remove(), 10000);
+        setTimeout(() => star.remove(), 4500); // تدمير النجمة ذاتياً لتوفير الكفاءة والأداء
       }
       document.body.appendChild(fragment);
     },
@@ -744,7 +863,6 @@
     },
 
     initHomeCardBreathing() {
-      // ربط التنفس التلقائي بكارت الشاشة الرئيسية الأصلي لتطبيقك
       const heroCard = document.getElementById('homeHeroCard');
       if (heroCard && CONFIG.motionEnabled) {
         heroCard.style.transition = 'transform 7s ease-in-out';
@@ -773,8 +891,18 @@
   // -----------------------------------------------------------------------
   document.addEventListener('visibilitychange', () => {
     CONFIG.isBackground = document.hidden;
-    if (document.hidden) { AthrEffects.disableParticles(); AudioEngine.stopAll(); }
-    else if (CONFIG.particlesEnabled) AthrEffects.enableParticles();
+    if (document.hidden) { 
+      AthrEffects.disableParticles(); 
+      AthrEffects.stopContinuousStars();
+      AthrEffects.stopContinuousDuaReminder();
+      AudioEngine.stopAll(); 
+    } else {
+      if (CONFIG.particlesEnabled) {
+        AthrEffects.enableParticles();
+        AthrEffects.startContinuousStars();
+        AthrEffects.startContinuousDuaReminder();
+      }
+    }
   });
 
   window.AthrEffects = AthrEffects;
@@ -782,6 +910,8 @@
   document.addEventListener('DOMContentLoaded', () => {
     AthrEffects.initAtmosphericEffects();
     AthrEffects.enableParticles();
+    AthrEffects.startContinuousStars(); // إطلاق النجوم التلقائية
+    AthrEffects.startContinuousDuaReminder(); // إطلاق كارت الدعاء العشوائي بالتناوب
     AthrEffects.initTrailEffect();
     AthrEffects.initHomeCardBreathing();
 
