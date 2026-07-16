@@ -336,8 +336,7 @@ window.renderRareRecitations = function () {
           <!-- أزرار الاستماع والتنزيل -->
           <div style="display:flex; align-items:center; gap:10px;">
             <button onclick="window.playRare('${item.url}')" style="background:var(--gold); border:none; width:42px; height:42px; border-radius:50%; color:#111; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.2s;">${icon}</button>
-            <a href="${item.url}" download="${item.name}.mp3" style="background:rgba(255,255,255,0.1); border:1px solid var(--border); width:42px; height:42px; border-radius:50%; color:var(--text); font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; text-decoration:none; transition:0.2s;" title="تحميل الملف">📥</a>
-          </div>
+<button id="rare_dl_${item.url.replace(/[^a-zA-Z0-9]/g,'_')}" onclick="window.downloadRareAudio('${item.url}')" style="background:rgba(255,255,255,0.1); border:1px solid var(--border); width:42px; height:42px; border-radius:50%; color:var(--text); font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.2s;" title="تحميل للاستماع أوفلاين">📥</button>          </div>
 
           <!-- تفاصيل التلاوة والشيخ -->
           <div style="flex:1; text-align:right; direction:rtl;">
@@ -360,4 +359,71 @@ window.renderRareRecitations = function () {
       </div>
     `;
   }).join('');
+};
+// ==========================================================
+// 📥 تحميل التلاوات الخاشعة أوفلاين (تخزين دائم عبر Service Worker)
+// ==========================================================
+function rareBtnId(url) {
+  return 'rare_dl_' + url.replace(/[^a-zA-Z0-9]/g, '_');
+}
+
+window.downloadRareAudio = function(url) {
+  if (!navigator.serviceWorker || !navigator.serviceWorker.controller) {
+    alert('⚠️ نظام التخزين لسه بيتجهز، جرب تاني بعد ثانية 🙏');
+    return;
+  }
+  const btn = document.getElementById(rareBtnId(url));
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = '⏳';
+  }
+  navigator.serviceWorker.controller.postMessage({
+    type: 'CACHE_AUDIO_URL',
+    url: url,
+    label: 'rare_' + url
+  });
+};
+
+navigator.serviceWorker.addEventListener('message', (event) => {
+  const d = event.data;
+  if (!d || !d.label || !d.label.startsWith('rare_')) return;
+  const originalUrl = d.label.replace('rare_', '');
+  const btn = document.getElementById(rareBtnId(originalUrl));
+  if (!btn) return;
+
+  if (d.type === 'AUDIO_CACHED') {
+    btn.disabled = false;
+    btn.textContent = '✅';
+    btn.style.background = 'rgba(76,175,80,0.15)';
+    btn.style.borderColor = '#4caf50';
+    btn.style.color = '#4caf50';
+  }
+  if (d.type === 'AUDIO_CACHE_FAILED') {
+    btn.disabled = false;
+    btn.textContent = '⚠️';
+  }
+});
+
+// تعليم الأزرار اللي اتحملت قبل كده فور فتح الصفحة
+async function markAlreadyDownloadedRareButtons() {
+  if (!('caches' in window)) return;
+  try {
+    const cache = await caches.open('athr-audio-cache-v1');
+    for (const item of window.rareRecitations) {
+      const match = await cache.match(item.url);
+      const btn = document.getElementById(rareBtnId(item.url));
+      if (match && btn) {
+        btn.textContent = '✅';
+        btn.style.background = 'rgba(76,175,80,0.15)';
+        btn.style.borderColor = '#4caf50';
+        btn.style.color = '#4caf50';
+      }
+    }
+  } catch (e) {}
+}
+
+const _originalRenderRareRecitations = window.renderRareRecitations;
+window.renderRareRecitations = function() {
+  _originalRenderRareRecitations();
+  setTimeout(markAlreadyDownloadedRareButtons, 100);
 };
