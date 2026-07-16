@@ -168,7 +168,7 @@
         this._injectDuaCardUI();
         activeDuaInterval = setInterval(() => {
           this._cycleDuaReminder();
-        }, 20000); // يظهر دعاء جديد تماماً كل 20 ثانية
+        }, 60000); // يظهر دعاء جديد تماماً كل 20 ثانية
         setTimeout(() => this._cycleDuaReminder(), 3000); // أول ظهور بعد فتح التطبيق بـ 3 ثوانٍ
       }
     },
@@ -215,7 +215,7 @@
         // يختفي الكارت بعد 8 ثوانٍ من ظهوره تلقائياً
         setTimeout(() => {
           card.classList.remove('athr-show');
-        }, 8000);
+        }, 12000);
 
       }, 600);
     },
