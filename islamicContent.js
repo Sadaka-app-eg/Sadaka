@@ -3931,7 +3931,7 @@ function renderQA(subType) {
       <!-- 📖 حقن بوكس الدليل الشرعي تلقائياً لو موجود -->
       ${item.evidence ? `
         <div style="background:rgba(212,175,55,0.03); border-right:3px solid var(--gold); padding:10px; margin-top:8px; border-radius:6px; font-size:13.5px; color:var(--text2); font-style:italic;">
-          <strong>📖 الدليل:</strong> ${item.evidence}
+          <strong>📖 :</strong> ${item.evidence}
         </div>
       ` : ''}
 
