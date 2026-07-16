@@ -2,7 +2,7 @@
 // ===========================================
 // sw.js — Service Worker لتطبيق "كُن ذا أثر"
 // ===========================================
-const APP_VERSION = 'v4';
+const APP_VERSION = 'v5';
 const APP_SHELL_CACHE = `athr-app-shell-${APP_VERSION}`;
 const AUDIO_CACHE  = 'athr-audio-cache-v1';   // دائم — سور/تلاوات/أذان محمّلة يدويًا
 const MUSHAF_CACHE = 'athr-mushaf-cache-v1';  // دائم — صفحات المصحف المصوّر
@@ -18,7 +18,7 @@ const APP_SHELL_FILES = [
   './islamicContent.js',
   './rareRecitations.js',
   './radio.js',
-  './quranData.js',
+
   './quranInsights.js',
   './obeyPlan.js',
   './janaza.js',
