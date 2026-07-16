@@ -2,7 +2,7 @@
 // ===========================================
 // sw.js — Service Worker لتطبيق "كُن ذا أثر"
 // ===========================================
-const APP_VERSION = 'v3';
+const APP_VERSION = 'v4';
 const APP_SHELL_CACHE = `athr-app-shell-${APP_VERSION}`;
 const AUDIO_CACHE  = 'athr-audio-cache-v1';   // دائم — سور/تلاوات/أذان محمّلة يدويًا
 const MUSHAF_CACHE = 'athr-mushaf-cache-v1';  // دائم — صفحات المصحف المصوّر
