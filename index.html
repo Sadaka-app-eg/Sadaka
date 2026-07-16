@@ -904,6 +904,7 @@ body.in-subpage .back-to-home-btn {
 <div class="tab" onclick="showPage('shareKhairPage',this)">💝 شارك في الخير</div>
   <div class="tab" onclick="showPage('shareAppPage', this)">💝 ساهم في تطوير التطبيق</div>
 <div class="tab" onclick="showPage('heartMirrorPage',this)">🪞 مرآة القلب</div>
+<div class="tab" onclick="showPage('downloadsManagerPage',this)">📥 إدارة التنزيلات</div>
 
 </div>
 
@@ -1113,7 +1114,9 @@ body.in-subpage .back-to-home-btn {
       </select>
       <div class="audio-status" id="audioStatus">اضغط تشغيل • اضغط مطولًا على آية للخيارات</div>
     </div>
+   <button class="icon-btn" onclick="window.downloadCurrentSurahAudio()" title="تحميل للاستماع أوفلاين" style="width:36px;height:36px;font-size:15px;flex-shrink:0;">⬇️</button>
     <button class="clear-sel-btn" id="clearSelBtn" onclick="clearSelection()" style="display:none">✕ إلغاء</button>
+
     <audio id="audioPlayer" ></audio>
   </div>
   <div class="mushaf-pages-wrap">
@@ -1952,6 +1955,10 @@ body.in-subpage .back-to-home-btn {
   <div id="heartMirrorContainer"></div>
  </div>
 
+ <div class="page" id="downloadsManagerPage">
+  <div id="downloadsManagerContainer"></div>
+ </div>
+
 
 <!-- OVERLAY DIMMER -->
 <div class="overlay-dimmer" id="overlayDimmer" onclick="closeActionMenu()"></div>
@@ -2001,6 +2008,12 @@ body.in-subpage .back-to-home-btn {
 // ===========================
 // البيانات
 // ===========================
+ // تسجيل الـ Service Worker فور فتح التطبيق (ضروري عشان التحميلات تشتغل من غير ما ينتظر تفعيل الإشعارات)
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration failed:', err));
+}
+
+
 const surahs = [
   {n:1,name:'الفاتحة',ayat:7,type:'مكية'},{n:2,name:'البقرة',ayat:286,type:'مدنية'},
   {n:3,name:'آل عمران',ayat:200,type:'مدنية'},{n:4,name:'النساء',ayat:176,type:'مدنية'},
@@ -2883,7 +2896,36 @@ function changeReciter() {
   currentReciter = newReciter;
   stopAudio();
 }
+window.downloadCurrentSurahAudio = function() {
+  if (!currentSurah || !navigator.serviceWorker.controller) { alert('استنى شوية وحاول تاني 🙏'); return; }
+  const reciter = document.getElementById('reciterSelect').value;
+  const num3 = String(currentSurah.n).padStart(3, '0');
+  const reciterUrls = {
+    minsh: `https://server10.mp3quran.net/minsh/${num3}.mp3`,
+    husary: `https://server13.mp3quran.net/husr/${num3}.mp3`,
+    afs: `https://server8.mp3quran.net/afs/${num3}.mp3`,
+    basit: `https://server7.mp3quran.net/basit/${num3}.mp3`,
+    maher: `https://server12.mp3quran.net/maher/${num3}.mp3`,
+    ajm: `https://server10.mp3quran.net/ajm/${num3}.mp3`,
+    shrim: `https://server7.mp3quran.net/shur/${num3}.mp3`,
+    dosr: `https://server11.mp3quran.net/yasser/${num3}.mp3`,
+  };
+  const url = reciterUrls[reciter];
+  if (!url) { alert('التحميل غير متاح لهذا القارئ حاليًا'); return; }
+  document.getElementById('audioStatus').textContent = 'جاري تحميل السورة للتخزين الدائم...';
+  navigator.serviceWorker.controller.postMessage({ type: 'CACHE_AUDIO_URL', url, label: `quicksurah_${currentSurah.n}` });
+};
 
+navigator.serviceWorker.addEventListener('message', (event) => {
+  const d = event.data;
+  if (!d || !d.label || !d.label.startsWith('quicksurah_')) return;
+  if (d.type === 'AUDIO_CACHED') {
+    document.getElementById('audioStatus').textContent = d.alreadyCached ? '✅ السورة محمّلة بالفعل' : '✅ تم تحميل السورة أوفلاين';
+  }
+  if (d.type === 'AUDIO_CACHE_FAILED') {
+    document.getElementById('audioStatus').textContent = '⚠️ فشل التحميل، تحتاج نت';
+  }
+});
 // ===========================
 // Utils
 // ===========================
@@ -3005,6 +3047,9 @@ if(id === 'shareAppPage' && typeof window.initShareAppPage === 'function') {
 if(id === 'heartMirrorPage' && typeof window.initHeartMirrorPage === 'function') {
   window.initHeartMirrorPage();
  }
+  if(id === 'downloadsManagerPage' && typeof window.initDownloadsManager === 'function') {
+    window.initDownloadsManager();
+  }
   updateStats();
 }
 
@@ -4849,11 +4894,7 @@ function startSilentPreFetch() {
 }
 
 // تشغيل الدالة تلقائياً فور فتح التطبيق
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', startSilentPreFetch);
-} else {
-  startSilentPreFetch();
-}
+
 // ============================
 // خلفيات الشاشة الرئيسية
 // ============================
@@ -6971,6 +7012,8 @@ window.reCalculateHistorySum = function(type) {
   <script src="prayforthem/prayforthem.js"></script>
 <script src="shareApp.js"></script>
 <script src="heartMirror.js"></script>
+<script src="downloadsManager.js"></script>
+ 
  <!-- مكتبة موزيلا الرسمية لقراءة ملفات الـ PDF داخلياً -->
 
  
