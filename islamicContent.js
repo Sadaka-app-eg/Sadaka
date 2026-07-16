@@ -4049,49 +4049,43 @@ setTimeout(() => {
   
 // ==========================================
 // ==========================================
-// 🎨 دالة رسم كروت الكتب بشكل خرافي واحترافي
+// 🎨 دالة رسم كروت الكتب بشكل خرافي واحترافي (تعريف فقط بدون تصفح)
 // ==========================================
 window.renderIslamicBooks = function() {
   const container = document.getElementById('islamicCardsContainer');
   if (!container) return;
 
+  // القراءة من المسار الثابت المدمج جوه الأوبجكت
+  const booksData = window.islamicLibraryData.books;
+
+  if (!booksData || booksData.length === 0) {
+    container.innerHTML = '<div style="color:var(--text2); text-align:center; padding:20px;">⏳ جاري تحميل كتب الموسوعة...</div>';
+    return;
+  }
+
   container.innerHTML = `
     <div style="text-align: right; margin-bottom: 20px; padding: 0 5px; direction: rtl;">
       <span style="color: var(--gold); font-weight: bold; font-size: 15px; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 8px;">
-        📖 الموسوعة الإسلامية الثقافية والتعريف بالأمهات:
+        📖 دليل وموسوعة التعريف بأمهات الكتب الشرعية:
       </span>
     </div>
     <div style="display: flex; flex-direction: column; gap: 20px; direction: rtl;">
-      ${window.islamicBooksData.map(book => `
-        <!-- 🌟 تصميم مربع (كارت خرافي) مع حدود ذهبية متدرجة وظل ناعم -->
-        <div class="zekr-card" style="background: var(--card); border: 1px solid var(--border); border-right: 5px solid var(--gold); padding: 22px; border-radius: 16px; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.15); transition: transform 0.2s, box-shadow 0.2s;">
+      \${booksData.map(book => `
+        <!-- 🌟 كارت مربع فخم مع حدود ذهبية ونبذة طويلة -->
+        <div class="zekr-card" style="background: var(--card); border: 1px solid var(--border); border-right: 5px solid var(--gold); padding: 22px; border-radius: 16px; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.15);">
           
-          <!-- الهيدر الداخلي للكارت -->
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
-            <div style="font-size: 20px; font-weight: bold; color: var(--gold); font-family: 'Amiri', serif; line-height: 1.4;">
-              ${book.title}
-            </div>
+          <div style="font-size: 20px; font-weight: bold; color: var(--gold); font-family: 'Amiri', serif; line-height: 1.4;">
+            \${book.title}
           </div>
           
-          <!-- اسم المؤلف بتنسيق أخضر أنيق -->
-          <div style="font-size: 13px; color: var(--green); margin-bottom: 14px; font-weight: bold; display: inline-block; background: rgba(0,227,122,0.05); padding: 3px 10px; border-radius: 6px;">
-             ${book.author}
+          <div style="font-size: 13px; color: var(--green); margin-bottom: 14px; font-weight: bold; display: inline-block; background: rgba(0,227,122,0.05); padding: 3px 10px; border-radius: 6px; margin-top: 6px;">
+             \${book.author}
           </div>
           
-          <!-- تفاصيل الكتاب الطويلة والمعززة بنص مبروق ومريح للعين -->
-          <p style="font-size: 14.5px; line-height: 1.9; color: var(--text2); text-align: justify; margin-bottom: 20px; font-family: 'Amiri', serif; margin-top: 0; padding-left: 5px;">
-            ${book.desc}
+          <p style="font-size: 14.5px; line-height: 1.9; color: var(--text2); text-align: justify; margin: 0; font-family: 'Amiri', serif;">
+            \${book.desc}
           </p>
           
-          <!-- خط ديكوري خفيف يفصل بين النص وزر التصفح -->
-          <div style="height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); margin-bottom: 15px;"></div>
-
-          <!-- زر التصفح الفخم الممتد -->
-          <div style="display: flex;">
-            <a href="${book.readUrl}" target="_blank" style="flex: 1; text-align: center; text-decoration: none; padding: 13px; background: var(--bg2); color: var(--gold); border: 1px solid var(--gold); border-radius: 10px; font-size: 14px; font-weight: bold; font-family: 'Amiri', serif; display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-shadow: inset 0 1px 3px rgba(255,255,255,0.05); transition: all 0.2s;">
-              🌐 تصفح وقراءة الكتاب كاملاً
-            </a>
-          </div>
         </div>
       `).join('')}
     </div>
