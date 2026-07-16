@@ -4047,7 +4047,8 @@ setTimeout(() => {
   }
 }, 300);
   
-// ==========================================
+
+
 // ==========================================
 // 🎨 دالة رسم كروت الكتب بشكل خرافي واحترافي (تعريف فقط بدون تصفح)
 // ==========================================
@@ -4070,20 +4071,20 @@ window.renderIslamicBooks = function() {
       </span>
     </div>
     <div style="display: flex; flex-direction: column; gap: 20px; direction: rtl;">
-      \${booksData.map(book => `
+      ${booksData.map(book => `
         <!-- 🌟 كارت مربع فخم مع حدود ذهبية ونبذة طويلة -->
         <div class="zekr-card" style="background: var(--card); border: 1px solid var(--border); border-right: 5px solid var(--gold); padding: 22px; border-radius: 16px; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.15);">
           
           <div style="font-size: 20px; font-weight: bold; color: var(--gold); font-family: 'Amiri', serif; line-height: 1.4;">
-            \${book.title}
+            ${book.title}
           </div>
           
           <div style="font-size: 13px; color: var(--green); margin-bottom: 14px; font-weight: bold; display: inline-block; background: rgba(0,227,122,0.05); padding: 3px 10px; border-radius: 6px; margin-top: 6px;">
-             \${book.author}
+             ${book.author}
           </div>
           
           <p style="font-size: 14.5px; line-height: 1.9; color: var(--text2); text-align: justify; margin: 0; font-family: 'Amiri', serif;">
-            \${book.desc}
+            ${book.desc}
           </p>
           
         </div>
