@@ -429,5 +429,75 @@ document.addEventListener('DOMContentLoaded', () => {
   // السطر السحري لتشغيل الكروت فوراً عند الإقلاع
   if(typeof renderAdhanCardsUI === 'function') renderAdhanCardsUI();
 });
+// ==========================================================
+// 📥 تحميل ملفات الأذان أوفلاين (تخزين دائم عبر Service Worker)
+// ==========================================================
+window.downloadAdhanAudio = function(id, filePath) {
+  if (!navigator.serviceWorker || !navigator.serviceWorker.controller) {
+    alert('⚠️ نظام التخزين لسه بيتجهز، جرب تاني بعد ثانية 🙏');
+    return;
+  }
+  const btn = document.getElementById('download_azan_' + id);
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = '⏳ جاري التحميل...';
+  }
+  navigator.serviceWorker.controller.postMessage({
+    type: 'CACHE_AUDIO_URL',
+    url: filePath,
+    label: 'adhan_' + id
+  });
+};
 
+navigator.serviceWorker.addEventListener('message', (event) => {
+  const d = event.data;
+  if (!d) return;
+
+  if (d.type === 'AUDIO_CACHED' && d.label && d.label.startsWith('adhan_')) {
+    const id = d.label.replace('adhan_', '');
+    const btn = document.getElementById('download_azan_' + id);
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = '✅ محمّل أوفلاين';
+      btn.style.background = 'rgba(76,175,80,0.15)';
+      btn.style.borderColor = '#4caf50';
+      btn.style.color = '#4caf50';
+    }
+  }
+
+  if (d.type === 'AUDIO_CACHE_FAILED' && d.label && d.label.startsWith('adhan_')) {
+    const id = d.label.replace('adhan_', '');
+    const btn = document.getElementById('download_azan_' + id);
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = '⚠️ فشل، حاول تاني';
+    }
+  }
+});
+
+// تحديث شكل الأزرار عند فتح الصفحة: لو الملف متخزن بالفعل، بنعرض ✅ فوراً
+async function markAlreadyDownloadedAdhanButtons() {
+  if (!('caches' in window)) return;
+  try {
+    const cache = await caches.open('athr-audio-cache-v1');
+    const allOptions = [...fajrAdhanOptions, ...regularAdhanOptions];
+    for (const o of allOptions) {
+      const match = await cache.match(o.file);
+      const btn = document.getElementById('download_azan_' + o.id);
+      if (match && btn) {
+        btn.textContent = '✅ محمّل أوفلاين';
+        btn.style.background = 'rgba(76,175,80,0.15)';
+        btn.style.borderColor = '#4caf50';
+        btn.style.color = '#4caf50';
+      }
+    }
+  } catch (e) {}
+}
+
+// نستدعيها بعد كل رندرة للكروت
+const _originalRenderAdhanCardsUI = renderAdhanCardsUI;
+renderAdhanCardsUI = function() {
+  _originalRenderAdhanCardsUI();
+  setTimeout(markAlreadyDownloadedAdhanButtons, 100);
+};
 
