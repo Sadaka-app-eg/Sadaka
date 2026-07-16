@@ -1,24 +1,14 @@
 // =========================================================================
-// 🌟 محرك المؤثرات البصرية والجماليات الملكية الفاخرة لشبكة أثر - الإصدار الثالث الكامل (v3)
+// 🌟 محرك المؤثرات البصرية والجماليات الملكية - الإصدار المتوافق والمؤمن لتطبيق "أثر"
 // =========================================================================
-// تصميم وهندسة: خبير UX/UI ومهندس Front-End
-// مكتبة متكاملة ومستقلة تماماً لإضفاء طابع إسلامي ملكي انسيابي ذو أداء فائق (60FPS)
-// تم ربطها وهندستها لتتوافق مباشرة مع كلاسات ومعرفات الـ DOM الأصلي لتطبيقك.
-// التحديث المطور: تشغيل النجوم التلقائي + كارت التذكير بالدعاء العشوائي المخصص.
-// =========================================================================
-
 (function () {
   'use strict';
 
   if (window.AthrEffects) return;
 
-  // -----------------------------------------------------------------------
-  // ⚙️ التفضيلات والتهيئات الافتراضية الداخلية
-  // -----------------------------------------------------------------------
   const CONFIG = {
-    quality: 'high',            // 'low' | 'medium' | 'high'
+    quality: 'high',
     particlesEnabled: true,
-    soundsEnabled: true,
     motionEnabled: true,
     glowEnabled: true,
     maxParticles: { low: 5, medium: 12, high: 22 },
@@ -26,33 +16,20 @@
   };
 
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (prefersReducedMotion) {
-    CONFIG.motionEnabled = false;
-  }
+  if (prefersReducedMotion) CONFIG.motionEnabled = false;
 
-  // 📋 مصفوفة الأسماء المخصصة بناءً على طلبك بالملي
-  const DUA_NAMES_POOL = [
-    "علي غانم",
-    "شيماء سعيد",
-    "زينب مسعد"
+  // 📋 مصفوفة الأدعية المباشرة المخصصة عشوائياً بناءً على طلبك بالملي
+  const DUA_POOL = [
+    "اللهم اغفر لعلي غانم وارحمه وعافه واعفُ عنه",
+    "اللهم اغفر لشيماء سعيد وارحمها واجعل قبرها روضة من رياض الجنة",
+    "اللهم اغفر لزينب مسعد وارحمها ونقّها من الخطايا كما ينقى الثوب الأبيض"
   ];
 
-  // -----------------------------------------------------------------------
-  // 🎨 حقن الستايلات الشاملة (CSS Injection) المتوافقة مع ستايل تطبيقك
-  // -----------------------------------------------------------------------
+  // 🎨 حقن الستايلات الأساسية الخفيفة لضمان عدم تخريب ثيمات التطبيق الأصلي
   const styles = document.createElement('style');
   styles.id = 'athr-effects-v3-styles';
   styles.innerHTML = `
-    :root {
-      --athr-gold: #d4af37;
-      --athr-gold-rgb: 212, 175, 55;
-      --athr-green: #4CAF50;
-      --athr-green-rgb: 76, 175, 80;
-      --athr-bg: #0f1b12;
-      --athr-bg-rgb: 15, 27, 18;
-    }
-
-    /* 1️⃣ جزيئات السقوط الهادئ والنجوم المتلألئة */
+    /* ===== جزيئات السقوط الهادئ والنجوم المتلألئة التلقائية ===== */
     .athr-particle {
       position: fixed;
       pointer-events: none;
@@ -70,283 +47,31 @@
     }
     @keyframes athrTwinkleAnim {
       0%, 100% { opacity: 0.05; transform: scale(0.7); }
-      50% { opacity: 0.75; transform: scale(1.15); text-shadow: 0 0 8px var(--athr-gold); }
+      50% { opacity: 0.75; transform: scale(1.15); text-shadow: 0 0 8px #d4af37; }
     }
 
-    /* 2️⃣ أشعة النور الذهبية الناعمة (Light Rays) */
-    .athr-light-rays-container {
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 60vh;
-      pointer-events: none;
-      z-index: 1;
-      overflow: hidden;
-      opacity: 0.15;
-      mix-blend-mode: screen;
-      will-change: opacity;
-    }
-    .athr-ray {
-      position: absolute;
-      top: -10%;
-      width: 30vw;
-      height: 120vh;
-      background: linear-gradient(to right, rgba(var(--athr-gold-rgb), 0) 0%, rgba(var(--athr-gold-rgb), 0.18) 50%, rgba(var(--athr-gold-rgb), 0) 100%);
-      transform-origin: top center;
-      transform: rotate(-15deg);
-      animation: athrRaySwing 22s ease-in-out infinite alternate;
-    }
-    .athr-ray:nth-child(2) {
-      left: 35%;
-      width: 40vw;
-      animation-duration: 32s;
-      animation-delay: -5s;
-    }
-    .athr-ray:nth-child(3) {
-      left: 70%;
-      width: 25vw;
-      animation-duration: 18s;
-      animation-delay: -10s;
-    }
-    @keyframes athrRaySwing {
-      0% { transform: rotate(-20deg) scaleX(0.9); }
-      100% { transform: rotate(-5deg) scaleX(1.1); }
-    }
-
-    /* 3️⃣ الضباب الناعم (Soft Fog) */
-    .athr-fog-container {
-      position: fixed;
-      bottom: 0; left: 0; width: 100%; height: 35vh;
-      pointer-events: none;
-      z-index: 2;
-      overflow: hidden;
-      opacity: 0.08;
-      mix-blend-mode: screen;
-    }
-    .athr-fog-layer {
-      position: absolute;
-      bottom: 0; width: 200%; height: 100%;
-      background: radial-gradient(circle at 50% 100%, rgba(var(--athr-gold-rgb), 0.25), transparent 70%);
-      animation: athrFogMove 50s linear infinite;
-      will-change: transform;
-    }
-    .athr-fog-layer-2 {
-      position: absolute;
-      bottom: 0; width: 200%; height: 100%;
-      background: radial-gradient(circle at 30% 100%, rgba(var(--athr-green-rgb), 0.2), transparent 60%);
-      animation: athrFogMove 35s linear infinite reverse;
-      will-change: transform;
-    }
-    @keyframes athrFogMove {
-      0% { transform: translateX(0%); }
-      100% { transform: translateX(-50%); }
-    }
-
-    /* 4️⃣ الخلفية التفاعلية المتدرجة الشاملة لـ body التطبيق */
-    .athr-ambient-bg {
-      background: linear-gradient(135deg, #070d09, #0f1b12, #182c1e, #0f1b12);
-      background-size: 300% 300%;
-      transition: background 1.5s ease;
-    }
-    .athr-ambient-bg-animate {
-      animation: athrGradientShift 28s ease infinite;
-    }
-    @keyframes athrGradientShift {
-      0%, 100% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-    }
-
-    /* 5️⃣ تأثير التموج والارتداد على الأزرار (Ripple Effect) */
-    .athr-ripple {
-      position: absolute;
-      border-radius: 50%;
-      background: rgba(var(--athr-gold-rgb), 0.4);
-      transform: scale(0);
-      pointer-events: none;
-      animation: athrRippleAnim 0.65s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
-    }
-    @keyframes athrRippleAnim {
-      to { transform: scale(4); opacity: 0; }
-    }
-
-    /* 6️⃣ توهج هادئ واحترافي للأزرار وقوائم التبويبات للتطبيق */
-    .icon-btn, .tab, .cat-btn, .tasbeh-circle, .zekr-btn {
-      position: relative;
-      outline: none;
-      transition: box-shadow 0.5s ease, border-color 0.5s ease, transform 0.2s ease !important;
-    }
-    .athr-glow-btn-active:hover,
-    .icon-btn:hover, .cat-btn:hover {
-      box-shadow: 0 0 16px rgba(var(--athr-gold-rgb), 0.55);
-    }
-
-    /* 7️⃣ ظهور الآيات بنور دافئ وارتفاع ناعم */
-    .athr-verse-reveal {
-      opacity: 0;
-      will-change: transform, opacity;
-    }
-    .athr-verse-reveal-active {
-      animation: athrVerseIn 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-    @keyframes athrVerseIn {
-      0% { opacity: 0; transform: translateY(18px); filter: blur(4px); text-shadow: 0 0 0 rgba(var(--athr-gold-rgb), 0); }
-      50% { text-shadow: 0 0 15px rgba(var(--athr-gold-rgb), 0.4); }
-      100% { opacity: 1; transform: translateY(0); filter: blur(0); text-shadow: 0 0 6px rgba(var(--athr-gold-rgb), 0.2); }
-    }
-
-    /* 8️⃣ تأثير الآلة الكاتبة سطراً بسطر */
-    .athr-typewriter-line {
-      display: block;
-      opacity: 0;
-      transform: translateY(8px);
-      transition: opacity 0.8s ease, transform 0.8s ease;
-      margin-bottom: 6px;
-    }
-    .athr-typewriter-line.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    /* 9️⃣ العداد الدائري لأوقات الصلاة */
-    .athr-prayer-ring {
-      transform: rotate(-90deg);
-      transform-origin: center;
-    }
-    .athr-prayer-ring circle {
-      fill: none;
-      stroke-width: 5;
-      stroke-linecap: round;
-      transition: stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.8s ease;
-    }
-    .athr-ring-track {
-      stroke: rgba(var(--athr-gold-rgb), 0.1);
-    }
-    .athr-ring-progress {
-      stroke: var(--athr-green);
-    }
-    .athr-ring-progress.warning {
-      stroke: var(--athr-gold);
-    }
-    .athr-ring-progress.danger {
-      stroke: #f44336;
-    }
-
-    /* 1️⃣٠️⃣ تقليب الصفحات (كتابة مصحف) */
-    .athr-page-turn-active {
-      animation: athrPageTurnAnim 0.75s cubic-bezier(0.645, 0.045, 0.355, 1) forwards;
-      transform-origin: right center;
-      backface-visibility: hidden;
-    }
-    @keyframes athrPageTurnAnim {
-      0% { transform: perspective(1200px) rotateY(0deg); filter: brightness(1); }
-      40% { filter: brightness(0.85); }
-      100% { transform: perspective(1200px) rotateY(-180deg); filter: brightness(1.05); opacity: 0; }
-    }
-
-    /* 1️⃣1️⃣ نقل الصفحات بتأثير الفيد والضباب */
-    .athr-page-transition {
-      animation: athrPageTransAnim 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-    }
-    @keyframes athrPageTransAnim {
-      0% { opacity: 0; filter: blur(8px); transform: scale(0.98); }
-      100% { opacity: 1; filter: blur(0); transform: scale(1); }
-    }
-
-    /* 1️⃣2️⃣ الهالة الصوتية لزر التشغيل الدائري */
-    .athr-halo-container {
-      position: relative;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .athr-halo-ring {
-      position: absolute;
-      inset: -8px;
-      border: 1px solid rgba(var(--athr-gold-rgb), 0.4);
-      border-radius: 50%;
-      pointer-events: none;
-      animation: athrHaloPulse 2.4s cubic-bezier(0.16, 1, 0.3, 1) infinite;
-      will-change: transform, opacity;
-    }
-    .athr-halo-ring:nth-child(2) { animation-delay: 0.8s; }
-    .athr-halo-ring:nth-child(3) { animation-delay: 1.6s; }
-    @keyframes athrHaloPulse {
-      0% { transform: scale(0.95); opacity: 0.8; }
-      100% { transform: scale(1.45); opacity: 0; }
-    }
-
-    /* 1️⃣٣️⃣ الإطار الإسلامي الزخرفي الفاخر للبطاقات */
-    .athr-frame {
-      position: relative;
-      border: 1px solid rgba(var(--athr-gold-rgb), 0.25);
-      border-radius: 14px;
-      box-sizing: border-box;
-    }
-    .athr-frame::before,
-    .athr-frame::after {
-      content: '';
-      position: absolute;
-      width: 18px;
-      height: 18px;
-      border: 1px solid rgba(var(--athr-gold-rgb), 0.55);
-      pointer-events: none;
-      box-sizing: border-box;
-    }
-    .athr-frame::before {
-      top: -1px; right: -1px;
-      border-left: none; border-bottom: none;
-      border-top-right-radius: 12px;
-    }
-    .athr-frame::after {
-      bottom: -1px; left: -1px;
-      border-right: none; border-top: none;
-      border-bottom-left-radius: 12px;
-    }
-    .athr-frame-corner-tr, .athr-frame-corner-bl {
+    /* ===== الأثر المتبقي الذهبي أثناء السحب (Trail Effect) ===== */
+    .athr-trail-dot {
       position: absolute;
       width: 6px; height: 6px;
-      background: var(--athr-gold);
+      background: #d4af37;
+      border-radius: 50%;
       pointer-events: none;
-    }
-    .athr-frame-corner-tr { top: 3px; right: 3px; border-radius: 50%; }
-    .athr-frame-corner-bl { bottom: 3px; left: 3px; border-radius: 50%; }
-
-    /* 1️⃣٤️⃣ الـ Skeleton Loading الإسلامي الهلالي */
-    .athr-skeleton-container {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      width: 100%;
-      padding: 16px;
-    }
-    .athr-skeleton-bar {
-      height: 16px;
-      background: linear-gradient(90deg, rgba(var(--athr-gold-rgb), 0.05) 25%, rgba(var(--athr-gold-rgb), 0.15) 50%, rgba(var(--athr-gold-rgb), 0.05) 75%);
-      background-size: 200% 100%;
-      animation: athrSkeletonShimmer 2s infinite linear;
-      border-radius: 4px;
-    }
-    .athr-skeleton-crescent {
-      width: 44px; height: 44px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 24px; color: rgba(var(--athr-gold-rgb), 0.45);
-      animation: athrSkeletonPulse 1.6s ease-in-out infinite;
-    }
-    @keyframes athrSkeletonShimmer {
-      0% { background-position: -200% 0; }
-      100% { background-position: 200% 0; }
-    }
-    @keyframes athrSkeletonPulse {
-      0%, 100% { opacity: 0.3; transform: scale(0.9) rotate(-10deg); }
-      50% { opacity: 0.8; transform: scale(1.1) rotate(10deg); }
+      z-index: 99999;
+      opacity: 0.8;
+      box-shadow: 0 0 6px #d4af37;
+      will-change: transform, opacity;
+      transition: transform 0.4s ease-out, opacity 0.4s ease-out;
     }
 
-    /* 1️⃣٥️⃣ لوحة تهنئة إتمام العمل والعبادة (Toast) والكونفيتي */
+    /* ===== لوحة تهنئة إتمام العمل والعبادة (Toast) ===== */
     .athr-toast {
       position: fixed;
       bottom: 40px; left: 50%;
       transform: translateX(-50%) translateY(30px);
       background: #121e14;
-      color: var(--athr-gold);
-      border: 1px solid rgba(var(--athr-gold-rgb), 0.35);
+      color: #d4af37;
+      border: 1px solid rgba(212,175,55,0.35);
       padding: 14px 28px;
       border-radius: 30px;
       font-family: 'Amiri', serif;
@@ -368,100 +93,16 @@
       100% { transform: translate3d(var(--x), var(--y), 0) rotate(360deg); opacity: 0; }
     }
 
-    /* 1️⃣٦️⃣ الأثر المتبقي الذهبي أثناء السحب واللمس (Trail Effect) */
-    .athr-trail-dot {
-      position: absolute;
-      width: 6px; height: 6px;
-      background: var(--athr-gold);
-      border-radius: 50%;
-      pointer-events: none;
-      z-index: 99999;
-      opacity: 0.8;
-      box-shadow: 0 0 6px var(--athr-gold);
-      will-change: transform, opacity;
-      transition: transform 0.4s ease-out, opacity 0.4s ease-out;
-    }
-
-    /* 1️⃣7️⃣ ساعة الحائط الإسلامية الفاخرة */
-    .athr-clock-container {
-      width: 160px; height: 160px;
-      border: 2px solid rgba(var(--athr-gold-rgb), 0.3);
-      border-radius: 50%; position: relative;
-      background: rgba(var(--athr-bg-rgb), 0.4);
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    }
-    .athr-clock-hand {
-      position: absolute; bottom: 50%; left: 50%;
-      transform-origin: bottom center; background: var(--athr-gold);
-      border-radius: 4px; transform: translateX(-50%) rotate(0deg);
-      will-change: transform;
-    }
-    .athr-clock-hour { height: 40px; width: 3px; }
-    .athr-clock-minute { height: 55px; width: 2px; background: #fff; }
-    .athr-clock-second { height: 62px; width: 1px; background: var(--athr-green); }
-    .athr-clock-center {
-      position: absolute; width: 8px; height: 8px;
-      background: var(--athr-gold); border-radius: 50%;
-      top: 50%; left: 50%; transform: translate(-50%, -50%);
-    }
-
-    /* 1️⃣٨️⃣ الهلال المتحرك (Moon Animation) */
-    .athr-moon-container { position: relative; width: 120px; height: 120px; }
-    .athr-moon-body {
-      width: 100px; height: 100px; border-radius: 50%;
-      box-shadow: 15px 15px 0 0 var(--athr-gold);
-      position: absolute; top: 10px; left: -5px; transform-origin: center;
-      animation: athrMoonFloat 8s ease-in-out infinite alternate;
-      will-change: transform;
-    }
-    @keyframes athrMoonFloat {
-      0% { transform: translateY(0) rotate(-5deg); }
-      100% { transform: translateY(-10px) rotate(5deg); }
-    }
-
-    /* 1️⃣٩️⃣ الزجاج الخلفي للبطاقات (Glass Effect) */
-    .athr-glass {
-      background: rgba(var(--athr-bg-rgb), 0.55);
-      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      border-top: 1px solid rgba(var(--athr-gold-rgb), 0.15);
-    }
-
-    /* 2️⃣٠️⃣ غطاء تعتيم وضباب خلفي للـ Dialogs */
-    .athr-blur-overlay {
-      position: fixed; inset: 0; background: rgba(var(--athr-bg-rgb), 0.6);
-      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-      z-index: 999; opacity: 0; transition: opacity 0.5s ease; pointer-events: none;
-    }
-    .athr-blur-overlay.show { opacity: 1; pointer-events: auto; }
-
-    /* 2️⃣1️⃣ نجاح العبادة الفخم (Success Celebration Fullscreen) */
-    .athr-success-screen {
-      position: fixed; inset: 0;
-      background: radial-gradient(circle, rgba(var(--athr-green-rgb), 0.25) 0%, rgba(var(--athr-bg-rgb), 0.95) 100%);
-      z-index: 100000; display: flex; flex-direction: column; align-items: center; justify-content: center;
-      opacity: 0; pointer-events: none; transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .athr-success-screen.show { opacity: 1; pointer-events: auto; }
-    .athr-success-glow {
-      font-size: 80px; color: var(--athr-gold); text-shadow: 0 0 40px rgba(var(--athr-gold-rgb), 0.8);
-      animation: athrSuccessPop 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-    }
-    @keyframes athrSuccessPop {
-      0% { transform: scale(0.5); opacity: 0; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* 2️⃣2️⃣ كارت تذكير الدعاء العشوائي المطور (تأثير زجاجي راقٍ) */
+    /* ===== كارت تذكير الدعاء المباشر العشوائي المطور (تأثير زجاجي فخم) ===== */
     .athr-dua-reminder-card {
       position: fixed;
       bottom: 25px;
       right: 25px;
-      background: rgba(18, 30, 20, 0.85);
+      background: rgba(18, 30, 20, 0.88);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
       border: 1px solid rgba(212, 175, 55, 0.3);
-      border-right: 4px solid var(--athr-gold);
+      border-right: 4px solid #d4af37;
       padding: 15px 20px;
       border-radius: 14px;
       color: #fff;
@@ -479,84 +120,15 @@
       transform: translateY(0);
       opacity: 1;
     }
-
-    @media (prefers-reduced-motion: reduce) {
-      .athr-particle, .athr-ray, .athr-fog-layer, .athr-fog-layer-2,
-      .athr-ambient-bg-animate, .athr-halo-ring, .athr-moon-body, .athr-dua-reminder-card {
-        animation: none !important; transform: none !important;
-      }
-    }
   `;
   document.head.appendChild(styles);
 
-  // -----------------------------------------------------------------------
-  // 🎵 إدارة الأصوات المحيطية (Ambient Sounds Core)
-  // -----------------------------------------------------------------------
-  const AudioEngine = {
-    sources: {
-      rain: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
-      river: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
-      birds: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
-      wind: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3',
-      ocean: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3'
-    },
-    instances: {},
-    
-    play(track, volume = 0.5) {
-      if (!CONFIG.soundsEnabled || !this.sources[track]) return;
-      if (!this.instances[track]) {
-        const audio = new Audio(this.sources[track]);
-        audio.loop = true;
-        this.instances[track] = audio;
-      }
-      const audio = this.instances[track];
-      audio.volume = volume;
-      audio.play().catch(err => console.log('بانتظار تفاعل لمس الشاشة لتشغيل الهندسة الصوتية المحيطية.', err));
-    },
-
-    pause(track) {
-      if (this.instances[track]) this.instances[track].pause();
-    },
-
-    setVolume(track, volume) {
-      if (this.instances[track]) this.instances[track].volume = Math.max(0, Math.min(1, volume));
-    },
-
-    stopAll() {
-      Object.keys(this.instances).forEach(key => this.instances[key].pause());
-    }
-  };
-
-  // -----------------------------------------------------------------------
-  // 💫 مصفوفة محرك الأثر والجماليات الأساسية للربط والتكامل
-  // -----------------------------------------------------------------------
   let activeFallingInterval = null;
   let activeStarInterval = null;
   let activeDuaInterval = null;
   const trailPool = [];
 
   const AthrEffects = {
-    enable() {
-      CONFIG.particlesEnabled = true; CONFIG.soundsEnabled = true;
-      CONFIG.motionEnabled = true; CONFIG.glowEnabled = true;
-      this.enableParticles();
-      this.startContinuousStars();
-      this.startContinuousDuaReminder();
-      const bg = document.body;
-      if (bg && CONFIG.motionEnabled) bg.classList.add('athr-ambient-bg-animate');
-    },
-
-    disable() {
-      CONFIG.particlesEnabled = false; CONFIG.soundsEnabled = false;
-      CONFIG.motionEnabled = false; CONFIG.glowEnabled = false;
-      this.disableParticles(); 
-      this.stopContinuousStars();
-      this.stopContinuousDuaReminder();
-      AudioEngine.stopAll();
-      const bg = document.body;
-      if (bg) bg.classList.remove('athr-ambient-bg-animate');
-    },
-
     enableParticles() {
       CONFIG.particlesEnabled = true;
       if (!activeFallingInterval && !CONFIG.isBackground) {
@@ -573,13 +145,13 @@
       document.querySelectorAll('.athr-particle').forEach(p => p.remove());
     },
 
-    // 🌟 ميزة تشغيل النجوم المتلألئة بشكل دوري متواصل وتلقائي فوري
+    // 🌟 تشغيل النجوم المتلألئة التلقائية بشكل متواصل هادئ
     startContinuousStars() {
       if (prefersReducedMotion) return;
       if (!activeStarInterval) {
         activeStarInterval = setInterval(() => {
           this.spawnTwinklingStars(Math.floor(Math.random() * 3) + 2);
-        }, 4000); // ضخ نجوم جديدة كل 4 ثوانٍ بنعومة
+        }, 4000);
       }
     },
 
@@ -590,14 +162,14 @@
       }
     },
 
-    // 🌟 ميزة كارت تذكير الدعاء العشوائي المستمر والآمن
+    // 🌟 تشغيل كارت الدعاء العشوائي المباشر كل فترة
     startContinuousDuaReminder() {
       if (!activeDuaInterval) {
         this._injectDuaCardUI();
         activeDuaInterval = setInterval(() => {
           this._cycleDuaReminder();
-        }, 18000); // تبديل وعرض كارت التذكير عشوائياً كل 18 ثانية
-        setTimeout(() => this._cycleDuaReminder(), 3000); // ظهور أول كارت عشوائي بعد فتح الصفحة بـ 3 ثوانٍ
+        }, 20000); // يظهر دعاء جديد تماماً كل 20 ثانية
+        setTimeout(() => this._cycleDuaReminder(), 3000); // أول ظهور بعد فتح التطبيق بـ 3 ثوانٍ
       }
     },
 
@@ -622,38 +194,30 @@
       const card = document.getElementById('athrDuaReminder');
       if (!card) return;
 
-      // إخفاء الكارت أولاً لتحديث الاسم الجديد بسلاسة
       card.classList.remove('athr-show');
 
       setTimeout(() => {
-        // السحر هنا: اختيار اسم عشوائي تماماً من التلاتة المحددين بناءً على طلبك
-        const randomIndex = Math.floor(Math.random() * DUA_NAMES_POOL.length);
-        const randomName = DUA_NAMES_POOL[randomIndex];
+        // اختيار دعاء كامل مباشر عشوائي تماماً من القائمة
+        const randomIndex = Math.floor(Math.random() * DUA_POOL.length);
+        const randomDuaText = DUA_POOL[randomIndex];
         
         card.innerHTML = `
-          <div style="display:flex; align-items:center; gap:8px;">
-            <span style="font-size:20px;">🤲</span>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span style="font-size:22px;">🤲</span>
             <div style="flex:1;">
-              <div style="font-size:11px; color:var(--athr-gold); font-weight:bold;">لَفْتَةٌ إِيمَانِيَّةٌ عَابِرَةٌ:</div>
-              <div style="font-size:14px; line-height:1.5; margin-top:2px;">لا تنسَ الدعاء لـ <strong style="color:var(--athr-gold);">${randomName}</strong> بالرحمة والمغفرة في صلاتك.</div>
+              <div style="font-size:11px; color:#d4af37; font-weight:bold;">دُعَاءٌ طَيِّبٌ لِأَهْلِ الأَثَرِ:</div>
+              <div style="font-size:15px; line-height:1.6; margin-top:3px; font-weight:500; color:#fff;">"${randomDuaText}"</div>
             </div>
           </div>
         `;
         card.classList.add('athr-show');
 
-        // إخفاء الكارت تلقائياً بعد بقائه ظاهراً لمدة 7 ثوانٍ مريحة للعين
+        // يختفي الكارت بعد 8 ثوانٍ من ظهوره تلقائياً
         setTimeout(() => {
           card.classList.remove('athr-show');
-        }, 7000);
+        }, 8000);
 
       }, 600);
-    },
-
-    setQuality(level) {
-      if (['low', 'medium', 'high'].includes(level)) {
-        CONFIG.quality = level;
-        if (CONFIG.particlesEnabled) { this.disableParticles(); this.enableParticles(); }
-      }
     },
 
     _spawnFallingParticle() {
@@ -668,8 +232,8 @@
       el.textContent = shape;
 
       let size = Math.random() * 10 + 10;
-      let color = 'var(--athr-gold)';
-      if (shape === '🌿') { color = 'var(--athr-green)'; size = Math.random() * 8 + 8; }
+      let color = '#d4af37';
+      if (shape === '🌿') { color = '#4CAF50'; size = Math.random() * 8 + 8; }
       else if (shape === '•') { size = Math.random() * 4 + 4; }
 
       const left = Math.random() * 100;
@@ -684,19 +248,6 @@
       setTimeout(() => { el.remove(); }, (duration + delay) * 1000);
     },
 
-    initAtmosphericEffects() {
-      if (document.querySelector('.athr-light-rays-container')) return;
-      const rays = document.createElement('div');
-      rays.className = 'athr-light-rays-container';
-      rays.innerHTML = '<div class="athr-ray"></div><div class="athr-ray"></div><div class="athr-ray"></div>';
-      document.body.appendChild(rays);
-
-      const fog = document.createElement('div');
-      fog.className = 'athr-fog-container';
-      fog.innerHTML = '<div class="athr-fog-layer"></div><div class="athr-fog-layer-2"></div>';
-      document.body.appendChild(fog);
-    },
-
     spawnTwinklingStars(count = 10) {
       if (CONFIG.isBackground || prefersReducedMotion) return;
       const fragment = document.createDocumentFragment();
@@ -705,63 +256,13 @@
         star.className = 'athr-particle';
         star.textContent = '✦';
         star.style.cssText = `
-          top: ${Math.random() * 85}vh; left: ${Math.random() * 100}vw; color: var(--athr-gold);
+          top: ${Math.random() * 85}vh; left: ${Math.random() * 100}vw; color: #d4af37;
           font-size: ${Math.random() * 5 + 4}px; animation: athrTwinkleAnim ${Math.random() * 2.5 + 2}s ease-in-out infinite;
         `;
         fragment.appendChild(star);
-        setTimeout(() => star.remove(), 4500); // تدمير النجمة ذاتياً لتوفير الكفاءة والأداء
+        setTimeout(() => star.remove(), 4500);
       }
       document.body.appendChild(fragment);
-    },
-
-    attachRipple(buttonElement) {
-      if (!buttonElement) return;
-      buttonElement.addEventListener('click', function (e) {
-        const circle = document.createElement('span');
-        circle.className = 'athr-ripple';
-        const rect = buttonElement.getBoundingClientRect();
-        const diameter = Math.max(rect.width, rect.height);
-        circle.style.width = circle.style.height = `${diameter}px`;
-        circle.style.left = `${e.clientX - rect.left - (diameter/2)}px`;
-        circle.style.top = `${e.clientY - rect.top - (diameter/2)}px`;
-        buttonElement.appendChild(circle);
-        circle.addEventListener('animationend', () => circle.remove());
-      }, { passive: true });
-    },
-
-    revealVerse(element) {
-      if (!element) return;
-      element.classList.remove('athr-verse-reveal-active');
-      element.classList.add('athr-verse-reveal');
-      void element.offsetWidth;
-      element.classList.add('athr-verse-reveal-active');
-    },
-
-    typewriterVerse(container, lines = [], delayMs = 1200) {
-      if (!container || lines.length === 0) return;
-      container.innerHTML = '';
-      lines.forEach((lineText, idx) => {
-        const lineEl = document.createElement('span');
-        lineEl.className = 'athr-typewriter-line';
-        lineEl.textContent = lineText;
-        container.appendChild(lineEl);
-        setTimeout(() => { lineEl.classList.add('visible'); }, idx * delayMs);
-      });
-    },
-
-    updatePrayerRing(svgElement, percentRemaining) {
-      if (!svgElement) return;
-      const progressCircle = svgElement.querySelector('.athr-ring-progress');
-      if (!progressCircle) return;
-      const radius = progressCircle.r.baseVal.value;
-      const circumference = 2 * Math.PI * radius;
-      const clampVal = Math.max(0, Math.min(100, percentRemaining));
-      const offset = circumference - (clampVal / 100) * circumference;
-      progressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
-      progressCircle.style.strokeDashoffset = offset;
-      progressCircle.classList.remove('warning', 'danger');
-      if (clampVal < 15) progressCircle.classList.add('danger');
-      else if (clampVal < 40) progressCircle.classList.add('warning');
     },
 
     tasbihTap(counterElement, count) {
@@ -813,17 +314,6 @@
       document.body.appendChild(fragment);
     },
 
-    applyIslamicFrame(container) {
-      if (!container) return; container.classList.add('athr-frame');
-      const tr = document.createElement('div'); tr.className = 'athr-frame-corner-tr';
-      const bl = document.createElement('div'); bl.className = 'athr-frame-corner-bl';
-      container.appendChild(tr); container.appendChild(bl);
-    },
-
-    playAmbientSound(track, volume) { AudioEngine.play(track, volume); },
-    pauseAmbientSound(track) { AudioEngine.pause(track); },
-    stopAllAmbientSounds() { AudioEngine.stopAll(); },
-
     initTrailEffect() {
       const handleMove = (e) => {
         if (CONFIG.isBackground || prefersReducedMotion) return;
@@ -846,22 +336,6 @@
       setTimeout(() => { dot.remove(); if (trailPool.length < 20) trailPool.push(dot); }, 400);
     },
 
-    createIslamicClock(parent) {
-      if (!parent) return;
-      const clock = document.createElement('div'); clock.className = 'athr-clock-container';
-      clock.innerHTML = '<div class="athr-clock-hand athr-clock-hour" id="athr-h"></div><div class="athr-clock-hand athr-clock-minute" id="athr-m"></div><div class="athr-clock-hand athr-clock-second" id="athr-s"></div><div class="athr-clock-center"></div>';
-      parent.appendChild(clock);
-      const update = () => {
-        const d = new Date(); const h = d.getHours(); const m = d.getMinutes(); const s = d.getSeconds();
-        const hA = (h % 12) * 30 + m * 0.5; const mA = m * 6; const sA = s * 6;
-        const hE = clock.querySelector('#athr-h'); const mE = clock.querySelector('#athr-m'); const sE = clock.querySelector('#athr-s');
-        if (hE) hE.style.transform = `translateX(-50%) rotate(${hA}deg)`;
-        if (mE) mE.style.transform = `translateX(-50%) rotate(${mA}deg)`;
-        if (sE) sE.style.transform = `translateX(-50%) rotate(${sA}deg)`;
-      };
-      setInterval(update, 1000); update();
-    },
-
     initHomeCardBreathing() {
       const heroCard = document.getElementById('homeHeroCard');
       if (heroCard && CONFIG.motionEnabled) {
@@ -870,54 +344,30 @@
           heroCard.style.transform = heroCard.style.transform === 'scale(1.02)' ? 'scale(1)' : 'scale(1.02)';
         }, 7000);
       }
-    },
-
-    enableDynamicShadows(element) {
-      if (!element) return;
-      window.addEventListener('mousemove', (e) => {
-        if (CONFIG.isBackground) return;
-        const rect = element.getBoundingClientRect();
-        const x = e.clientX - (rect.left + rect.width / 2);
-        const y = e.clientY - (rect.top + rect.height / 2);
-        const sX = -x * 0.08; const sY = -y * 0.08;
-        const blur = Math.min(25, Math.max(10, Math.sqrt(x*x + y*y) * 0.05));
-        element.style.boxShadow = `${sX}px ${sY}px ${blur}px rgba(0, 0, 0, 0.45)`;
-      }, { passive: true });
     }
   };
 
-  // -----------------------------------------------------------------------
-  // ⚡ إدارة وتحسين دورة حيوية التطبيق وأداء البطارية والذاكرة
-  // -----------------------------------------------------------------------
   document.addEventListener('visibilitychange', () => {
     CONFIG.isBackground = document.hidden;
     if (document.hidden) { 
       AthrEffects.disableParticles(); 
       AthrEffects.stopContinuousStars();
       AthrEffects.stopContinuousDuaReminder();
-      AudioEngine.stopAll(); 
     } else {
-      if (CONFIG.particlesEnabled) {
-        AthrEffects.enableParticles();
-        AthrEffects.startContinuousStars();
-        AthrEffects.startContinuousDuaReminder();
-      }
+      AthrEffects.enableParticles();
+      AthrEffects.startContinuousStars();
+      AthrEffects.startContinuousDuaReminder();
     }
   });
 
   window.AthrEffects = AthrEffects;
 
   document.addEventListener('DOMContentLoaded', () => {
-    AthrEffects.initAtmosphericEffects();
     AthrEffects.enableParticles();
-    AthrEffects.startContinuousStars(); // إطلاق النجوم التلقائية
-    AthrEffects.startContinuousDuaReminder(); // إطلاق كارت الدعاء العشوائي بالتناوب
+    AthrEffects.startContinuousStars();
+    AthrEffects.startContinuousDuaReminder();
     AthrEffects.initTrailEffect();
     AthrEffects.initHomeCardBreathing();
-
-    // صب كلاس التدرج اللوني على body التطبيق فوراً
-    document.body.classList.add('athr-ambient-bg');
-    if (CONFIG.motionEnabled) document.body.classList.add('athr-ambient-bg-animate');
   });
 
 })();
