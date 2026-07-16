@@ -4010,9 +4010,7 @@ function countZekr(cat, i, max) {
   // 👇 السطر السحري الجديد اللي هيشيك على اكتمال القسم ويحدث العداد 9/9
   boostFlame(1);
   checkCategoryCompleted(cat);
- if (window.AthrEffects && cur >= max) {
-  window.AthrEffects.showCompletionToast(`تم بحمد الله إتمام ذِكر: ${z.title} ✨`);
-}
+
 }
 
 
@@ -4044,9 +4042,7 @@ function incrementTasbeh() {
   }
   updateStats();
   boostFlame(0.5);
- if (window.AthrEffects) {
-  window.AthrEffects.tasbihTap(document.getElementById('tasbehCount'), tasbehCount);
-}
+
 }
 
 
