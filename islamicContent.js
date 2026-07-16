@@ -3615,6 +3615,10 @@ scholars: [
     `;
     return;
   }
+  if (subCat === 'books') {
+      window.renderIslamicBooks(); // استدعاء دالة ضخ الكتب فوراً
+      return; // العودة لمنع بقية الشروط من العمل
+  }
 
   if (data.length === 0) {
     container.innerHTML = '<div style="color:var(--text2); text-align:center; padding:20px;">⏳ جاري تجهيز وكتابة بحوث هذا القسم...</div>';
@@ -3938,3 +3942,71 @@ setTimeout(() => {
   }
 }, 300);
   
+// ==========================================
+// 📚 نظام المكتبة الرقمية وتحميل الكتب - كُن ذا أثر
+// ==========================================
+
+window.islamicBooksData = [
+  {
+    title: "صحيح البخاري",
+    author: "الإمام محمد بن إسماعيل البخاري",
+    desc: "الجامع المسند الصحيح المختصر من أمور رسول الله ﷺ وسننه وأيامه، وهو أصح كتاب بعد كتاب الله تعالى.",
+    readUrl: "https://waqfeya.net/book.php?id=1254", // روابط موثوقة من المكتبة الوقفية
+    downloadUrl: "https://archive.org/download/FPs Bukhari/s Bukhari.pdf"
+  },
+  {
+    title: "صحيح مسلم",
+    author: "الإمام مسلم بن الحجاج النيسابوري",
+    desc: "الجامع الصحيح، وهو أحد أهم جوامع الحديث النبوي عند أهل السنة والجماعة، صنف فيه الأحاديث الصحيحة المرفوعة.",
+    readUrl: "https://waqfeya.net/book.php?id=1327",
+    downloadUrl: "https://archive.org/download/FPsmuslim/smuslim.pdf"
+  },
+  {
+    title: "الفقه الميسر في ضوء الكتاب والسنة",
+    author: "نخبة من العلماء (مجمع الملك فهد)",
+    desc: "كتاب يعرض الأحكام الفقهية في العبادات والمعاملات بأسلوب ميسر وسهل يقرب الفقه الإسلامي لكل مسلم.",
+    readUrl: "https://waqfeya.net/book.php?id=1460",
+    downloadUrl: "https://archive.org/download/fiqh_moyassar/fiqh_moyassar.pdf"
+  },
+  {
+    title: "الرحيق المختوم",
+    author: "الشيخ صفي الرحمن المباركفوري",
+    desc: "من أشهر كتب السيرة النبوية المطهرة، حاز على المركز الأول في مسابقة رابطة العالم الإسلامي في السيرة النبوية.",
+    readUrl: "https://waqfeya.net/book.php?id=660",
+    downloadUrl: "https://archive.org/download/Al-Raheeq_Al-Makhtoom/Al-Raheeq_Al-Makhtoom.pdf"
+  },
+  {
+    title: "رياض الصالحين",
+    author: "الإمام يحيى بن شرف النووي",
+    desc: "كتاب يجمع الأحاديث الصحيحة المأثورة عن رسول الله ﷺ في جميع أبواب العقيدة والعبادة والآداب والرقائق.",
+    readUrl: "https://waqfeya.net/book.php?id=255",
+    downloadUrl: "https://archive.org/download/FP255/255.pdf"
+  }
+];
+
+// دالة توليد ورسم كروت الكتب داخل حاوية المكتبة
+window.renderIslamicBooks = function() {
+  const container = document.getElementById('islamicCardsContainer');
+  if (!container) return;
+
+  container.innerHTML = `
+    <div style="text-align: right; margin-bottom: 15px; padding: 0 5px;">
+      <span style="color: var(--gold); font-weight: bold; font-size: 14px;">📖 تحميل وقراءة أمهات الكتب الشرعية:</span>
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr; gap: 14px; direction: rtl;">
+      ${window.islamicBooksData.map(book => `
+        <div class="zekr-card" style="border-right: 4px solid var(--gold); background: var(--card); padding: 18px; border-radius: 14px; position: relative;">
+          <div style="font-size: 18px; font-weight: bold; color: var(--gold); margin-bottom: 4px; font-family: 'Amiri', serif;">${book.title}</div>
+          <div style="font-size: 12px; color: var(--green); margin-bottom: 10px; font-weight: bold;">المؤلف: ${book.author}</div>
+          <p style="font-size: 14px; line-height: 1.8; color: var(--text2); text-align: justify; margin-bottom: 15px; font-family: 'Amiri', serif;">${book.desc}</p>
+          
+          <!-- أزرار التفاعل (القراءة والتحميل) -->
+          <div style="display: flex; gap: 10px;">
+            <a href="${book.readUrl}" target="_blank" style="flex: 1; text-align: center; text-decoration: none; padding: 10px; background: var(--bg2); color: var(--gold); border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-weight: bold; font-family: 'Amiri', serif; transition: background 0.2s;">🌐 تصفح الكتاب</a>
+            <a href="${book.downloadUrl}" download target="_blank" style="flex: 1; text-align: center; text-decoration: none; padding: 10px; background: var(--gold); color: #111; border: none; border-radius: 8px; font-size: 13px; font-weight: bold; font-family: 'Amiri', serif; box-shadow: 0 3px 8px rgba(212,175,55,0.15); transition: opacity 0.2s;">📥 تحميل PDF</a>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+};
