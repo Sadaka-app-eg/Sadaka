@@ -3943,7 +3943,7 @@ setTimeout(() => {
 }, 300);
   
 // ==========================================
-// 📚 نظام المكتبة الرقمية (تصفح إسلام ويب داخلي) - كُن ذا أثر
+// 📚 نظام المكتبة الرقمية وقارئ الـ PDF المطور - كُن ذا أثر
 // ==========================================
 
 window.islamicBooksData = [
@@ -3951,74 +3951,155 @@ window.islamicBooksData = [
     id: "bukhari",
     title: "صحيح البخاري",
     author: "الإمام محمد بن إسماعيل البخاري",
-    desc: "الجامع المسند الصحيح المختصر من أمور رسول الله ﷺ وسننه وأيامه، يتصفح الآن مباشرة من باب بدء الوحي.",
-    url: "https://www.islamweb.net/ar/library/index.php?page=bookcontents&idfrom=1&idto=1&bk_no=0"
+    desc: "الجامع المسند الصحيح المختصر من أمور رسول الله ﷺ وسننه وأيامه، وهو أصح كتاب بعد كتاب الله تعالى.",
+    pdfUrl: "https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi09.pdf" // رابط تجريبي سريع، هنغيره بروابط الكتب المستقرة
   },
   {
     id: "muslim",
     title: "صحيح مسلم",
     author: "الإمام مسلم بن الحجاج النيسابوري",
-    desc: "الجامع الصحيح، أحد أهم جوامع الحديث النبوي الشريف، يتصفح الآن مباشرة من كتاب الإيمان.",
-    url: "https://www.islamweb.net/ar/library/index.php?page=bookcontents&idfrom=1&idto=1&bk_no=1"
-  },
-  {
-    id: "riyad",
-    title: "رياض الصالحين",
-    author: "الإمام يحيى بن شرف النووي",
-    desc: "كتاب يجمع الأحاديث الصحيحة المأثورة عن رسول الله ﷺ في الآداب والرقائق، يفتح مباشرة على باب الإخلاص.",
-    url: "https://www.islamweb.net/ar/library/index.php?page=bookcontents&idfrom=1&idto=1&bk_no=22"
+    desc: "الجامع الصحيح، وهو أحد أهم جوامع الحديث النبوي عند أهل السنة والجماعة.",
+    pdfUrl: "https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi09.pdf"
   }
 ];
+
+// متغيرات التحكم في القارئ الحالي
+window.currentPdfDoc = null;
+window.currentPdfPage = 1;
+window.currentPdfScale = 1.2;
+window.activeBookId = null;
 
 window.renderIslamicBooks = function() {
   const container = document.getElementById('islamicCardsContainer');
   if (!container) return;
 
   container.innerHTML = `
-    <div style="text-align: right; margin-bottom: 15px; padding: 0 5px;">
-      <span style="color: var(--gold); font-weight: bold; font-size: 14px;">📚 تصفح وقراءة الموسوعة الإسلامية (إسلام ويب) داخل التطبيق:</span>
+    <div style="text-align: right; margin-bottom: 15px; padding: 0 5px; direction: rtl;">
+      <span style="color: var(--gold); font-weight: bold; font-size: 14px;">📚 مكتبة كُن ذا أثر الإلكترونية:</span>
     </div>
     <div style="display: grid; grid-template-columns: 1fr; gap: 16px; direction: rtl;">
-      ${window.islamicBooksData.map(book => `
+      ${window.islamicBooksData.map(book => {
+        // جلب آخر صفحة توقف عندها المستخدم من الـ LocalStorage
+        const savedPage = localStorage.getItem(`book_page_${book.id}`) || 1;
+        return `
         <div class="zekr-card" style="border-right: 4px solid var(--gold); background: var(--card); padding: 18px; border-radius: 14px; display: flex; flex-direction: column; gap: 10px;">
           <div style="font-size: 18px; font-weight: bold; color: var(--gold); font-family: 'Amiri', serif;">${book.title}</div>
           <div style="font-size: 12px; color: var(--green); font-weight: bold;">المؤلف: ${book.author}</div>
           <p style="font-size: 14px; line-height: 1.7; color: var(--text2); text-align: justify; font-family: 'Amiri', serif; margin: 0;">${book.desc}</p>
           
-          <!-- وعاء التصفح الداخلي المدمج المباشر -->
-          <div id="viewer_${book.id}" style="display: none; width: 100%; height: 500px; margin-top: 10px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: #fff;">
-            <iframe id="iframe_${book.id}" src="" style="width:100%; height:100%; border:none;"></iframe>
+          ${savedPage > 1 ? `<div style="font-size: 12px; color: var(--gold);">🔖 وصلت سابقاً إلى صفحة: ${savedPage}</div>` : ''}
+
+          <!-- منطقة وعاء القارئ المحلي النظيف للب دي اف -->
+          <div id="viewer_${book.id}" style="display: none; width: 100%; margin-top: 10px; border: 1px solid var(--border); border-radius: 10px; background: #222; overflow: hidden; direction: ltr;">
+            
+            <!-- شريط أدوات التحكم الاحترافي داخل الكتاب -->
+            <div style="background: #111; padding: 8px; display: flex; justify-content: space-between; align-items: center; gap: 5px; border-bottom: 1px solid var(--border); font-family: sans-serif; direction: rtl;">
+              <div style="display: flex; gap: 5px;">
+                <button onclick="window.changePdfPage(-1)" style="padding: 6px 10px; background: var(--bg2); color: #fff; border: 1px solid var(--border); border-radius: 4px; cursor: pointer;">◀ السابق</button>
+                <button onclick="window.changePdfPage(1)" style="padding: 6px 10px; background: var(--bg2); color: #fff; border: 1px solid var(--border); border-radius: 4px; cursor: pointer;">التالي ▶</button>
+              </div>
+              <span style="color: #fff; font-size: 13px;">صفحة: <span id="page_num_${book.id}">1</span> / <span id="page_count_${book.id}">0</span></span>
+              <div style="display: flex; gap: 5px;">
+                <button onclick="window.zoomPdf(0.2)" style="padding: 4px 8px; background: var(--bg2); color: var(--gold); border: 1px solid var(--border); border-radius: 4px;">➕</button>
+                <button onclick="window.zoomPdf(-0.2)" style="padding: 4px 8px; background: var(--bg2); color: var(--gold); border: 1px solid var(--border); border-radius: 4px;">➖</button>
+              </div>
+            </div>
+
+            <!-- الكانفاس الحقيقي اللي بيرسم صفحات الكتاب بنظافة -->
+            <div style="width: 100%; overflow-x: auto; padding: 10px 0; display: flex; justify-content: center;">
+              <canvas id="canvas_${book.id}" style="max-width: 100%; box-shadow: 0 4px 12px rgba(0,0,0,0.5);"></canvas>
+            </div>
           </div>
 
-          <!-- زرار التصفح المباشر داخل الكارت -->
-          <div style="display: flex; margin-top: 5px;">
-            <button onclick="window.toggleBookInlineReader('${book.id}', '${book.url}')" id="btn_${book.id}" style="flex: 1; padding: 12px; background: var(--bg2); color: var(--gold); border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-weight: bold; font-family: 'Amiri', serif; cursor: pointer;">📖 تصفح أبواب الكتاب داخلياً</button>
+          <!-- أزرار التفاعل النشطة -->
+          <div style="display: flex; margin-top: 5px; gap: 10px;">
+            <button onclick="window.openLocalBookReader('${book.id}', '${book.pdfUrl}')" id="btn_${book.id}" style="flex: 1; padding: 12px; background: var(--bg2); color: var(--gold); border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-weight: bold; font-family: 'Amiri', serif; cursor: pointer;">📖 قراءة الكتاب المدمج</button>
           </div>
         </div>
-      `).join('')}
+        `;
+      }).join('')}
     </div>
   `;
 };
 
-window.toggleBookInlineReader = function(bookId, url) {
+window.openLocalBookReader = function(bookId, pdfUrl) {
   const viewer = document.getElementById(`viewer_${bookId}`);
-  const iframe = document.getElementById(`iframe_${bookId}`);
   const btn = document.getElementById(`btn_${bookId}`);
   
-  if (!viewer || !iframe || !btn) return;
+  if (!viewer || !btn) return;
 
   if (viewer.style.display === 'none') {
-    // ضخ الرابط المباشر في الأي فريم فوراً ليفتح داخل الكارت بنجاح
-    iframe.src = url;
-    viewer.style.display = 'block';
-    btn.textContent = '✕ إغلاق التصفح الداخلي';
-    btn.style.borderColor = 'rgba(255,100,100,0.4)';
-    btn.style.color = '#ff6b6b';
+    window.activeBookId = bookId;
+    // استرجاع آخر صفحة مسجلة في الـ LocalStorage للكتاب ده بالذات
+    window.currentPdfPage = parseInt(localStorage.getItem(`book_page_${bookId}`)) || 1;
+    
+    btn.textContent = '⏳ جاري فتح صفحات الكتاب...';
+    btn.disabled = true;
+
+    // تحميل ملف الـ PDF أونلاين وتحويله لبافر داخلي طلقة
+    pdfjsLib.getDocument(pdfUrl).promise.then(pdfDoc => {
+      window.currentPdfDoc = pdfDoc;
+      document.getElementById(`page_count_${bookId}`).textContent = pdfDoc.numPages;
+      
+      viewer.style.display = 'block';
+      btn.textContent = '✕ إغلاق الكتاب';
+      btn.disabled = false;
+      btn.style.borderColor = 'rgba(255,100,100,0.3)';
+      btn.style.color = '#ff6b6b';
+
+      window.renderPdfPage();
+    }).catch(err => {
+      alert('تعذر تحميل ملف الكتاب، تأكد من اتصال الإنترنت! 🌐');
+      btn.textContent = '📖 قراءة الكتاب المدمج';
+      btn.disabled = false;
+    });
   } else {
+    // قفل وتصفير القارئ لتوفير الذاكرة
     viewer.style.display = 'none';
-    iframe.src = ''; // تفريغ الرابط عند القفل
-    btn.textContent = '📖 تصفح أبواب الكتاب داخلياً';
+    window.currentPdfDoc = null;
+    btn.textContent = '📖 قراءة الكتاب المدمج';
     btn.style.borderColor = 'var(--border)';
     btn.style.color = 'var(--gold)';
   }
+};
+
+window.renderPdfPage = function() {
+  if (!window.currentPdfDoc || !window.activeBookId) return;
+
+  window.currentPdfDoc.getPage(window.currentPdfPage).then(page => {
+    const canvas = document.getElementById(`canvas_${window.activeBookId}`);
+    const ctx = canvas.getContext('2d');
+    const viewport = page.getViewport({ scale: window.currentPdfScale });
+
+    canvas.height = viewport.height;
+    canvas.width = viewport.width;
+
+    const renderContext = {
+      canvasContext: ctx,
+      viewport: viewport
+    };
+
+    page.render(renderContext).promise.then(() => {
+      document.getElementById(`page_num_${window.activeBookId}`).textContent = window.currentPdfPage;
+      // حفظ الصفحة الحالية تلقائياً عشان لو قفل ورجع تاني يفتكرها!
+      localStorage.setItem(`book_page_${window.activeBookId}`, window.currentPdfPage);
+    });
+  });
+};
+
+window.changePdfPage = function(direction) {
+  if (!window.currentPdfDoc) return;
+  
+  const nextPages = window.currentPdfPage + direction;
+  if (nextPages >= 1 && nextPages <= window.currentPdfDoc.numPages) {
+    window.currentPdfPage = nextPages;
+    window.renderPdfPage();
+  }
+};
+
+window.zoomPdf = function(amount) {
+  window.currentPdfScale += amount;
+  if (window.currentPdfScale < 0.6) window.currentPdfScale = 0.6;
+  if (window.currentPdfScale > 2.5) window.currentPdfScale = 2.5;
+  window.renderPdfPage();
 };
