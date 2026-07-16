@@ -75,7 +75,7 @@ function isMushafImage(url) {
 }
 function isCacheableAudio(url) {
   if (CACHEABLE_AUDIO_HOSTS.includes(url.hostname)) return true;
-  if (url.pathname.startsWith('/audio/')) return true; // ملفات محلية (تلاوات خاشعة / أذان)
+ if (url.pathname.includes('/audio/')) return true; // ملفات محلية (تلاوات خاشعة / أذان)
   return false;
 }
 
@@ -123,10 +123,9 @@ async function staleWhileRevalidate(request, cacheName) {
   const networkPromise = fetch(request).then(response => {
     if (response && response.status === 200) cache.put(request, response.clone());
     return response;
-  }).catch(() => cached);
+  }).catch(() => cached || new Response('', { status: 504, statusText: 'Offline' }));
   return cached || networkPromise;
 }
-
 // ===========================================
 // الرسائل (Messages من index.html)
 // ===========================================
