@@ -2,7 +2,7 @@
 // ===========================================
 // sw.js — Service Worker لتطبيق "كُن ذا أثر"
 // ===========================================
-const APP_VERSION = 'v7';
+const APP_VERSION = 'v8';
 const APP_SHELL_CACHE = `athr-app-shell-${APP_VERSION}`;
 const AUDIO_CACHE  = 'athr-audio-cache-v1';   // دائم — سور/تلاوات/أذان محمّلة يدويًا
 const MUSHAF_CACHE = 'athr-mushaf-cache-v1';  // دائم — صفحات المصحف المصوّر
@@ -105,15 +105,48 @@ self.addEventListener('fetch', (event) => {
 });
 async function cacheFirst(request, cacheName) {
   const cache = await caches.open(cacheName);
-  const cached = await cache.match(request);
-  if (cached) return cached;
+
+  const rangeHeader = request.headers.get('range');
+  const lookupRequest = rangeHeader ? new Request(request.url, { method: 'GET' }) : request;
+
+  const cached = await cache.match(lookupRequest);
+
+  if (cached) {
+    if (rangeHeader) {
+      return serveRangeFromCachedResponse(cached, rangeHeader);
+    }
+    return cached;
+  }
+
   try {
     const response = await fetch(request);
-    if (response && response.status === 200) cache.put(request, response.clone());
+    if (response && response.status === 200) {
+      cache.put(lookupRequest, response.clone());
+    }
     return response;
   } catch (e) {
-    return cached || new Response('', { status: 504, statusText: 'Offline' });
+    return new Response('', { status: 504, statusText: 'Offline' });
   }
+}
+
+async function serveRangeFromCachedResponse(cachedResponse, rangeHeader) {
+  const blob = await cachedResponse.clone().blob();
+  const size = blob.size;
+  const match = rangeHeader.match(/bytes=(\d+)-(\d*)/);
+  const start = match ? parseInt(match[1], 10) : 0;
+  const end = match && match[2] ? parseInt(match[2], 10) : size - 1;
+  const chunk = blob.slice(start, end + 1);
+
+  return new Response(chunk, {
+    status: 206,
+    statusText: 'Partial Content',
+    headers: {
+      'Content-Type': blob.type || 'audio/mpeg',
+      'Content-Range': `bytes ${start}-${end}/${size}`,
+      'Content-Length': chunk.size,
+      'Accept-Ranges': 'bytes'
+    }
+  });
 }
 
 async function staleWhileRevalidate(request, cacheName) {
