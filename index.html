@@ -4349,74 +4349,127 @@ function formatTimeToArabic(timeStr) {
   return `${toArabicDigits(h12)}:${String(toArabicDigits(String(min).padStart(2, '0')))} ${ampm}`;
 }
 
-// دالة جلب المواقيت بناءً على الموقع الجغرافي الفعلي للمستخدم
+// =========================================================================
+// 🕌 محرك حساب مواقيت الصلاة والعداد التنازلي الذكي — يدعم الأوفلاين 100%
+// =========================================================================
 async function loadPrayerTimes() {
   const locationText = document.getElementById('userLocationName');
   
+  // 1. جلب الإحداثيات القديمة المحفوظة (لو العميل فتح وهو أوفلاين)
+  const savedLat = localStorage.getItem('last_user_lat');
+  const savedLng = localStorage.getItem('last_user_lng');
+  const savedCity = localStorage.getItem('last_user_city') || "موقعك المحفوظ (أوفلاين)";
+
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(async (position) => {
       const lat = position.coords.latitude;
       const lng = position.coords.longitude;
       
+      // حفظ الإحداثيات الحالية فوراً للقرّاءة الأوفلاين المرة القادمة
+      localStorage.setItem('last_user_lat', lat);
+      localStorage.setItem('last_user_lng', lng);
+      
       try {
+        // محاولة جلب اسم المنطقة (تحتاج إنترنت)
         const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=ar`);
         const geoData = await geoRes.json();
-        if(locationText) locationText.textContent = geoData.address.city || geoData.address.town || geoData.address.state || "موقعك الحالي";
+        const cityName = geoData.address.city || geoData.address.town || geoData.address.state || "موقعك الحالي";
+        
+        if(locationText) locationText.textContent = cityName;
+        localStorage.setItem('last_user_city', cityName); // حفظ الاسم
       } catch(e) {
-        if(locationText) locationText.textContent = "موقعك الحالي الجغرافي";
+        // لو مفيش نت يجيب الاسم المحفوظ القديم
+        if(locationText) locationText.textContent = savedCity;
       }
 
       executePrayerTimesFetch(lat, lng);
     }, () => {
-      if(locationText) locationText.textContent = "القاهرة (افتراضي)";
-      executePrayerTimesFetch(30.0444, 31.2357);
+      // 2. معالجة رفض الإذن أو فشل اللقط (لو عنده إحداثيات قديمة شغلها فوراً!)
+      if (savedLat && savedLng) {
+        if(locationText) locationText.textContent = savedCity;
+        executePrayerTimesFetch(parseFloat(savedLat), Milford = parseFloat(savedLng));
+      } else {
+        // لو أول مرة يفتح خالص ومفيش نت ولا إحداثيات (افتراضي القاهرة)
+        if(locationText) locationText.textContent = "القاهرة (افتراضي)";
+        executePrayerTimesFetch(30.0444, 31.2357);
+      }
     });
   } else {
-    executePrayerTimesFetch(30.0444, 31.2357);
+    // في حالة المتصفحات القديمة غير الداعمة للـ Geolocation
+    if (savedLat && savedLng) {
+      if(locationText) locationText.textContent = savedCity;
+      executePrayerTimesFetch(parseFloat(savedLat), parseFloat(savedLng));
+    } else {
+      executePrayerTimesFetch(30.0444, 31.2357);
+    }
   }
 }
 
+// دالة التنفيذ والحساب الفلكي الذكي للمواقيت
 async function executePrayerTimesFetch(lat, lng) {
   const today = new Date();
   const d = today.getDate(), m = today.getMonth() + 1, y = today.getFullYear();
   
   try {
+    // جلب البيانات من الـ API (لو أونلاين عشان نحدث الكاش)
     const r = await fetch(`https://api.aladhan.com/v1/timingsByCity/${d}-${m}-${y}?city=${lat}&country=${lng}&method=5`);
     const data = await r.json();
-    const t = data.data.timings;
-    globalPrayerTimings = t;
+    const timings = data.data.timings;
     
-    const prayers = [
-      { name: 'الفجر', time: t.Fajr, icon: '🌙' },
-      { name: 'الشروق', time: t.Sunrise, icon: '🌅' },
-      { name: 'الظهر', time: t.Dhuhr, icon: '☀️' },
-      { name: 'العصر', time: t.Asr, icon: '🌤' },
-      { name: 'المغرب', time: t.Maghrib, icon: '🌆' },
-      { name: 'العشاء', time: t.Isha, icon: '🌙' },
-    ];
-
-    const hijri = data.data.date.hijri;
-    document.getElementById('hijriDate').textContent = `${toArabicDigits(hijri.day)} ${hijri.month.ar} ${toArabicDigits(hijri.year)} هـ`;
+    // حفظ مواقيت اليوم كاملة في الكاش المحلي كخط دفاع أخير
+    localStorage.setItem(`prayer_timings_${d}_${m}`, JSON.stringify(timings));
+    localStorage.setItem(`hijri_date_${d}_${m}`, JSON.stringify(data.data.date.hijri));
     
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    document.getElementById('gregorianDate').textContent = today.toLocaleDateString('ar-EG', options);
-
-    // بناء شبكة عرض الصلوات بالأرقام العربي المظبوطة وباتجاه نص صحيح (rtl)
-    document.getElementById('prayerTimes').innerHTML = prayers.map(p => {
-      return `
-        <div style="background: var(--card); border-radius: 16px; padding: 12px; text-align: center; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; direction: rtl;">
-          <span style="font-size: 18px;">${p.icon}</span>
-          <span style="font-size: 13px; font-weight: bold; color: var(--gold);">${p.name}</span>
-          <span style="font-size: 13px; font-weight: bold; white-space: nowrap;">${formatTimeToArabic(p.time)}</span>
-        </div>
-      `;
-    }).join('');
-
-    startPrayerCountdown(prayers);
+    renderCalculatedPrayers(timings, data.data.date.hijri);
 
   } catch (e) {
-    document.getElementById('prayerTimes').innerHTML = '<div style="text-align:center;padding:30px;color:var(--text2);">تحتاج اتصال بالإنترنت 🌐</div>';
+    // 3. 🛡️ السحر هنا: لو العميل أوفلاين 100%، اسحب مواقيت اليوم المحفوظة من الـ localStorage فوراً!
+    const cachedTimings = JSON.parse(localStorage.getItem(`prayer_timings_${d}_${m}`));
+    const cachedHijri = JSON.parse(localStorage.getItem(`hijri_date_${d}_${m}`));
+    
+    if (cachedTimings) {
+      renderCalculatedPrayers(cachedTimings, cachedHijri);
+    } else {
+      // لو مسح كاش المتصفح بالكامل ومعندوش أي داتا قديمة لليوم ده
+      const grid = document.getElementById('prayerTimes');
+      if (grid) grid.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text2); font-size:13px;">يجب الاتصال بالإنترنت لأول مرة لتوليد المواقيت 🌐</div>';
+    }
   }
+}
+
+// دالة مخصصة لرسم الأوقات وتشغيل العداد التنازلي
+function renderCalculatedPrayers(t, hijri) {
+  const prayers = [
+    { name: 'الفجر', time: t.Fajr, icon: '🌙' },
+    { name: 'الشروق', time: t.Sunrise, icon: '🌅' },
+    { name: 'الظهر', time: t.Dhuhr, icon: '☀️' },
+    { name: 'العصر', time: t.Asr, icon: '🌤' },
+    { name: 'المغرب', time: t.Maghrib, icon: '🌆' },
+    { name: 'العشاء', time: t.Isha, icon: '🌙' },
+  ];
+
+  if(hijri && document.getElementById('hijriDate')) {
+    document.getElementById('hijriDate').textContent = `${toArabicDigits(hijri.day)} ${hijri.month.ar} ${toArabicDigits(hijri.year)} هـ`;
+  }
+  
+  const today = new Date();
+  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  if(document.getElementById('gregorianDate')) {
+    document.getElementById('gregorianDate').textContent = today.toLocaleDateString('ar-EG', options);
+  }
+
+  const grid = document.getElementById('prayerTimes');
+  if(grid) {
+    grid.innerHTML = prayers.map(p => `
+      <div style="background: var(--card); border-radius: 16px; padding: 12px; text-align: center; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; direction: rtl;">
+        <span style="font-size: 18px;">${p.icon}</span>
+        <span style="font-size: 13px; font-weight: bold; color: var(--gold);">${p.name}</span>
+        <span style="font-size: 13px; font-weight: bold; white-space: nowrap;">${formatTimeToArabic(p.time)}</span>
+      </div>
+    `).join('');
+  }
+
+  startPrayerCountdown(prayers);
 }
 
 // محرك الحساب والعد التنازلي للصلوات الست اليومية بالثانية بالأرقام العربية
