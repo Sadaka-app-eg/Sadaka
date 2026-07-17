@@ -6,19 +6,23 @@ const AUDIO_CACHE_NAME = 'athr-audio-cache-v1';
 const MUSHAF_CACHE_NAME = 'athr-mushaf-cache-v1';
 
 const dmReciters = [
-  { id: 'minsh',  label: 'المنشاوي',        urlFn: n => `https://server10.mp3quran.net/minsh/${n}.mp3` },
+  { id: 'minsh',  label: 'المنشاوي',          urlFn: n => `https://server10.mp3quran.net/minsh/${n}.mp3` },
   { id: 'husary', label: 'الحصري',          urlFn: n => `https://server13.mp3quran.net/husr/${n}.mp3` },
-  { id: 'afs',    label: 'مشاري العفاسي',   urlFn: n => `https://server8.mp3quran.net/afs/${n}.mp3` },
-  { id: 'basit',  label: 'عبد الباسط',      urlFn: n => `https://server7.mp3quran.net/basit/${n}.mp3` },
-  { id: 'maher',  label: 'ماهر المعيقلي',   urlFn: n => `https://server12.mp3quran.net/maher/${n}.mp3` },
-  { id: 'ajm',    label: 'أحمد العجمي',     urlFn: n => `https://server10.mp3quran.net/ajm/${n}.mp3` },
-  { id: 'shrim',  label: 'سعود الشريم',     urlFn: n => `https://server7.mp3quran.net/shur/${n}.mp3` },
-  { id: 'dosr',   label: 'ياسر الدوسري',    urlFn: n => `https://server11.mp3quran.net/yasser/${n}.mp3` },
+  { id: 'afs',    label: 'مشاري العفاسي',      urlFn: n => `https://server8.mp3quran.net/afs/${n}.mp3` },
+  { id: 'basit',  label: 'عبد الباسط',         urlFn: n => `https://server7.mp3quran.net/basit/${n}.mp3` },
+  { id: 'maher',  label: 'ماهر المعيقلي',       urlFn: n => `https://server12.mp3quran.net/maher/${n}.mp3` },
+  { id: 'ajm',    label: 'أحمد العجمي',       urlFn: n => `https://server10.mp3quran.net/ajm/${n}.mp3` },
+  { id: 'shrim',  label: 'سعود الشريم',       urlFn: n => `https://server7.mp3quran.net/shur/${n}.mp3` },
+  { id: 'dosr',   label: 'ياسر الدوسري',      urlFn: n => `https://server11.mp3quran.net/yasser/${n}.mp3` },
 ];
 
 let dmActiveReciter = 'minsh';
 let dmCachedUrlsSet = new Set();
-
+function dmFormatBytes(bytes) {
+  if (!bytes || bytes <= 0) return '';
+  const mb = bytes / (1024 * 1024);
+  return mb >= 1 ? `${mb.toFixed(1)} ميجا` : `${Math.round(bytes / 1024)} كيلوبايت`;
+}
 // ---------- جلب حالة الكاش ----------
 async function dmRefreshCachedSet() {
   try {
@@ -317,11 +321,11 @@ navigator.serviceWorker.addEventListener('message', (event) => {
   }
 
   // تحميل دفعة (كل سور قارئ)
-  if (d.type === 'BATCH_PROGRESS') {
+ if (d.type === 'BATCH_PROGRESS') {
     const bar = document.getElementById('dmReciterBatchBar');
     const text = document.getElementById('dmReciterBatchText');
     if (bar) bar.style.width = Math.round((d.done / d.total) * 100) + '%';
-    if (text) text.textContent = `جاري التحميل... ${toAr(d.done)} / ${toAr(d.total)}`;
+    if (text) text.textContent = `جاري التحميل... ${toAr(d.done)} / ${toAr(d.total)} — ${dmFormatBytes(d.totalBytes)}`;
   }
   if (d.type === 'BATCH_DONE') {
     const wrap = document.getElementById('dmReciterBatchProgress');
@@ -331,12 +335,12 @@ navigator.serviceWorker.addEventListener('message', (event) => {
   }
 
   // المصحف
-  if (d.type === 'MUSHAF_PROGRESS') {
+ if (d.type === 'MUSHAF_PROGRESS') {
     const pct = Math.round((d.done / d.total) * 100);
     const bar = document.getElementById('dmMushafProgressBar');
     const text = document.getElementById('dmMushafProgressText');
     if (bar) bar.style.width = pct + '%';
-    if (text) text.textContent = `جاري التحميل... ${toAr(d.done)} / ${toAr(d.total)}`;
+    if (text) text.textContent = `جاري التحميل... ${toAr(d.done)} / ${toAr(d.total)} — ${dmFormatBytes(d.totalBytes)}`;
   }
   if (d.type === 'MUSHAF_DONE') {
     const wrapEl = document.getElementById('dmMushafProgressWrap');
