@@ -225,7 +225,7 @@ function notifyClient(client, msg) {
 async function downloadMushafPages(client) {
   const cache = await caches.open(MUSHAF_CACHE);
   const total = 604;
-  let done = 0, failed = 0;
+  let done = 0, failed = 0, totalBytes = 0;
 
   for (let p = 1; p <= total; p++) {
     const url = `https://cdn.myquran.com/img/page/${p}.png`;
@@ -233,15 +233,21 @@ async function downloadMushafPages(client) {
       const already = await cache.match(url);
       if (!already) {
         const res = await fetch(url);
-        if (res && res.ok) await cache.put(url, res.clone());
-        else failed++;
+        if (res && res.ok) {
+          const cl = res.headers.get('content-length');
+          if (cl) totalBytes += parseInt(cl, 10);
+          await cache.put(url, res.clone());
+        } else failed++;
+      } else {
+        const cl = already.headers.get('content-length');
+        if (cl) totalBytes += parseInt(cl, 10);
       }
     } catch (e) { failed++; }
     done++;
-    notifyClient(client, { type: 'MUSHAF_PROGRESS', done, total, failed });
-    await new Promise(r => setTimeout(r, 25)); // عشان ميضغطش على النت والجهاز
+    notifyClient(client, { type: 'MUSHAF_PROGRESS', done, total, failed, totalBytes });
+    await new Promise(r => setTimeout(r, 25));
   }
-  notifyClient(client, { type: 'MUSHAF_DONE', done, total, failed });
+  notifyClient(client, { type: 'MUSHAF_DONE', done, total, failed, totalBytes });
 }
 
 // ===========================================
@@ -274,7 +280,7 @@ async function cacheAudioUrl(url, client, label) {
 async function cacheAudioBatch(items, client) {
   if (!items || !items.length) return;
   const cache = await caches.open(AUDIO_CACHE);
-  let done = 0, failed = 0;
+  let done = 0, failed = 0, totalBytes = 0;
   const total = items.length;
 
   for (const item of items) {
@@ -282,17 +288,22 @@ async function cacheAudioBatch(items, client) {
       const already = await cache.match(item.url);
       if (!already) {
         const res = await fetch(item.url);
-        if (res && res.ok) await cache.put(item.url, res.clone());
-        else failed++;
+        if (res && res.ok) {
+          const cl = res.headers.get('content-length');
+          if (cl) totalBytes += parseInt(cl, 10);
+          await cache.put(item.url, res.clone());
+        } else failed++;
+      } else {
+        const cl = already.headers.get('content-length');
+        if (cl) totalBytes += parseInt(cl, 10);
       }
     } catch (e) { failed++; }
     done++;
-    notifyClient(client, { type: 'BATCH_PROGRESS', done, total, failed, batchId: item.batchId });
+    notifyClient(client, { type: 'BATCH_PROGRESS', done, total, failed, batchId: item.batchId, totalBytes });
     await new Promise(r => setTimeout(r, 30));
   }
-  notifyClient(client, { type: 'BATCH_DONE', done, total, failed, batchId: items[0] ? items[0].batchId : null });
+  notifyClient(client, { type: 'BATCH_DONE', done, total, failed, batchId: items[0] ? items[0].batchId : null, totalBytes });
 }
-
 // ===========================================
 // معلومات الكاش (لعرضها في شاشة الإعدادات)
 // ===========================================
