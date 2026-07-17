@@ -2,7 +2,7 @@
 // ===========================================
 // sw.js — Service Worker لتطبيق "كُن ذا أثر"
 // ===========================================
-const APP_VERSION = 'v8';
+const APP_VERSION = 'v9';
 const APP_SHELL_CACHE = `athr-app-shell-${APP_VERSION}`;
 const AUDIO_CACHE  = 'athr-audio-cache-v1';   // دائم — سور/تلاوات/أذان محمّلة يدويًا
 const MUSHAF_CACHE = 'athr-mushaf-cache-v1';  // دائم — صفحات المصحف المصوّر
@@ -104,15 +104,18 @@ self.addEventListener('fetch', (event) => {
   // أي حاجة تانية (APIs خارجية، إلخ) تسيبها تعدي عادي من غير كاش
 });
 async function cacheFirst(request, cacheName) {
-  const cache = await caches.open(cacheName);
+  console.log('🔵 [SW] طلب جديد:', request.url, '| Range:', request.headers.get('range'));
 
+  const cache = await caches.open(cacheName);
   const rangeHeader = request.headers.get('range');
   const lookupRequest = rangeHeader ? new Request(request.url, { method: 'GET' }) : request;
 
   const cached = await cache.match(lookupRequest);
+  console.log('🔵 [SW] نتيجة البحث في الكاش:', cached ? 'لقيت الملف ✅' : 'مش لاقي حاجة ❌');
 
   if (cached) {
     if (rangeHeader) {
+      console.log('🔵 [SW] هقطّع الملف بسبب Range header');
       return serveRangeFromCachedResponse(cached, rangeHeader);
     }
     return cached;
@@ -120,33 +123,41 @@ async function cacheFirst(request, cacheName) {
 
   try {
     const response = await fetch(request);
+    console.log('🔵 [SW] جبت من النت، الحالة:', response.status);
     if (response && response.status === 200) {
       cache.put(lookupRequest, response.clone());
     }
     return response;
   } catch (e) {
+    console.log('🔴 [SW] فشل الجلب من النت (طبيعي لو أوفلاين):', e.message);
     return new Response('', { status: 504, statusText: 'Offline' });
   }
 }
 
 async function serveRangeFromCachedResponse(cachedResponse, rangeHeader) {
-  const blob = await cachedResponse.clone().blob();
-  const size = blob.size;
-  const match = rangeHeader.match(/bytes=(\d+)-(\d*)/);
-  const start = match ? parseInt(match[1], 10) : 0;
-  const end = match && match[2] ? parseInt(match[2], 10) : size - 1;
-  const chunk = blob.slice(start, end + 1);
+  try {
+    const blob = await cachedResponse.clone().blob();
+    const size = blob.size;
+    console.log('🔵 [SW] حجم الملف في الكاش:', size, 'bytes');
+    const match = rangeHeader.match(/bytes=(\d+)-(\d*)/);
+    const start = match ? parseInt(match[1], 10) : 0;
+    const end = match && match[2] ? parseInt(match[2], 10) : size - 1;
+    const chunk = blob.slice(start, end + 1);
 
-  return new Response(chunk, {
-    status: 206,
-    statusText: 'Partial Content',
-    headers: {
-      'Content-Type': blob.type || 'audio/mpeg',
-      'Content-Range': `bytes ${start}-${end}/${size}`,
-      'Content-Length': chunk.size,
-      'Accept-Ranges': 'bytes'
-    }
-  });
+    return new Response(chunk, {
+      status: 206,
+      statusText: 'Partial Content',
+      headers: {
+        'Content-Type': blob.type || 'audio/mpeg',
+        'Content-Range': `bytes ${start}-${end}/${size}`,
+        'Content-Length': chunk.size,
+        'Accept-Ranges': 'bytes'
+      }
+    });
+  } catch (e) {
+    console.log('🔴 [SW] خطأ أثناء التقطيع:', e.message);
+    return new Response('', { status: 500 });
+  }
 }
 
 async function staleWhileRevalidate(request, cacheName) {
