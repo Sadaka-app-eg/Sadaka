@@ -160,14 +160,15 @@ function playAdhan(prayerKey) {
 
   const settings = getAdhanSettings();
   adhanAudioEl.src = getAdhanFileForPrayer(prayerKey);
-     adhanAudioEl.play()
+  
+  adhanAudioEl.play()
     .then(() => {
       // 🌟 حيلة الـ MediaSession لمخادعة إشعارات الأندرويد وقت الأذان الفعلي
       if ('mediaSession' in navigator) {
         navigator.mediaSession.metadata = new MediaMetadata({
           title: `حان الآن وقت أذان ${adhanPrayerNamesAr[prayerKey]} 🕌`,
           artist: 'تطبيق كُن ذا أثر',
-          album: ' ', // مسافة مخفية تمنع المتصفح من وضع روابطه تلقائياً
+          album: ' ', // مسافة مخفية تمنع المتصفح من وضع روابطه تلقائياً
           artwork: [
             { src: 'icon.png', sizes: '192x192', type: 'image/png' },
             { src: 'icon.png', sizes: '512x512', type: 'image/png' }
@@ -177,8 +178,10 @@ function playAdhan(prayerKey) {
     })
     .catch(err => console.error('تعذر تشغيل الأذان:', err));
 
-  showAdhanBanner(prayerKey);
-
+  // 🌟 استبدلنا البنر القديم واستدعينا واجهة الرن الكاملة ملء الشاشة بالخلفيات الإسلامية الفخمة
+  if (typeof showFullAdhanScreen === 'function') {
+    showFullAdhanScreen(prayerKey); 
+  }
 }
 
 function showAdhanBanner(prayerKey) {
@@ -512,4 +515,68 @@ renderAdhanCardsUI = function() {
   _originalRenderAdhanCardsUI();
   setTimeout(markAlreadyDownloadedAdhanButtons, 100);
 };
+function showFullAdhanScreen(prayerKey) {
+  // إخفاء أي بنر قديم
+  const existing = document.getElementById('fullAdhanScreen');
+  if (existing) existing.remove();
 
+  // مصفوفة خلفيات إسلامية فخمة ومتحركة تملأ الشاشة بروقان
+  const adhanBgs = [
+    'https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?q=80&w=1080&auto=format&fit=crop', // المسجد النبوي ليلًا
+    'https://images.unsplash.com/photo-1519817650390-64a93db51149?q=80&w=1080&auto=format&fit=crop', // الكعبة المشرفة
+    'https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?q=80&w=1080&auto=format&fit=crop'  // المسجد الأزرق
+  ];
+  const randomBg = adhanBgs[Math.floor(Math.random() * adhanBgs.length)];
+
+  // بناء كونتينر الشاشة الكاملة العابرة لكل شيء
+  const fullScreen = document.createElement('div');
+  fullScreen.id = 'fullAdhanScreen';
+  fullScreen.style.cssText = `
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 999999999;
+    background-image: url('${randomBg}'); background-size: cover; background-position: center;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-family: 'Amiri', serif; direction: rtl; text-align: center; padding: 20px;
+  `;
+
+  fullScreen.innerHTML = `
+    <!-- طبقة تعتيم ناعمة تبرز الكلام والذهب -->
+    <div style="position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.65); z-index: 1;"></div>
+    
+    <!-- محتوى الأذان الروحاني المعلق -->
+    <div style="position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 20px;">
+      <div style="font-size: 80px; animation: pulse 2s infinite;">🕌</div>
+      <h1 style="color: #d4af37; font-size: 32px; font-weight: bold; text-shadow: 0 4px 15px rgba(0,0,0,0.8);">حَانَ الآنَ وَقْتُ صَلَاةِ ${adhanPrayerNamesAr[prayerKey]}</h1>
+      <p style="color: #f4f6f4; font-size: 20px; font-style: italic; max-width: 300px; line-height: 1.8;">
+        ${prayerKey === 'Fajr' ? 'الصَّلَاةُ خَيْرٌ مِنَ النَّوْمِ' : 'أرِحْنَا بِهَا يَا بِلَالُ.. حَيَّ عَلَى الصَّلَاةِ'}
+      </p>
+      
+      <!-- زر الإيقاف الفخم الدائري المندمج -->
+      <button onclick="stopFullAdhanPlayback()" style="margin-top: 40px; background: transparent; border: 2px solid #ff6b6b; color: #ff6b6b; padding: 12px 45px; border-radius: 30px; font-size: 16px; font-weight: bold; cursor: pointer; font-family: 'Amiri', serif; transition: all 0.3s; box-shadow: 0 0 15px rgba(255,107,107,0.3);">
+        🛑 إيقاف صوت الأذان
+      </button>
+    </div>
+  `;
+
+  document.body.appendChild(fullScreen);
+
+  // حقن أنيميشن النبض الروحي للهلال أو المسجد
+  if (!document.getElementById('fullAdhanStyle')) {
+    const style = document.createElement('style');
+    style.id = 'fullAdhanStyle';
+    style.textContent = `
+      @keyframes pulse {
+        0% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(212,175,55,0.4)); }
+        50% { transform: scale(1.08); filter: drop-shadow(0 0 30px rgba(212,175,55,0.8)); }
+        100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(212,175,55,0.4)); }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+}
+
+// دالة الإغلاق الكامل لشاشة الرن
+window.stopFullAdhanPlayback = function() {
+  stopAdhanPlayback();
+  const fullScreen = document.getElementById('fullAdhanScreen');
+  if (fullScreen) fullScreen.remove();
+};
