@@ -16,7 +16,36 @@ window.lecturesData = [
     { title: "دورة تعلم التجويد - الدرس ( 3 )", src: "https://archive.org/download/tajweed_lesson_3/tajweed_lesson_3.mp3", category: "دورة التجويد" },
     { title: "دورة تعلم التجويد - الدرس ( 4 )", src: "https://archive.org/download/tajweed_lesson_4/tajweed_lesson_4.mp3", category: "دورة التجويد" },
     { title: "دورة تعلم التجويد - الدرس ( 5 )", src: "https://archive.org/download/tajweed_lesson_5/tajweed_lesson_5.mp3", category: "دورة التجويد" },
-    { title: "دورة تعلم التجويد - الدرس ( 6 ) والأخير", src: "https://archive.org/download/tajweed_lesson_6/tajweed_lesson_6.mp3", category: "دورة التجويد" }
+    { title: "دورة تعلم التجويد - الدرس ( 6 ) والأخير", src: "https://archive.org/download/tajweed_lesson_6/tajweed_lesson_6.mp3", category: "دورة التجويد" },
+
+
+{ title: "سلسلة السيرة النبوية - الدرس الأول - العالم قبل الإسلام", src: "https://archive.org/download/seerah_ahmed_amer_athr/seerah_01.mp3", category: "السيرة النبوية" },
+    { title: "سلسلة السيرة النبوية - الدرس الثاني - مولد النبي وبداية شبابه", src: "https://archive.org/download/seerah_ahmed_amer_athr/seerah_02.mp3", category: "السيرة النبوية" },
+    { title: "سلسلة السيرة النبوية - الدرس الثالث الجزء الأول - وصف النبي وزواجه من السيدة خديجة", src: "https://archive.org/download/seerah_ahmed_amer_athr/seerah_03.mp3", category: "السيرة النبوية" },
+    { title: "سلسلة السيرة النبوية - الدرس الرابع - نزول الوحي على النبي والدعوة السرية بمكة", src: "https://archive.org/download/seerah_ahmed_amer_athr/seerah_04.mp3", category: "السيرة النبوية" },
+    { title: "سلسلة السيرة النبوية - الدرس الخامس - بداية الجهر بالدعوة", src: "https://archive.org/download/seerah_ahmed_amer_athr/seerah_05.mp3", category: "السيرة النبوية" },
+    { title: "سلسلة السيرة النبوية - الدرس السادس - استضعاف المسلمين والهجرة إلى الحبشة", src: "https://archive.org/download/seerah_ahmed_amer_athr/seerah_06.mp3", category: "السيرة النبوية" },
+    { title: "سلسلة السيرة النبوية - الدرس السابع - إسلام عمر بن الخطاب ووفاة أبو طالب عم النبي", src: "https://archive.org/download/seerah_ahmed_amer_athr/seerah_07.mp3", category: "السيرة النبوية" },
+    { title: "سلسلة السيرة النبوية - الدرس الثامن - عام الحزن ورحلة الطائف", src: "https://archive.org/download/seerah_ahmed_amer_athr/seerah_08.mp3", category: "السيرة النبوية" },
+    { title: "سلسلة السيرة النبوية - الدرس التاسع - رحلة الإسراء والمعراج", src: "https://archive.org/download/seerah_ahmed_amer_athr/seerah_09.mp3", category: "السيرة النبوية" },
+    { title: "سلسلة السيرة النبوية - الدرس العاشر - الطواف على القبائل وبيعة العقبة الأولى", src: "https://archive.org/download/seerah_ahmed_amer_athr/seerah_10.mp3", category: "السيرة النبوية" },
+    { title: "سلسلة السيرة النبوية - الدرس الحادي عشر - أحداث الهجرة إلى المدينة", src: "https://archive.org/download/seerah_ahmed_amer_athr/seerah_11.mp3", category: "السيرة النبوية" },
+    { title: "سلسلة السيرة النبوية - الدرس الثاني عشر - بداية العهد المدني وتأسيس مدينة للمسلمين", src: "https://archive.org/download/seerah_ahmed_amer_athr/seerah_12.mp3", category: "السيرة النبوية" },
+    { title: "سلسلة السيرة النبوية - الدرس الثالث عشر - مجتمع المدينة ومفهوم الجهاد", src: "https://archive.org/download/seerah_ahmed_amer_athr/seerah_13.mp3", category: "السيرة النبوية" },
+    { title: "سلسلة السيرة النبوية - الدرس الرابع عشر - غزوة بدر", src: "https://archive.org/download/seerah_ahmed_amer_athr/seerah_14.mp3", category: "السيرة النبوية" },
+    { title: "سلسلة السيرة النبوية - الدرس الخامس عشر - أحداث ما بين بدر وأحد", src: "https://archive.org/download/seerah_ahmed_amer_athr/seerah_15.mp3", category: "السيرة النبوية" },
+    { title: "سلسلة السيرة النبوية - الدرس السادس عشر - غزوة أحد", src: "https://archive.org/download/seerah_ahmed_amer_athr/seerah_16.mp3", category: "السيرة النبوية" },
+    { title: "سلسلة السيرة النبوية - الدرس السابع عشر - حادثة الإفك", src: "https://archive.org/download/seerah_ahmed_amer_athr/seerah_17.mp3", category: "السيرة النبوية" },
+    { title: "سلسلة السيرة النبوية - الدرس الثامن عشر - غزوة الخندق", src: "https://archive.org/download/seerah_ahmed_amer_athr/seerah_18.mp3", category: "السيرة النبوية" },
+    { title: "سلسلة السيرة النبوية - الدرس التاسع عشر - صلح الحديبية", src: "https://archive.org/download/seerah_ahmed_amer_athr/seerah_19.mp3", category: "السيرة النبوية" },
+    { title: "سلسلة السيرة النبوية - الدرس العشرون - غزوة خيبر", src: "https://archive.org/download/seerah_ahmed_amer_athr/seerah_20.mp3", category: "السيرة النبوية" },
+    { title: "سلسلة السيرة النبوية - الدرس الواحد والعشرون - أحداث ما قبل فتح مكة", src: "https://archive.org/download/seerah_ahmed_amer_athr/seerah_21.mp3", category: "السيرة النبوية" },
+    { title: "سلسلة السيرة النبوية - الدرس الثاني والعشرون - فتح مكة", src: "https://archive.org/download/seerah_ahmed_amer_athr/seerah_22.mp3", category: "السيرة النبوية" },
+    { title: "سلسلة السيرة النبوية - الدرس الثالث والعشرون - غزوة حنين وحصار الطائف", src: "https://archive.org/download/seerah_ahmed_amer_athr/seerah_23.mp3", category: "السيرة النبوية" },
+    { title: "سلسلة السيرة النبوية - الدرس الرابع والعشرون - غزوة تبوك", src: "https://archive.org/download/seerah_ahmed_amer_athr/seerah_24.mp3", category: "السيرة النبوية" },
+    { title: "سلسلة السيرة النبوية - الدرس الخامس والعشرون والأخير - وفاة النبي ﷺ", src: "https://archive.org/download/seerah_ahmed_amer_athr/seerah_25.mp3", category: "السيرة النبوية" }
+
+    
 ];
 window.currentLectureFilter = 'all';
 window.currentPlayingLectureAudio = null;
