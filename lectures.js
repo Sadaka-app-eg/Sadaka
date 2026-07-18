@@ -1,4 +1,4 @@
-// 1️⃣ المصفوفة اللي فيها الداتا والأصوات من مجلد audio2
+// 1️⃣ مصفوفة الداتا الخاصة بالمواعظ والدروس من مجلد audio2
 window.lecturesData = [
     {
         title: "الموعظة الأولى",
@@ -7,7 +7,7 @@ window.lecturesData = [
     }
 ];
 
-// 2️⃣ الفانكشن اللي بتضخ الصوتيات في صفحة الـ HTML
+// 2️⃣ فانكشن ضخ الصوتيات جوة حاوية الصفحة الجديدة
 function renderLectures() {
     const listEl = document.getElementById('lecturesList');
     if (!listEl || !window.lecturesData) return;
@@ -25,7 +25,7 @@ function renderLectures() {
     }).join('');
 }
 
-// 3️⃣ الأمان: بنقول للمتصفح استنى لما الـ HTML يحمل بالكامل وبعدين ضخ المواعظ
+// 3️⃣ تشغيل الضخ تلقائياً بعد تحميل هيكل الصفحة
 document.addEventListener('DOMContentLoaded', () => {
     renderLectures();
 });
