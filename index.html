@@ -1532,6 +1532,25 @@ body.in-subpage .back-to-home-btn {
       <div style="font-size:12px;color:var(--text2);margin-top:4px;">فعّل تذكير تلقائي في أوقات استجابة الدعاء المحسوبة على توقيت القاهرة</div>
     </div>
     <div id="answerTimesList" style="display:grid;gap:8px;margin-bottom:12px;"></div>
+   <!-- القائمة المنسدلة لاختيار النغمات الجاهزة -->
+<div style="margin-bottom: 12px; direction: rtl; text-align: right; padding: 0 5px;">
+  <label style="color: var(--gold); font-family: 'Amiri', serif; font-size: 14px; display: block; margin-bottom: 6px;">🎵 اختر نغمة تذكير الأذكار والأوقات:</label>
+  <select id="dhikrSoundSelect" onchange="window.changeDhikrSound(this.value)" style="width: 100%; background: var(--bg3); color: var(--text); border: 1px solid var(--border); padding: 10px; border-radius: 10px; font-family: 'Amiri', serif; font-size: 14px; cursor: pointer;">
+    <option value="audio/sound_quiet.mp3">تنبيه هادئ 🎵</option>
+    <option value="audio/takbeer_short.mp3">تكبيرات خفيفة 🕌</option>
+    <option value="audio/birds.mp3">صوت عصافير 🐦</option>
+    <option value="audio/digital_bell.mp3">رنة رقمية 🔔</option>
+    <option value="CUSTOM_USER_SOUND" id="customSoundOption" style="display:none;">النغمة الخاصة بك من الهاتف 📱</option>
+  </select>
+</div>
+
+<!-- زرار رفع ملف مخصص من هاتف المستخدم -->
+<div style="margin-bottom: 20px; direction: rtl; text-align: right; padding: 0 5px;">
+  <input type="file" id="userAudioFile" accept="audio/*" onchange="window.uploadCustomDhikrSound(this)" style="display: none;">
+  <button type="button" onclick="document.getElementById('userAudioFile').click()" style="width:100%; background: rgba(212,175,55,0.1); border: 1px dashed var(--gold); color: var(--gold); padding: 10px; border-radius: 10px; font-family: 'Amiri', serif; font-size: 13px; cursor: pointer;">
+    📁 أو اختر نغمة مخصصة من هاتفك الخاص
+  </button>
+</div>
     <button onclick="activateAnswerTimes()" style="width:100%;background:var(--gold);color:#111;border:none;padding:12px;border-radius:14px;font-family:'Amiri',serif;font-size:15px;font-weight:700;cursor:pointer;">🔔 تفعيل تذكير أوقات الإجابة</button>
     <button onclick="deactivateAnswerTimes()" style="width:100%;background:transparent;border:1px solid rgba(255,100,100,0.4);color:#ff6b6b;padding:10px;border-radius:14px;font-family:'Amiri',serif;font-size:13px;cursor:pointer;margin-top:8px;">🔕 إيقاف تذكير أوقات الإجابة</button>
     <div id="answerTimesStatus" style="text-align:center;margin-top:8px;font-size:12px;color:var(--text2);"></div>
@@ -6031,24 +6050,26 @@ async function activateAnswerTimes() {
     if (targets.length === 0) {
       statusEl.style.color = 'var(--text2)';
       statusEl.textContent = 'مفيش أوقات متبقية النهاردة، هتتفعل تلقائي بكرة 🌙';
-    } else {
-      // 🌟 التعديل الميكانيكي: إرسال كل توقيت محسوب محلياً إلى السيرفيس وركر غصب عن النظام
-      if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-        targets.forEach(t => {
-          const targetTimeMs = new Date(t.time).getTime(); // تحويل التوقيت لملي ثانية بدقة
-          
-          navigator.serviceWorker.controller.postMessage({
-            type: 'SCHEDULE_LOCAL_ADHAN', // نفس المحرك الموثوق للأذان
-            prayerName: t.title, // عنوان التنبيه (مثلاً: ثلث الليل الآخر)
-            targetTimeMs: targetTimeMs,
-            muathinAudioUrl: '' // نتركه فارغاً هنا لو مش محتاج أذان كامل بل زنة إشعار عادية
-          });
-        });
-      }
+   } else {
+    // 🌟 جلب النغمة الذكية (الجاهزة الـ 4 أصوات أو المرفوعة من تليفونه)
+    const chosenSound = getSelectedDhikrSound();
 
-      statusEl.style.color = '#4caf50';
-      statusEl.textContent = `✅ تم التفعيل بنواة النظام — عندك ${toAr(targets.length)} تذكير جاي النهاردة`;
+    if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+      targets.forEach(t => {
+        const targetTimeMs = new Date(t.time).getTime();
+        
+        navigator.serviceWorker.controller.postMessage({
+          type: 'SCHEDULE_LOCAL_ADHAN', 
+          prayerName: t.title, 
+          targetTimeMs: targetTimeMs,
+          muathinAudioUrl: chosenSound // تمرير الصوت أوفلاين غصب عن السيستم
+        });
+      });
     }
+
+    statusEl.style.color = '#4caf50';
+    statusEl.textContent = `✅ تم التفعيل بنواة النظام — عندك ${toAr(targets.length)} تذكير جاي النهاردة`;
+  }
 
     localStorage.setItem('answer_times_active', '1');
     updateAnswerTimesPreview(targets);
@@ -6089,6 +6110,14 @@ async function updateAnswerTimesPreview(existingTargets = null) {
 document.addEventListener('DOMContentLoaded', () => {
   if (localStorage.getItem('answer_times_active') === '1' && answerTimesSelected.length > 0) {
     setTimeout(() => { activateAnswerTimes(); }, 2000);
+  }
+
+  // 🌟 الكود الجديد المضاف هنا لحقن النغمة الخاصة فور فتح التطبيق
+  if (localStorage.getItem('selected_dhikr_sound') === 'CUSTOM_USER_SOUND') {
+    const opt = document.getElementById('customSoundOption');
+    if (opt) opt.style.display = 'block';
+    const select = document.getElementById('dhikrSoundSelect');
+    if (select) select.value = 'CUSTOM_USER_SOUND';
   }
 });
 
