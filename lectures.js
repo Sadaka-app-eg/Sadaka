@@ -57,8 +57,8 @@ function renderLectures() {
             </div>
           </div>
           <div id="lectureDlStatus_${index}" style="font-size:10px; color:var(--text2); margin-top:6px; text-align:center;"></div>
-          <audio id="lectureAudio_${index}" src="${lecture.src}" onended="window.onLectureAudioEnded(${index})" onloadedmetadata="window.onLectureMetaLoaded(${index})" ontimeupdate="window.onLectureTimeUpdate(${index})"></audio>
-        </div>`;
+<audio id="lectureAudio_${index}" src="${lecture.src}" preload="metadata" onended="window.onLectureAudioEnded(${index})" onloadedmetadata="window.onLectureMetaLoaded(${index})" ontimeupdate="window.onLectureTimeUpdate(${index})"></audio>
+</div>`;
     }).join('');
 }
 
