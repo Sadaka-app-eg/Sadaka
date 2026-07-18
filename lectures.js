@@ -12,11 +12,11 @@ window.lecturesData = [
     
     // دورة التجويد مدمجة تلقائياً بروابط أرشيف المباشرة المظبوطة بالملي
     { title: "دورة تعلم التجويد - الدرس ( 1 )", src: "https://archive.org/download/tajweed_lesson_1/tajweed_lesson_1.mp3", category: "دورة التجويد" },
-    { title: "دورة تعلم التجويد - الدرس ( 2 )", src: "https://archive.org/download/tajweed_lesson_1/tajweed_lesson_2.mp3", category: "دورة التجويد" },
-    { title: "دورة تعلم التجويد - الدرس ( 3 )", src: "https://archive.org/download/tajweed_lesson_1/tajweed_lesson_3.mp3", category: "دورة التجويد" },
-    { title: "دورة تعلم التجويد - الدرس ( 4 )", src: "https://archive.org/download/tajweed_lesson_1/tajweed_lesson_4.mp3", category: "دورة التجويد" },
-    { title: "دورة تعلم التجويد - الدرس ( 5 )", src: "https://archive.org/download/tajweed_lesson_1/tajweed_lesson_5.mp3", category: "دورة التجويد" },
-    { title: "دورة تعلم التجويد - الدرس ( 6 ) والأخير", src: "https://archive.org/download/tajweed_lesson_1/tajweed_lesson_6.mp3", category: "دورة التجويد" }
+    { title: "دورة تعلم التجويد - الدرس ( 2 )", src: "https://archive.org/download/tajweed_lesson_2/tajweed_lesson_2.mp3", category: "دورة التجويد" },
+    { title: "دورة تعلم التجويد - الدرس ( 3 )", src: "https://archive.org/download/tajweed_lesson_3/tajweed_lesson_3.mp3", category: "دورة التجويد" },
+    { title: "دورة تعلم التجويد - الدرس ( 4 )", src: "https://archive.org/download/tajweed_lesson_4/tajweed_lesson_4.mp3", category: "دورة التجويد" },
+    { title: "دورة تعلم التجويد - الدرس ( 5 )", src: "https://archive.org/download/tajweed_lesson_5/tajweed_lesson_5.mp3", category: "دورة التجويد" },
+    { title: "دورة تعلم التجويد - الدرس ( 6 ) والأخير", src: "https://archive.org/download/tajweed_lesson_6/tajweed_lesson_6.mp3", category: "دورة التجويد" }
 ];
 window.currentLectureFilter = 'all';
 window.currentPlayingLectureAudio = null;
