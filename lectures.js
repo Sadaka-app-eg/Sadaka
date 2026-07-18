@@ -49,7 +49,13 @@ function renderLectures() {
         <div style="background: var(--card); border-radius: 16px; padding: 14px; border: 1px solid var(--border); direction: rtl;">
           <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
             <div style="display:flex; align-items:center; gap:8px; flex:1;">
-              <span style="color:var(--gold); font-size:14px;">📌</span>
+       ${(function() {
+    const pinnedList = JSON.parse(localStorage.getItem('pinned_lectures') || '[]');
+    const isPinned = pinnedList.includes(lecture.title);
+    const pinIcon = isPinned ? '📌' : '📍';
+    const pinColor = isPinned ? 'var(--gold)' : 'var(--text2)';
+    return `<button onclick="window.togglePinLecture('${lecture.title}')" style="background:transparent; border:none; color:${pinColor}; font-size:16px; cursor:pointer; flex-shrink:0; padding:0; margin-left:4px;" title="تثبيت الموعظة في الأعلى">${pinIcon}</button>`;
+})()}
               <span style="font-family:'Amiri',serif; font-size:15px; color:var(--text); line-height:1.6;">${lecture.title}</span>
             </div>
             <div style="width:34px; height:34px; border-radius:50%; background:var(--bg2); display:flex; align-items:center; justify-content:center; flex-shrink:0; border:1px solid var(--border);">🎙️</div>
