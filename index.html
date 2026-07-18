@@ -903,7 +903,7 @@ body.in-subpage .back-to-home-btn {
 <div class="tab" onclick="showPage('shareKhairPage',this)">💝 شارك في الخير</div>
   <div class="tab" onclick="showPage('shareAppPage', this)">💝 ساهم في تطوير التطبيق</div>
 <div class="tab" onclick="showPage('heartMirrorPage',this)">🪞 مرآة القلب</div>
-<div class="tab" onclick="showPage('downloadsManagerPage',this)">📥 إدارة التنزيلات</div>
+<div class="tab" onclick="showPage('downloadsManagerPage',this); window.initDownloadsManager();">📥 إدارة التنزيلات</div>
 
 </div>
 
@@ -1983,7 +1983,7 @@ body.in-subpage .back-to-home-btn {
 <!-- DOWNLOADS MANAGER PAGE -->
 <div class="page" id="downloadsManagerPage">
     <h2 style="color:var(--gold); text-align:center; margin-bottom: 20px;">📥 إدارة التنزيلات</h2>
-    <div id="downloadsList" style="text-align: center; color: var(--text2); padding: 40px;">
+    <div id="downloadsManagerContainer" style="text-align: center; color: var(--text2); padding: 40px;">
         <div style="font-size: 50px; margin-bottom: 10px;">📂</div>
         <p>لا توجد تنزيلات حالياً</p>
         <p style="font-size: 12px; margin-top: 10px;">الملفات التي ستقوم بتحميلها من القرآن أو الدروس ستظهر هنا.</p>
@@ -7410,5 +7410,11 @@ window.triggerHeaderGoogleLogin = function() {
   history.replaceState({ athrState: 'home' }, '', '');
 })();
 </script>
+ <!-- الصفحة الجديدة اللي إحنا ضفناها -->
+    <div class="page" id="downloadsManagerPage">
+        <div id="downloadsManagerContainer"></div>
+    </div>
+
 </body>
+
     </html>
