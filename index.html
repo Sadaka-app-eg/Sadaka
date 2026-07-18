@@ -893,7 +893,9 @@ body.in-subpage .back-to-home-btn {
     <div class="tab" onclick="showPage('asma2',this)">✨ أسماء الله الحسنى</div>
   <div class="tab" onclick="showPage('khatma',this)">📿 الختمة المباركة</div>
    <div class="tab" onclick="showPage('themeSettingsPage',this)">🎨 ألوان ومظهر التطبيق</div>
- <div class="tab" onclick="showPage('rareRecitationsPage',this)">🎧 تلاوات خاشعة</div>
+ <div class="tab" onclick="showPage('rareRecitationsPage',this)">🎧 تلاوات خاشعة</div>
+ <div class="tab" onclick="showPage('lecturesPage', this)">🎙️ مواعظ ودروس</div>
+ 
  <div class="tab" onclick="showPage('notifPage',this)">🔔 الإشعارات والتذكيرات</div>
   <div class="tab" onclick="showPage('moodPage',this)">💭 حالتي اليوم</div>
    <div class="tab" onclick="showPage('prayForThemPage',this)">🤲 ادعُ لهم (ظهر الغيب)</div>
@@ -1961,7 +1963,10 @@ body.in-subpage .back-to-home-btn {
  <div class="page" id="downloadsManagerPage">
   <div id="downloadsManagerContainer"></div>
  </div>
-
+<!-- صفحة المواعظ والدروس الجديدة -->
+<div id="lecturesPage" class="page" style="display:none;">
+    <div class="audio-list" id="lecturesList"></div>
+</div>
 
 <!-- OVERLAY DIMMER -->
 <div class="overlay-dimmer" id="overlayDimmer" onclick="closeActionMenu()"></div>
@@ -7064,7 +7069,7 @@ function getTodayDateKey() {
   <script src="islamicContent.js"></script>
 <script src="rareRecitations.js"></script>
   <script src="radio.js"></script>
-
+<script src="lectures.js"></script>
 <script src="quranInsights.js"></script> <!-- هنا بالظبط -->
 <script src="obeyPlan.js"></script> 
 <script src="janaza.js"></script>
