@@ -6032,16 +6032,22 @@ async function activateAnswerTimes() {
       statusEl.style.color = 'var(--text2)';
       statusEl.textContent = 'مفيش أوقات متبقية النهاردة، هتتفعل تلقائي بكرة 🌙';
     } else {
-      targets.forEach(t => {
-        const delay = t.time - new Date();
-        const timerId = setTimeout(() => {
-          new Notification(t.title, { body: t.body, icon: 'icon.png' });
-        }, delay);
-        answerTimesTimers.push(timerId);
-      });
+      // 🌟 التعديل الميكانيكي: إرسال كل توقيت محسوب محلياً إلى السيرفيس وركر غصب عن النظام
+      if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+        targets.forEach(t => {
+          const targetTimeMs = new Date(t.time).getTime(); // تحويل التوقيت لملي ثانية بدقة
+          
+          navigator.serviceWorker.controller.postMessage({
+            type: 'SCHEDULE_LOCAL_ADHAN', // نفس المحرك الموثوق للأذان
+            prayerName: t.title, // عنوان التنبيه (مثلاً: ثلث الليل الآخر)
+            targetTimeMs: targetTimeMs,
+            muathinAudioUrl: '' // نتركه فارغاً هنا لو مش محتاج أذان كامل بل زنة إشعار عادية
+          });
+        });
+      }
 
       statusEl.style.color = '#4caf50';
-      statusEl.textContent = `✅ تم التفعيل — عندك ${toAr(targets.length)} تذكير جاي النهاردة`;
+      statusEl.textContent = `✅ تم التفعيل بنواة النظام — عندك ${toAr(targets.length)} تذكير جاي النهاردة`;
     }
 
     localStorage.setItem('answer_times_active', '1');
