@@ -1533,15 +1533,21 @@ body.in-subpage .back-to-home-btn {
     </div>
     <div id="answerTimesList" style="display:grid;gap:8px;margin-bottom:12px;"></div>
    <!-- القائمة المنسدلة لاختيار النغمات الجاهزة -->
+<!-- القائمة المنسدلة واختيار النغمات الجاهزة -->
 <div style="margin-bottom: 12px; direction: rtl; text-align: right; padding: 0 5px;">
   <label style="color: var(--gold); font-family: 'Amiri', serif; font-size: 14px; display: block; margin-bottom: 6px;">🎵 اختر نغمة تذكير الأذكار والأوقات:</label>
-  <select id="dhikrSoundSelect" onchange="window.changeDhikrSound(this.value)" style="width: 100%; background: var(--bg3); color: var(--text); border: 1px solid var(--border); padding: 10px; border-radius: 10px; font-family: 'Amiri', serif; font-size: 14px; cursor: pointer;">
-    <option value="audio/sound_quiet.mp3">تنبيه هادئ 🎵</option>
-    <option value="audio/takbeer_short.mp3">تكبيرات خفيفة 🕌</option>
-    <option value="audio/birds.mp3">صوت عصافير 🐦</option>
-    <option value="audio/digital_bell.mp3">رنة رقمية 🔔</option>
-    <option value="CUSTOM_USER_SOUND" id="customSoundOption" style="display:none;">النغمة الخاصة بك من الهاتف 📱</option>
-  </select>
+  <div style="display: flex; gap: 8px;">
+    <select id="dhikrSoundSelect" onchange="window.changeDhikrSound(this.value)" style="flex: 1; background: var(--bg3); color: var(--text); border: 1px solid var(--border); padding: 10px; border-radius: 10px; font-family: 'Amiri', serif; font-size: 14px; cursor: pointer;">
+      <option value="audio/sound_quiet.mp3">تنبيه هادئ 🎵</option>
+      <option value="audio/takbeer_short.mp3">تكبيرات خفيفة 🕌</option>
+      <option value="audio/birds.mp3">صوت عصافير 🐦</option>
+      <option value="audio/digital_bell.mp3">رنة رقمية 🔔</option>
+      <option value="CUSTOM_USER_SOUND" id="customSoundOption" style="display:none;">النغمة الخاصة بك من الهاتف 📱</option>
+    </select>
+    
+    <!-- زرار مخصص لتجربة ومعاينة الصوت الحان قبل الحفظ -->
+    <button type="button" onclick="window.previewDhikrSound()" style="background: var(--gold); color: #111; border: none; padding: 0 15px; border-radius: 10px; font-weight: 700; cursor: pointer;" title="تجربة الصوت">▶️ جرب</button>
+  </div>
 </div>
 
 <!-- زرار رفع ملف مخصص من هاتف المستخدم -->
@@ -6026,17 +6032,35 @@ function getSelectedDhikrSound() {
 }
 
 // دالة لحفظ النغمة المختارة من القائمة وتشغيل معاينة ليها
-window.changeDhikrSound = function(value) {
-  localStorage.setItem('selected_dhikr_sound', value);
-  const currentSound = getSelectedDhikrSound();
-  if (currentSound && !currentSound.startsWith('data:')) {
-    const preview = new Audio(currentSound);
-    preview.volume = 0.5;
-    preview.play().catch(e => console.log(e));
+// دالة لتشغيل تجربة صوتية (معاينة) للنغمة الحالية
+window.previewDhikrSound = function() {
+  const saved = localStorage.getItem('selected_dhikr_sound');
+  let soundPath = saved || 'audio/sound_quiet.mp3';
+  
+  if (saved === 'CUSTOM_USER_SOUND') {
+    soundPath = localStorage.getItem('custom_user_dhikr_sound');
+  }
+
+  if (soundPath) {
+    // لو في صوت شغال نقفله الأول عشان الأصوات ما تدخلش في بعضها
+    if (window.currentDhikrAudio) { window.currentDhikrAudio.pause(); }
+    
+    window.currentDhikrAudio = new Audio(soundPath);
+    window.currentDhikrAudio.volume = 0.7;
+    window.currentDhikrAudio.play()
+      .then(() => console.log("🔊 جاري تشغيل معاينة الصوت بنجاح"))
+      .catch(e => alert("⚠️ المتصفح محتاج ضغطة تفاعل منك لتشغيل الصوت"));
   }
 };
 
-// دالة لمعالجة الملف المرفوع من جهاز المستخدم وتحويله لـ Base64 وحفظه أوفلاين
+// تعديل دالة تغيير النغمة من القائمة المنسدلة
+window.changeDhikrSound = function(value) {
+  localStorage.setItem('selected_dhikr_sound', value);
+  // تشغيل المعاينة تلقائياً عند تغيير الاختيار ليسمعه المستخدم
+  window.previewDhikrSound();
+};
+
+// تعديل دالة رفع ومعالجة نغمة الهاتف
 window.uploadCustomDhikrSound = function(fileInput) {
   const file = fileInput.files[0];
   if (!file) return;
@@ -6050,23 +6074,23 @@ window.uploadCustomDhikrSound = function(fileInput) {
   reader.onload = function(e) {
     try {
       const audioData = e.target.result;
+      
+      // تخزين ملف الهاتف محلياً
       localStorage.setItem('custom_user_dhikr_sound', audioData);
       localStorage.setItem('selected_dhikr_sound', 'CUSTOM_USER_SOUND');
       
-      // إظهار الخيار المخفي في القائمة وتحديده فوراً
+      // تحديث واجهة القائمة
       const opt = document.getElementById('customSoundOption');
-      if (opt) { opt.style.display = 'block'; }
+      if (opt) opt.style.display = 'block';
       const select = document.getElementById('dhikrSoundSelect');
-      if (select) { select.value = 'CUSTOM_USER_SOUND'; }
+      if (select) select.value = 'CUSTOM_USER_SOUND';
 
-      // تشغيل تجريبي خفيف
-      const preview = new Audio(audioData);
-      preview.volume = 0.5;
-      preview.play();
+      // تشغيل المعاينة فوراً ليسمع التجربة!
+      window.previewDhikrSound();
 
-      alert('✅ تم حفظ نغمتك الخاصة من الهاتف بنجاح وهترن أوفلاين!');
+      alert('✅ تم تحميل وتجربة نغمتك الخاصة بنجاح! اضغط زر التفعيل لحفظها بالنظام.');
     } catch (error) {
-      alert('⚠️ حجم الملف كبير على الذاكرة السريعة، يرجى اختيار مقطع أقصر أو حجم أقل.');
+      alert('⚠️ حجم الملف كبير شوية، اختر مقطع تنبيه قصير لتفادي قيود الذاكرة.');
     }
   };
   reader.readAsDataURL(file);
