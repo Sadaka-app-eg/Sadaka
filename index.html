@@ -6033,23 +6033,57 @@ function getSelectedDhikrSound() {
 
 // دالة لحفظ النغمة المختارة من القائمة وتشغيل معاينة ليها
 // دالة لتشغيل تجربة صوتية (معاينة) للنغمة الحالية
+// دالة ذكية لتشغيل تجربة صوتية ومعاينة بدون قيود المتصفح الأمنية
 window.previewDhikrSound = function() {
   const saved = localStorage.getItem('selected_dhikr_sound');
   let soundPath = saved || 'audio/sound_quiet.mp3';
   
   if (saved === 'CUSTOM_USER_SOUND') {
-    soundPath = localStorage.getItem('custom_user_dhikr_sound');
+    const base64Data = localStorage.getItem('custom_user_dhikr_sound');
+    if (!base64Data) {
+      alert("⚠️ مفيش نغمة مخصصة مسجلة حالياً، يرجى اختيار ملف أولاً.");
+      return;
+    }
+    
+    // 🌟 السر الهندسي: تحويل الـ Base64 الثقيل لـ Blob و Object URL خفيف لتخطي حماية المتصفح
+    try {
+      const parts = base64Data.split(';base64,');
+      const contentType = parts[0].split(':')[1];
+      const raw = window.atob(parts[1]);
+      const rawLength = raw.length;
+      const uInt8Array = new Uint8Array(rawLength);
+      
+      for (let i = 0; i < rawLength; ++i) {
+        uInt8Array[i] = raw.charCodeAt(i);
+      }
+      
+      const blob = new Blob([uInt8Array], { type: contentType });
+      soundPath = URL.createObjectURL(blob); // تحويله لرابط وهمي سريع جداً
+    } catch (e) {
+      console.error("خطأ في معالجة ملف الصوت:", e);
+      soundPath = 'audio/sound_quiet.mp3'; // العودة للافتراضي في حال الخطأ
+    }
   }
 
+  // تشغيل الصوت بأمان
   if (soundPath) {
-    // لو في صوت شغال نقفله الأول عشان الأصوات ما تدخلش في بعضها
-    if (window.currentDhikrAudio) { window.currentDhikrAudio.pause(); }
+    if (window.currentDhikrAudio) { 
+      window.currentDhikrAudio.pause(); 
+      window.currentDhikrAudio.currentTime = 0;
+    }
     
     window.currentDhikrAudio = new Audio(soundPath);
-    window.currentDhikrAudio.volume = 0.7;
+    window.currentDhikrAudio.volume = 0.8;
+    
+    // محاولة التشغيل مع صيد الخطأ بذكاء بدون إزعاج المستخدم بالـ Alert
     window.currentDhikrAudio.play()
-      .then(() => console.log("🔊 جاري تشغيل معاينة الصوت بنجاح"))
-      .catch(e => alert("⚠️ المتصفح محتاج ضغطة تفاعل منك لتشغيل الصوت"));
+      .then(() => console.log("🔊 النغمة اشتغلت بنجاح تام!"))
+      .catch(e => {
+        console.log("قيود الأوتوبلاي:", e);
+        // محاولة إعادة التشغيل بعد تفاعل صريح
+        alert("🎵 اضغط 'OK' وسيقوم التطبيق بتشغيل النغمة فوراً لتجربتها.");
+        window.currentDhikrAudio.play().catch(err => console.log(err));
+      });
   }
 };
 
