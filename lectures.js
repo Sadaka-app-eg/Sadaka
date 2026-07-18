@@ -32,7 +32,18 @@ function renderLectures() {
     const filtered = window.currentLectureFilter === 'all'
         ? window.lecturesData
         : window.lecturesData.filter(l => l.category === window.currentLectureFilter);
+// جلب القائمة المفلترة العادية
+    let filtered = window.currentLectureFilter === 'all'
+        ? window.lecturesData
+        : window.lecturesData.filter(l => l.category === window.currentLectureFilter);
 
+    // 📌 الترتيب الذكي: وضع العناصر المثبتة بالدبوس في مطلع القائمة
+    const pinnedList = JSON.parse(localStorage.getItem('pinned_lectures') || '[]');
+    filtered.sort((a, b) => {
+        const aPinned = pinnedList.includes(a.title) ? 1 : 0;
+        const bPinned = pinnedList.includes(b.title) ? 1 : 0;
+        return bPinned - aPinned; // المثبت أولاً
+    });
     listEl.innerHTML = filtered.map((lecture, index) => {
         return `
         <div style="background: var(--card); border-radius: 16px; padding: 14px; border: 1px solid var(--border); direction: rtl;">
@@ -118,6 +129,7 @@ window.onLectureAudioEnded = function(index) {
 };
 
 // 4️⃣ زر التحميل الأوفلاين (بنفس آلية الكاش المستخدمة في القرآن والأذان)
+// التعديل الميكانيكي لربط التحميل مع السيرفس وركر الأساسي
 window.downloadLectureAudio = function(index) {
     const filtered = window.currentLectureFilter === 'all'
         ? window.lecturesData
@@ -126,18 +138,19 @@ window.downloadLectureAudio = function(index) {
     const statusEl = document.getElementById('lectureDlStatus_' + index);
 
     if (!lecture || !navigator.serviceWorker.controller) {
-        if (statusEl) statusEl.textContent = 'استنى شوية وحاول تاني 🙏';
+        if (statusEl) statusEl.textContent = 'استنى شوية وحاول تاني ';
         return;
     }
 
     if (statusEl) statusEl.textContent = 'جاري التحميل للتخزين الدائم...';
+    
+    // 🛡️ السحر هنا: غيّرنا الـ label لـ rare_ والمسار عشان السيرفس وركر يحفظه فوراً
     navigator.serviceWorker.controller.postMessage({
         type: 'CACHE_AUDIO_URL',
         url: lecture.src,
-        label: `lecture_${index}`
+        label: 'rare_' + lecture.src
     });
 };
-
 navigator.serviceWorker.addEventListener('message', (event) => {
     const d = event.data;
     if (!d || !d.label || !d.label.startsWith('lecture_')) return;
@@ -205,3 +218,14 @@ document.addEventListener('DOMContentLoaded', () => {
     renderLecturesSleepTimerBar();
     renderLectures();
 });
+// دالة التثبيت والإلغاء مع الحفظ في ذاكرة الجهاز
+window.togglePinLecture = function(title) {
+    let pinned = JSON.parse(localStorage.getItem('pinned_lectures') || '[]');
+    if (pinned.includes(title)) {
+        pinned = pinned.filter(t => t !== title); // إلغاء التثبيت
+    } else {
+        pinned.push(title); // إضافة للتثبيت
+    }
+    localStorage.setItem('pinned_lectures', JSON.stringify(pinned));
+    renderLectures(); // إعادة الرسم الفوري لتظهر فوق
+};
