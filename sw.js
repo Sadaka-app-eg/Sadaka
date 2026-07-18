@@ -373,14 +373,19 @@ self.addEventListener('push', (event) => {
   let payload = { title: 'تذكير الصلاة', body: 'حان الآن وقت الصلاة' };
   try { payload = event.data.json(); } catch (e) {}
 
+  // 🌟 هنا الجزء الجديد المستبدل بالكامل
   const options = {
-    body: payload.body,
+    body: `حي على الصلاة.. حان الآن وقت صلاة ${payload.prayerName || payload.body}`,
     icon: './icon.png',
     badge: './icon.png',
+    // إضافة صورة فخمة للمسجد تظهر وتملأ جزء كبير من بنر الإشعار نفسه بدون ما يفتح الأب
+    image: 'https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?q=80&w=600&auto=format&fit=crop', 
     dir: 'rtl',
     lang: 'ar',
     tag: payload.tag || 'adhan-trigger',
     renotify: true,
+    // نمط اهتزاز مخصص يحاكي رنين الأذان (يهتز 500ms، يهدأ 200ms، وهكذا)
+    vibrate: [500, 200, 500, 200, 800, 300, 500], 
     data: { audioUrl: payload.audioUrl || 'audio/adhan_notification.mp3' }
   };
 
@@ -388,7 +393,6 @@ self.addEventListener('push', (event) => {
     self.registration.showNotification(payload.title, options)
   );
 });
-
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   const notifData = event.notification.data || {};
