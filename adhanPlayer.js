@@ -133,6 +133,18 @@ function checkAdhanTime() {
 
     if (prayerTime === currentHHMM && !playedToday[prayerKey]) {
       playAdhan(prayerKey);
+      
+      // 🌟 إرسال التنبيه لنواة نظام التشغيل فوراً ليعمل في الخلفية وأوفلاين وغصب عن التليفون
+      if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+        const targetTimeMs = new Date().setHours(now.getHours(), now.getMinutes(), 0, 0);
+        navigator.serviceWorker.controller.postMessage({
+          type: 'SCHEDULE_LOCAL_ADHAN',
+          prayerName: adhanPrayerNamesAr[prayerKey],
+          targetTimeMs: targetTimeMs,
+          muathinAudioUrl: getAdhanFileForPrayer(prayerKey)
+        });
+      }
+
       playedToday[prayerKey] = true;
       localStorage.setItem('adhan_played_' + todayKey, JSON.stringify(playedToday));
     }
