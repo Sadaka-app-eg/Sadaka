@@ -6016,7 +6016,61 @@ function clearAnswerTimesTimers() {
   answerTimesTimers.forEach(t => clearTimeout(t));
   answerTimesTimers = [];
 }
+// دالة لجلب النغمة المحددة حالياً (سواء جاهزة أو مخصصة)
+function getSelectedDhikrSound() {
+  const saved = localStorage.getItem('selected_dhikr_sound');
+  if (saved === 'CUSTOM_USER_SOUND') {
+    return localStorage.getItem('custom_user_dhikr_sound') || 'audio/sound_quiet.mp3';
+  }
+  return saved || 'audio/sound_quiet.mp3';
+}
 
+// دالة لحفظ النغمة المختارة من القائمة وتشغيل معاينة ليها
+window.changeDhikrSound = function(value) {
+  localStorage.setItem('selected_dhikr_sound', value);
+  const currentSound = getSelectedDhikrSound();
+  if (currentSound && !currentSound.startsWith('data:')) {
+    const preview = new Audio(currentSound);
+    preview.volume = 0.5;
+    preview.play().catch(e => console.log(e));
+  }
+};
+
+// دالة لمعالجة الملف المرفوع من جهاز المستخدم وتحويله لـ Base64 وحفظه أوفلاين
+window.uploadCustomDhikrSound = function(fileInput) {
+  const file = fileInput.files[0];
+  if (!file) return;
+
+  if (!file.type.startsWith('audio/')) {
+    alert('⚠️ من فضلك اختر ملف صوّتي مدعوم (MP3 مثلاً)');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const audioData = e.target.result;
+      localStorage.setItem('custom_user_dhikr_sound', audioData);
+      localStorage.setItem('selected_dhikr_sound', 'CUSTOM_USER_SOUND');
+      
+      // إظهار الخيار المخفي في القائمة وتحديده فوراً
+      const opt = document.getElementById('customSoundOption');
+      if (opt) { opt.style.display = 'block'; }
+      const select = document.getElementById('dhikrSoundSelect');
+      if (select) { select.value = 'CUSTOM_USER_SOUND'; }
+
+      // تشغيل تجريبي خفيف
+      const preview = new Audio(audioData);
+      preview.volume = 0.5;
+      preview.play();
+
+      alert('✅ تم حفظ نغمتك الخاصة من الهاتف بنجاح وهترن أوفلاين!');
+    } catch (error) {
+      alert('⚠️ حجم الملف كبير على الذاكرة السريعة، يرجى اختيار مقطع أقصر أو حجم أقل.');
+    }
+  };
+  reader.readAsDataURL(file);
+};
 async function activateAnswerTimes() {
   const statusEl = document.getElementById('answerTimesStatus');
 
