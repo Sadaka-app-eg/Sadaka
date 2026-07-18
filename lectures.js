@@ -16,10 +16,10 @@ window.currentPlayingLectureAudio = null;
 window.currentPlayingLectureBtn = null;
 
 function formatLectureTime(seconds) {
-    if (isNaN(seconds) || seconds === Infinity) return "--:--";
+    if (isNaN(seconds) || seconds === Infinity || seconds < 0) return "0:00";
     const m = Math.floor(seconds / 60);
     const s = Math.floor(seconds % 60);
-    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
 }
 
 function renderLectures() {
@@ -40,26 +40,34 @@ function renderLectures() {
     listEl.innerHTML = filtered.map((lecture, index) => {
         const isPinned = pinnedList.includes(lecture.title);
         return `
-        <div style="background: var(--card); border-radius: 16px; padding: 14px; border: 1px solid var(--border); direction: rtl; margin-bottom:10px;">
+        <div style="background: var(--card); border-radius: 16px; padding: 14px; border: 1px solid var(--border); direction: rtl; margin-bottom:12px; display:flex; flex-direction:column; gap:10px;">
           <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
             <div style="display:flex; align-items:center; gap:8px; flex:1;">
               <button onclick="window.togglePinLecture('${lecture.title}')" style="background:transparent; border:none; color:${isPinned ? 'var(--gold)' : 'var(--text2)'}; font-size:16px; cursor:pointer; padding:0; margin-left:4px;">${isPinned ? '📌' : '📍'}</button>
               <span style="font-family:'Amiri',serif; font-size:15px; color:var(--text); line-height:1.6;">${lecture.title}</span>
             </div>
-            <button class="play-btn" id="lectureBtn_${index}" onclick="window.toggleLectureAudio(${index})" style="background:var(--gold); color:#111; border:none; width:34px; height:34px; border-radius:50%; font-size:14px; cursor:pointer;">▶</button>
-            <button id="lectureDlBtn_${index}" onclick="window.downloadLectureAudio(${index})" style="background:var(--bg2); color:var(--gold); border:1px solid var(--border); width:34px; height:34px; border-radius:50%; font-size:14px; cursor:pointer;">⬇️</button>
+            <button class="play-btn" id="lectureBtn_${index}" onclick="window.toggleLectureAudio(${index})" style="background:var(--gold); color:#111; border:none; width:34px; height:34px; border-radius:50%; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;">▶</button>
+            <button id="lectureDlBtn_${index}" onclick="window.downloadLectureAudio(${index})" style="background:var(--bg2); color:var(--gold); border:1px solid var(--border); width:34px; height:34px; border-radius:50%; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;">⬇️</button>
           </div>
-          <div style="margin-top:10px;">
-            <input type="range" id="lectureSeek_${index}" value="0" min="0" max="100" step="0.1" oninput="window.seekLectureAudio(${index}, this.value)" style="width:100%; accent-color:var(--gold); cursor:pointer; height:4px;">
-            <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text2); direction:ltr; margin-top:4px;">
+          <div style="margin-top:10px; width:100%;">
+            <input type="range" id="lectureSeek_${index}" value="0" min="0" max="100" step="0.1" oninput="window.seekLectureAudio(${index}, this.value)" style="width:100%; accent-color:var(--gold); cursor:pointer; height:4px; background:rgba(255,255,255,0.2); outline:none; border-radius:2px;">
+            <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text2); direction:ltr; margin-top:4px; font-family:monospace;">
               <span id="lectureCurTime_${index}">0:00</span>
               <span id="lectureTotalTime_${index}">--:--</span>
             </div>
           </div>
-          <div id="lectureDlStatus_${index}" style="font-size:10px; color:var(--text2); margin-top:6px; text-align:center;"></div>
-<audio id="lectureAudio_${index}" src="${lecture.src}" preload="metadata" onended="window.onLectureAudioEnded(${index})" onloadedmetadata="window.onLectureMetaLoaded(${index})" ontimeupdate="window.onLectureTimeUpdate(${index})"></audio>
-</div>`;
+          <div id="lectureDlStatus_${index}" style="font-size:10px; color:var(--text2); margin-top:4px; text-align:center;"></div>
+          
+          <!-- ⏱️ استدعاء الميتاداتا المباشر لقراءة الوقت فوراً دون تشغيل -->
+          <audio id="lectureAudio_${index}" src="${lecture.src}" preload="metadata" 
+            onended="window.onLectureAudioEnded(${index})" 
+            onloadedmetadata="window.onLectureMetaLoaded(${index})" 
+            ontimeupdate="window.onLectureTimeUpdate(${index})"></audio>
+        </div>`;
     }).join('');
+    
+    // محاولة تعليم الأزرار المحملة مسبقاً بروقان
+    setTimeout(markDownloadedLectures, 200);
 }
 
 window.togglePinLecture = function(title) {
@@ -74,22 +82,59 @@ window.toggleLectureAudio = function(index) {
     const audio = document.getElementById('lectureAudio_' + index);
     const btn = document.getElementById('lectureBtn_' + index);
     if (!audio || !btn) return;
+
     if (window.currentPlayingLectureAudio && window.currentPlayingLectureAudio !== audio) {
         window.currentPlayingLectureAudio.pause();
         if (window.currentPlayingLectureBtn) window.currentPlayingLectureBtn.textContent = '▶';
     }
+
     if (audio.paused) {
         audio.play().then(() => {
             btn.textContent = '⏸';
             window.currentPlayingLectureAudio = audio;
             window.currentPlayingLectureBtn = btn;
-        });
+        }).catch(err => console.error(err));
     } else {
         audio.pause();
         btn.textContent = '▶';
     }
 };
 
+// 🛠️ إعادة دوال التحكم الميكانيكي بالشريط والوقت بالملي
+window.seekLectureAudio = function(index, value) {
+    const audio = document.getElementById('lectureAudio_' + index);
+    if (audio && audio.duration) {
+        audio.currentTime = (value / 100) * audio.duration;
+    }
+};
+
+window.onLectureMetaLoaded = function(index) {
+    const audio = document.getElementById('lectureAudio_' + index);
+    const totalEl = document.getElementById('lectureTotalTime_' + index);
+    if (audio && totalEl && audio.duration) {
+        totalEl.textContent = formatLectureTime(audio.duration);
+    }
+};
+
+window.onLectureTimeUpdate = function(index) {
+    const audio = document.getElementById('lectureAudio_' + index);
+    const seek = document.getElementById('lectureSeek_' + index);
+    const curEl = document.getElementById('lectureCurTime_' + index);
+    if (!audio || !seek || !curEl) return;
+    if (audio.duration > 0) {
+        seek.value = (audio.currentTime / audio.duration) * 100;
+        curEl.textContent = formatLectureTime(audio.currentTime);
+    }
+};
+
+window.onLectureAudioEnded = function(index) {
+    const btn = document.getElementById('lectureBtn_' + index);
+    if (btn) btn.textContent = '▶';
+    window.currentPlayingLectureAudio = null;
+    window.currentPlayingLectureBtn = null;
+};
+
+// التنزيل والمزامنة مع السيرفس وركر
 window.downloadLectureAudio = function(index) {
     const lecture = window.lecturesData[index];
     const statusEl = document.getElementById('lectureDlStatus_' + index);
@@ -103,11 +148,39 @@ navigator.serviceWorker.addEventListener('message', (event) => {
     if (!d || !d.label || !d.label.startsWith('rare_')) return;
     const url = d.label.replace('rare_', '');
     const idx = window.lecturesData.findIndex(l => l.src === url);
+    if (idx === -1) return;
     const statusEl = document.getElementById('lectureDlStatus_' + idx);
-    if (statusEl) statusEl.textContent = d.type === 'AUDIO_CACHED' ? '✅ تم التحميل أوفلاين' : '⚠️ فشل التحميل';
+    const btn = document.getElementById('lectureDlBtn_' + idx);
+    if (d.type === 'AUDIO_CACHED') {
+        if (statusEl) statusEl.textContent = '✅ تم التحميل أوفلاين';
+        if (btn) {
+            btn.textContent = '✅';
+            btn.style.background = 'rgba(76,175,80,0.15)';
+            btn.style.borderColor = '#4caf50';
+            btn.style.color = '#4caf50';
+        }
+    }
 });
 
-// تايمر النوم
+async function markDownloadedLectures() {
+    if (!('caches' in window)) return;
+    try {
+        const cache = await caches.open('athr-audio-cache-v1');
+        window.lecturesData.forEach(async (item, idx) => {
+            const match = await cache.match(item.src);
+            const btn = document.getElementById('lectureDlBtn_' + idx);
+            const statusEl = document.getElementById('lectureDlStatus_' + idx);
+            if (match && btn) {
+                btn.textContent = '✅';
+                btn.style.background = 'rgba(76,175,80,0.15)';
+                btn.style.borderColor = '#4caf50';
+                btn.style.color = '#4caf50';
+                if (statusEl) statusEl.textContent = '✅ محمّلة بالفعل';
+            }
+        });
+    } catch (e) {}
+}
+
 window.startLecturesSleepTimer = function() {
     if (window.lecturesSleepTimeout) clearTimeout(window.lecturesSleepTimeout);
     const minutes = parseInt(document.getElementById('lecturesSleepInput').value) || 20;
