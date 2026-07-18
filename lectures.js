@@ -23,7 +23,7 @@ function renderLectures() {
                 <div class="audio-info">
                     <h4 style="font-family: 'Amiri', serif; font-size: 18px; line-height: 1.6; margin: 0; padding-left: 10px;">${lecture.title}</h4>
                 </div>
-                <button class="play-btn" onclick="playAudioSystem('${lecture.src}', this)">▶️ تشغيل</button>
+              <button class="play-btn" onclick="window.playRare('${lecture.src}')">▶️ تشغيل</button>
             </div>
         `;
     }).join('');
