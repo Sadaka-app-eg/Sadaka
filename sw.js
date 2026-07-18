@@ -327,37 +327,26 @@ async function getCacheInfo(client) {
 // ملاحظة: المتصفح ممكن يقفل الـ Service Worker بعد فترة خمول،
 // فالتوقيت هنا "أفضل مجهود" مش مضمون 100% زي Push حقيقي من سيرفر.
 // ===========================================
-let notifTimer = null;
 let notifConfig = null;
 let notifIndex = 0;
 
 function setNotifConfig(data) {
-  clearNotifConfig();
   notifConfig = {
     intervalMinutes: data.intervalMinutes || 60,
     mode: data.mode || 'sequential',
     items: data.items || []
   };
   notifIndex = 0;
-  scheduleNextNotif();
+  sendNotifTick();
 }
 
 function clearNotifConfig() {
-  if (notifTimer) { clearTimeout(notifTimer); notifTimer = null; }
   notifConfig = null;
-}
-
-function scheduleNextNotif() {
-  if (!notifConfig || !notifConfig.items.length) return;
-  const delay = notifConfig.intervalMinutes * 60 * 1000;
-  notifTimer = setTimeout(() => {
-    sendNotifTick();
-    scheduleNextNotif();
-  }, delay);
 }
 
 function sendNotifTick() {
   if (!notifConfig || !notifConfig.items.length) return;
+  
   let text;
   if (notifConfig.mode === 'random') {
     text = notifConfig.items[Math.floor(Math.random() * notifConfig.items.length)];
@@ -365,21 +354,60 @@ function sendNotifTick() {
     text = notifConfig.items[notifIndex % notifConfig.items.length];
     notifIndex++;
   }
-  self.registration.showNotification('🕌 تذكير من "كُن ذا أثر"', {
+
+  self.registration.showNotification('تذكير من "أثر" 🕌', {
     body: text,
     icon: './icon.png',
     badge: './icon.png',
     dir: 'rtl',
-    lang: 'ar'
+    lang: 'ar',
+    tag: 'athr-reminder',
+    renotify: true
   });
 }
 
+// =========================================================================
+// المحرك السحري: استقبال نبضات السيرفر (FCM) لتشغيل الأذان والإشعارات غصب عن النظام أوفلاين
+// =========================================================================
+self.addEventListener('push', (event) => {
+  let payload = { title: 'تذكير الصلاة', body: 'حان الآن وقت الصلاة' };
+  try { payload = event.data.json(); } catch (e) {}
+
+  const options = {
+    body: payload.body,
+    icon: './icon.png',
+    badge: './icon.png',
+    dir: 'rtl',
+    lang: 'ar',
+    tag: payload.tag || 'adhan-trigger',
+    renotify: true,
+    data: { audioUrl: payload.audioUrl || 'audio/adhan_notification.mp3' }
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(payload.title, options)
+  );
+});
+
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
+  const notifData = event.notification.data || {};
+
   event.waitUntil(
-    self.clients.matchAll({ type: 'window' }).then(list => {
-      if (list.length > 0) return list[0].focus();
-      return self.clients.openWindow('./');
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
+      for (const client of clientList) {
+        if ('focus' in client) {
+          client.postMessage({ type: 'PLAY_BACKGROUND_AUDIO', url: notifData.audioUrl });
+          return client.focus();
+        }
+      }
+      if (self.clients.openWindow) {
+        return self.clients.openWindow('./').then(windowClient => {
+          setTimeout(() => {
+            if (windowClient) windowClient.postMessage({ type: 'PLAY_BACKGROUND_AUDIO', url: notifData.audioUrl });
+          }, 1500);
+        });
+      }
     })
   );
 });
