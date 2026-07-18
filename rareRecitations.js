@@ -371,6 +371,7 @@ window.renderRareRecitations = function () {
                  oninput="window.seekRare(this, '${item.url}')"
                  style="width:100%; accent-color:var(--gold); cursor:pointer; height:4px; border-radius:2px; background:rgba(255,255,255,0.2); outline:none;" />
           <span data-time-url="${item.url}" style="font-size:12px; color:var(--text2); direction:ltr; text-align:left;">${timeLabel}</span>
+          <audio src="${item.url}" preload="metadata" onloadedmetadata="const durationEl = document.querySelector('span[data-time-url=\\'${item.url}\\']'); if(durationEl) durationEl.textContent = '0:00 / ' + window.formatTime(this.duration);"></audio>
         </div>
 
       </div>
