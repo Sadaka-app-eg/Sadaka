@@ -8,51 +8,15 @@ window.lecturesData = [
     { title: "لا تلوم نفسك", src: "audio/audio2/le_7.mp3", category: "مواعظ متنوعة" },
     { title: "لا تحزن إن الله يدبر أمرك", src: "audio/audio2/le_8.mp3", category: "مواعظ متنوعة" },
     { title: "من مهالك الرجال .. احذر المهلكة الأولى", src: "audio/audio2/le_9.mp3", category: "مواعظ متنوعة" },
-    { title: "الراحة الحقيقية... أين نجدها ؟", src: "audio/audio2/le_10.mp3", category: "مواعظ متنوعة" }
-];
-const tajweedPlaylist = [
-  {
-    id: 1,
-    title: "دورة تعلم التجويد - الدرس ( 1 )",
-    duration: "01:15:42",
-    url: "https://archive.org/download/tajweed_lesson_1/tajweed_lesson_1.mp3",
-    speaker: "الشيخ علاء حامد"
-  },
-  {
-    id: 2,
-    title: "دورة تعلم التجويد - الدرس ( 2 )",
-    duration: "01:20:15", // اكتب الوقت الفعلي للدرس الثاني هنا
-    url: "https://archive.org/download/your_upload_folder/tajweed_lesson_2.mp3", // رابط الدرس الثاني
-    speaker: "الشيخ علاء حامد"
-  },
-  {
-    id: 3,
-    title: "دورة تعلم التجويد - الدرس ( 3 )",
-    duration: "01:18:30",
-    url: "https://archive.org/download/your_upload_folder/tajweed_lesson_3.mp3",
-    speaker: "الشيخ علاء حامد"
-  },
-  {
-    id: 4,
-    title: "دورة تعلم التجويد - الدرس ( 4 )",
-    duration: "01:12:45",
-    url: "https://archive.org/download/your_upload_folder/tajweed_lesson_4.mp3",
-    speaker: "الشيخ علاء حامد"
-  },
-  {
-    id: 5,
-    title: "دورة تعلم التجويد - الدرس ( 5 )",
-    duration: "01:25:10",
-    url: "https://archive.org/download/your_upload_folder/tajweed_lesson_5.mp3",
-    speaker: "الشيخ علاء حامد"
-  },
-  {
-    id: 6,
-    title: "دورة تعلم التجويد - الدرس ( 6 ) والأخير",
-    duration: "01:10:05",
-    url: "https://archive.org/download/your_upload_folder/tajweed_lesson_6.mp3",
-    speaker: "الشيخ علاء حامد"
-  }
+    { title: "الراحة الحقيقية... أين نجدها ؟", src: "audio/audio2/le_10.mp3", category: "مواعظ متنوعة" },
+    
+    // دورة التجويد مدمجة تلقائياً بروابط أرشيف المباشرة المظبوطة بالملي
+    { title: "دورة تعلم التجويد - الدرس ( 1 )", src: "https://archive.org/download/tajweed_lesson_1/tajweed_lesson_1.mp3", category: "دورة التجويد" },
+    { title: "دورة تعلم التجويد - الدرس ( 2 )", src: "https://archive.org/download/tajweed_lesson_1/tajweed_lesson_2.mp3", category: "دورة التجويد" },
+    { title: "دورة تعلم التجويد - الدرس ( 3 )", src: "https://archive.org/download/tajweed_lesson_1/tajweed_lesson_3.mp3", category: "دورة التجويد" },
+    { title: "دورة تعلم التجويد - الدرس ( 4 )", src: "https://archive.org/download/tajweed_lesson_1/tajweed_lesson_4.mp3", category: "دورة التجويد" },
+    { title: "دورة تعلم التجويد - الدرس ( 5 )", src: "https://archive.org/download/tajweed_lesson_1/tajweed_lesson_5.mp3", category: "دورة التجويد" },
+    { title: "دورة تعلم التجويد - الدرس ( 6 ) والأخير", src: "https://archive.org/download/tajweed_lesson_1/tajweed_lesson_6.mp3", category: "دورة التجويد" }
 ];
 window.currentLectureFilter = 'all';
 window.currentPlayingLectureAudio = null;
