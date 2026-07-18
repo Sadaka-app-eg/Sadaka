@@ -201,3 +201,24 @@ window.startLecturesSleepTimer = function() {
 };
 
 document.addEventListener('DOMContentLoaded', () => { renderLectures(); });
+window.filterLectures = function(category) {
+    window.currentLectureFilter = category;
+    
+    // إعادة الألوان الطبيعية لكل الأزرار في القائمة
+    document.querySelectorAll('.sheikh-tabs .sheikh-btn').forEach(btn => {
+        btn.style.background = 'var(--card)';
+        btn.style.color = 'var(--text)';
+        btn.style.border = '1px solid var(--border)';
+    });
+    
+    // تلوين الزرار اللي ضغطنا عليه بالذهبي عشان المستخدم يعرف هو واقف فين
+    const activeBtn = document.getElementById('lectureCatBtn_' + category);
+    if (activeBtn) {
+        activeBtn.style.background = 'var(--gold)';
+        activeBtn.style.color = '#111';
+        activeBtn.style.border = 'none';
+    }
+    
+    // إعادة بناء وعرض القائمة بناءً على الفلتر الجديد
+    renderLectures();
+};
