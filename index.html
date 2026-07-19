@@ -597,9 +597,7 @@ body.hide-controls #quran {
 .back-to-home-btn:active { transform: scale(0.95); }
 
 /* تفعيل ظهور زر العودة فقط عند الخروج من الرئيسية */
-body.in-subpage .back-to-home-btn {
-  display: block;
-}
+
 
 .asma2-search-box{width:100%;padding:10px 14px;border-radius:12px;background:var(--bg2);color:var(--text);border:1px solid var(--border);font-size:14px;margin-bottom:12px;font-family:'Amiri',serif;outline:none;}
 .asma2-card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:10px;border:1px solid var(--border);text-align:center;cursor:pointer;transition:all 0.2s;}
@@ -3038,10 +3036,18 @@ function showPage(id, el) {
   }
 
   // التحكم في وضع ملء الشاشة وظهور زر العودة للرئيسية
-  if (id === 'home') {
-    document.body.classList.remove('in-subpage');
-  } else {
-    document.body.classList.add('in-subpage');
+// نقل زر العودة ليصبح جزءًا فعليًا من الصفحة النشطة فقط
+  const backBtn = document.querySelector('.back-to-home-btn');
+  if (backBtn) {
+    if (id === 'home') {
+      backBtn.style.display = 'none';
+    } else {
+      const targetPage = document.getElementById(id);
+      if (targetPage && backBtn.parentElement !== targetPage) {
+        targetPage.appendChild(backBtn);
+      }
+      backBtn.style.display = 'block';
+    }
   }
 
     if(id === 'favPage') renderFav();
