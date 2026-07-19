@@ -1,5 +1,5 @@
 // =========================================================================
-// 🌟 محرك المؤثرات البصرية والجماليات الملكية - الإصدار المتوافق والمؤمن لتطبيق "أثر"
+// 🌟 محرك المؤثرات البصرية والجماليات الملكية - الإصدار المطور لمنع عزل الأزرار
 // =========================================================================
 (function () {
   'use strict';
@@ -18,18 +18,17 @@
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (prefersReducedMotion) CONFIG.motionEnabled = false;
 
-  // 📋 مصفوفة الأدعية المباشرة المخصصة عشوائياً بناءً على طلبك بالملي
+  // 📋 مصفوفة الأدعية المباشرة المخصصة
   const DUA_POOL = [
     "اللهم اغفر لعلي غانم وارحمه وعافه واعفُ عنه",
     "اللهم اغفر لشيماء سعيد وارحمها واجعل قبرها روضة من رياض الجنة",
     "اللهم اغفر لزينب مسعد وارحمها ونقّها من الخطايا كما ينقى الثوب الأبيض"
   ];
 
-  // 🎨 حقن الستايلات الأساسية الخفيفة لضمان عدم تخريب ثيمات التطبيق الأصلي
+  // 🎨 حقن الستايلات المحسنة مع تأمين الـ pointer-events
   const styles = document.createElement('style');
   styles.id = 'athr-effects-v3-styles';
   styles.innerHTML = `
-    /* ===== جزيئات السقوط الهادئ والنجوم المتلألئة التلقائية ===== */
     .athr-particle {
       position: fixed;
       pointer-events: none;
@@ -50,7 +49,6 @@
       50% { opacity: 0.75; transform: scale(1.15); text-shadow: 0 0 8px #d4af37; }
     }
 
-    /* ===== الأثر المتبقي الذهبي أثناء السحب (Trail Effect) ===== */
     .athr-trail-dot {
       position: absolute;
       width: 6px; height: 6px;
@@ -64,7 +62,6 @@
       transition: transform 0.4s ease-out, opacity 0.4s ease-out;
     }
 
-    /* ===== لوحة تهنئة إتمام العمل والعبادة (Toast) ===== */
     .athr-toast {
       position: fixed;
       bottom: 40px; left: 50%;
@@ -93,12 +90,12 @@
       100% { transform: translate3d(var(--x), var(--y), 0) rotate(360deg); opacity: 0; }
     }
 
-    /* ===== كارت تذكير الدعاء المباشر العشوائي المطور (تأثير زجاجي فخم) ===== */
+    /* ===== كارت الدعاء المطور كلياً لمنع حجب العناصر تحت الحذف أو الإخفاء ===== */
     .athr-dua-reminder-card {
       position: fixed;
       bottom: 25px;
       right: 25px;
-      background: rgba(18, 30, 20, 0.88);
+      background: rgba(18, 30, 20, 0.92);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
       border: 1px solid rgba(212, 175, 55, 0.3);
@@ -108,17 +105,23 @@
       color: #fff;
       font-family: 'Amiri', serif;
       z-index: 9999;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
       transform: translateY(40px);
       opacity: 0;
-      transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.6s ease;
+      visibility: hidden; /* إخفاء كامل عن السيستم */
+      pointer-events: none; /* إلغاء التفاعل تماماً وهو مختفي عشان تضغط براحتك تحته */
+      transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease, visibility 0.5s;
       max-width: 320px;
       direction: rtl;
-      pointer-events: auto;
+      cursor: pointer; /* تلميح للمستخدم إنه قابل للضغط وقابل للإغلاق البصري */
     }
+    
+    /* عند التفعيل يرجع يتفاعل ويظهر بصرياً */
     .athr-dua-reminder-card.athr-show {
       transform: translateY(0);
       opacity: 1;
+      visibility: visible;
+      pointer-events: auto; /* السماح بالضغط عليه للإغلاق */
     }
   `;
   document.head.appendChild(styles);
@@ -126,6 +129,7 @@
   let activeFallingInterval = null;
   let activeStarInterval = null;
   let activeDuaInterval = null;
+  let duaTimeoutTracker = null; // متتبع لمنع تداخل أوقات الـ setTimeout
   const trailPool = [];
 
   const AthrEffects = {
@@ -145,7 +149,6 @@
       document.querySelectorAll('.athr-particle').forEach(p => p.remove());
     },
 
-    // 🌟 تشغيل النجوم المتلألئة التلقائية بشكل متواصل هادئ
     startContinuousStars() {
       if (prefersReducedMotion) return;
       if (!activeStarInterval) {
@@ -162,14 +165,17 @@
       }
     },
 
-    // 🌟 تشغيل كارت الدعاء العشوائي المباشر كل فترة
+    // 🤲 تشغيل محرك كروت الدعاء العشوائي الذكي
     startContinuousDuaReminder() {
       if (!activeDuaInterval) {
         this._injectDuaCardUI();
+        // ⏰ يشتغل دورياً كل ربع ساعة بالتمام والكمال (15 دقيقة = 900000 مللي ثانية)
         activeDuaInterval = setInterval(() => {
           this._cycleDuaReminder();
-        }, 60000); // يظهر دعاء جديد تماماً كل 20 ثانية
-        setTimeout(() => this._cycleDuaReminder(), 3000); // أول ظهور بعد فتح التطبيق بـ 3 ثوانٍ
+        }, 900000); 
+        
+        // أول ظهور تجريبي خفيف بعد فتح التطبيق بـ 5 ثوانٍ
+        setTimeout(() => this._cycleDuaReminder(), 5000); 
       }
     },
 
@@ -178,6 +184,7 @@
         clearInterval(activeDuaInterval);
         activeDuaInterval = null;
       }
+      if (duaTimeoutTracker) clearTimeout(duaTimeoutTracker);
       document.getElementById('athrDuaReminder')?.remove();
     },
 
@@ -186,6 +193,13 @@
       const card = document.createElement('div');
       card.id = 'athrDuaReminder';
       card.className = 'athr-dua-reminder-card';
+      
+      // ⚡ عند الضغط المباشر على الكارت يختفي فوراً بدون انتظار انتهاء الـ 3 ثوانٍ
+      card.onclick = () => {
+        card.classList.remove('athr-show');
+        if (duaTimeoutTracker) clearTimeout(duaTimeoutTracker);
+      };
+
       document.body.appendChild(card);
     },
 
@@ -194,30 +208,33 @@
       const card = document.getElementById('athrDuaReminder');
       if (!card) return;
 
+      // إخفاء مبدئي لتنظيف الأبعاد
       card.classList.remove('athr-show');
+      if (duaTimeoutTracker) clearTimeout(duaTimeoutTracker);
 
       setTimeout(() => {
-        // اختيار دعاء كامل مباشر عشوائي تماماً من القائمة
         const randomIndex = Math.floor(Math.random() * DUA_POOL.length);
         const randomDuaText = DUA_POOL[randomIndex];
         
         card.innerHTML = `
-          <div style="display:flex; align-items:center; gap:10px;">
-            <span style="font-size:22px;">🤲</span>
+          <div style="display:flex; align-items:center; gap:12px; user-select:none;">
+            <span style="font-size:24px;">🤲</span>
             <div style="flex:1;">
-              <div style="font-size:11px; color:#d4af37; font-weight:bold;">دُعَاءٌ طَيِّبٌ لِأَهْلِ الأَثَرِ:</div>
-              <div style="font-size:15px; line-height:1.6; margin-top:3px; font-weight:500; color:#fff;">"${randomDuaText}"</div>
+              <div style="font-size:11px; color:#d4af37; font-weight:bold; letter-spacing:0.5px;">دُعَاءٌ طَيِّبٌ لِأَهْلِ الأَثَرِ:</div>
+              <div style="font-size:14.5px; line-height:1.6; margin-top:4px; font-weight:500; color:#fff;">"${randomDuaText}"</div>
             </div>
           </div>
         `;
+        
+        // إظهار الكارت وتفعيل الـ pointer-events تلقائياً
         card.classList.add('athr-show');
 
-        // يختفي الكارت بعد 8 ثوانٍ من ظهوره تلقائياً
-        setTimeout(() => {
+        // ⏱️ يختفي الكارت تلقائياً بالملي بعد 3 ثوانٍ (3000 مللي ثانية) من ظهوره
+        duaTimeoutTracker = setTimeout(() => {
           card.classList.remove('athr-show');
-        }, 12000);
+        }, 3000);
 
-      }, 600);
+      }, 400);
     },
 
     _spawnFallingParticle() {
@@ -340,6 +357,7 @@
       const heroCard = document.getElementById('homeHeroCard');
       if (heroCard && CONFIG.motionEnabled) {
         heroCard.style.transition = 'transform 7s ease-in-out';
+        heroCard.style.transform = 'scale(1)';
         setInterval(() => {
           heroCard.style.transform = heroCard.style.transform === 'scale(1.02)' ? 'scale(1)' : 'scale(1.02)';
         }, 7000);
