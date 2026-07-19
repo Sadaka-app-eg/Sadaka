@@ -7402,6 +7402,42 @@ if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Sta
     window.Capacitor.Plugins.StatusBar.hide().catch(e => console.error(e));
 }
 })();
+
+// نظام التحكم في زرار الرجوع بتاع الموبايل (Native Back Button)
+if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+  window.Capacitor.Plugins.App.addListener('backButton', () => {
+    
+    // 1. لو في مودال أو شاشة منبثقة مفتوحة (زي شاشة التفسير أو البروفايل)
+    const activeModal = document.querySelector('.modal.show, .modal-open, [style*="display: flex"]'); 
+    const surahScreen = document.getElementById('surahScreen');
+    
+    if (activeModal) {
+      // نادى دالة إغلاق المودال اللي عندك في الكود
+      if (typeof closeModals === 'function') { closeModals(); return; }
+    }
+    
+    if (surahScreen && surahScreen.classList.contains('open')) {
+      // لو فاتح سورة، يقفل السورة ويرجع لقائمة السور مش للرئيسية
+      if (typeof closeSurah === 'function') { closeSurah(); return; }
+    }
+
+    // 2. لو هو واقف في صفحة فرعية جوه التطبيق
+    const activePage = document.querySelector('.page.active');
+    if (activePage && activePage.id !== 'home') {
+      // يرجعه خطوة لورا للشاشة السابقة بدل الرئيسية علطول
+      if (typeof showPage === 'function') {
+        // هنا بنخليه يروح للـ View اللي قبله في الـ history
+        window.history.back(); 
+        return;
+      }
+    }
+
+    // 3. لو واقف في الرئيسية خالص وضغط رجوع -> يقفل التطبيق طبيعي
+    window.Capacitor.Plugins.App.exitApp();
+  });
+}
+
+ 
 </script>
  <!-- الصفحة الجديدة اللي إحنا ضفناها -->
     
