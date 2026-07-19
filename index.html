@@ -835,6 +835,32 @@ body.in-subpage .back-to-home-btn {
       animation-delay: 1.2s;
       box-shadow: inset 0 0 10px rgba(212,175,55,0.05);
     }
+   /* منع تداخل الشاشات وفرض خلفية مصمتة تمنع ظهور ما خلفها */
+.page, .modal, .surah-screen {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: #0b120c !important;
+  z-index: 99;
+  display: none;
+}
+
+/* الشاشة النشطة فقط تظهر وتغطي الشاشة الرئيسية بالكامل */
+.page.active, .modal.show, .surah-screen.open {
+  display: flex !important;
+  flex-direction: column;
+  z-index: 100;
+}
+
+/* تأمين أبعاد التطبيق لمنع الفراغات والخطوط البيضاء تحت */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #0b120c !important;
+}
   </style>
 
   <!-- المسجد المضيء بنبض روحي -->
@@ -3006,8 +3032,13 @@ function showPage(id, el) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   
   localStorage.setItem('last_opened_tab', id);
-  if(document.getElementById(id)) document.getElementById(id).classList.add('active');
-  
+// 🔥 حل تضارب تداخل الشاشات: إخفاء حقيقي تام لكل العناصر الخلفية ما عدا الشاشة النشطة
+  document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+  const targetPage = document.getElementById(id);
+  if (targetPage) {
+    targetPage.classList.add('active');
+    targetPage.style.display = 'flex'; // ليتطابق بالملي مع ستايل الـ CSS المحدث بتاعك
+  }
   // تفعيل كلاس التنشيط على العنصر المختار جوه المنيو
   if (el) {
     el.classList.add('active');
@@ -7403,10 +7434,20 @@ window.triggerHeaderGoogleLogin = function() {
   });
 
   history.replaceState({ athrState: 'home' }, '', '');
- // إخفاء شريط البطارية والساعة تماماً لملء الشاشة في التطبيق الحقيقي
-if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.StatusBar) {
-    window.Capacitor.Plugins.StatusBar.hide().catch(e => console.error(e));
-}
+// إخفاء شريط البطارية والساعة تماماً وتلوين الشريط السفلي فور استقرار واجهة التطبيق
+document.addEventListener('DOMContentLoaded', () => {
+    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.StatusBar) {
+        // 1. إخفاء شريط البطارية الفوقاني
+        window.Capacitor.Plugins.StatusBar.hide().catch(e => console.error(e));
+        
+        // 2. تلوين شريط التنقل التحتاني بالأسود المخضر لمنع الخط الأبيض
+        try {
+            if (typeof Android !== 'undefined') {
+                window.navigationBar.setbackgroundColor('#0b120c'); 
+            }
+        } catch (e) { console.log("Navigation bar handled by OS"); }
+    }
+});
 })();
 
 // نظام التحكم في زرار الرجوع بتاع الموبايل (Native Back Button)
