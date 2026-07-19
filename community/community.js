@@ -52,28 +52,21 @@ style.innerHTML = `
   .badge-female { background: rgba(212,175,55,0.15); color: var(--gold); border: 1px solid rgba(212,175,55,0.3); }
 `;
 document.head.appendChild(style);
-(function(){
-  const myAccBtn = document.createElement('button');
-  myAccBtn.id = 'athrMyAccountFloatBtn';
-  myAccBtn.innerHTML = "👤 حسابي";
-  myAccBtn.onclick = () => window.openMyAccountModal();
-  myAccBtn.style.cssText = "position:fixed; top:14px; right:15px; z-index:999999; background:rgba(212,175,55,0.12); color:#d4af37; border:1px solid #d4af37; padding:8px 16px; border-radius:20px; font-family:'Amiri',serif; font-weight:bold; font-size:13px; cursor:pointer; backdrop-filter:blur(4px); display:none;";
-  document.body.appendChild(myAccBtn);
+window.ensureMyAccountButton = function() {
+  let btn = document.getElementById('athrMyAccountFloatBtn');
+  if (btn) return btn;
 
-  function isElementVisible(el){
-    if(!el) return false;
-    if(el.offsetParent === null) return false; 
-    const rect = el.getBoundingClientRect();
-    return rect.width > 0 && rect.height > 0;
-  }
+  const communityPage = document.getElementById('communityPage');
+  if (!communityPage) return null;
 
-  function updateAccBtnVisibility(){
-    const communityEl = document.getElementById('communityContent');
-    myAccBtn.style.display = isElementVisible(communityEl) ? 'block' : 'none';
-  }
-  updateAccBtnVisibility();
-  setInterval(updateAccBtnVisibility, 500);
-})();
+  btn = document.createElement('button');
+  btn.id = 'athrMyAccountFloatBtn';
+  btn.innerHTML = "👤 حسابي";
+  btn.onclick = () => window.openMyAccountModal();
+  btn.style.cssText = "position:absolute; top:14px; right:15px; z-index:999999; background:rgba(212,175,55,0.12); color:#d4af37; border:1px solid #d4af37; padding:8px 16px; border-radius:20px; font-family:'Amiri',serif; font-weight:bold; font-size:13px; cursor:pointer; backdrop-filter:blur(4px); display:none;";
+  communityPage.appendChild(btn);
+  return btn;
+};
  
 // =========================================================
 // 🛠️ 1️⃣ نظام التحقق وإدارة الحسابات الذكي
@@ -113,6 +106,10 @@ window.checkCommunityUser = async function() {
 
 window.renderAuthRequiredBlock = function() {
   const contentArea = document.getElementById('communityContent');
+
+const accBtn = document.getElementById('athrMyAccountFloatBtn');
+  if (accBtn) accBtn.style.display = 'none';
+  
   contentArea.innerHTML = `
     <div class="comm-card" style="text-align: center; padding: 40px 15px; font-family: 'Amiri', serif; direction: rtl;">
       <div style="font-size: 50px; margin-bottom: 15px;">🔒</div>
@@ -129,6 +126,10 @@ window.renderAuthRequiredBlock = function() {
 
 window.renderSetupScreen = function() {
   const contentArea = document.getElementById('communityContent');
+  
+ const accBtn = document.getElementById('athrMyAccountFloatBtn');
+  if (accBtn) accBtn.style.display = 'none';
+  
   contentArea.innerHTML = `
     <div class="comm-card" style="text-align: center; padding: 25px 15px; font-family: 'Amiri', serif; direction: rtl; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid rgba(212,175,55,0.2);">
       <h3 style="color: var(--gold); margin-bottom: 12px; font-size: 22px;">إعداد ملفك الشخصي في أثر ✨</h3>
@@ -287,6 +288,9 @@ window.renderCommunityBody = function() {
   const contentArea = document.getElementById('communityContent');
   if (!contentArea) return;
 
+const accBtn = window.ensureMyAccountButton();
+  if (accBtn) accBtn.style.display = 'block';
+  
   if (unsubscribePosts) unsubscribePosts();
   if (unsubscribeChats) unsubscribeChats();
 
