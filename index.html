@@ -903,7 +903,6 @@ body.in-subpage .back-to-home-btn {
 <div class="tab" onclick="showPage('shareKhairPage',this)">💝 شارك في الخير</div>
   <div class="tab" onclick="showPage('shareAppPage', this)">💝 ساهم في تطوير التطبيق</div>
 <div class="tab" onclick="showPage('heartMirrorPage',this)">🪞 مرآة القلب</div>
-<div class="tab" onclick="showPage('downloadsManagerPage',this); window.initDownloadsManager();">📥 إدارة التنزيلات</div>
 
 </div>
 
@@ -1964,9 +1963,7 @@ body.in-subpage .back-to-home-btn {
   <div id="heartMirrorContainer"></div>
  </div>
 
- <div class="page" id="downloadsManagerPage">
-  <div id="downloadsManagerContainer"></div>
- </div>
+
 <!-- صفحة المواعظ والدروس الجديدة -->
 <div id="lecturesPage" class="page">
  <h2 style="color:var(--gold); text-align:center; margin-top:0; padding-top:5px; margin-bottom:20px;">🎙️ مَوَاعِظُ وَدُرُوسٌ <span style="font-size:16px;">🎧</span></h2>
@@ -1980,15 +1977,7 @@ body.in-subpage .back-to-home-btn {
 <div id="lecturesSleepTimerBar"></div>
   <div id="lecturesList" style="display:grid; gap:10px; padding: 10px;"></div>
 </div>
-<!-- DOWNLOADS MANAGER PAGE -->
-<div class="page" id="downloadsManagerPage">
-    <h2 style="color:var(--gold); text-align:center; margin-bottom: 20px;">📥 إدارة التنزيلات</h2>
-    <div id="downloadsManagerContainer" style="text-align: center; color: var(--text2); padding: 40px;">
-        <div style="font-size: 50px; margin-bottom: 10px;">📂</div>
-        <p>لا توجد تنزيلات حالياً</p>
-        <p style="font-size: 12px; margin-top: 10px;">الملفات التي ستقوم بتحميلها من القرآن أو الدروس ستظهر هنا.</p>
-    </div>
-</div>
+
 <!-- OVERLAY DIMMER -->
 <div class="overlay-dimmer" id="overlayDimmer" onclick="closeActionMenu()"></div>
 
@@ -7411,9 +7400,7 @@ window.triggerHeaderGoogleLogin = function() {
 })();
 </script>
  <!-- الصفحة الجديدة اللي إحنا ضفناها -->
-    <div class="page" id="downloadsManagerPage">
-        <div id="downloadsManagerContainer"></div>
-    </div>
+    
 
 </body>
 
