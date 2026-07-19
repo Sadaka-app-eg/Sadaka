@@ -3765,6 +3765,34 @@ document.addEventListener('DOMContentLoaded', () => {
   updateHomeBlessingsHint();
   updateHomeHiddenDeedsHint();
   renderFlameCompanion(false);
+ // تفعيل صلاحيات الـ APK لتحديد الموقع وإخفاء الأشرطة فوراً
+  if (window.Capacitor && window.Capacitor.Plugins) {
+    const { StatusBar: capStatusBar, Geolocation } = window.Capacitor.Plugins;
+    
+    // 1. إخفاء شريط النظام العلوي (الساعة والبطارية)
+    if (capStatusBar) {
+      capStatusBar.hide().catch(e => console.error(e));
+    }
+    
+    // 2. تلوين شريط التنقل السفلي لمنع الخط الأبيض
+    try {
+      if (typeof Android !== 'undefined') {
+        window.navigationBar.setbackgroundColor('#0b120c'); 
+      }
+    } catch (e) { console.log("Navigation bar handled by OS"); }
+
+    // 3. إجبار الـ APK على طلب إذن الموقع بشكل رسمي فور الفتح
+    try {
+      if (Geolocation) {
+        Geolocation.checkPermissions().then(async (perm) => {
+          if (perm.location === 'prompt' || perm.location === 'denied') {
+            await Geolocation.requestPermissions({ permissions: ['location'] });
+            if (typeof loadPrayerTimes === 'function') loadPrayerTimes();
+          }
+        });
+      }
+    } catch (e) { console.log("Geolocation permission error:", e); }
+  }
 });
 function toggleAudio() {
   if(!currentSurah) return;
