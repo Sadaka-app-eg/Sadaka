@@ -49,6 +49,46 @@ window.currentPlayingLectureAudio = null;
 window.currentPlayingLectureBtn = null;
 window.currentPlayingGlobalId = null;     
 
+// =========================================================================
+// 🧠 بنك الأسئلة الموحد والصعب جداً (15 سؤال للسيرة + 15 سؤال للتجويد)
+// =========================================================================
+window.athrQuizzes = {
+    "السيرة النبوية": [
+        { q: "ما هو الاسم الحقيقي لـ 'بحيرا الراهب' الذي رآه النبي ﷺ في رحلة الشام الأولى؟", os: ["جرجيس", "سركيس", "نسطور", "بحيرى"], a: 0 },
+        { q: "كم كان عمر النبي ﷺ بالظبط عندما شارك في حرب الفِجَار وحلف الفضول؟", os: ["15 سنة", "20 سنة", "25 سنة", "12 سنة"], a: 1 },
+        { q: "من هو الصحابي الذي أرسله النبي ﷺ سفيراً مقدماً إلى المدينة قبل بيعة العقبة الثانية؟", os: ["مصعب بن عمير", "عبد الله بن أم مكتوم", "معاذ بن جبل", "أسعد بن زرارة"], a: 0 },
+        { q: "في أي عهد من عهود مكة فُرضت الصلوات الخمس بصفة قطعية ليلة الإسراء والمعراج؟", os: ["العام الثالث من البعثة", "العام الخامس من البعثة", "العام العاشر من البعثة", "العام الثاني عشر من البعثة"], a: 2 },
+        { q: "ما هي القبيلة اليهودية التي حلفوا على قتل النبي ﷺ بالقاء حجر عليه من فوق الجدار؟", os: ["بنو قينقاع", "بنو النضير", "بنو قريظة", "يهود خيبر"], a: 1 },
+        { q: "من الذي قاد لواء المشركين في غزوة أحد وضُربت يده حتى سقط اللواء؟", os: ["طلحة بن أبي طلحة العبدري", "أبو سفيان بن حرب", "عكرمة بن أبي جهل", "صفوان بن أمية"], a: 0 },
+        { q: "كم عدد شهداء المسلمين في غزوة بدر الكبرى بدقة؟", os: ["14 شهيداً", "70 شهيداً", "6 شهداء", "24 شهيداً"], a: 0 },
+        { q: "في صلح الحديبية، من هو الصحابي الذي صاغ المشركون بنداً خاصاً بحبسه في مكة وقام النبي برده؟", os: ["أبو جندل بن سهيل", "أبو بصير", "سلمة بن الأكوع", "عثمان بن عفان"], a: 0 },
+        { q: "ما هي الغزوة التي غنم فيها المسلمون سبايا هوازن وقام النبي ﷺ بردّهم بعد إسلامهم؟", os: ["غزوة حنين", "غزوة تبوك", "غزوة خيبر", "غزوة الطائف"], a: 0 },
+        { q: "من هو الصحابي الذي نام في فراش النبي ﷺ ليلة الهجرة وأمر بـ رد الأمانات؟", os: ["علي بن أبي طالب", "أبو بكر الصديق", "عمر بن الخطاب", "زيد بن حارثة"], a: 0 },
+        { q: "في أي سنة هجرية وقعت غزوة خيبر المباركة لفتح حصون اليهود؟", os: ["السنة الخامسة", "السنة السادسة", "السنة السابعة", "السنة الثامنة"], a: 2 },
+        { q: "ما هو الحصن الأخير والأصعب الذي فتحه المسلمون في خيبر بقيادة علي بن أبي طالب؟", os: ["حصن القموص", "حصن الوطيح", "حصن النطاة", "حصن السلالم"], a: 0 },
+        { q: "من هي المرأة التي حاولت تسميم النبي ﷺ بذراع شاة مسمومة في خيبر؟", os: ["زينب بنت الحارث", "هند بنت عتبة", "أم جميل", "صفيّة بنت حيي"], a: 0 },
+        { q: "كم يوماً دام حصار المسلمين للمشركين في غزوة الطائف بعد فتح مكة؟", os: ["10 أيام", "20 يوماً", "30 يوماً", "40 يوماً"], a: 1 },
+        { q: "من هو الصحابي الذي ثبّت المسلمين وخطب فيهم بقوة وثبات يوم وفاة النبي ﷺ؟", os: ["أبو بكر الصديق", "عمر بن الخطاب", "عثمان بن عفان", "العباس بن عبد المطلب"], a: 0 }
+    ],
+    "دورة التجويد": [
+        { q: "كم عدد الحروف الإجبارية لـ 'الإظهار الحلقي' وما هي؟", os: ["4 حروف", "6 حروف (همز فهاء ثم عين حاء...)", "5 حروف", "7 حروف"], a: 1 },
+        { q: "ما هو حكم النون الساكنة إذا التقت بحرف 'الياء' في كلمة واحدة مثل (صِلوَان - قِنوَان)؟", os: ["إدغام بغنة", "إظهار مطلق شاذ", "إخفاء حقيقي", "إقلاب صريح"], a: 1 },
+        { q: "ما هي المرتبة الأعلى والأقوى من مراتب تفخيم حروف (خص ضغط قظ)؟", os: ["المفتوح وبعده ألف", "المفتوح وليس بعده ألف", "المضموم", "الساكن"], a: 0 },
+        { q: "إذا جاء مد اللين الساكن وبعده حرف سكن للوقف، كم حركات يجوز مده؟", os: ["حركتان فقط", "4 حركات حتماً", "2 أو 4 أو 6 حركات جوازاً", "6 حركات وجوباً"], a: 2 },
+        { q: "ما هو السبب الحقيقي لـ 'الإدغام الصغير' في أحكام التجويد؟", os: ["التماثل أو التجانس أو التقارب", "التباعد في المخارج", "ثقل النطق بالحرف الساكن", "التقاء الساكنين"], a: 0 },
+        { q: "كم عدد حركات 'المد اللازم الكلمي المثقل' مثل كلمة (الصَّاخَّة)؟", os: ["2 حركتين", "4 حركات", "5 حركات", "6 حركات مشبعة وجوباً"], a: 3 },
+        { q: "ما هما الحرفان اللذان يخرجان من 'الشفتين' مع انطباقهما بقوة؟", os: ["الباء والميم", "الفاء والواو", "التاء والدال", "الثاء والذال"], a: 0 },
+        { q: "ما هو حكم الراء الساكنة المسبوقة بكسر أصلي وبعدها حرف استعلاء غير مكسور في كلمة واحدة (قِرْطَاس)؟", os: ["ترقيق الراء", "تفخيم الراء وجوباً", "جواز الوجهين", "إخفاء الراء"], a: 1 },
+        { q: "ما هي حروف 'القلقلة' وما هو شرط اهتزاز المخرج وقلقلته؟", os: ["قطب جد / بشرط أن تكون ساكنة", "سكت / بشرط الفتح", "حروف الحلق", "خص ضغط قظ / مطلقاً"], a: 0 },
+        { q: "كم عدد حركات 'مد الصلة الكبرى' إذا جاء بعد هاء الضمير همزة قطع؟", os: ["حركتان", "4 أو 5 حركات (ملحق بالمنفصل)", "6 حركات دائماً", "لا تمد مطلقاً"], a: 1 },
+        { q: "ما هو التعريف الفقهي الدقيق لـ 'الإخفاء الحقيقي'؟", os: ["النطق بالحرف بصفة بين الإظهار والإدغام عارٍ عن التشديد مع بقاء الغنة", "قلب الحرف ميماً مخفاة", "إدخال حرف ساكن في متحرك", "إخراج الحرف من مخرجه بدون غنة"], a: 0 },
+        { q: "أي من الكلمات التالية تمثل مدّاً بدلاً حقيقياً؟", os: ["آَمَنُوا", "السَّمَاءِ", "جَاءَ", "الْقُرْآَنِ"], a: 0 },
+        { q: "ما هي الغنة، وما هو مقدار زمن نطقها باليد؟", os: ["صوت رخيم يخرج من الخيشوم / مدته حركتان", "صوت يخرج من الشفتين / مدته حركة", "اهتزاز في الحنجرة", "قطع الصوت تماماً"], a: 0 },
+        { q: "ما هو الاسم الآخر لـ 'المد المتصل' وما حكمه من حيث الجواز والوجوب؟", os: ["مد واجب / حكمه الوجوب لمده زيادة عن الطبيعي لاتفاق القراء", "مد جائز / يجوز قصره لحركتين", "مد طبيعي", "مد عارض"], a: 0 },
+        { q: "ما هو المد الذي يتولد من التنوين المنصوب بالفتح عند الوقف عليه في أواخر الآي؟", os: ["مد العوض", "مد البدل", "مد اللين", "مد تمكين"], a: 0 }
+    ]
+};
+
 function formatLectureTime(seconds) {
     if (isNaN(seconds) || seconds === Infinity || seconds < 0) return "0:00";
     const m = Math.floor(seconds / 60);
@@ -56,7 +96,6 @@ function formatLectureTime(seconds) {
     return `${m}:${s < 10 ? '0' : ''}${s}`;
 }
 
-// دالة حية لجلب حجم الملف الصوتي بدقة من كاش الـ Service Worker
 async function getCachedFileSizeMB(url) {
     try {
         if (!('caches' in window)) return null;
@@ -68,7 +107,6 @@ async function getCachedFileSizeMB(url) {
     } catch (e) { return null; }
 }
 
-// محرك ربط الصوت الموحد - يمنع الرعشة نهائياً ويجبر المتصفح على جلب الوقت
 function ensureGlobalAudioEngine() {
     let audio = document.getElementById('athrGlobalLectureEngine');
     if (!audio) {
@@ -112,7 +150,6 @@ function renderLectures() {
     const listEl = document.getElementById('lecturesList');
     if (!listEl) return;
 
-    // 1️⃣ حقن زرار تحميل السيرة بالكامل داخل القسم نفسه ديناميكياً بروقان
     let batchButtonHtml = "";
     if (window.currentLectureFilter === 'السيرة النبوية') {
         batchButtonHtml = `
@@ -161,9 +198,18 @@ function renderLectures() {
         </div>`;
     }).join('');
 
-    // دمج زر التحميل المجمع مع كروت الدروس
-    listEl.innerHTML = batchButtonHtml + cardsHtml;
-    
+    // 🎯 إضافة بوكس الاختبار الذكي أسفل التبويبات المخصصة
+    let quizBoxHtml = "";
+    if (window.currentLectureFilter === 'السيرة النبوية' || window.currentLectureFilter === 'دورة التجويد') {
+        quizBoxHtml = `
+        <div class="comm-card" id="athrQuizSection" style="background:var(--card); border:1px dashed var(--gold); border-radius:16px; padding:18px; margin-top:20px; direction:rtl; text-align:right;">
+            <h4 style="color:var(--gold); font-family:'Amiri',serif; font-size:17px; margin-bottom:6px; display:flex; align-items:center; gap:8px;">🧠 اختبار التحدي الأكبر لـ ${window.currentLectureFilter}</h4>
+            <p style="color:var(--text2); font-size:12px; margin-bottom:15px; line-height:1.5;">الاختبار صعب ومكون من 15 سؤال اختياري دقيق جداً. قفّل الاختبار بـ 14 أو 15 درجة واكسب شهادة توثيق فخمة وموقعة مختومة باسمك من منصة أثر!</p>
+            <button onclick="window.startAthrQuiz('${window.currentLectureFilter}')" style="background:var(--gold); color:#111; border:none; padding:10px 20px; border-radius:8px; font-weight:bold; font-family:'Amiri',serif; font-size:14px; cursor:pointer; width:100%;">🚀 بدء اختبار التحدي الحين</button>
+        </div>`;
+    }
+
+    listEl.innerHTML = batchButtonHtml + cardsHtml + quizBoxHtml;
     setTimeout(markDownloadedLectures, 150);
 }
 
@@ -239,7 +285,6 @@ window.downloadLectureAudio = function(index) {
     });
 };
 
-// استقبال رسائل التحميل في الخلفية وحساب الميجات لكل قسم بثبات
 navigator.serviceWorker.addEventListener('message', (event) => {
     const d = event.data;
     if (!d || !d.label || !d.label.startsWith('lecture_')) return;
@@ -326,4 +371,160 @@ window.downloadSeerahSeries = function() {
     if (typeof downloadBatchWithProgress === 'function') {
         downloadBatchWithProgress(seerahUrls, 'seerahBatchRing');
     }
+};
+
+// =========================================================================
+// 🧠 🆕 محرك نظام الاختبارات والأسئلة الصعبة التفاعلي
+// =========================================================================
+window.startAthrQuiz = function(category) {
+    const quizArea = document.getElementById('athrQuizSection');
+    if (!quizArea) return;
+
+    const questions = window.athrQuizzes[category];
+    window.currentActiveQuizData = {
+        category: category,
+        questions: questions,
+        answers: new Array(questions.length).fill(null)
+    };
+
+    window.renderQuizQuestionsHTML();
+};
+
+window.renderQuizQuestionsHTML = function() {
+    const quizArea = document.getElementById('athrQuizSection');
+    const qData = window.currentActiveQuizData;
+    if (!quizArea || !qData) return;
+
+    let html = `<h4 style="color:var(--gold); font-family:'Amiri',serif; font-size:17px; margin-bottom:12px; border-bottom:1px solid var(--border); padding-bottom:8px;">📝 أسئلة اختبار تحدي: ${qData.category}</h4>`;
+
+    qData.questions.forEach((qItem, qIdx) => {
+        html += `
+        <div style="margin-bottom:18px; background:rgba(255,255,255,0.01); border:1px solid var(--border); padding:12px; border-radius:10px;">
+            <strong style="color:var(--text); font-size:14px; display:block; margin-bottom:8px;">س ${qIdx + 1}: ${qItem.q}</strong>
+            <div style="display:flex; flex-direction:column; gap:6px;">
+                ${qItem.os.map((option, oIdx) => {
+                    const isSelected = qData.answers[qIdx] === oIdx;
+                    return `
+                    <label style="display:flex; align-items:center; gap:8px; background:${isSelected ? 'rgba(212,175,55,0.1)' : 'transparent'}; border:1px solid ${isSelected ? 'var(--gold)' : 'var(--border)'}; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:13px; color:${isSelected ? 'var(--gold)' : 'var(--text)'};">
+                        <input type="radio" name="athr_q_${qIdx}" value="${oIdx}" ${isSelected ? 'checked' : ''} onchange="window.selectQuizAnswer(${qIdx}, ${oIdx})" style="accent-color:var(--gold);" />
+                        ${option}
+                    </label>`;
+                }).join('')}
+            </div>
+        </div>`;
+    });
+
+    html += `
+    <div style="display:flex; gap:10px; margin-top:15px;">
+        <button onclick="window.submitAthrQuiz()" style="flex:1; background:var(--gold); color:#111; border:none; padding:12px; border-radius:8px; font-weight:bold; font-family:'Amiri',serif; font-size:15px; cursor:pointer;">📥 تصحيح الإجابات ورؤية النتيجة</button>
+        <button onclick="window.renderLectures()" style="background:transparent; border:1px solid var(--border); color:var(--text2); padding:12px 15px; border-radius:8px; font-family:'Amiri',serif; font-size:14px; cursor:pointer;">إلغاء</button>
+    </div>`;
+
+    quizArea.innerHTML = html;
+    quizArea.scrollIntoView({ behavior: 'smooth' });
+};
+
+window.selectQuizAnswer = function(qIdx, oIdx) {
+    if (window.currentActiveQuizData) {
+        window.currentActiveQuizData.answers[qIdx] = oIdx;
+    }
+};
+
+window.submitAthrQuiz = function() {
+    const qData = window.currentActiveQuizData;
+    const quizArea = document.getElementById('athrQuizSection');
+    if (!qData || !quizArea) return;
+
+    // فحص لو نسي يحل أسئلة
+    const unanswered = qData.answers.filter(a => a === null).length;
+    if (unanswered > 0) {
+        alert(`⚠️ عذراً يا بطل، لسه فيه ${unanswered} سؤال ما حلتهمش! كمل كل الأسئلة أولاً لحساب النتيجة.`);
+        return;
+    }
+
+    let score = 0;
+    qData.questions.forEach((qItem, idx) => {
+        if (qData.answers[idx] === qItem.a) score++;
+    });
+
+    const passed = score >= 14;
+    // سحب الاسم المسجل في لوكال ستورج البروفايل الخاص بأثر أو اسم جوجل الافتراضي
+    const finalUserName = localStorage.getItem('athr_user_name') || localStorage.getItem('user_display_name') || "طالب الأثر الطيب";
+
+    let resultHtml = `
+    <div style="text-align:center; padding:15px 0;">
+        <div style="font-size:50px; margin-bottom:10px;">${passed ? '🎉' : '⏳'}</div>
+        <h3 style="color:${passed ? '#4caf50' : 'var(--gold)'}; font-size:20px; font-family:'Amiri',serif; margin-bottom:8px;">${passed ? 'تهانينا! أنت من أهل الإتقان' : 'محاولة طيبة يا بطل'}</h3>
+        <p style="color:var(--text); font-size:15px; font-family:'Amiri',serif; margin-bottom:15px;">لقد حصلت على درجة: <strong style="color:var(--gold); font-size:20px;">${score} / 15</strong></p>
+    `;
+
+    if (passed) {
+        resultHtml += `
+        <p style="color:var(--text2); font-size:13px; margin-bottom:20px; line-height:1.5;">ما شاء الله! قفّلت التحدي الصعب بجدارة واستحقاق، وتم توليد شهادتك الملكية المعتمدة الحين من منصة أثر.</p>
+        <button onclick="window.showAthrCertificateModal('${finalUserName}', '${qData.category}', '${score}')" style="background:#4caf50; color:#fff; border:none; padding:12px 25px; border-radius:8px; font-weight:bold; font-family:'Amiri',serif; font-size:15px; cursor:pointer; width:100%; box-shadow:0 4px 15px rgba(76,175,80,0.3); margin-bottom:10px;">🎓 عرض وتحميل شهادة الإتقان الملكية</button>
+        `;
+    } else {
+        resultHtml += `
+        <p style="color:var(--text2); font-size:13px; margin-bottom:20px; line-height:1.5;">الاختبار دقيق جداً ويحتاج تركيز. راجع المواعظ والدروس وسلسلة الملفات الصوتية مرة تانية بقلب حاضر، وتقدر تعيد التحدي في أي وقت عشان تكسب الشهادة!</p>
+        `;
+    }
+
+    resultHtml += `
+        <button onclick="window.renderLectures()" style="background:var(--bg2); border:1px solid var(--border); color:var(--text); padding:10px 20px; border-radius:8px; font-family:'Amiri',serif; font-size:14px; cursor:pointer; width:100%;">✕ إغلاق التحدي</button>
+    </div>`;
+
+    quizArea.innerHTML = resultHtml;
+    if (typeof window.triggerSparksEffect === 'function' && passed) window.triggerSparksEffect();
+};
+
+// =========================================================================
+// 🎓 🆕 نظام تدوير وإنشاء شهادات الإتقان الملكية الموقعة (CSS شهادة فخمة)
+// =========================================================================
+window.showAthrCertificateModal = function(userName, category, score) {
+    let modal = document.getElementById('athrCertificateModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'athrCertificateModal';
+        modal.style.cssText = "position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.9); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:999999999; direction:rtl; padding:15px; overflow-y:auto;";
+        document.body.appendChild(modal);
+    }
+
+    const today = new Date().toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    modal.innerHTML = `
+    <!-- كارت الشهادة الجمالي القابل للطباعة أو السكرين شوت -->
+    <div id="athrPrintableCert" style="background:#090d09; border:6px double #d4af37; border-radius:15px; padding:35px 25px; width:100%; max-width:550px; text-align:center; box-shadow:0 10px 40px rgba(0,0,0,0.8); position:relative; font-family:'Amiri', serif; color:#fff; background-image: radial-gradient(circle, rgba(212,175,55,0.03) 1s, transparent 1s); background-size: 15px 15px;">
+        
+        <!-- اللوجو العائم الخلفي المكتوب بخط فخم -->
+        <div style="color:rgba(212,175,55,0.03); font-size:90px; position:absolute; top:25%; left:32%; pointer-events:none; font-weight:bold; user-select:none;">أثر</div>
+
+        <div style="color:var(--gold); font-size:24px; font-weight:bold; letter-spacing:1px; margin-bottom:5px;">شَهَادَةُ إِتْقَانٍ وَتَفَوُّقٍ</div>
+        <div style="color:var(--text2); font-size:12px; margin-bottom:20px; letter-spacing:3px;"> منصة أثر العلمية الإسلامية </div>
+        
+        <div style="font-size:15px; color:var(--text); margin-bottom:12px;">تَشْهَدُ إِدَارَةُ مَنَصَّةِ (أَثَرٍ) بِأَنَّ الطَّالِبَ المَوْثَقَ:</div>
+        <div style="font-size:24px; color:#fff; font-weight:bold; border-bottom:1px dashed rgba(212,175,55,0.4); display:inline-block; padding:0 30px 5px; margin-bottom:15px; text-shadow:0 0 10px rgba(255,255,255,0.2);">${userName}</div>
+        
+        <div style="font-size:15px; color:var(--text); line-height:1.8; max-width:440px; margin:0 auto 25px;">
+            قَدِ اجْتَازَ بِتَفَوُّقٍ وَجَدَارَةٍ الاِخْتِبَارَ العِلْمِيَّ الصَّعْبَ الخَاصَّ بِـ <span style="color:var(--gold); font-weight:bold;">(${category})</span> 
+            وَحَصَلَ عَلَى دَرَجَةِ <span style="color:var(--gold); font-weight:bold; font-size:17px;">${score} مِـنْ 15</span> بَعْدَ فَهْمٍ دَقِيقٍ وَاسْتِمَاعٍ مُتَكَرِّرٍ لِلْمَادَّةِ الشَّرْعِيَّةِ، وَلِذَا مُنِحَ هَذِهِ الشَّهَادَةَ تَوْثِيقاً لِأَثَرِهِ الطَّيِّبِ.
+        </div>
+
+        <!-- قسم التوقيع والتاريخ السفلي الفخم -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:30px; border-top:1px solid rgba(255,255,255,0.06); padding-top:15px; padding-left:15px; padding-right:15px;">
+            <div style="text-align:right;">
+                <span style="color:var(--text2); font-size:11px; display:block;">تاريخ التوثيق:</span>
+                <span style="color:var(--text); font-size:12px; font-weight:bold;">${today}</span>
+            </div>
+            <div style="text-align:left;">
+                <span style="color:var(--text2); font-size:11px; display:block;">توقيع واعتماد المنصة:</span>
+                <span style="font-family:'Brush Script MT', 'KaiTi', 'Amiri', cursive; color:var(--gold); font-size:22px; font-weight:bold; display:block; margin-top:2px; letter-spacing:1px; transform: rotate(-3deg);">إدارة أثر الطيب 🖋️</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- زرار لإغلاق المودال بروقان -->
+    <button onclick="document.getElementById('athrCertificateModal').style.display='none'" style="margin-top:20px; background:rgba(255,255,255,0.1); border:1px solid var(--border); color:#fff; padding:10px 30px; border-radius:25px; font-family:'Amiri',serif; font-size:14px; cursor:pointer;">✕ إغلاق ورجوع للتطبيق</button>
+    `;
+
+    modal.style.display = 'flex';
 };
