@@ -613,9 +613,13 @@ window.showAthrCertificateModal = function(userName, category, score) {
 
             <!-- الهيدر الأكاديمي المتوازن -->
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:3px double rgba(139,105,20,0.4); padding-bottom:15px; margin-bottom:35px;">
-                <div style="text-align:right; font-size:14px; color:#6e614c; line-height:1.6; width:280px; font-weight:bold;">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ<br>﴿ قَالُوا سُبْحَانَكَ لَا عِلْمَ لَنَا إِلَّا مَا عَلَّمْتَنَا ﴾</div>
-                <div style="text-align:center; flex:1;">
-                    <div style="color:#8b6914; font-size:42px; font-weight:bold; letter-spacing:3px; font-family:'Amiri', serif; margin-bottom:5px;">شَهَادَةُ إِتْقَانٍ وَتَفَوُّقٍ عِلْمِيِّ</div>
+<div style="text-align:right; font-size:14px; color:#6e614c; line-height:1.6; width:280px; font-weight:bold;">﴿ قَالُوا سُبْحَانَكَ لَا عِلْمَ لَنَا إِلَّا مَا عَلَّمْتَنَا ﴾</div>
+<div style="text-align:center; flex:1;">
+
+                
+                    <div style="color:#8b6914; font-size:38px; font-weight:bold; font-family:'sans-serif', 'Segoe UI', Tahoma; margin-bottom:5px;">شَهَادَةُ إِتْقَانٍ وَتَفَوُّقٍ عِلْمِيِّ</div>
+
+                    
                     <div style="color:#2c2212; font-size:14px; letter-spacing:4px; font-weight:bold;">مَنَصَّةُ أَثَرٍ الإِسْلَامِيَّةِ التَّعْلِيمِيَّةِ</div>
                 </div>
                 <div style="text-align:left; font-size:14px; color:#8b6914; font-weight:bold; line-height:1.6; width:280px;">رقم التوثيق: AT-${Math.floor(Math.random()*90000)+10000}<br>سجل التخرج المعتمد الحين</div>
@@ -624,10 +628,13 @@ window.showAthrCertificateModal = function(userName, category, score) {
             <!-- النص والبيانات موزعة بارتياح تام وبدون أي انضغاط -->
             <div style="font-size:18px; color:#2c2212; margin-bottom:20px; letter-spacing:1px; text-align:center;">تَشْهَدُ أَمَانَةُ المَجْلِسِ العِلْمِيِّ لِمَنَصَّةِ (أَثَرٍ) بِأَنَّ صَاحِبَ العَمَلِ وَالأَثَرِ الطَّيِّبِ:</div>
             
-            <div style="font-size:16px; color:#8b6914; font-weight:bold; margin-bottom:10px; text-align:center; letter-spacing:1px;">${titlePrefix}</div>
-
+           <div style="font-size:18px; color:#8b6914; font-weight:bold; margin-bottom:10px; text-align:center; font-family:'sans-serif', 'Segoe UI';">${titlePrefix}</div>
             <div style="text-align:center; margin-bottom:25px;">
-                <div style="font-size:36px; color:#1c2e24; font-weight:bold; border-bottom:3px double #8b6914; display:inline-block; padding:0 60px 8px; letter-spacing:1px;">${userName}</div>
+
+            
+               <div style="font-size:36px; color:#1c2e24; font-weight:bold; border-bottom:3px double #8b6914; display:inline-block; padding:0 60px 8px; font-family:'sans-serif', 'Segoe UI', Arial;">${userName}</div>
+
+                
             </div>
             
             <div style="font-size:18px; color:#2c2212; line-height:2.1; max-width:880px; margin:0 auto 40px; text-align:justify; text-align-last:center;">
