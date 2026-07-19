@@ -7397,6 +7397,10 @@ window.triggerHeaderGoogleLogin = function() {
   });
 
   history.replaceState({ athrState: 'home' }, '', '');
+ // إخفاء شريط البطارية والساعة تماماً لملء الشاشة في التطبيق الحقيقي
+if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.StatusBar) {
+    window.Capacitor.Plugins.StatusBar.hide().catch(e => console.error(e));
+}
 })();
 </script>
  <!-- الصفحة الجديدة اللي إحنا ضفناها -->
