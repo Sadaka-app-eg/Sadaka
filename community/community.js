@@ -63,7 +63,10 @@ window.ensureMyAccountButton = function() {
   btn.id = 'athrMyAccountFloatBtn';
   btn.innerHTML = "👤 حسابي";
   btn.onclick = () => window.openMyAccountModal();
-  btn.style.cssText = "position:absolute; top:14px; right:15px; z-index:999999; background:rgba(212,175,55,0.12); color:#d4af37; border:1px solid #d4af37; padding:8px 16px; border-radius:20px; font-family:'Amiri',serif; font-weight:bold; font-size:13px; cursor:pointer; backdrop-filter:blur(4px); display:none;";
+btn.style.cssText = "position:absolute; top:-52px; right:52px; z-index:999999; background:rgba(212,175,55,0.12); color:#d4af37; border:1px solid #d4af37; padding:8px 16px; border-radius:20px; font-family:'Amiri',serif; font-weight:bold; font-size:13px; cursor:pointer; backdrop-filter:blur(4px); display:none;";
+
+
+  
   communityPage.appendChild(btn);
   return btn;
 };
