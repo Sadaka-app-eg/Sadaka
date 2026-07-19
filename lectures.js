@@ -568,80 +568,98 @@ window.submitAthrQuiz = function() {
 // =========================================================================
 // 🎓 نظام إنشاء شهادات الإتقان الرسمية (تصميم عريض Landscape فخم جداً)
 // =========================================================================
+// =========================================================================
+// 🎓 🆕 مصنع شهادات أثر الملكية الرسمية (أبعاد عريضة ثابتة A4 + خلفية فخمة)
+// =========================================================================
 window.showAthrCertificateModal = function(userName, category, score) {
     let modal = document.getElementById('athrCertificateModal');
     if (!modal) {
         modal = document.createElement('div');
         modal.id = 'athrCertificateModal';
-        modal.style.cssText = "position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.93); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:999999999; direction:rtl; padding:15px; overflow-y:auto;";
+        modal.style.cssText = "position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.95); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:999999999; direction:rtl; padding:15px; overflow-y:auto;";
         document.body.appendChild(modal);
     }
 
     const today = new Date().toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
     const hijriDateText = document.getElementById('hijriDate')?.textContent || "---";
-
     const userGender = localStorage.getItem('athr_user_gender') || 'male'; 
     
     let titlePrefix = "بِأَنَّ الطَّالِبَ المَوْثَقَ:";
-    let bodyTextPhrase = `قَدْ تَقَدَّمَ بِفَضْلِ اللَّهِ تَعَالَى لِاِجْتِيَازِ الِاخْتِبَارِ النِّهَائِيِّ الدَّقِيقِ وَالمُقَرَّرِ لِـ <span style='color:var(--gold); font-weight:bold; font-size:18px;'>« ${category} »</span>، وَقَدْ بَيَّنَ خِلَالَ الإِجَابَاتِ عَنْ تَمَكُّنٍ مَتِينٍ، وَفَهْمٍ رَاسِخٍ لِلْمَادَّةِ الشَّرْعِيَّةِ المَسْمُوعَةِ، حَيْثُ حَازَ عَلَى دَرَجَةِ التَّفَوُّقِ <span style='color:var(--gold); font-weight:bold; font-size:19px;'>(${score} مِـنْ 15)</span>. وَبِنَاءً عَلَيْهِ مُنِحَ هَذِهِ الشَّهَادَةَ اعْتِرَافاً بِمُثَابَرَتِهِ، وَتَوْثِيقاً لِأَثَرِهِ الطَّيِّبِ فِي طَلَبِ العِلْمِ النَّافِعِ، نَفَعَ اللَّهُ بِهِ وَجَعَلَهُ مُبَارَكاً أَيْنَمَا كَانَ.`;
+    let bodyTextPhrase = `قَدْ تَقَدَّمَ بِفَضْلِ اللَّهِ تَعَالَى لِاِجْتِيَازِ الِاخْتِبَارِ النِّهَائِيِّ الدَّقِيقِ وَالمُقَرَّرِ لِـ <span style='color:#8b6914; font-weight:bold;'>« ${category} »</span>، وَقَدْ بَيَّنَ خِلَالَ الإِجَابَاتِ عَنْ تَمَكُّنٍ مَتِينٍ، وَفَهْمٍ رَاسِخٍ لِلْمَادَّةِ الشَّرْعِيَّةِ المَسْمُوعَةِ، حَيْثُ حَازَ عَلَى دَرَجَةِ التَّفَوُّقِ <span style='color:#8b6914; font-weight:bold;'>(${score} مِـنْ 15)</span>. وَبِنَاءً عَلَيْهِ مُنِحَ هَذِهِ الشَّهَادَةَ اعْتِرَافاً بِمُثَابَرَتِهِ، وَتَوْثِيقاً لِأَثَرِهِ الطَّيِّبِ فِي طَلَبِ العِلْمِ النَّافِعِ، نَفَعَ اللَّهُ بِهِ وَجَعَلَهُ مُبَارَكاً أَيْنَمَا كَانَ.`;
 
     if (userGender === 'female') {
-        titlePrefix = "بِأَنَّ الطَّالِبَةَ المَوْثَقَةَ:";
-        bodyTextPhrase = `قَدْ تَقَدَّمَتْ بِفَضْلِ اللَّهِ تَعَالَى لِاِجْتِيَازِ الِاخْتِبَارِ النِّهَائِيِّ الدَّقِيقِ وَالمُقَرَّرِ لِـ <span style='color:var(--gold); font-weight:bold; font-size:18px;'>« ${category} »</span>، وَقَدْ بَيَّنَتْ خِلَالَ الإِجَابَاتِ عَنْ تَمَكُّنٍ مَتِينٍ، وَفَهْمٍ رَاسِخٍ لِلْمَادَّةِ الشَّرْعِيَّةِ المَسْمُوعَةِ، حَيْثُ حَازَتْ عَلَى دَرَجَةِ التَّفَوُّقِ <span style='color:var(--gold); font-weight:bold; font-size:19px;'>(${score} مِـنْ 15)</span>. وَبِنَاءً عَلَيْهِ مُنِحَتْ هَذِهِ الشَّهَادَةَ اعْتِرَافاً بِمُثَابَرَتِهَا، وَتَوْثِيقاً لِأَثَرِهَا الطَّيِّبِ فِي طَلَبِ العِلْمِ النَّافِعِ، نَفَعَ اللَّهُ بِهَا وَجَعَلَهَا مُبَارَكَةً أَيْنَمَا كَانَتْ.`;
+        titlePrefix = "بِأَنَّ الطَّالِبَةَ Mالمَوْثَقَةَ:";
+        bodyTextPhrase = `قَدْ تَقَدَّمَتْ بِفَضْلِ اللَّهِ تَعَالَى لِاِجْتِيَازِ الِاخْتِبَارِ النِّهَائِيِّ الدَّقِيقِ وَالمُقَرَّرِ لِـ <span style='color:#8b6914; font-weight:bold;'>« ${category} »</span>، وَقَدْ بَيَّنَتْ خِلَالَ الإِجَابَاتِ عَنْ تَمَكُّنٍ مَتِينٍ، وَفَهْمٍ رَاسِخٍ لِلْمَادَّةِ الشَّرْعِيَّةِ المَسْمُوعَةِ، حَيْثُ حَازَتْ عَلَى دَرَجَةِ التَّفَوُّقِ <span style='color:#8b6914; font-weight:bold;'>(${score} مِـنْ 15)</span>. وَبِنَاءً عَلَيْهِ مُنِحَتْ هَذِهِ الشَّهَادَةَ اعْتِرَافاً بِمُثَابَرَتِهَا، وَتَوْثِيقاً لِأَثَرِهَا الطَّيِّبِ فِي طَلَبِ العِلْمِ النَّافِعِ، نَفَعَ اللَّهُ بِهَا وَجَعَلَهَا مُبَارَكَةً أَيْنَمَا كَانَتْ.`;
     }
 
     modal.innerHTML = `
-    <div style="display:flex; flex-direction:column; align-items:center; gap:15px; width:100%; max-width:750px;">
-        <div id="athrPrintableCert" style="background:#0c0f0a; border:18px double #d4af37; padding:45px 40px; width:100%; box-sizing:border-box; text-align:center; box-shadow:0 20px 50px rgba(0,0,0,0.9); position:relative; font-family:'Amiri', serif; color:#fff; background-image: linear-gradient(rgba(212,175,55,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(212,175,55,0.02) 1px, transparent 1px); background-size: 20px 20px;">
+    <!-- وعاء التمرير لضمان الرؤية الكاملة على شاشات الموبيل -->
+    <div style="width:100%; max-width:100%; overflow-x:auto; display:flex; flex-direction:column; align-items:center; gap:15px; padding:10px;">
+        
+        <!-- 📜 منطقة التصدير الحقيقية: أبعاد عريضة قياسية ثابتة لشهادة علمية حقيقية -->
+        <div id="athrPrintableCert" style="width:1120px; height:792px; min-width:1120px; min-height:792px; background:#fdfbf7; border:30px solid #1c2e24; box-sizing:border-box; padding:50px 60px; position:relative; font-family:'Amiri', serif; color:#2c2212; background-image: radial-gradient(circle, rgba(139,105,20,0.015) 1s, transparent 1s); background-size: 24px 24px; box-shadow:0 25px 60px rgba(0,0,0,0.5);">
             
-            <div style="position:absolute; top:10px; right:10px; color:#d4af37; font-size:24px; font-weight:bold; opacity:0.6;">✨⚜️</div>
-            <div style="position:absolute; top:10px; left:10px; color:#d4af37; font-size:24px; font-weight:bold; opacity:0.6;">⚜️✨</div>
-            <div style="position:absolute; bottom:10px; right:10px; color:#d4af37; font-size:24px; font-weight:bold; opacity:0.6;">✨⚜️</div>
-            <div style="position:absolute; bottom:10px; left:10px; color:#d4af37; font-size:24px; font-weight:bold; opacity:0.6;">⚜️✨</div>
+            <!-- إطار داخلي مذهب فخم -->
+            <div style="position:absolute; top:12px; left:12px; right:12px; bottom:12px; border:3px double #8b6914; pointer-events:none; box-sizing:border-box;"></div>
             
-            <div style="color:rgba(212,175,55,0.025); font-size:160px; position:absolute; top:20%; left:38%; pointer-events:none; font-weight:bold; user-select:none;">أثر</div>
+            <!-- أركان الزخرفة الكلاسيكية للشهادات العلمية -->
+            <div style="position:absolute; top:25px; right:25px; color:#8b6914; font-size:32px; opacity:0.8; user-select:none;">⚜️</div>
+            <div style="position:absolute; top:25px; left:25px; color:#8b6914; font-size:32px; opacity:0.8; user-select:none;">⚜️</div>
+            <div style="position:absolute; bottom:25px; right:25px; color:#8b6914; font-size:32px; opacity:0.8; user-select:none;">⚜️</div>
+            <div style="position:absolute; bottom:25px; left:25px; color:#8b6914; font-size:32px; opacity:0.8; user-select:none;">⚜️</div>
+            
+            <!-- الشعار المائي الكبير في السنتر الخلفي للشهادة -->
+            <div style="color:rgba(139,105,20,0.03); font-size:240px; position:absolute; top:20%; left:42%; pointer-events:none; font-weight:bold; user-select:none;">أثر</div>
 
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid rgba(212,175,55,0.3); padding-bottom:12px; margin-bottom:25px;">
-                <div style="text-align:right; font-size:12px; color:var(--text2); line-height:1.4;">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ<br>قَالُوا سُبْحَانَكَ لَا عِلْمَ لَنَا إِلَّا مَا عَلَّمْتَنَا</div>
-                <div style="text-align:center;">
-                    <div style="color:#d4af37; font-size:28px; font-weight:bold; text-shadow:0 0 10px rgba(212,175,55,0.4); letter-spacing:2px;">شَهَادَةُ إِتْقَانٍ وَتَفَوُّقٍ عِلْمِيّ</div>
+            <!-- الهيدر الأكاديمي المتوازن -->
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:3px double rgba(139,105,20,0.4); padding-bottom:15px; margin-bottom:35px;">
+                <div style="text-align:right; font-size:14px; color:#6e614c; line-height:1.6; width:280px; font-weight:bold;">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ<br>﴿ قَالُوا سُبْحَانَكَ لَا عِلْمَ لَنَا إِلَّا مَا عَلَّمْتَنَا ﴾</div>
+                <div style="text-align:center; flex:1;">
+                    <div style="color:#8b6914; font-size:42px; font-weight:bold; letter-spacing:3px; font-family:'Amiri', serif; margin-bottom:5px;">شَهَادَةُ إِتْقَانٍ وَتَفَوُّقٍ عِلْمِيِّ</div>
+                    <div style="color:#2c2212; font-size:14px; letter-spacing:4px; font-weight:bold;">مَنَصَّةُ أَثَرٍ الإِسْلَامِيَّةِ التَّعْلِيمِيَّةِ</div>
                 </div>
-                <div style="text-align:left; font-size:12px; color:var(--gold); font-weight:bold; line-height:1.4;">مَنَصَّةُ أَثَرٍ الإِسْلَامِيَّةِ<br>تَوْثِيقُ المَادَّةِ الشَّرْعِيَّةِ</div>
+                <div style="text-align:left; font-size:14px; color:#8b6914; font-weight:bold; line-height:1.6; width:280px;">رقم التوثيق: AT-${Math.floor(Math.random()*90000)+10000}<br>سجل التخرج المعتمد الحين</div>
             </div>
             
-            <div style="font-size:16px; color:var(--text); margin-bottom:15px; letter-spacing:1px;">يَسُرُّ أَمَانَةَ Mالْمَجْلِسِ العِلْمِيِّ لِمَنَصَّةِ (أَثَرٍ) أَنْ تَشْهَدَ بِأَنَّ وَثِيقَةَ النَّجَاحِ المُنَوَّرَةِ تَثْبُتُ:</div>
-            <div style="font-size:15px; color:var(--gold); margin-bottom:10px; font-family:'Amiri', serif;">${titlePrefix}</div>
-
-            <div style="font-size:28px; color:#fff; font-weight:bold; font-family:'Amiri', serif; border-bottom:2px dashed #d4af37; display:inline-block; padding:0 45px 6px; margin-bottom:20px; text-shadow:0 0 15px rgba(255,255,255,0.3); letter-spacing:1px;">${userName}</div>
+            <!-- النص والبيانات موزعة بارتياح تام وبدون أي انضغاط -->
+            <div style="font-size:18px; color:#2c2212; margin-bottom:20px; letter-spacing:1px; text-align:center;">تَشْهَدُ أَمَانَةُ المَجْلِسِ العِلْمِيِّ لِمَنَصَّةِ (أَثَرٍ) بِأَنَّ صَاحِبَ العَمَلِ وَالأَثَرِ الطَّيِّبِ:</div>
             
-            <div style="font-size:16px; color:var(--text); line-height:2; max-width:620px; margin:0 auto 30px; text-align:justify; text-align-last:center;">
+            <div style="font-size:16px; color:#8b6914; font-weight:bold; margin-bottom:10px; text-align:center; letter-spacing:1px;">${titlePrefix}</div>
+
+            <div style="text-align:center; margin-bottom:25px;">
+                <div style="font-size:36px; color:#1c2e24; font-weight:bold; border-bottom:3px double #8b6914; display:inline-block; padding:0 60px 8px; letter-spacing:1px;">${userName}</div>
+            </div>
+            
+            <div style="font-size:18px; color:#2c2212; line-height:2.1; max-width:880px; margin:0 auto 40px; text-align:justify; text-align-last:center;">
                 ${bodyTextPhrase}
             </div>
 
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:35px; border-top:1px solid rgba(212,175,55,0.2); padding-top:20px;">
-                <div style="text-align:right; padding-right:10px; line-height:1.6;">
-                    <span style="color:var(--text2); font-size:12px; display:block; margin-bottom:2px;">تاريخ التَّحْرِيرِ وَالتَّوْثِيقِ:</span>
-                    <span style="color:#fff; font-size:13px; font-weight:bold; display:block;">🗓️ ميلادياً: ${today}</span>
-                    <span style="color:var(--gold); font-size:13px; font-weight:bold; display:block; margin-top:2px;">🕌 هجرياً: ${hijriDateText}</span>
+            <!-- الفوتر السفلي المتزن بالأبعاد الثابتة والمائل التوقيعي -->
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:55px; border-top:1px solid rgba(139,105,20,0.2); padding-top:25px; position:absolute; bottom:50px; left:60px; right:60px;">
+                <div style="text-align:right; line-height:1.8; width:300px;">
+                    <span style="color:#6e614c; font-size:13px; display:block; margin-bottom:4px; font-weight:bold;">🗓️ تاريخ التَّحْرِيرِ وَالتَّوْثِيقِ:</span>
+                    <span style="color:#2c2212; font-size:14px; font-weight:bold; display:block;">• ميلادياً: ${today}</span>
+                    <span style="color:#8b6914; font-size:14px; font-weight:bold; display:block; margin-top:2px;">• هجرياً: ${hijriDateText}</span>
                 </div>
-                <div style="text-align:center; opacity:0.85;">
-                    <div style="border:3px double #d4af37; border-radius:50%; width:65px; height:65px; display:flex; align-items:center; justify-content:center; color:var(--gold); font-size:11px; font-weight:bold; transform:rotate(-10deg); background:rgba(212,175,55,0.03); box-shadow:0 0 10px rgba(212,175,55,0.1);">خَتْمُ<br>أَثَرٍ</div>
+                <div style="text-align:center; flex:1;">
+                    <div style="border:3px double #8b6914; border-radius:50%; width:85px; height:85px; display:flex; align-items:center; justify-content:center; color:#8b6914; font-size:13px; font-weight:bold; transform:rotate(-8deg); background:rgba(139,105,20,0.03); box-shadow:0 0 15px rgba(139,105,20,0.05); margin:0 auto; font-family:'Amiri', serif;">خَتْمُ<br>أَثَرٍ المُعْتَمَدِ</div>
                 </div>
-                <div style="text-align:left; padding-left:10px;">
-                    <span style="color:var(--text2); font-size:12px; display:block; margin-bottom:2px;">تَوْقِيعُ وَاعْتِمَادُ المَنصَّةِ:</span>
-                    <span style="font-family:'Brush Script MT', 'cursive', 'Amiri'; color:var(--gold); font-size:24px; font-weight:bold; display:block; margin-top:2px; letter-spacing:1px; transform:rotate(-2deg); text-shadow:0 0 8px rgba(212,175,55,0.3);">إدارة أثر الطيب 🖋️</span>
+                <div style="text-align:left; line-height:1.8; width:300px;">
+                    <span style="color:#6e614c; font-size:13px; display:block; margin-bottom:4px; font-weight:bold;">✍️ تَوْقِيعُ وَاعْتِمَادُ المَنصَّةِ:</span>
+                    <span style="font-family:'Brush Script MT', 'cursive', 'Amiri'; color:#8b6914; font-size:32px; font-weight:bold; display:block; transform:rotate(-2deg); text-shadow:0 0 4px rgba(139,105,20,0.1);">إدارة أثر الطيب 🖋️</span>
                 </div>
             </div>
         </div>
         
-        <div style="display:flex; gap:10px; width:100%;">
-            <button onclick="window.saveAthrCertificateAsImage()" style="flex:1; background:#d4af37; color:#111; border:none; padding:12px; border-radius:10px; font-weight:bold; font-family:'Amiri',serif; font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 15px rgba(212,175,55,0.25);">
-                💾 حفظ كملف صورة رسمي عالي الدقة
+        <!-- لوحة أزرار التحكم -->
+        <div style="display:flex; gap:10px; width:100%; max-width:500px;">
+            <button onclick="window.saveAthrCertificateAsImage()" style="flex:1; background:#8b6914; color:#fff; border:none; padding:14px; border-radius:12px; font-weight:bold; font-family:'Amiri',serif; font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 15px rgba(139,105,20,0.3);">
+                💾 حفظ الشهادة كملف صورة عالي الدقة
             </button>
-            <button onclick="window.shareAthrCertificateImage()" style="background:#25D366; color:#fff; border:none; padding:12px 20px; border-radius:10px; font-weight:bold; font-family:'Amiri',serif; font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 4px 15px rgba(37,211,102,0.25);">
-                🟢 مشاركة مباشرة 
+            <button onclick="window.shareAthrCertificateImage()" style="background:#25D366; color:#fff; border:none; padding:14px 25px; border-radius:12px; font-weight:bold; font-family:'Amiri',serif; font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 4px 15px rgba(37,211,102,0.3);">
+                🟢 مشاركة 
             </button>
-            <button onclick="document.getElementById('athrCertificateModal').style.display='none'" style="background:rgba(255,255,255,0.1); border:1px solid var(--border); color:#fff; padding:12px 20px; border-radius:10px; font-family:'Amiri',serif; font-size:14px; cursor:pointer;">
+            <button onclick="document.getElementById('athrCertificateModal').style.display='none'" style="background:rgba(255,255,255,0.1); border:1px solid var(--border); color:#fff; padding:14px 20px; border-radius:12px; font-family:'Amiri',serif; font-size:14px; cursor:pointer;">
                 ✕ خروج
             </button>
         </div>
@@ -657,12 +675,15 @@ window.saveAthrCertificateAsImage = function() {
     const saveBtn = event.currentTarget;
     const originalText = saveBtn.innerHTML;
     saveBtn.disabled = true;
-    saveBtn.innerHTML = "⏳ جاري صياغة الصورة بجودة ملكية...";
+    saveBtn.innerHTML = "⏳ جاري صياغة الصورة بأبعاد الـ A4 الرسمية...";
 
     html2canvas(certElement, {
         scale: 2, 
-        backgroundColor: '#0c0f0a',
-        useCORS: true 
+        backgroundColor: '#fdfbf7',
+        useCORS: true,
+        // 🎯 كسر ثغرة العصر: إجبار المحرك على التقاط الأبعاد الثابتة كاملة ومفرودة
+        width: 1120,
+        height: 792
     }).then(canvas => {
         const link = document.createElement('a');
         link.download = `شهادة_إتقان_أثر_${localStorage.getItem('athr_user_name') || 'طالب'}.png`;
@@ -682,7 +703,7 @@ window.shareAthrCertificateImage = function() {
     const certElement = document.getElementById('athrPrintableCert');
     if (!certElement || typeof html2canvas !== 'function') return;
 
-    html2canvas(certElement, { scale: 2, backgroundColor: '#0c0f0a' }).then(async canvas => {
+    html2canvas(certElement, { scale: 2, backgroundColor: '#fdfbf7', width: 1120, height: 792 }).then(async canvas => {
         canvas.toBlob(async (blob) => {
             if (!blob) return;
             const file = new File([blob], 'athr_certificate.png', { type: 'image/png' });
@@ -691,8 +712,8 @@ window.shareAthrCertificateImage = function() {
                 try {
                     await navigator.share({
                         files: [file],
-                        title: 'شاهد شهادة إتقاني من منصة أثر المباركة ✨',
-                        text: 'الحمد لله الذي بنعمته تتم الصالحات، بفضل الله اجتزت اختبار الأثر بنجاح!'
+                        title: 'شاهد شهادة إتقاني الرسمية من منصة أثر ✨',
+                        text: 'الحمد لله الذي بنعمته تتم الصالحات، بفضل الله اجتزت اختبار الأثر بنجاح وعاينت شهادتي!'
                     });
                 } catch (e) { console.log("Share skipped:", e); }
             } else {
