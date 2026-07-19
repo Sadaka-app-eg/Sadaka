@@ -9,8 +9,7 @@ window.lecturesData = [
     { title: "لا تحزن إن الله يدبر أمرك", src: "audio/audio2/le_8.mp3", category: "مواعظ متنوعة" },
     { title: "من مهالك الرجال .. احذر المهلكة الأولى", src: "audio/audio2/le_9.mp3", category: "مواعظ متنوعة" },
     { title: "الراحة الحقيقية... أين نجدها ؟", src: "audio/audio2/le_10.mp3", category: "مواعظ متنوعة" },
-    
-    // دورة التجويد مدمجة تلقائياً بروابط أرشيف المباشرة المظبوطة بالملي
+
     { title: "دورة تعلم التجويد - الدرس ( 1 )", src: "https://archive.org/download/tajweed_lesson_1/tajweed_lesson_1.mp3", category: "دورة التجويد" },
     { title: "دورة تعلم التجويد - الدرس ( 2 )", src: "https://archive.org/download/tajweed_lesson_2/tajweed_lesson_2.mp3", category: "دورة التجويد" },
     { title: "دورة تعلم التجويد - الدرس ( 3 )", src: "https://archive.org/download/tajweed_lesson_3/tajweed_lesson_3.mp3", category: "دورة التجويد" },
@@ -18,8 +17,7 @@ window.lecturesData = [
     { title: "دورة تعلم التجويد - الدرس ( 5 )", src: "https://archive.org/download/tajweed_lesson_5/tajweed_lesson_5.mp3", category: "دورة التجويد" },
     { title: "دورة تعلم التجويد - الدرس ( 6 ) والأخير", src: "https://archive.org/download/tajweed_lesson_6/tajweed_lesson_6.mp3", category: "دورة التجويد" },
 
-
-{ title: "سلسلة السيرة النبوية - الدرس الأول - العالم قبل الإسلام", src: "https://archive.org/download/seerah_ahmed_amer_athr/seerah_01.mp3", category: "السيرة النبوية" },
+    { title: "سلسلة السيرة النبوية - الدرس الأول - العالم قبل الإسلام", src: "https://archive.org/download/seerah_ahmed_amer_athr/seerah_01.mp3", category: "السيرة النبوية" },
     { title: "سلسلة السيرة النبوية - الدرس الثاني - مولد النبي وبداية شبابه", src: "https://archive.org/download/seerah_ahmed_amer_athr/seerah_02.mp3", category: "السيرة النبوية" },
     { title: "سلسلة السيرة النبوية - الدرس الثالث الجزء الأول - وصف النبي وزواجه من السيدة خديجة", src: "https://archive.org/download/seerah_ahmed_amer_athr/seerah_03.mp3", category: "السيرة النبوية" },
     { title: "سلسلة السيرة النبوية - الدرس الرابع - نزول الوحي على النبي والدعوة السرية بمكة", src: "https://archive.org/download/seerah_ahmed_amer_athr/seerah_04.mp3", category: "السيرة النبوية" },
@@ -44,9 +42,8 @@ window.lecturesData = [
     { title: "سلسلة السيرة النبوية - الدرس الثالث والعشرون - غزوة حنين وحصار الطائف", src: "https://archive.org/download/seerah_ahmed_amer_athr/seerah_23.mp3", category: "السيرة النبوية" },
     { title: "سلسلة السيرة النبوية - الدرس الرابع والعشرون - غزوة تبوك", src: "https://archive.org/download/seerah_ahmed_amer_athr/seerah_24.mp3", category: "السيرة النبوية" },
     { title: "سلسلة السيرة النبوية - الدرس الخامس والعشرون والأخير - وفاة النبي ﷺ", src: "https://archive.org/download/seerah_ahmed_amer_athr/seerah_25.mp3", category: "السيرة النبوية" }
-
-    
 ];
+
 window.currentLectureFilter = 'all';
 window.currentPlayingLectureAudio = null;
 window.currentPlayingLectureBtn = null;
@@ -56,6 +53,20 @@ function formatLectureTime(seconds) {
     const m = Math.floor(seconds / 60);
     const s = Math.floor(seconds % 60);
     return `${m}:${s < 10 ? '0' : ''}${s}`;
+}
+
+// 🆕 دالة لحساب حجم الملف بالميجا من الكاش (لو موجود)
+async function getCachedFileSizeMB(url) {
+    try {
+        if (!('caches' in window)) return null;
+        const cache = await caches.open('athr-audio-cache-v1');
+        const match = await cache.match(url);
+        if (!match) return null;
+        const blob = await match.blob();
+        return (blob.size / (1024 * 1024)).toFixed(1);
+    } catch (e) {
+        return null;
+    }
 }
 
 function renderLectures() {
@@ -73,7 +84,10 @@ function renderLectures() {
         return bPinned - aPinned;
     });
 
-    listEl.innerHTML = filtered.map((lecture, index) => {
+    listEl.innerHTML = filtered.map((lecture) => {
+        // ✅ الإصلاح الأساسي: بنجيب index الدرس الحقيقي جوه lecturesData
+        // مش ترتيبه في القائمة المفلترة، عشان كل الأزرار تتظبط على الملف الصح
+        const realIndex = window.lecturesData.indexOf(lecture);
         const isPinned = pinnedList.includes(lecture.title);
         return `
         <div style="background: var(--card); border-radius: 16px; padding: 14px; border: 1px solid var(--border); direction: rtl; margin-bottom:12px; display:flex; flex-direction:column; gap:10px;">
@@ -82,27 +96,25 @@ function renderLectures() {
               <button onclick="window.togglePinLecture('${lecture.title}')" style="background:transparent; border:none; color:${isPinned ? 'var(--gold)' : 'var(--text2)'}; font-size:16px; cursor:pointer; padding:0; margin-left:4px;">${isPinned ? '📌' : '📍'}</button>
               <span style="font-family:'Amiri',serif; font-size:15px; color:var(--text); line-height:1.6;">${lecture.title}</span>
             </div>
-            <button class="play-btn" id="lectureBtn_${index}" onclick="window.toggleLectureAudio(${index})" style="background:var(--gold); color:#111; border:none; width:34px; height:34px; border-radius:50%; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;">▶</button>
-            <button id="lectureDlBtn_${index}" onclick="window.downloadLectureAudio(${index})" style="background:var(--bg2); color:var(--gold); border:1px solid var(--border); width:34px; height:34px; border-radius:50%; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;">⬇️</button>
+            <button class="play-btn" id="lectureBtn_${realIndex}" onclick="window.toggleLectureAudio(${realIndex})" style="background:var(--gold); color:#111; border:none; width:34px; height:34px; border-radius:50%; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;">▶</button>
+            <button id="lectureDlBtn_${realIndex}" onclick="window.downloadLectureAudio(${realIndex})" style="background:var(--bg2); color:var(--gold); border:1px solid var(--border); width:34px; height:34px; border-radius:50%; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;">⬇️</button>
           </div>
           <div style="margin-top:10px; width:100%;">
-            <input type="range" id="lectureSeek_${index}" value="0" min="0" max="100" step="0.1" oninput="window.seekLectureAudio(${index}, this.value)" style="width:100%; accent-color:var(--gold); cursor:pointer; height:4px; background:rgba(255,255,255,0.2); outline:none; border-radius:2px;">
+            <input type="range" id="lectureSeek_${realIndex}" value="0" min="0" max="100" step="0.1" oninput="window.seekLectureAudio(${realIndex}, this.value)" style="width:100%; accent-color:var(--gold); cursor:pointer; height:4px; background:rgba(255,255,255,0.2); outline:none; border-radius:2px;">
             <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text2); direction:ltr; margin-top:4px; font-family:monospace;">
-              <span id="lectureCurTime_${index}">0:00</span>
-              <span id="lectureTotalTime_${index}">--:--</span>
+              <span id="lectureCurTime_${realIndex}">0:00</span>
+              <span id="lectureTotalTime_${realIndex}">--:--</span>
             </div>
           </div>
-          <div id="lectureDlStatus_${index}" style="font-size:10px; color:var(--text2); margin-top:4px; text-align:center;"></div>
-          
-          <!-- ⏱️ استدعاء الميتاداتا المباشر لقراءة الوقت فوراً دون تشغيل -->
-          <audio id="lectureAudio_${index}" src="${lecture.src}" preload="metadata" 
-            onended="window.onLectureAudioEnded(${index})" 
-            onloadedmetadata="window.onLectureMetaLoaded(${index})" 
-            ontimeupdate="window.onLectureTimeUpdate(${index})"></audio>
+          <div id="lectureDlStatus_${realIndex}" style="font-size:10px; color:var(--text2); margin-top:4px; text-align:center;"></div>
+
+          <audio id="lectureAudio_${realIndex}" src="${lecture.src}" preload="metadata" 
+            onended="window.onLectureAudioEnded(${realIndex})" 
+            onloadedmetadata="window.onLectureMetaLoaded(${realIndex})" 
+            ontimeupdate="window.onLectureTimeUpdate(${realIndex})"></audio>
         </div>`;
     }).join('');
-    
-    // محاولة تعليم الأزرار المحملة مسبقاً بروقان
+
     setTimeout(markDownloadedLectures, 200);
 }
 
@@ -136,7 +148,6 @@ window.toggleLectureAudio = function(index) {
     }
 };
 
-// 🛠️ إعادة دوال التحكم الميكانيكي بالشريط والوقت بالملي
 window.seekLectureAudio = function(index, value) {
     const audio = document.getElementById('lectureAudio_' + index);
     if (audio && audio.duration) {
@@ -170,25 +181,40 @@ window.onLectureAudioEnded = function(index) {
     window.currentPlayingLectureBtn = null;
 };
 
-// التنزيل والمزامنة مع السيرفس وركر
+// 1️⃣ تعديل دالة التنزيل: بنمرر الـ realIndex الرقمي مش الـ src
 window.downloadLectureAudio = function(index) {
     const lecture = window.lecturesData[index];
     const statusEl = document.getElementById('lectureDlStatus_' + index);
     if (!lecture || !navigator.serviceWorker.controller) return;
+    
     statusEl.textContent = 'جاري التحميل...';
-    navigator.serviceWorker.controller.postMessage({ type: 'CACHE_AUDIO_URL', url: lecture.src, label: 'rare_' + lecture.src });
+    
+    // 🎯 التعديل هنا: الـ label بقا شايل رقم الـ index الثابت (مثال: rare_5)
+    navigator.serviceWorker.controller.postMessage({ 
+        type: 'CACHE_AUDIO_URL', 
+        url: lecture.src, 
+        label: 'rare_' + index 
+    });
 };
 
+// 2️⃣ تعديل دالة استقبال الرسائل من الـ Service Worker
 navigator.serviceWorker.addEventListener('message', (event) => {
     const d = event.data;
     if (!d || !d.label || !d.label.startsWith('rare_')) return;
-    const url = d.label.replace('rare_', '');
-    const idx = window.lecturesData.findIndex(l => l.src === url);
-    if (idx === -1) return;
+    
+    // 🎯 التعديل هنا: بنلقط الرقم مباشرة من الـ label وبدون الحاجة لـ findIndex الدوّارة
+    const idx = parseInt(d.label.replace('rare_', ''));
+    if (isNaN(idx) || !window.lecturesData[idx]) return;
+    
+    const lecture = window.lecturesData[idx];
     const statusEl = document.getElementById('lectureDlStatus_' + idx);
     const btn = document.getElementById('lectureDlBtn_' + idx);
+    
     if (d.type === 'AUDIO_CACHED') {
-        if (statusEl) statusEl.textContent = '✅ تم التحميل أوفلاين';
+        // بعد التحميل بنجيب حجم الملف ونعرضه بثبات
+        getCachedFileSizeMB(lecture.src).then(size => {
+            if (statusEl) statusEl.textContent = size ? `✅ تم التحميل أوفلاين (${size} MB)` : '✅ تم التحميل أوفلاين';
+        });
         if (btn) {
             btn.textContent = '✅';
             btn.style.background = 'rgba(76,175,80,0.15)';
@@ -211,7 +237,12 @@ async function markDownloadedLectures() {
                 btn.style.background = 'rgba(76,175,80,0.15)';
                 btn.style.borderColor = '#4caf50';
                 btn.style.color = '#4caf50';
-                if (statusEl) statusEl.textContent = '✅ محمّلة بالفعل';
+                if (statusEl) {
+                    // 🆕 عرض الحجم لو الملف كان محمّل من قبل
+                    const blob = await match.blob();
+                    const sizeMB = (blob.size / (1024 * 1024)).toFixed(1);
+                    statusEl.textContent = `✅ محمّلة بالفعل (${sizeMB} MB)`;
+                }
             }
         });
     } catch (e) {}
@@ -230,24 +261,19 @@ window.startLecturesSleepTimer = function() {
 };
 
 document.addEventListener('DOMContentLoaded', () => { renderLectures(); });
+
 window.filterLectures = function(category) {
     window.currentLectureFilter = category;
-    
-    // إعادة الألوان الطبيعية لكل الأزرار في القائمة
     document.querySelectorAll('.sheikh-tabs .sheikh-btn').forEach(btn => {
         btn.style.background = 'var(--card)';
         btn.style.color = 'var(--text)';
         btn.style.border = '1px solid var(--border)';
     });
-    
-    // تلوين الزرار اللي ضغطنا عليه بالذهبي عشان المستخدم يعرف هو واقف فين
     const activeBtn = document.getElementById('lectureCatBtn_' + category);
     if (activeBtn) {
         activeBtn.style.background = 'var(--gold)';
         activeBtn.style.color = '#111';
         activeBtn.style.border = 'none';
     }
-    
-    // إعادة بناء وعرض القائمة بناءً على الفلتر الجديد
     renderLectures();
 };
