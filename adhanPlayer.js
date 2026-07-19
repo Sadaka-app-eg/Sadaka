@@ -1,5 +1,5 @@
 // ==========================================================
-// 🔊 نظام تشغيل الأذان التلقائي عند دخول وقت كل صلاة
+// 🔊 نظام تشغيل الأذان التلقائي المدمج بالنظام (Capacitor Native)
 // ==========================================================
 
 // نسخ أذان الفجر المتاحة (فيها "الصلاة خير من النوم")
@@ -10,8 +10,7 @@ const fajrAdhanOptions = [
   { id: 'adhan_2222', label: 'مؤذن الفجر ٤', file: 'audio/adhan_2222.mp3' },
 ];
 
-
-// مؤذنو باقي الصلوات (المسار المباشر الصحيح)
+// مؤذنو باقي الصلوات
 const regularAdhanOptions = [
   { id: 'adhan_1', label: 'مؤذن ١', file: 'audio/adhan_1.mp3' },
   { id: 'adhan_3', label: 'مؤذن ٢', file: 'audio/adhan_3.mp3' },
@@ -22,7 +21,6 @@ const regularAdhanOptions = [
   { id: 'adhan_8', label: 'مؤذن ٧', file: 'audio/adhan_8.mp3' },
   { id: 'adhan_9', label: 'مؤذن ٨', file: 'audio/adhan_9.mp3' },
 ];
-
 
 const adhanPrayerNamesAr = {
   Fajr: 'الفجر',
@@ -72,19 +70,16 @@ function changeRegularMuathin(value) {
   saveAdhanSettings(settings);
 }
 
-// استدعاء البلاجن فوق خالص في الملف
-// import { LocalNotifications } from '@capacitor/local-notifications'; // لو شغال بموديولز، أو سيبها لو شغال Capacitor عادي
-
+// 🔥 طلب إذن الإشعارات الأصلي من أندرويد عند التفعيل
 function unlockAdhanAudio() {
+  if (window.Capacitor && window.Capacitor.Plugins.LocalNotifications) {
+    window.Capacitor.Plugins.LocalNotifications.requestPermissions();
+  }
+
   if (!adhanAudioEl) {
     adhanAudioEl = document.createElement('audio');
     adhanAudioEl.id = 'adhanAudioPlayer';
     document.body.appendChild(adhanAudioEl);
-  }
-
-  // 🔥 طلب إذن نظام الأندرويد للإشعارات فوراً
-  if (window.Capacitor && window.Capacitor.Plugins.LocalNotifications) {
-    window.Capacitor.Plugins.LocalNotifications.requestPermissions();
   }
 
   adhanAudioEl.src = getAdhanFileForPrayer('Dhuhr');
@@ -99,9 +94,9 @@ function unlockAdhanAudio() {
 
     updateAdhanToggleUI();
     startAdhanWatcher();
-    alert('✅ تم تفعيل تنبيه الأذان التلقائي بنجاح في النظام! 🔔');
+    alert('✅ تم تفعيل تنبيه الأذان الأصلي! سيقوم بالنطق وقت الصلاة حتى والشاشة مغلقة 🔔');
   }).catch(() => {
-    alert('⚠️ حصلت مشكلة في تفعيل الصوت، جرب تاني.');
+    alert('⚠️ حصلت مشكلة في تفعيل الصوت، تأكد من إعطاء الصلاحيات.');
   });
 }
 
@@ -142,140 +137,83 @@ function checkAdhanTime() {
     if (prayerTime === currentHHMM && !playedToday[prayerKey]) {
       playAdhan(prayerKey);
       
-      // 🌟 إرسال التنبيه لنواة نظام التشغيل فوراً ليعمل في الخلفية وأوفلاين وغصب عن التليفون
-      if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-        const targetTimeMs = new Date().setHours(now.getHours(), now.getMinutes(), 0, 0);
-        navigator.serviceWorker.controller.postMessage({
-          type: 'SCHEDULE_LOCAL_ADHAN',
-          prayerName: adhanPrayerNamesAr[prayerKey],
-          targetTimeMs: targetTimeMs,
-          muathinAudioUrl: getAdhanFileForPrayer(prayerKey)
-        });
-      }
-
       playedToday[prayerKey] = true;
       localStorage.setItem('adhan_played_' + todayKey, JSON.stringify(playedToday));
     }
   });
 }
 
-function playAdhan(prayerKey) {
-  if (!adhanAudioEl) {
-    adhanAudioEl = document.createElement('audio');
-    adhanAudioEl.id = 'adhanAudioPlayer';
-    document.body.appendChild(adhanAudioEl);
-  }
-
+// 🔥 تشغيل الأذان الأصلي عبر الهاردوير لمنع قفله بالخلفية
+async function playAdhan(prayerKey) {
+  const fileUrl = getAdhanFileForPrayer(prayerKey);
   const settings = getAdhanSettings();
-  adhanAudioEl.src = getAdhanFileForPrayer(prayerKey);
-  
-  // 🔥 ١. تفعيل وضع تشغيل الصوت في الخلفية لمنع الأندرويد من قفل الصوت
-  if (window.Capacitor && window.Capacitor.Plugins.BackgroundAudio) {
-    window.Capacitor.Plugins.BackgroundAudio.backgroundAudioOn();
+
+  // 1. تشغيل الصوت عبر NativeAudio
+  if (window.Capacitor && window.Capacitor.Plugins.NativeAudio) {
+    try {
+      await window.Capacitor.Plugins.NativeAudio.preload({
+        assetId: prayerKey,
+        assetPath: fileUrl,
+        audioChannelNum: 1,
+        isUrl: false
+      });
+      await window.Capacitor.Plugins.NativeAudio.setVolume({
+        assetId: prayerKey,
+        volume: settings.volume
+      });
+      await window.Capacitor.Plugins.NativeAudio.play({
+        assetId: prayerKey
+      });
+    } catch(e) {
+      console.log("NativeAudio Fallback");
+    }
   }
 
-  adhanAudioEl.play()
-    .then(() => {
-      if ('mediaSession' in navigator) {
-        navigator.mediaSession.metadata = new MediaMetadata({
-          title: `حان الآن وقت أذان ${adhanPrayerNamesAr[prayerKey]} 🕌`,
-          artist: 'تطبيق كُن ذا أثر',
-          album: ' ',
-          artwork: [
-            { src: 'icon.png', sizes: '192x192', type: 'image/png' },
-            { src: 'icon.png', sizes: '512x512', type: 'image/png' }
-          ]
-        });
-      }
-
-      // 🔥 ٢. ضرب إشعار أصلي (Native Notification) في أعلى الشاشة فوراً
-      if (window.Capacitor && window.Capacitor.Plugins.LocalNotifications) {
-        window.Capacitor.Plugins.LocalNotifications.schedule({
-          notifications: [
-            {
-              title: `حان الآن وقت صلاة ${adhanPrayerNamesAr[prayerKey]} 🕌`,
-              body: prayerKey === 'Fajr' ? 'الصَّلَاةُ خَيْرٌ مِنَ النَّوْمِ' : 'حَيَّ عَلَى الصَّلَاةِ، حَيَّ عَلَى الْفَلَاحِ',
-              id: Date.now(),
-              extra: null
-            }
-          ]
-        });
-      }
-    })
-    .catch(err => console.error('تعذر تشغيل الأذان:', err));
-
-  // إطفاء وضع الخلفية عند انتهاء صوت الأذان لتوفير البطارية
-  adhanAudioEl.onended = () => {
-    if (window.Capacitor && window.Capacitor.Plugins.BackgroundAudio) {
-      window.Capacitor.Plugins.BackgroundAudio.backgroundAudioOff();
-    }
-    const b = document.getElementById('adhanBanner');
-    if (b) b.remove();
-  };
+  // 2. إرسال إشعار فوري على شاشة القفل (Push Style)
+  if (window.Capacitor && window.Capacitor.Plugins.LocalNotifications) {
+    window.Capacitor.Plugins.LocalNotifications.schedule({
+      notifications: [
+        {
+          title: `حان الآن وقت صلاة ${adhanPrayerNamesAr[prayerKey]} 🕌`,
+          body: prayerKey === 'Fajr' ? 'الصَّلَاةُ خَيْرٌ مِنَ النَّوْمِ' : 'حَيَّ عَلَى الصَّلَاةِ، حَيَّ عَلَى الْفَلَاحِ',
+          id: Date.now(),
+          smallIcon: 'res://icon',
+          iconColor: '#d4af37'
+        }
+      ]
+    });
+  }
 
   if (typeof showFullAdhanScreen === 'function') {
     showFullAdhanScreen(prayerKey); 
   }
 }
 
-function showAdhanBanner(prayerKey) {
-  const existing = document.getElementById('adhanBanner');
-  if (existing) existing.remove();
+// 🔥 دالة الإيقاف الكامل للصوت المحلي والنظام
+async function stopAdhanPlayback() {
+  Object.keys(adhanPrayerNamesAr).forEach(async (key) => {
+    if (window.Capacitor && window.Capacitor.Plugins.NativeAudio) {
+      try {
+        await window.Capacitor.Plugins.NativeAudio.stop({ assetId: key });
+        await window.Capacitor.Plugins.NativeAudio.unload({ assetId: key });
+      } catch(e){}
+    }
+  });
 
-  const banner = document.createElement('div');
-  banner.id = 'adhanBanner';
-  banner.style.cssText = `
-    position:fixed; top:0; left:0; width:100%; z-index:99999999;
-    background:linear-gradient(135deg,#123524,#0b120c);
-    padding:16px 18px calc(14px + env(safe-area-inset-top));
-    display:flex; align-items:center; gap:12px;
-    border-bottom:2px solid var(--gold, #d4af37);
-    box-shadow:0 4px 20px rgba(0,0,0,0.4);
-    font-family:'Amiri',serif; direction:rtl;
-    animation: adhanBannerSlide 0.5s ease;
-  `;
-  banner.innerHTML = `
-    <div style="font-size:30px;">🕌</div>
-    <div style="flex:1;">
-      <div style="color:#d4af37; font-size:15px; font-weight:700;">حان الآن وقت صلاة ${adhanPrayerNamesAr[prayerKey]}</div>
-      <div style="color:#9aa79c; font-size:11px; margin-top:2px;">${prayerKey === 'Fajr' ? 'الصَّلَاةُ خَيْرٌ مِنَ النَّوْمِ' : 'حَيَّ عَلَى الصَّلَاةِ، حَيَّ عَلَى الْفَلَاحِ'}</div>
-    </div>
-    <button onclick="stopAdhanPlayback()" style="background:rgba(212,175,55,0.15); border:1px solid #d4af37; color:#d4af37; padding:8px 14px; border-radius:14px; font-size:12px; cursor:pointer; font-family:'Amiri',serif;">إيقاف</button>
-  `;
-  document.body.appendChild(banner);
-
-  if (!document.getElementById('adhanBannerStyle')) {
-    const style = document.createElement('style');
-    style.id = 'adhanBannerStyle';
-    style.textContent = `@keyframes adhanBannerSlide{0%{transform:translateY(-100%);}100%{transform:translateY(0);}}`;
-    document.head.appendChild(style);
-  }
-
-  adhanAudioEl.onended = () => {
-    const b = document.getElementById('adhanBanner');
-    if (b) b.remove();
-  };
-}
-function stopAdhanPlayback() {
   if (adhanAudioEl) {
     adhanAudioEl.pause();
     adhanAudioEl.currentTime = 0;
-  }
-  // 🔥 قفل وضع الخلفية فوراً عند الضغط على زر إيقاف
-  if (window.Capacitor && window.Capacitor.Plugins.BackgroundAudio) {
-    window.Capacitor.Plugins.BackgroundAudio.backgroundAudioOff();
   }
   const banner = document.getElementById('adhanBanner');
   if (banner) banner.remove();
 }
 
- // متغير عالمي للتحكم في صوت المعاينة المباشر
+// متغير عالمي للتحكم في صوت المعاينة المباشر
 let adhanPreviewAudioObj = new Audio();
 
 function renderAdhanCardsUI() {
   const settings = getAdhanSettings();
   
-  // 1. رندرة كروت الفجر
   const fajrContainer = document.getElementById('fajrCardsContainer');
   if (fajrContainer) {
     fajrContainer.innerHTML = fajrAdhanOptions.map(o => {
@@ -295,7 +233,6 @@ function renderAdhanCardsUI() {
     }).join('');
   }
 
-  // 2. رندرة كروت باقي الصلوات
   const regularContainer = document.getElementById('regularCardsContainer');
   if (regularContainer) {
     regularContainer.innerHTML = regularAdhanOptions.map(o => {
@@ -316,72 +253,47 @@ function renderAdhanCardsUI() {
   }
 }
 
-  
-
-// دالة تشغيل وإيقاف المعاينة وتغيير شكل الأزرار تلقائياً
 window.previewAdhanAudioFile = function(filePath) {
-  
-  // 1. لو نفس الملف شغال وضغطت عليه تاني -> وقفه ورجع الأزرار لطبيعتها
   if (adhanPreviewAudioObj && !adhanPreviewAudioObj.paused && adhanPreviewAudioObj.src.endsWith(filePath)) {
     adhanPreviewAudioObj.pause();
     adhanPreviewAudioObj.currentTime = 0;
-    resetAllPreviewButtons(); // دالة هترجع كل الزراير لـ "▶ استماع"
+    resetAllPreviewButtons();
     return;
   }
 
-  // 2. لو في صوت تاني شغال (مؤذن آخر) -> وقفه الأول
   if (adhanPreviewAudioObj && !adhanPreviewAudioObj.paused) {
     adhanPreviewAudioObj.pause();
   }
 
-  // 3. إيقاف الأذان الأساسي لو شغال
   if (typeof stopAdhanPlayback === 'function') {
     stopAdhanPlayback();
   }
   
-  // 4. تشغيل الملف الجديد
   adhanPreviewAudioObj.src = filePath;
   const settings = getAdhanSettings();
   adhanPreviewAudioObj.volume = settings.volume !== undefined ? parseFloat(settings.volume) : 1;
 
-    adhanPreviewAudioObj.play()
+  adhanPreviewAudioObj.play()
     .then(() => {
       updatePreviewButtonsUI(filePath);
-
-      // 🌟 حيلة الـ MediaSession لمخادعة إشعارات الأندرويد أثناء الاستماع للمعاينة
-      if ('mediaSession' in navigator) {
-        navigator.mediaSession.metadata = new MediaMetadata({
-          title: 'معاينة صوت الأذان الشريف 📢',
-          artist: 'تطبيق كُن ذا أثر',
-          album: ' ', // مسافة مخفية
-          artwork: [
-            { src: 'icon.png', sizes: '192x192', type: 'image/png' },
-            { src: 'icon.png', sizes: '512x512', type: 'image/png' }
-          ]
-        });
-      }
     })
     .catch(e => console.error("عطل تشغيل المعاينة:", e));
 
-  // 6. لما الصوت يخلص لوحده، رجع الأزرار لطبيعتها تلقائياً
   adhanPreviewAudioObj.onended = function() {
     resetAllPreviewButtons();
   };
 };
 
-// دالة مساعدة لتحديث نصوص الأزرار على الشاشة
 function updatePreviewButtonsUI(activePath) {
   const buttons = document.querySelectorAll('#azanSettingsPage button');
   buttons.forEach(btn => {
     const onclickAttr = btn.getAttribute('onclick') || '';
     const isPreviewBtn = onclickAttr.includes('previewAdhanAudioFile');
     if (isPreviewBtn && onclickAttr.includes(activePath)) {
-      // الزرار اللي شغال حالياً
       btn.innerHTML = '⏸ إيقاف';
       btn.style.background = 'var(--gold)';
       btn.style.color = '#111';
     } else if (isPreviewBtn && btn.innerHTML === '⏸ إيقاف') {
-      // رجع أي زرار استماع تاني كان شغال
       btn.innerHTML = '▶ استماع';
       btn.style.background = 'var(--bg3)';
       btn.style.color = 'var(--gold)';
@@ -389,7 +301,6 @@ function updatePreviewButtonsUI(activePath) {
   });
 }
 
-// دالة مساعدة لإعادة تعيين كل الأزرار لـ "▶ استماع"
 function resetAllPreviewButtons() {
   const buttons = document.querySelectorAll('#azanSettingsPage button');
   buttons.forEach(btn => {
@@ -402,8 +313,6 @@ function resetAllPreviewButtons() {
   });
 }
 
-
-
 window.selectFajrCardMuathin = function(id) {
   changeFajrMuathin(id);
   renderAdhanCardsUI();
@@ -414,7 +323,6 @@ window.selectRegularCardMuathin = function(id) {
   renderAdhanCardsUI();
 };
 
-// تحديث الواجهة والـ UI للصفحة المستقلة بشكل متناسق ومضمون
 function updateAdhanToggleUI() {
   const settings = getAdhanSettings();
   const btn = document.getElementById('azanPageEnableBtn');
@@ -440,11 +348,8 @@ function updateAdhanToggleUI() {
     if (statusEl) statusEl.textContent = 'الأذان التلقائي متوقف حاليًا';
     if (volumeWrap) volumeWrap.style.display = 'none';
   }
-
   renderAdhanCardsUI();
 }
-
-  
 
 function changeAdhanVolume(value) {
   const settings = getAdhanSettings();
@@ -452,25 +357,12 @@ function changeAdhanVolume(value) {
   settings.volume = vol;
   saveAdhanSettings(settings);
 
-  // السحر هنا: لو الأذان الأساسي شغال، خليه يوطى أو يعلى فوراً بالملي
-  if (adhanAudioEl) {
-    adhanAudioEl.volume = vol;
-  }
-  
-  // ولو صوت المعاينة (زرار استماع) شغال، خليه يتأثر برضه لحظياً
-  if (adhanPreviewAudioObj) {
-    adhanPreviewAudioObj.volume = vol;
-  }
+  if (adhanAudioEl) adhanAudioEl.volume = vol;
+  if (adhanPreviewAudioObj) adhanPreviewAudioObj.volume = vol;
 }
 
-
-function testAdhanSound() {
-  playAdhan('Dhuhr');
-}
-
-function testFajrAdhanSound() {
-  playAdhan('Fajr');
-}
+function testAdhanSound() { playAdhan('Dhuhr'); }
+function testFajrAdhanSound() { playAdhan('Fajr'); }
 
 document.addEventListener('DOMContentLoaded', () => {
   const settings = getAdhanSettings();
@@ -478,12 +370,10 @@ document.addEventListener('DOMContentLoaded', () => {
     startAdhanWatcher();
   }
   updateAdhanToggleUI();
-  // السطر السحري لتشغيل الكروت فوراً عند الإقلاع
   if(typeof renderAdhanCardsUI === 'function') renderAdhanCardsUI();
 });
-// ==========================================================
-// 📥 تحميل ملفات الأذان أوفلاين (تخزين دائم عبر Service Worker)
-// ==========================================================
+
+// تحميل الملفات أوفلاين
 window.downloadAdhanAudio = function(id, filePath) {
   if (!navigator.serviceWorker || !navigator.serviceWorker.controller) {
     alert('⚠️ نظام التخزين لسه بيتجهز، جرب تاني بعد ثانية 🙏');
@@ -516,18 +406,8 @@ navigator.serviceWorker.addEventListener('message', (event) => {
       btn.style.color = '#4caf50';
     }
   }
-
-  if (d.type === 'AUDIO_CACHE_FAILED' && d.label && d.label.startsWith('adhan_')) {
-    const id = d.label.replace('adhan_', '');
-    const btn = document.getElementById('download_azan_' + id);
-    if (btn) {
-      btn.disabled = false;
-      btn.textContent = '⚠️ فشل، حاول تاني';
-    }
-  }
 });
 
-// تحديث شكل الأزرار عند فتح الصفحة: لو الملف متخزن بالفعل، بنعرض ✅ فوراً
 async function markAlreadyDownloadedAdhanButtons() {
   if (!('caches' in window)) return;
   try {
@@ -546,26 +426,23 @@ async function markAlreadyDownloadedAdhanButtons() {
   } catch (e) {}
 }
 
-// نستدعيها بعد كل رندرة للكروت
 const _originalRenderAdhanCardsUI = renderAdhanCardsUI;
 renderAdhanCardsUI = function() {
   _originalRenderAdhanCardsUI();
   setTimeout(markAlreadyDownloadedAdhanButtons, 100);
 };
+
 function showFullAdhanScreen(prayerKey) {
-  // إخفاء أي بنر قديم
   const existing = document.getElementById('fullAdhanScreen');
   if (existing) existing.remove();
 
-  // مصفوفة خلفيات إسلامية فخمة ومتحركة تملأ الشاشة بروقان
   const adhanBgs = [
-    'https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?q=80&w=1080&auto=format&fit=crop', // المسجد النبوي ليلًا
-    'https://images.unsplash.com/photo-1519817650390-64a93db51149?q=80&w=1080&auto=format&fit=crop', // الكعبة المشرفة
-    'https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?q=80&w=1080&auto=format&fit=crop'  // المسجد الأزرق
+    'https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?q=80&w=1080&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1519817650390-64a93db51149?q=80&w=1080&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?q=80&w=1080&auto=format&fit=crop'
   ];
   const randomBg = adhanBgs[Math.floor(Math.random() * adhanBgs.length)];
 
-  // بناء كونتينر الشاشة الكاملة العابرة لكل شيء
   const fullScreen = document.createElement('div');
   fullScreen.id = 'fullAdhanScreen';
   fullScreen.style.cssText = `
@@ -576,27 +453,20 @@ function showFullAdhanScreen(prayerKey) {
   `;
 
   fullScreen.innerHTML = `
-    <!-- طبقة تعتيم ناعمة تبرز الكلام والذهب -->
     <div style="position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.65); z-index: 1;"></div>
-    
-    <!-- محتوى الأذان الروحاني المعلق -->
     <div style="position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 20px;">
       <div style="font-size: 80px; animation: pulse 2s infinite;">🕌</div>
       <h1 style="color: #d4af37; font-size: 32px; font-weight: bold; text-shadow: 0 4px 15px rgba(0,0,0,0.8);">حَانَ الآنَ وَقْتُ صَلَاةِ ${adhanPrayerNamesAr[prayerKey]}</h1>
       <p style="color: #f4f6f4; font-size: 20px; font-style: italic; max-width: 300px; line-height: 1.8;">
         ${prayerKey === 'Fajr' ? 'الصَّلَاةُ خَيْرٌ مِنَ النَّوْمِ' : 'أرِحْنَا بِهَا يَا بِلَالُ.. حَيَّ عَلَى الصَّلَاةِ'}
       </p>
-      
-      <!-- زر الإيقاف الفخم الدائري المندمج -->
       <button onclick="stopFullAdhanPlayback()" style="margin-top: 40px; background: transparent; border: 2px solid #ff6b6b; color: #ff6b6b; padding: 12px 45px; border-radius: 30px; font-size: 16px; font-weight: bold; cursor: pointer; font-family: 'Amiri', serif; transition: all 0.3s; box-shadow: 0 0 15px rgba(255,107,107,0.3);">
         🛑 إيقاف صوت الأذان
       </button>
     </div>
   `;
-
   document.body.appendChild(fullScreen);
 
-  // حقن أنيميشن النبض الروحي للهلال أو المسجد
   if (!document.getElementById('fullAdhanStyle')) {
     const style = document.createElement('style');
     style.id = 'fullAdhanStyle';
@@ -611,7 +481,6 @@ function showFullAdhanScreen(prayerKey) {
   }
 }
 
-// دالة الإغلاق الكامل لشاشة الرن
 window.stopFullAdhanPlayback = function() {
   stopAdhanPlayback();
   const fullScreen = document.getElementById('fullAdhanScreen');
