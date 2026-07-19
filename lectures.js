@@ -45,9 +45,9 @@ window.lecturesData = [
 ];
 
 window.currentLectureFilter = 'all';
-window.currentPlayingLectureAudio = null; // سيشير دائماً إلى المشغل السحري الموحد
+window.currentPlayingLectureAudio = null; 
 window.currentPlayingLectureBtn = null;
-window.currentPlayingGlobalId = null;     // لحفظ رقم الدرس الشغال حالياً
+window.currentPlayingGlobalId = null;     
 
 function formatLectureTime(seconds) {
     if (isNaN(seconds) || seconds === Infinity || seconds < 0) return "0:00";
@@ -56,7 +56,7 @@ function formatLectureTime(seconds) {
     return `${m}:${s < 10 ? '0' : ''}${s}`;
 }
 
-// 🆕 دالة لحساب حجم الملف بالميجا من الكاش (لو موجود)
+// دالة حية لجلب حجم الملف الصوتي بدقة من كاش الـ Service Worker
 async function getCachedFileSizeMB(url) {
     try {
         if (!('caches' in window)) return null;
@@ -65,12 +65,10 @@ async function getCachedFileSizeMB(url) {
         if (!match) return null;
         const blob = await match.blob();
         return (blob.size / (1024 * 1024)).toFixed(1);
-    } catch (e) {
-        return null;
-    }
+    } catch (e) { return null; }
 }
 
-// 🎯 محرك الصوت الموحد والمضمون لكسر حظر المتصفحات والسيستم
+// محرك ربط الصوت الموحد - يمنع الرعشة نهائياً ويجبر المتصفح على جلب الوقت
 function ensureGlobalAudioEngine() {
     let audio = document.getElementById('athrGlobalLectureEngine');
     if (!audio) {
@@ -79,7 +77,6 @@ function ensureGlobalAudioEngine() {
         audio.style.display = 'none';
         document.body.appendChild(audio);
 
-        // ربط الأحداث الميكانيكية للتاغ الموحد بـ واجهة المستخدم الحية
         audio.onloadedmetadata = () => {
             const id = window.currentPlayingGlobalId;
             const totalEl = document.getElementById('lectureTotalTime_' + id);
@@ -115,6 +112,17 @@ function renderLectures() {
     const listEl = document.getElementById('lecturesList');
     if (!listEl) return;
 
+    // 1️⃣ حقن زرار تحميل السيرة بالكامل داخل القسم نفسه ديناميكياً بروقان
+    let batchButtonHtml = "";
+    if (window.currentLectureFilter === 'السيرة النبوية') {
+        batchButtonHtml = `
+        <div id="seerahBatchContainer" style="margin-bottom: 15px; text-align: center;">
+            <button id="seerahBatchRing" onclick="window.downloadSeerahSeries()" style="background: rgba(212,175,55,0.1); border: 1px solid var(--gold); color: var(--gold); padding: 10px 20px; border-radius: 12px; font-family: 'Amiri', serif; font-weight: bold; font-size: 14px; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                📥 تحميل سلسلة السيرة النبوية كاملة أوفلاين (25 درس)
+            </button>
+        </div>`;
+    }
+
     let filtered = window.currentLectureFilter === 'all'
         ? [...window.lecturesData]
         : window.lecturesData.filter(l => l.category === window.currentLectureFilter);
@@ -126,12 +134,9 @@ function renderLectures() {
         return bPinned - aPinned;
     });
 
-    listEl.innerHTML = filtered.map((lecture) => {
-        // الإصلاح الأساسي للـ index الثابت
+    const cardsHtml = filtered.map((lecture) => {
         const realIndex = window.lecturesData.indexOf(lecture);
         const isPinned = pinnedList.includes(lecture.title);
-        
-        // جلب حالة التشغيل الحالية حتى لا تتأثر الفلاتر أثناء السمع
         const isThisPlaying = window.currentPlayingGlobalId === realIndex && window.currentPlayingLectureAudio && !window.currentPlayingLectureAudio.paused;
 
         return `
@@ -139,7 +144,6 @@ function renderLectures() {
           <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
             <div style="display:flex; align-items:center; gap:8px; flex:1;">
               <button onclick="window.togglePinLecture('${lecture.title}')" style="background:transparent; border:none; color:${isPinned ? 'var(--gold)' : 'var(--text2)'}; font-size:16px; cursor:pointer; padding:0; margin-left:4px;">${isPinned ? '📌' : '📍'}</button>
-              
               <span style="font-family:'Amiri',serif; font-size:15px; color:var(--text); line-height:1.6;">${lecture.title}</span>
               <span id="lectureSize_${realIndex}" style="font-size:10px; color:var(--text2); display:block; margin-top:2px;"></span>
             </div>
@@ -153,11 +157,14 @@ function renderLectures() {
               <span id="lectureTotalTime_${realIndex}">--:--</span>
             </div>
           </div>
-          <div id="lectureDlStatus_${realIndex}" style="font-size:10px; color:var(--text2); margin-top:4px; text-align:center;"></div>
+          <div id="lectureDlStatus_${realIndex}" style="font-size:10px; color:var(--gold); margin-top:4px; text-align:center; font-family:sans-serif;"></div>
         </div>`;
     }).join('');
 
-    setTimeout(markDownloadedLectures, 200);
+    // دمج زر التحميل المجمع مع كروت الدروس
+    listEl.innerHTML = batchButtonHtml + cardsHtml;
+    
+    setTimeout(markDownloadedLectures, 150);
 }
 
 window.togglePinLecture = function(title) {
@@ -168,7 +175,6 @@ window.togglePinLecture = function(title) {
     renderLectures();
 };
 
-// 🔥 حقن المسار غصب عن المتصفح وتشغيله فوراً وبثبات كامل
 window.toggleLectureAudio = function(index) {
     const audio = ensureGlobalAudioEngine();
     const btn = document.getElementById('lectureBtn_' + index);
@@ -177,17 +183,14 @@ window.toggleLectureAudio = function(index) {
     const lecture = window.lecturesData[index];
     if (!lecture) return;
 
-    // لو ضغطنا على زرار لدرس مختلف تماماً عن اللي شغال حالياً
     if (window.currentPlayingGlobalId !== index) {
-        // تصفير أزرار التحكم القديمة لو كانت شغالة
         if (window.currentPlayingGlobalId !== null) {
             const oldBtn = document.getElementById('lectureBtn_' + window.currentPlayingGlobalId);
             if (oldBtn) oldBtn.textContent = '▶';
         }
         
-        // حقن المسار الجديد إجبارياً وتحديث الميتاداتا
         audio.src = lecture.src;
-        audio.load(); // إجبار المتصفح على استدعاء السيرفر فوراً وكشط الداتا
+        audio.load(); 
         window.currentPlayingGlobalId = index;
         window.currentPlayingLectureAudio = audio;
         window.currentPlayingLectureBtn = btn;
@@ -197,7 +200,6 @@ window.toggleLectureAudio = function(index) {
         audio.play().then(() => {
             btn.textContent = '⏸';
         }).catch(err => {
-            console.error("Autoplay bypass required:", err);
             setTimeout(() => { audio.play(); btn.textContent = '⏸'; }, 150);
         });
     } else {
@@ -219,7 +221,6 @@ window.startLectureDownloadRing = function(index) {
     if (typeof downloadWithProgress === 'function') {
         downloadWithProgress(lecture.src, 'lectureDlRing_' + index);
     } else {
-        // فليب باك لو دالة الـ Ring مش في النطاق العالمي حالياً
         window.downloadLectureAudio(index);
     }
 };
@@ -229,20 +230,21 @@ window.downloadLectureAudio = function(index) {
     const statusEl = document.getElementById('lectureDlStatus_' + index);
     if (!lecture || !navigator.serviceWorker.controller) return;
     
-    statusEl.textContent = 'جاري التحميل...';
+    if (statusEl) statusEl.textContent = '⏳ جاري بدء التنزيل في الخلفية...';
     
     navigator.serviceWorker.controller.postMessage({ 
         type: 'CACHE_AUDIO_URL', 
         url: lecture.src, 
-        label: 'rare_' + index 
+        label: 'lecture_' + index 
     });
 };
 
+// استقبال رسائل التحميل في الخلفية وحساب الميجات لكل قسم بثبات
 navigator.serviceWorker.addEventListener('message', (event) => {
     const d = event.data;
-    if (!d || !d.label || !d.label.startsWith('rare_')) return;
+    if (!d || !d.label || !d.label.startsWith('lecture_')) return;
     
-    const idx = parseInt(d.label.replace('rare_', ''));
+    const idx = parseInt(d.label.replace('lecture_', ''));
     if (isNaN(idx) || !window.lecturesData[idx]) return;
     
     const lecture = window.lecturesData[idx];
@@ -251,7 +253,7 @@ navigator.serviceWorker.addEventListener('message', (event) => {
     
     if (d.type === 'AUDIO_CACHED') {
         getCachedFileSizeMB(lecture.src).then(size => {
-            if (statusEl) statusEl.textContent = size ? `✅ تم التحميل أوفلاين (${size} MB)` : '✅ تم التحميل أوفلاين';
+            if (statusEl) statusEl.textContent = size ? `✅ جاهز أوفلاين (${size} MB)` : '✅ جاهز أوفلاين';
         });
         if (ringBtn) {
             ringBtn.textContent = '✅';
@@ -266,10 +268,12 @@ async function markDownloadedLectures() {
     if (!('caches' in window)) return;
     try {
         const cache = await caches.open('athr-audio-cache-v1');
-        window.lecturesData.forEach(async (item, idx) => {
+        for (const item of window.lecturesData) {
+            const idx = window.lecturesData.indexOf(item);
             const match = await cache.match(item.src);
             const ringBtn = document.getElementById('lectureDlRing_' + idx);
             const statusEl = document.getElementById('lectureDlStatus_' + idx);
+            
             if (match && ringBtn) {
                 ringBtn.textContent = '✅';
                 ringBtn.style.background = 'rgba(76,175,80,0.15)';
@@ -278,10 +282,10 @@ async function markDownloadedLectures() {
                 if (statusEl && statusEl.textContent === '') {
                     const blob = await match.blob();
                     const sizeMB = (blob.size / (1024 * 1024)).toFixed(1);
-                    statusEl.textContent = `✅ محمّلة بالفعل (${sizeMB} MB)`;
+                    statusEl.textContent = `✅ محمّل ومحفوظ (${sizeMB} MB)`;
                 }
             }
-        });
+        }
     } catch (e) {}
 }
 
