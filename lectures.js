@@ -571,6 +571,9 @@ window.submitAthrQuiz = function() {
 // =========================================================================
 // 🎓 🆕 مصنع شهادات أثر الملكية الرسمية (أبعاد عريضة ثابتة A4 + خلفية فخمة)
 // =========================================================================
+// =========================================================================
+// 🎓 مصنع شهادات أثر الأكاديمية (تصميم مفرود منسق بالملي + منع الحروف المفرطة)
+// =========================================================================
 window.showAthrCertificateModal = function(userName, category, score) {
     let modal = document.getElementById('athrCertificateModal');
     if (!modal) {
@@ -588,53 +591,47 @@ window.showAthrCertificateModal = function(userName, category, score) {
     let bodyTextPhrase = `قَدْ تَقَدَّمَ بِفَضْلِ اللَّهِ تَعَالَى لِاِجْتِيَازِ الِاخْتِبَارِ النِّهَائِيِّ الدَّقِيقِ وَالمُقَرَّرِ لِـ <span style='color:#8b6914; font-weight:bold;'>« ${category} »</span>، وَقَدْ بَيَّنَ خِلَالَ الإِجَابَاتِ عَنْ تَمَكُّنٍ مَتِينٍ، وَفَهْمٍ رَاسِخٍ لِلْمَادَّةِ الشَّرْعِيَّةِ المَسْمُوعَةِ، حَيْثُ حَازَ عَلَى دَرَجَةِ التَّفَوُّقِ <span style='color:#8b6914; font-weight:bold;'>(${score} مِـنْ 15)</span>. وَبِنَاءً عَلَيْهِ مُنِحَ هَذِهِ الشَّهَادَةَ اعْتِرَافاً بِمُثَابَرَتِهِ، وَتَوْثِيقاً لِأَثَرِهِ الطَّيِّبِ فِي طَلَبِ العِلْمِ النَّافِعِ، نَفَعَ اللَّهُ بِهِ وَجَعَلَهُ مُبَارَكاً أَيْنَمَا كَانَ.`;
 
     if (userGender === 'female') {
-        titlePrefix = "بِأَنَّ الطَّالِبَةَ Mالمَوْثَقَةَ:";
+        titlePrefix = "بِأَنَّ الطَّالِبَةَ المَوْثَقَةَ:";
         bodyTextPhrase = `قَدْ تَقَدَّمَتْ بِفَضْلِ اللَّهِ تَعَالَى لِاِجْتِيَازِ الِاخْتِبَارِ النِّهَائِيِّ الدَّقِيقِ وَالمُقَرَّرِ لِـ <span style='color:#8b6914; font-weight:bold;'>« ${category} »</span>، وَقَدْ بَيَّنَتْ خِلَالَ الإِجَابَاتِ عَنْ تَمَكُّنٍ مَتِينٍ، وَفَهْمٍ رَاسِخٍ لِلْمَادَّةِ الشَّرْعِيَّةِ المَسْمُوعَةِ، حَيْثُ حَازَتْ عَلَى دَرَجَةِ التَّفَوُّقِ <span style='color:#8b6914; font-weight:bold;'>(${score} مِـنْ 15)</span>. وَبِنَاءً عَلَيْهِ مُنِحَتْ هَذِهِ الشَّهَادَةَ اعْتِرَافاً بِمُثَابَرَتِهَا، وَتَوْثِيقاً لِأَثَرِهَا الطَّيِّبِ فِي طَلَبِ العِلْمِ النَّافِعِ، نَفَعَ اللَّهُ بِهَا وَجَعَلَهَا مُبَارَكَةً أَيْنَمَا كَانَتْ.`;
     }
 
+    // حساب مقياس المعاينة الذكي ليناسب شاشة الهاتف دون سكرول جانبي مزعج
+    const scaleRatio = window.innerWidth < 1150 ? (window.innerWidth / 1160) : 1;
+
     modal.innerHTML = `
-    <!-- وعاء التمرير لضمان الرؤية الكاملة على شاشات الموبيل -->
-    <div style="width:100%; max-width:100%; overflow-x:auto; display:flex; flex-direction:column; align-items:center; gap:15px; padding:10px;">
+    <div style="width:100%; max-width:100%; display:flex; flex-direction:column; align-items:center; gap:15px; padding:10px;">
         
-        <!-- 📜 منطقة التصدير الحقيقية: أبعاد عريضة قياسية ثابتة لشهادة علمية حقيقية -->
-        <div id="athrPrintableCert" style="width:1120px; height:792px; min-width:1120px; min-height:792px; background:#fdfbf7; border:30px solid #1c2e24; box-sizing:border-box; padding:50px 60px; position:relative; font-family:'Amiri', serif; color:#2c2212; background-image: radial-gradient(circle, rgba(139,105,20,0.015) 1s, transparent 1s); background-size: 24px 24px; box-shadow:0 25px 60px rgba(0,0,0,0.5);">
+        <!-- 📜 منطقة التصدير الحقيقية: أبعاد عريضة ثابتة مفرودة لمنع التكسر -->
+        <div id="athrPrintableCert" style="width:1120px; height:792px; min-width:1120px; min-height:792px; background:#fdfbf7; border:30px solid #1c2e24; box-sizing:border-box; padding:50px 60px; position:relative; font-family:'Amiri', serif; color:#2c2212; background-image: radial-gradient(circle, rgba(139,105,20,0.015) 1s, transparent 1s); background-size: 24px 24px; box-shadow:0 25px 60px rgba(0,0,0,0.5); transform: scale(${scaleRatio}); transform-origin: top center; max-width:100%;">
             
-            <!-- إطار داخلي مذهب فخم -->
             <div style="position:absolute; top:12px; left:12px; right:12px; bottom:12px; border:3px double #8b6914; pointer-events:none; box-sizing:border-box;"></div>
             
-            <!-- أركان الزخرفة الكلاسيكية للشهادات العلمية -->
             <div style="position:absolute; top:25px; right:25px; color:#8b6914; font-size:32px; opacity:0.8; user-select:none;">⚜️</div>
             <div style="position:absolute; top:25px; left:25px; color:#8b6914; font-size:32px; opacity:0.8; user-select:none;">⚜️</div>
             <div style="position:absolute; bottom:25px; right:25px; color:#8b6914; font-size:32px; opacity:0.8; user-select:none;">⚜️</div>
             <div style="position:absolute; bottom:25px; left:25px; color:#8b6914; font-size:32px; opacity:0.8; user-select:none;">⚜️</div>
             
-            <!-- الشعار المائي الكبير في السنتر الخلفي للشهادة -->
             <div style="color:rgba(139,105,20,0.03); font-size:240px; position:absolute; top:20%; left:42%; pointer-events:none; font-weight:bold; user-select:none;">أثر</div>
 
-            <!-- الهيدر الأكاديمي المتوازن -->
+            <!-- الهيدر الأكاديمي: تم مسح البسملة والـ لقطة الحروف بنجاح -->
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:3px double rgba(139,105,20,0.4); padding-bottom:15px; margin-bottom:35px;">
-<div style="text-align:right; font-size:14px; color:#6e614c; line-height:1.6; width:280px; font-weight:bold;">﴿ قَالُوا سُبْحَانَكَ لَا عِلْمَ لَنَا إِلَّا مَا عَلَّمْتَنَا ﴾</div>
-<div style="text-align:center; flex:1;">
-
-                
+                <div style="text-align:right; font-size:14px; color:#6e614c; line-height:1.6; width:280px; font-weight:bold;">﴿ قَالُوا سُبْحَانَكَ لَا عِلْمَ لَنَا إِلَّا مَا عَلَّمْتَنَا ﴾</div>
+                <div style="text-align:center; flex:1;">
+                    <!-- 🎯 تم تعديل الخط هنا لـ sans-serif لمنع تكسر وتفريط الكلمة في الصورة -->
                     <div style="color:#8b6914; font-size:38px; font-weight:bold; font-family:'sans-serif', 'Segoe UI', Tahoma; margin-bottom:5px;">شَهَادَةُ إِتْقَانٍ وَتَفَوُّقٍ عِلْمِيِّ</div>
-
-                    
                     <div style="color:#2c2212; font-size:14px; letter-spacing:4px; font-weight:bold;">مَنَصَّةُ أَثَرٍ الإِسْلَامِيَّةِ التَّعْلِيمِيَّةِ</div>
                 </div>
                 <div style="text-align:left; font-size:14px; color:#8b6914; font-weight:bold; line-height:1.6; width:280px;">رقم التوثيق: AT-${Math.floor(Math.random()*90000)+10000}<br>سجل التخرج المعتمد الحين</div>
             </div>
             
-            <!-- النص والبيانات موزعة بارتياح تام وبدون أي انضغاط -->
-            <div style="font-size:18px; color:#2c2212; margin-bottom:20px; letter-spacing:1px; text-align:center;">تَشْهَدُ أَمَانَةُ المَجْلِسِ العِلْمِيِّ لِمَنَصَّةِ (أَثَرٍ) بِأَنَّ صَاحِبَ العَمَلِ وَالأَثَرِ الطَّيِّبِ:</div>
+            <div style="font-size:18px; color:#2c2212; margin-bottom:20px; text-align:center;">تَشْهَدُ أَمَانَةُ المَجْلِسِ العِلْمِيِّ لِمَنَصَّةِ (أَثَرٍ) بِأَنَّ صَاحِبَ العَمَلِ وَالأَثَرِ الطَّيِّبِ:</div>
             
-           <div style="font-size:18px; color:#8b6914; font-weight:bold; margin-bottom:10px; text-align:center; font-family:'sans-serif', 'Segoe UI';">${titlePrefix}</div>
+            <!-- 🎯 تعديل الخط لمنع تفريغ أحرف اللقب -->
+            <div style="font-size:18px; color:#8b6914; font-weight:bold; margin-bottom:10px; text-align:center; font-family:'sans-serif', 'Segoe UI';">${titlePrefix}</div>
+
             <div style="text-align:center; margin-bottom:25px;">
-
-            
-               <div style="font-size:36px; color:#1c2e24; font-weight:bold; border-bottom:3px double #8b6914; display:inline-block; padding:0 60px 8px; font-family:'sans-serif', 'Segoe UI', Arial;">${userName}</div>
-
-                
+                <!-- 🎯 تعديل خط وحذف مسافات اسم المشترك ليخرج مشبك تماماً وفخم -->
+                <div style="font-size:36px; color:#1c2e24; font-weight:bold; border-bottom:3px double #8b6914; display:inline-block; padding:0 60px 8px; font-family:'sans-serif', 'Segoe UI', Arial;">${userName}</div>
             </div>
             
             <div style="font-size:18px; color:#2c2212; line-height:2.1; max-width:880px; margin:0 auto 40px; text-align:justify; text-align-last:center;">
@@ -652,14 +649,14 @@ window.showAthrCertificateModal = function(userName, category, score) {
                     <div style="border:3px double #8b6914; border-radius:50%; width:85px; height:85px; display:flex; align-items:center; justify-content:center; color:#8b6914; font-size:13px; font-weight:bold; transform:rotate(-8deg); background:rgba(139,105,20,0.03); box-shadow:0 0 15px rgba(139,105,20,0.05); margin:0 auto; font-family:'Amiri', serif;">خَتْمُ<br>أَثَرٍ المُعْتَمَدِ</div>
                 </div>
                 <div style="text-align:left; line-height:1.8; width:300px;">
-                    <span style="color:#6e614c; font-size:13px; display:block; margin-bottom:4px; font-weight:bold;">✍️ تَوْقِيعُ وَاعْتِمَادُ المَنصَّةِ:</span>
+                    <span style="color:#6e614c; font-size:13px; display:block; margin-bottom:4px; font-weight:bold;">✍️ تَوْقِيعُ وَاعْتِمَادُ Mالمَنصَّةِ:</span>
                     <span style="font-family:'Brush Script MT', 'cursive', 'Amiri'; color:#8b6914; font-size:32px; font-weight:bold; display:block; transform:rotate(-2deg); text-shadow:0 0 4px rgba(139,105,20,0.1);">إدارة أثر الطيب 🖋️</span>
                 </div>
             </div>
         </div>
         
-        <!-- لوحة أزرار التحكم -->
-        <div style="display:flex; gap:10px; width:100%; max-width:500px;">
+        <!-- لوحة أزرار التحكم السفلي لتتلائم بروقان مع كرت المعاينة المقلص -->
+        <div style="display:flex; gap:10px; width:100%; max-width:500px; margin-top: calc(${scaleRatio} * 50px);">
             <button onclick="window.saveAthrCertificateAsImage()" style="flex:1; background:#8b6914; color:#fff; border:none; padding:14px; border-radius:12px; font-weight:bold; font-family:'Amiri',serif; font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 15px rgba(139,105,20,0.3);">
                 💾 حفظ الشهادة كملف صورة عالي الدقة
             </button>
@@ -688,7 +685,6 @@ window.saveAthrCertificateAsImage = function() {
         scale: 2, 
         backgroundColor: '#fdfbf7',
         useCORS: true,
-        // 🎯 كسر ثغرة العصر: إجبار المحرك على التقاط الأبعاد الثابتة كاملة ومفرودة
         width: 1120,
         height: 792
     }).then(canvas => {
