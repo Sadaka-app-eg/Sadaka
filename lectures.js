@@ -618,8 +618,10 @@ window.showAthrCertificateModal = function(userName, category, score) {
                 <div style="text-align:right; font-size:14px; color:#6e614c; line-height:1.6; width:280px; font-weight:bold;">﴿ قَالُوا سُبْحَانَكَ لَا عِلْمَ لَنَا إِلَّا مَا عَلَّمْتَنَا ﴾</div>
                 <div style="text-align:center; flex:1;">
                     <!-- 🎯 تم تعديل الخط هنا لـ sans-serif لمنع تكسر وتفريط الكلمة في الصورة -->
-                    <div style="color:#8b6914; font-size:38px; font-weight:bold; font-family:'sans-serif', 'Segoe UI', Tahoma; margin-bottom:5px;">شَهَادَةُ إِتْقَانٍ وَتَفَوُّقٍ عِلْمِيِّ</div>
-                    <div style="color:#2c2212; font-size:14px; letter-spacing:4px; font-weight:bold;">مَنَصَّةُ أَثَرٍ الإِسْلَامِيَّةِ التَّعْلِيمِيَّةِ</div>
+                  <div style="color:#8b6914; font-size:38px; font-weight:bold; font-family:'sans-serif', 'Segoe UI', Tahoma; margin-bottom:5px;">شَهَادَةُ إِتْقَانٍ وَتَفَوُّقٍ عِلْمِيِّ</div>
+<div style="color:#2c2212; font-size:14px; font-weight:bold; font-family:'sans-serif', 'Segoe UI';">مَنَصَّةُ أَثَرٍ الإِسْلَامِيَّةِ التَّعْلِيمِيَّةِ</div>
+
+                    
                 </div>
                 <div style="text-align:left; font-size:14px; color:#8b6914; font-weight:bold; line-height:1.6; width:280px;">رقم التوثيق: AT-${Math.floor(Math.random()*90000)+10000}<br>سجل التخرج المعتمد الحين</div>
             </div>
@@ -649,7 +651,7 @@ window.showAthrCertificateModal = function(userName, category, score) {
                     <div style="border:3px double #8b6914; border-radius:50%; width:85px; height:85px; display:flex; align-items:center; justify-content:center; color:#8b6914; font-size:13px; font-weight:bold; transform:rotate(-8deg); background:rgba(139,105,20,0.03); box-shadow:0 0 15px rgba(139,105,20,0.05); margin:0 auto; font-family:'Amiri', serif;">خَتْمُ<br>أَثَرٍ المُعْتَمَدِ</div>
                 </div>
                 <div style="text-align:left; line-height:1.8; width:300px;">
-                    <span style="color:#6e614c; font-size:13px; display:block; margin-bottom:4px; font-weight:bold;">✍️ تَوْقِيعُ وَاعْتِمَادُ Mالمَنصَّةِ:</span>
+                    <span style="color:#6e614c; font-size:13px; display:block; margin-bottom:4px; font-weight:bold;">✍️ تَوْقِيعُ وَاعْتِمَادُ المَنصَّةِ:</span>
                     <span style="font-family:'Brush Script MT', 'cursive', 'Amiri'; color:#8b6914; font-size:32px; font-weight:bold; display:block; transform:rotate(-2deg); text-shadow:0 0 4px rgba(139,105,20,0.1);">إدارة أثر الطيب 🖋️</span>
                 </div>
             </div>
