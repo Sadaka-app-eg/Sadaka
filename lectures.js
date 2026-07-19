@@ -94,11 +94,14 @@ function renderLectures() {
           <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
             <div style="display:flex; align-items:center; gap:8px; flex:1;">
               <button onclick="window.togglePinLecture('${lecture.title}')" style="background:transparent; border:none; color:${isPinned ? 'var(--gold)' : 'var(--text2)'}; font-size:16px; cursor:pointer; padding:0; margin-left:4px;">${isPinned ? '📌' : '📍'}</button>
+             
               <span style="font-family:'Amiri',serif; font-size:15px; color:var(--text); line-height:1.6;">${lecture.title}</span>
+              <span id="lectureSize_${realIndex}" style="font-size:10px; color:var(--text2); display:block; margin-top:2px;"></span>
+
             </div>
             <button class="play-btn" id="lectureBtn_${realIndex}" onclick="window.toggleLectureAudio(${realIndex})" style="background:var(--gold); color:#111; border:none; width:34px; height:34px; border-radius:50%; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;">▶</button>
-            <button id="lectureDlBtn_${realIndex}" onclick="window.downloadLectureAudio(${realIndex})" style="background:var(--bg2); color:var(--gold); border:1px solid var(--border); width:34px; height:34px; border-radius:50%; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;">⬇️</button>
-          </div>
+<div id="lectureDlRing_${realIndex}" onclick="window.startLectureDownloadRing(${realIndex})" style="width:34px; height:34px; flex-shrink:0; display:flex; align-items:center; justify-content:center; cursor:pointer; background:var(--bg2); color:var(--gold); border:1px solid var(--border); border-radius:50%;">⬇️</div> 
+</div>
           <div style="margin-top:10px; width:100%;">
             <input type="range" id="lectureSeek_${realIndex}" value="0" min="0" max="100" step="0.1" oninput="window.seekLectureAudio(${realIndex}, this.value)" style="width:100%; accent-color:var(--gold); cursor:pointer; height:4px; background:rgba(255,255,255,0.2); outline:none; border-radius:2px;">
             <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text2); direction:ltr; margin-top:4px; font-family:monospace;">
@@ -197,6 +200,12 @@ window.downloadLectureAudio = function(index) {
     });
 };
 
+window.startLectureDownloadRing = function(index) {
+  const lecture = window.lecturesData[index];
+  if (!lecture) return;
+  downloadWithProgress(lecture.src, 'lectureDlRing_' + index);
+};
+
 // 2️⃣ تعديل دالة استقبال الرسائل من الـ Service Worker
 navigator.serviceWorker.addEventListener('message', (event) => {
     const d = event.data;
@@ -276,4 +285,10 @@ window.filterLectures = function(category) {
         activeBtn.style.border = 'none';
     }
     renderLectures();
+};
+window.downloadSeerahSeries = function() {
+  const seerahUrls = window.lecturesData
+    .filter(l => l.category === 'السيرة النبوية')
+    .map(l => l.src);
+  downloadBatchWithProgress(seerahUrls, 'seerahBatchRing');
 };
