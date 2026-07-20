@@ -1274,55 +1274,82 @@ window.exportStudioFilteredVideo = function() {
     const log = document.getElementById('studioStatusLog');
     if (!video || !canvas) return;
 
-    log.textContent = "⏳ جاري دمج المونتاج وتصدير الفيديو المنقى...";
+    log.textContent = "⏳ جاري تسجِيل ودمج الفيديو، يرجى الانتظار...";
 
     const fps = parseInt(document.getElementById('exportFPS')?.value || 30);
     const vBitrate = parseInt(document.getElementById('exportBitrate')?.value || 2500000);
-    const aBitrate = parseInt(document.getElementById('exportAudioBitrate')?.value || 256000);
 
-    const audioStream = window.studioEngine.gainNode.context.createMediaStreamDestination().stream;
+    // 1. التقاط مسار الصوت المصفى من Web Audio API
+    const dest = window.studioEngine.audioCtx ? window.studioEngine.audioCtx.createMediaStreamDestination() : null;
+    if (dest && window.studioEngine.gainNode) {
+        window.studioEngine.gainNode.connect(dest);
+        if (window.studioEngine.ambientGainNode) {
+            window.studioEngine.ambientGainNode.connect(dest);
+        }
+    }
+
+    // 2. دمج فيديو الكانفاس مع مسار الصوت
     const canvasStream = canvas.captureStream(fps);
+    const tracks = [...canvasStream.getVideoTracks()];
+    if (dest && dest.stream.getAudioTracks().length > 0) {
+        tracks.push(...dest.stream.getAudioTracks());
+    }
 
-    const combinedStream = new MediaStream([
-        ...canvasStream.getVideoTracks(),
-        ...audioStream.getAudioTracks()
-    ]);
+    const combinedStream = new MediaStream(tracks);
 
-    // 🔍 تحديد الصيغة المناسبة المتوافقة مع المتصفح والويندوز
-    let mimeType = 'video/webm;codecs=vp9,opus';
-    let fileExt = 'webm';
+    // 3. تحديد الترميز الحقيقي الصريح
+    let selectedMime = '';
+    let ext = 'webm';
 
-    if (MediaRecorder.isTypeSupported('video/mp4')) {
-        mimeType = 'video/mp4';
-        fileExt = 'mp4';
-    } else if (MediaRecorder.isTypeSupported('video/webm;codecs=h264')) {
-        mimeType = 'video/webm;codecs=h264';
+    const types = [
+        'video/webm;codecs=vp8,opus',
+        'video/webm;codecs=vp9,opus',
+        'video/webm',
+        'video/mp4'
+    ];
+
+    for (let t of types) {
+        if (MediaRecorder.isTypeSupported(t)) {
+            selectedMime = t;
+            if (t.includes('mp4')) ext = 'mp4';
+            break;
+        }
     }
 
     let recorder;
     try {
-        recorder = new MediaRecorder(combinedStream, { mimeType, videoBitsPerSecond: vBitrate, audioBitsPerSecond: aBitrate });
+        recorder = new MediaRecorder(combinedStream, { 
+            mimeType: selectedMime,
+            videoBitsPerSecond: vBitrate 
+        });
     } catch (e) {
         recorder = new MediaRecorder(combinedStream);
-        fileExt = 'webm';
     }
 
     const chunks = [];
-    recorder.ondataavailable = e => chunks.push(e.data);
+    recorder.ondataavailable = e => {
+        if (e.data && e.data.size > 0) chunks.push(e.data);
+    };
+
     recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: mimeType });
+        const finalBlob = new Blob(chunks, { type: recorder.mimeType || 'video/webm' });
+        const downloadUrl = URL.createObjectURL(finalBlob);
+        
         const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `فيديو_أثر_${Date.now()}.${fileExt}`;
+        link.href = downloadUrl;
+        link.download = `فيديو_أثر_${Date.now()}.${ext}`;
+        document.body.appendChild(link);
         link.click();
+        document.body.removeChild(link);
+
         log.textContent = "🎉 تم تصدير وتحميل الفيديو بنجاح!";
     };
 
+    // إعادة التشغيل للتسجيل من البداية
     video.currentTime = window.studioEngine.clips[0]?.start || 0;
     video.play();
-    recorder.start();
+    recorder.start(1000); // تجميع البيانات كل ثانية لضمان الثبات
 
-    // 💡 متابعة انتهاء المقطع للتصدير
     const checkEnd = setInterval(() => {
         const currentClip = window.studioEngine.clips[window.studioEngine.selectedClipIndex];
         if (video.paused || video.ended || (currentClip && video.currentTime >= currentClip.end)) {
@@ -1332,7 +1359,7 @@ window.exportStudioFilteredVideo = function() {
                 video.pause();
             }
         }
-    }, 500);
+    }, 400);
 };
 
 // 🔊 التحكم الحظي في مستوى صوت المؤثر
