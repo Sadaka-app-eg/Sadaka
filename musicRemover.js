@@ -1,5 +1,5 @@
 // =========================================================================
-// 🎬 اسْتُودْيُو أثَرٍ الشَّامِلُ لِتَنْقِيَةِ المَقَاطِعِ وَالمُونْتَاجِ الإِسْلَامِيِّ (تحريك حر + مؤثرات حقيقية)
+// 🎬 اسْتُودْيُو أثَرٍ الشَّامِلُ - محرر الفيديوهات والتايم لاين الاحترافي (CapCut Style)
 // =========================================================================
 
 window.studioEngine = {
@@ -12,72 +12,72 @@ window.studioEngine = {
     reverbDelay: null,
     reverbFeedback: null,
     reverbGain: null,
-    compressorNode: null,
     gainNode: null,
     analyserNode: null,
     isOriginal: false,
     originalFileSize: 0,
     
-    // عناصر الفيديو والكانفاس
+    // عناصر الكانفاس والفيديو
     videoElement: null,
     renderCanvas: null,
     renderCtx: null,
     logoImage: null,
     animFrameId: null,
 
-    // 1. إعدادات النصوص واللوجو الممكن تحريكها بالسحب (Drag)
+    // نظام المقاطع المتقدم (Multi-Clip Timeline)
+    clips: [], // [{ id, start, end, duration }]
+    selectedClipIndex: 0,
+    transitions: {}, // { clipIndex: 'fade' | 'slide' | 'zoom' | 'rotate' | 'blur' }
+
+    // إعدادات النصوص واللوجو
     overlayText: "",
     textFont: "'Amiri', serif",
     textSize: 32,
     textColor: "#ffffff",
     textBgColor: "rgba(0,0,0,0.5)",
-    textX: 360, // بكسل
-    textY: 600, // بكسل
+    textX: 360,
+    textY: 600,
 
     logoOpacity: 0.9,
     logoSize: 100,
-    logoX: 580, // بكسل
-    logoY: 40,  // بكسل
+    logoX: 580,
+    logoY: 40,
 
-    // 2. إعدادات المظهر والإنتاج
-    aspectRatio: "16:9", // '16:9' or '9:16'
-    aspectBgStyle: "dark", // 'dark', 'blur'
-    colorFilter: "none", // 'none', 'warm-gold', 'cinematic', 'bw'
+    // إعدادات المظهر والإنتاج
+    aspectRatio: "16:9",
+    aspectBgStyle: "dark",
+    colorFilter: "none",
     showProgressBar: true,
     showOutroCard: true,
     enableGridLines: false,
     enableIslamicFrame: false,
     enableMirrorFlip: false,
 
-    // 3. أدوات القص والتمويه والصوت الخارجي
-    trimStart: 0,
-    trimEnd: 0,
+    // التمويه وسحب العناصر
     enableBlurBox: false,
     blurBoxX: 260,
     blurBoxY: 200,
     blurBoxW: 200,
     blurBoxH: 100,
-    
-    // عناصر السحب المباشر
     isDragging: false,
-    dragTarget: null, // 'text', 'logo', 'blur'
+    dragTarget: null,
     dragOffsetX: 0,
     dragOffsetY: 0,
 
-    // 4. الباقة السينمائية وشريط اسم الشيخ
+    // الباقة السينمائية
     rotationAngle: 0,
     enableFadeInOut: true,
     enableVignette: false,
     speakerName: "",
     lessonTitle: "",
 
-    // 5. محرك المؤثرات الصوتية الخلفية الأصلي
+    // المؤثرات الصوتية أوفلاين
     ambientType: "none",
     ambientNode: null,
     ambientGainNode: null
 };
 
-// 🎨 1. بناء واجهة الاستوديو الشاملة
+// 🎨 1. بناء واجهة الاستوديو ومسرح التايم لاين البصري
 window.renderStudioUI = function() {
     const container = document.getElementById('studioContainer');
     if (!container) return;
@@ -85,7 +85,7 @@ window.renderStudioUI = function() {
     container.innerHTML = `
     <div class="comm-card" style="background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; direction: rtl; text-align: right;">
         
-        <!-- 📁 1. منطقة رفع الفيديو -->
+        <!-- 📁 منطقة رفع الفيديو -->
         <div style="border: 2px dashed var(--gold); border-radius: 14px; padding: 25px; text-align: center; background: var(--bg2); margin-bottom: 20px;">
             <span style="font-size: 45px; display: block; margin-bottom: 10px;">🎥</span>
             <label for="videoStudioInput" style="background: var(--gold); color: #111; padding: 12px 24px; border-radius: 10px; font-weight: bold; cursor: pointer; font-family: 'Amiri', serif; font-size: 15px; display: inline-block; box-shadow: 0 4px 15px rgba(212,175,55,0.25);">
@@ -100,27 +100,42 @@ window.renderStudioUI = function() {
             
             <video id="studioVideoPlayer" controls style="width: 100%; margin-top: 10px; border-radius: 8px;"></video>
 
-            <!-- الكانفاس الموحد الذي يعرض المونتاج والنصوص والأنميشين حياً -->
+            <!-- الكانفاس الموحد -->
             <div style="position: relative; text-align: center; margin-top: 15px; margin-bottom: 15px; background: #000; border-radius: 12px; overflow: hidden; border: 1px solid var(--border);">
                 <canvas id="studioCanvas" style="max-width: 100%; max-height: 480px; display: block; margin: 0 auto; cursor: move;"></canvas>
-                <!-- 📊 رسم الموجات الصوتية فوق الفيديو (Live Waveform) -->
                 <canvas id="waveformCanvas" width="800" height="60" style="width: 100%; height: 50px; background: rgba(0,0,0,0.5); position: absolute; bottom: 0; left: 0; pointer-events: none;"></canvas>
             </div>
 
-            <!-- 📊 شريط حساب المساحة التقديرية الحية والواقعية -->
+            <!-- 🎞️ شريط التايم لاين البصري الاحترافي (CapCut Visual Timeline) -->
+            <div style="background: var(--bg2); padding: 15px; border-radius: 12px; border: 1px solid var(--gold); margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <strong style="color: var(--gold); font-size: 14px;">🎞️ الشريط الزمني البصري (Timeline):</strong>
+                    <div style="display: flex; gap: 8px;">
+                        <button onclick="window.splitClipAtPlayhead()" style="background: var(--gold); color: #111; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px;">✂️ تقسيم (Split)</button>
+                        <button onclick="window.deleteSelectedClip()" style="background: #ff4d4d; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px;">🗑️ حذف الكليب (Delete)</button>
+                    </div>
+                </div>
+
+                <!-- مسار الكليبات البصرية (Clips Container) -->
+                <div id="timelineTrack" style="display: flex; gap: 4px; overflow-x: auto; padding: 10px; background: #000; border-radius: 8px; min-height: 70px; border: 1px solid var(--border); align-items: center;">
+                    <!-- يتم توليد كليبات صور الفريمات والفواصل ديناميكياً هنا -->
+                </div>
+            </div>
+
+            <!-- 📊 حساب المساحة -->
             <div id="estimatedSizeDisplay" style="text-align: center; color: var(--gold); font-size: 13px; font-weight: bold; margin-bottom: 15px; font-family: sans-serif; background: var(--bg2); padding: 10px; border-radius: 10px; border: 1px solid var(--border);">
                 📊 المساحة التقديرية المتوقعة: <span id="estVideoMB" style="color: #4caf50; font-size: 15px;">--</span> MB (فيديو) | <span id="estAudioMB" style="color: #005485; font-size: 15px;">--</span> MB (صوت صافي)
             </div>
 
-            <!-- 📑 أزرار التابات المنظمة -->
+            <!-- 📑 أزرار التابات -->
             <div style="display: flex; gap: 6px; margin-bottom: 15px; border-bottom: 2px solid var(--border); padding-bottom: 10px; overflow-x: auto;">
                 <button onclick="window.switchStudioTab('audioTab')" id="tabBtn_audioTab" class="studio-tab-btn active-tab" style="padding: 8px 14px; border-radius: 8px; background: var(--gold); color: #111; font-weight: bold; border: none; cursor: pointer; font-size: 12px;">🎙️ الصوت والمؤثرات</button>
                 <button onclick="window.switchStudioTab('textTab')" id="tabBtn_textTab" class="studio-tab-btn" style="padding: 8px 14px; border-radius: 8px; background: var(--bg2); color: var(--text); border: 1px solid var(--border); cursor: pointer; font-size: 12px;">✍️ النص والشعار (سحب حر)</button>
-                <button onclick="window.switchStudioTab('videoTab')" id="tabBtn_videoTab" class="studio-tab-btn" style="padding: 8px 14px; border-radius: 8px; background: var(--bg2); color: var(--text); border: 1px solid var(--border); cursor: pointer; font-size: 12px;">🎬 القص والأبعاد والتمويه</button>
+                <button onclick="window.switchStudioTab('videoTab')" id="tabBtn_videoTab" class="studio-tab-btn" style="padding: 8px 14px; border-radius: 8px; background: var(--bg2); color: var(--text); border: 1px solid var(--border); cursor: pointer; font-size: 12px;">🎬 الأبعاد والتمويه</button>
                 <button onclick="window.switchStudioTab('cinematicTab')" id="tabBtn_cinematicTab" class="studio-tab-btn" style="padding: 8px 14px; border-radius: 8px; background: var(--bg2); color: var(--text); border: 1px solid var(--border); cursor: pointer; font-size: 12px;">🌟 المؤثرات والإطارات</button>
             </div>
 
-            <!-- 🎙️ 1. تبويب الهندسة الصوتية والمؤثرات المدمجة -->
+            <!-- 🎙️ 1. تبويب الصوت -->
             <div id="tabContent_audioTab" class="studio-tab-content">
                 <div style="margin-bottom: 15px;">
                     <strong style="color: var(--gold); font-size: 13px; display: block; margin-bottom: 8px;">⚡ البريسيتس السريعة بنقرة واحدة:</strong>
@@ -136,34 +151,33 @@ window.renderStudioUI = function() {
                     <strong style="color: var(--gold); font-size: 14px; display: block; margin-bottom: 12px;">🎛️ معادل الصوت والصدى والترميم:</strong>
                     <div style="display: flex; flex-direction: column; gap: 10px; font-size: 12px; color: var(--text);">
                         <div>
-                            <div style="display:flex; justify-content:space-between;"><span>🗣️ تضخيم الصوت البشري (Voice Boost):</span> <span id="valVoice">100%</span></div>
+                            <div style="display:flex; justify-content:space-between;"><span>🗣️ تضخيم الصوت البشري:</span> <span id="valVoice">100%</span></div>
                             <input type="range" id="sliderVoice" min="0" max="200" value="100" oninput="window.updateStudioAudioFilters()" style="width:100%; accent-color:var(--gold);">
                         </div>
                         <div>
-                            <div style="display:flex; justify-content:space-between;"><span>🎼 كتم الترددات الحادة والموسيقى (Treble Cut):</span> <span id="valTreble">0%</span></div>
+                            <div style="display:flex; justify-content:space-between;"><span>🎼 كتم الترددات الحادة:</span> <span id="valTreble">0%</span></div>
                             <input type="range" id="sliderTreble" min="0" max="100" value="0" oninput="window.updateStudioAudioFilters()" style="width:100%; accent-color:var(--gold);">
                         </div>
                         <div>
-                            <div style="display:flex; justify-content:space-between;"><span>🥁 كتم الإيقاعات والبيس (Bass Cut):</span> <span id="valBass">0%</span></div>
+                            <div style="display:flex; justify-content:space-between;"><span>🥁 كتم الإيقاعات والبيس:</span> <span id="valBass">0%</span></div>
                             <input type="range" id="sliderBass" min="0" max="100" value="0" oninput="window.updateStudioAudioFilters()" style="width:100%; accent-color:var(--gold);">
                         </div>
                         <div>
-                            <div style="display:flex; justify-content:space-between;"><span>🕌 صدى الصوت المسجدي (Spiritual Reverb):</span> <span id="valReverb">إيقاف</span></div>
+                            <div style="display:flex; justify-content:space-between;"><span>🕌 صدى الصوت المسجدي:</span> <span id="valReverb">إيقاف</span></div>
                             <input type="range" id="sliderReverb" min="0" max="100" value="0" oninput="window.updateStudioAudioFilters()" style="width:100%; accent-color:var(--gold);">
                         </div>
                         <div>
-                            <div style="display:flex; justify-content:space-between;"><span>💨 فلتر إزالة الوش والنويز (Noise Reduction):</span> <span id="valNoise">إيقاف</span></div>
+                            <div style="display:flex; justify-content:space-between;"><span>💨 إزالة النويز والوش:</span> <span id="valNoise">إيقاف</span></div>
                             <input type="range" id="sliderNoise" min="0" max="100" value="0" oninput="window.updateStudioAudioFilters()" style="width:100%; accent-color:var(--gold);">
                         </div>
                         <div>
-                            <div style="display:flex; justify-content:space-between;"><span>⚡ سرعة المقطع بدون تغيير النبرة (Smart Speed):</span> <span id="valSpeed">1.0x</span></div>
+                            <div style="display:flex; justify-content:space-between;"><span>⚡ سرعة المقطع بدون تغيير النبرة:</span> <span id="valSpeed">1.0x</span></div>
                             <input type="range" id="sliderSpeed" min="0.75" max="2.0" step="0.05" value="1.0" oninput="window.updateStudioSpeed()" style="width:100%; accent-color:var(--gold);">
                         </div>
                     </div>
 
-                    <!-- 🍃 المؤثرات الصوتية الخلفية المدمجة الشغالة 100% -->
                     <div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid var(--border); font-size: 12px;">
-                        <label style="display:block; color:var(--gold); font-weight:bold; margin-bottom:6px;">🍃 المؤثرات الصوتية الخلفية المدمجة (أوفلاين):</label>
+                        <label style="display:block; color:var(--gold); font-weight:bold; margin-bottom:6px;">🍃 المؤثرات الصوتية الخلفية المدمجة:</label>
                         <select id="ambientSoundSelect" onchange="window.updateAmbientSound()" style="width:100%; padding:8px; border-radius:6px; background:var(--card); color:var(--text); border:1px solid var(--border);">
                             <option value="none">بدون مؤثر خلفي</option>
                             <option value="rain">🌧️ صوت مطر ناعم وتهتان</option>
@@ -184,12 +198,10 @@ window.renderStudioUI = function() {
                 </div>
             </div>
 
-            <!-- ✍️ 2. تبويب النصوص والخطوط والشعار (مع السحب الحر) -->
+            <!-- ✍️ 2. تبويب النصوص -->
             <div id="tabContent_textTab" class="studio-tab-content" style="display: none;">
                 <div style="background: var(--bg2); padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 15px;">
                     <strong style="color: var(--gold); font-size: 14px; display: block; margin-bottom: 8px;">✍️ كتابة النصوص والآيات للشاشة:</strong>
-                    <p style="color: var(--text2); font-size: 11px; margin-bottom: 10px;">💡 يمكنك تحريك النص والشعار ومربع التمويه بحرية تامة بسحبهم بالماوس أو الإصبع على الشاشة فوق!</p>
-                    
                     <input type="text" id="studioTextInput" placeholder="اكتب النص هنا (مثلاً: ﴿وَقُل رَّبِّ زِدْنِي عِلْمًا﴾)" oninput="window.updateStudioTextConfig()" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); color: var(--text); font-size: 14px; font-family: 'Amiri', serif; margin-bottom: 10px; box-sizing: border-box;" />
 
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; font-size: 12px; margin-bottom: 15px;">
@@ -200,7 +212,6 @@ window.renderStudioUI = function() {
                                 <option value="'Cairo', sans-serif">خط القاهرة (حديث)</option>
                                 <option value="'Tajawal', sans-serif">خط تجوال (ناعم)</option>
                                 <option value="'Reem Kufi', sans-serif">خط كوفي (عريق)</option>
-                                <option value="'Aref Ruqaa', serif">خط رقعة (تراثي)</option>
                             </select>
                         </div>
                         <div>
@@ -216,7 +227,6 @@ window.renderStudioUI = function() {
                         </div>
                     </div>
 
-                    <!-- الشعار وحجم الشعار -->
                     <div style="padding-top: 10px; border-top: 1px solid var(--border); font-size: 12px;">
                         <label style="display:block; color:var(--gold); font-weight:bold; margin-bottom:4px;">🖼️ الشعار والواترمارك (PNG مفرغ):</label>
                         <input type="file" id="logoFileInput" accept="image/*" onchange="window.handleLogoUpload(event)" style="font-size:11px; color:var(--text); margin-bottom: 8px;" />
@@ -228,30 +238,17 @@ window.renderStudioUI = function() {
                 </div>
             </div>
 
-            <!-- 🎬 3. تبويب المونتاج والقص والأبعاد والتمويه -->
+            <!-- 🎬 3. تبويب الأبعاد والتمويه -->
             <div id="tabContent_videoTab" class="studio-tab-content" style="display: none;">
                 <div style="background: var(--bg2); padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 15px; font-size: 12px;">
-                    <strong style="color: var(--gold); font-size: 14px; display: block; margin-bottom: 10px;">✂️ القص والتحديد والأبعاد والتمويه:</strong>
-                    
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 10px;">
-                        <div>
-                            <label style="display:block; color:var(--text2); margin-bottom:4px;">بداية القص (بالثواني):</label>
-                            <input type="number" id="trimStartInput" value="0" min="0" onchange="window.updateStudioTrimConfig()" style="width:100%; padding:6px; border-radius:6px; background:var(--card); color:var(--text); border:1px solid var(--border);" />
-                        </div>
-                        <div>
-                            <label style="display:block; color:var(--text2); margin-bottom:4px;">نهاية القص (بالثواني):</label>
-                            <input type="number" id="trimEndInput" value="0" min="0" onchange="window.updateStudioTrimConfig()" style="width:100%; padding:6px; border-radius:6px; background:var(--card); color:var(--text); border:1px solid var(--border);" />
-                        </div>
                         <div>
                             <label style="display:block; color:var(--text2); margin-bottom:4px;">أبعاد الفيديو:</label>
                             <select id="studioAspectRatio" onchange="window.updateStudioLayoutConfig()" style="width:100%; padding:6px; border-radius:6px; background:var(--card); color:var(--text); border:1px solid var(--border);">
-                                <option value="16:9">📺 عريض (16:9 - يوتيوب/فيسبوك)</option>
-                                <option value="9:16">📱 طولي (9:16 - Reels / TikTok)</option>
+                                <option value="16:9">📺 عريض (16:9)</option>
+                                <option value="9:16">📱 طولي (9:16 - Reels)</option>
                             </select>
                         </div>
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 10px;">
                         <div>
                             <label style="display:block; color:var(--text2); margin-bottom:4px;">نمط خلفية الـ 9:16:</label>
                             <select id="aspectBgStyleSelect" onchange="window.updateStudioLayoutConfig()" style="width:100%; padding:6px; border-radius:6px; background:var(--card); color:var(--text); border:1px solid var(--border);">
@@ -272,7 +269,7 @@ window.renderStudioUI = function() {
                         </label>
                         <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                             <input type="checkbox" id="enableBlurBoxCheck" onchange="window.updateStudioBlurConfig()" style="accent-color:var(--gold);" />
-                            🔲 مربع التمويه الذكي (قابل للتحريك بالسحب)
+                            🔲 مربع التمويه الذكي
                         </label>
                         <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                             <input type="checkbox" id="enableGridLinesCheck" onchange="window.updateStudioLayoutConfig()" style="accent-color:var(--gold);" />
@@ -282,11 +279,9 @@ window.renderStudioUI = function() {
                 </div>
             </div>
 
-            <!-- 🌟 4. تبويب المؤثرات السينمائية والإطارات -->
+            <!-- 🌟 4. تبويب المؤثرات والإطارات -->
             <div id="tabContent_cinematicTab" class="studio-tab-content" style="display: none;">
                 <div style="background: var(--bg2); padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 15px; font-size: 12px;">
-                    <strong style="color: var(--gold); font-size: 14px; display: block; margin-bottom: 10px;">🌟 التأثيرات السينمائية والإطارات:</strong>
-                    
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 10px;">
                         <div>
                             <label style="display:block; color:var(--text2); margin-bottom:4px;">اسم الشيخ / المتحدث:</label>
@@ -294,15 +289,15 @@ window.renderStudioUI = function() {
                         </div>
                         <div>
                             <label style="display:block; color:var(--text2); margin-bottom:4px;">عنوان الدرس / الموعظة:</label>
-                            <input type="text" id="lessonTitleInput" placeholder="مثلاً: أحكام التجويد - الدرس 1" oninput="window.updateStudioCinematicConfig()" style="width:100%; padding:6px; border-radius:6px; background:var(--card); color:var(--text); border:1px solid var(--border);" />
+                            <input type="text" id="lessonTitleInput" placeholder="مثلاً: أحكام التجويد" oninput="window.updateStudioCinematicConfig()" style="width:100%; padding:6px; border-radius:6px; background:var(--card); color:var(--text); border:1px solid var(--border);" />
                         </div>
                         <div>
                             <label style="display:block; color:var(--text2); margin-bottom:4px;">الفلتر السينمائي:</label>
                             <select id="studioColorFilter" onchange="window.updateStudioLayoutConfig()" style="width:100%; padding:6px; border-radius:6px; background:var(--card); color:var(--text); border:1px solid var(--border);">
                                 <option value="none">طبيعي (بدون فلتر)</option>
-                                <option value="warm-gold">📜 ذهبي دافئ (Warm Gold)</option>
-                                <option value="cinematic">🎬 سينمائي داكن (Cinematic)</option>
-                                <option value="bw">⚪ أبيض وأسود (Classic B&W)</option>
+                                <option value="warm-gold">📜 ذهبي دافئ</option>
+                                <option value="cinematic">🎬 سينمائي داكن</option>
+                                <option value="bw">⚪ أبيض وأسود</option>
                             </select>
                         </div>
                     </div>
@@ -320,22 +315,13 @@ window.renderStudioUI = function() {
                             <input type="checkbox" id="vignetteCheck" onchange="window.updateStudioCinematicConfig()" style="accent-color:var(--gold);" />
                             🎯 التركيز الدائري (Vignette)
                         </label>
-                        <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-                            <input type="checkbox" id="studioProgressBarCheck" checked onchange="window.updateStudioLayoutConfig()" style="accent-color:var(--gold);" />
-                            📊 شريط تقدم المقطع الأسفل
-                        </label>
-                        <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-                            <input type="checkbox" id="studioOutroCardCheck" checked onchange="window.updateStudioLayoutConfig()" style="accent-color:var(--gold);" />
-                            📜 كارت ختام "شارك الخير"
-                        </label>
                     </div>
                 </div>
             </div>
 
-            <!-- ⚙️ 5. إعدادات وخيارات التصدير المخصصة -->
+            <!-- ⚙️ إعدادات التصدير -->
             <div style="background: var(--bg2); padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 15px; font-size: 12px;">
                 <strong style="color: var(--gold); font-size: 13px; display: block; margin-bottom: 8px;">⚙️ إعدادات دقة التصدير والجودة:</strong>
-                
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
                     <div>
                         <label style="display:block; color:var(--text2); margin-bottom:2px;">جودة الفيديو (Bitrate):</label>
@@ -352,17 +338,10 @@ window.renderStudioUI = function() {
                             <option value="60">60 إطار/ثانية (سلاسة فائقة)</option>
                         </select>
                     </div>
-                    <div>
-                        <label style="display:block; color:var(--text2); margin-bottom:2px;">نقاء الصوت:</label>
-                        <select id="exportAudioBitrate" onchange="window.updateEstimatedSize()" style="width:100%; padding:6px; border-radius:6px; background:var(--card); color:var(--text); border:1px solid var(--border);">
-                            <option value="128000">128 kbps</option>
-                            <option value="256000" selected>256 kbps (نقاء عالي)</option>
-                        </select>
-                    </div>
                 </div>
             </div>
 
-            <!-- 📥 6. أزرار التصدير والتنزيل أوفلاين -->
+            <!-- 📥 أزرار التصدير والتنزيل -->
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                 <button onclick="window.exportStudioPureAudio()" style="background: #005485; color: #fff; border: none; padding: 12px; border-radius: 10px; font-weight: bold; font-family: 'Amiri', serif; font-size: 14px; cursor: pointer;">
                     🎵 استخراج الصوت المنقى (MP3)
@@ -376,11 +355,10 @@ window.renderStudioUI = function() {
         </div>
     </div>`;
 
-    // تفعيل أحداث السحب الحر بالماوس واللمس
     window.setupCanvasDragAndDrop();
 };
 
-// 📑 دالة التنقل بين التابات
+// 📑 التنقل بين التابات
 window.switchStudioTab = function(tabId) {
     const contents = document.querySelectorAll('.studio-tab-content');
     contents.forEach(c => c.style.display = 'none');
@@ -403,7 +381,154 @@ window.switchStudioTab = function(tabId) {
     }
 };
 
-// 🖱️ 2. نظام السحب والترك الحر للعناصر فوق الكانفاس (Drag & Drop)
+// 🎞️ 2. محرك التايم لاين البصري والتقسيم والحذف (CapCut Multi-Track Engine)
+window.renderTimelineUI = function() {
+    const track = document.getElementById('timelineTrack');
+    if (!track) return;
+
+    const e = window.studioEngine;
+    track.innerHTML = '';
+
+    e.clips.forEach((clip, idx) => {
+        // 1. عنصر الكليب البصري (Clip Box)
+        const clipDiv = document.createElement('div');
+        clipDiv.style.cssText = `
+            background: ${idx === e.selectedClipIndex ? '#d4af37' : '#1a2920'};
+            color: ${idx === e.selectedClipIndex ? '#111' : '#fff'};
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: bold;
+            white-space: nowrap;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        `;
+        clipDiv.innerHTML = `🎬 كليب ${idx + 1} (${(clip.end - clip.start).toFixed(1)}s)`;
+        clipDiv.onclick = () => {
+            e.selectedClipIndex = idx;
+            e.videoElement.currentTime = clip.start;
+            window.renderTimelineUI();
+        };
+
+        track.appendChild(clipDiv);
+
+        // 2. زر الفاصل والانتقال بين الكليبات (Transition Button)
+        if (idx < e.clips.length - 1) {
+            const transBtn = document.createElement('button');
+            const currentTrans = e.transitions[idx] || 'none';
+            transBtn.style.cssText = `
+                background: #005485;
+                color: #fff;
+                border: 1px solid var(--gold);
+                border-radius: 50%;
+                width: 26px;
+                height: 26px;
+                cursor: pointer;
+                font-size: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            `;
+            transBtn.innerHTML = currentTrans !== 'none' ? '✨' : '⧉';
+            transBtn.title = 'تغيير نوع الانتقال بين المقطعين';
+            transBtn.onclick = () => window.openTransitionMenu(idx);
+            track.appendChild(transBtn);
+        }
+    });
+};
+
+// ✂️ التقسيم عند المؤشر الحالي (Split Clip)
+window.splitClipAtPlayhead = function() {
+    const e = window.studioEngine;
+    const v = e.videoElement;
+    if (!v || e.clips.length === 0) return;
+
+    const curTime = v.currentTime;
+    const curClip = e.clips[e.selectedClipIndex];
+
+    if (curTime > curClip.start + 0.5 && curTime < curClip.end - 0.5) {
+        const newClip1 = { id: Date.now(), start: curClip.start, end: curTime };
+        const newClip2 = { id: Date.now() + 1, start: curTime, end: curClip.end };
+
+        e.clips.splice(e.selectedClipIndex, 1, newClip1, newClip2);
+        document.getElementById('studioStatusLog').textContent = `✂️ تم تقسيم المقطع بنجاح عند الثانية ${curTime.toFixed(1)}!`;
+        window.renderTimelineUI();
+    } else {
+        alert("ضع مؤشر التشغيل في منتصف الكليب للتمكن من التقسيم!");
+    }
+};
+
+// 🗑️ حذف الكليب المحدد (Delete Clip)
+window.deleteSelectedClip = function() {
+    const e = window.studioEngine;
+    if (e.clips.length <= 1) {
+        alert("لا يمكن حذف المقطع الوحيد المتبقي!");
+        return;
+    }
+
+    e.clips.splice(e.selectedClipIndex, 1);
+    e.selectedClipIndex = Math.max(0, e.selectedClipIndex - 1);
+    e.videoElement.currentTime = e.clips[e.selectedClipIndex].start;
+    
+    document.getElementById('studioStatusLog').textContent = "🗑️ تم حذف الكليب المحدد بنجاح!";
+    window.renderTimelineUI();
+};
+
+// 🔄 قائمة خيارات الانتقالات بين الكليبات (Transitions Popup)
+window.openTransitionMenu = function(clipIdx) {
+    const choice = prompt("اختر نوع الانتقال البصري بين الكليبين:\n1. تلاشي ناعم (Fade)\n2. انزلاق جانبي (Slide)\n3. زوم خاطف (Zoom)\n4. انقلاب سينمائي (Rotate)\n5. تداخل ضبابي (Blur)", "1");
+    
+    const e = window.studioEngine;
+    if (choice === '1') e.transitions[clipIdx] = 'fade';
+    else if (choice === '2') e.transitions[clipIdx] = 'slide';
+    else if (choice === '3') e.transitions[clipIdx] = 'zoom';
+    else if (choice === '4') e.transitions[clipIdx] = 'rotate';
+    else if (choice === '5') e.transitions[clipIdx] = 'blur';
+
+    document.getElementById('studioStatusLog').textContent = "✨ تم إضافة تأثير الانتقال البصري بنجاح!";
+    window.renderTimelineUI();
+};
+
+// 📂 معالجة رفع الفيديو
+window.handleStudioFileUpload = function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    window.studioEngine.originalFileSize = file.size;
+
+    document.getElementById('studioFileName').textContent = `📹 الملف المختار: ${file.name} (${(file.size / (1024 * 1024)).toFixed(1)} MB)`;
+    
+    const video = document.getElementById('studioVideoPlayer');
+    const videoURL = URL.createObjectURL(file);
+    video.src = videoURL;
+    
+    window.studioEngine.videoElement = video;
+    window.studioEngine.renderCanvas = document.getElementById('studioCanvas');
+    window.studioEngine.renderCtx = window.studioEngine.renderCanvas.getContext('2d');
+
+    document.getElementById('studioWorkArea').style.display = 'block';
+
+    video.onloadeddata = () => {
+        window.studioEngine.clips = [{ id: 1, start: 0, end: video.duration }];
+        window.studioEngine.selectedClipIndex = 0;
+        window.renderTimelineUI();
+        window.updateStudioLayoutConfig();
+        window.updateEstimatedSize();
+        window.drawSingleStudioFrame();
+    };
+
+    video.onplay = () => {
+        window.initStudioAudioEngine();
+        window.startCanvasRenderLoop();
+        window.drawAudioWaveform();
+    };
+};
+
+// 🖱️ نظام السحب الحر
 window.setupCanvasDragAndDrop = function() {
     const canvas = document.getElementById('studioCanvas');
     if (!canvas) return;
@@ -424,7 +549,6 @@ window.setupCanvasDragAndDrop = function() {
         const coords = getCanvasCoords(e);
         const engine = window.studioEngine;
 
-        // 1. فحص النقر على اللوجو
         if (engine.logoImage) {
             const logoW = engine.logoSize * (canvas.width / 1000);
             const logoH = logoW * (engine.logoImage.height / engine.logoImage.width);
@@ -438,7 +562,6 @@ window.setupCanvasDragAndDrop = function() {
             }
         }
 
-        // 2. فحص النقر على مربع التمويه
         if (engine.enableBlurBox) {
             if (coords.x >= engine.blurBoxX && coords.x <= engine.blurBoxX + engine.blurBoxW &&
                 coords.y >= engine.blurBoxY && coords.y <= engine.blurBoxY + engine.blurBoxH) {
@@ -450,7 +573,6 @@ window.setupCanvasDragAndDrop = function() {
             }
         }
 
-        // 3. فحص النقر على النص
         if (engine.overlayText) {
             engine.isDragging = true;
             engine.dragTarget = 'text';
@@ -491,41 +613,7 @@ window.setupCanvasDragAndDrop = function() {
     canvas.ontouchend = stopDrag;
 };
 
-// 📂 3. معالجة رفع الفيديو
-window.handleStudioFileUpload = function(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    window.studioEngine.originalFileSize = file.size;
-
-    document.getElementById('studioFileName').textContent = `📹 الملف المختار: ${file.name} (${(file.size / (1024 * 1024)).toFixed(1)} MB)`;
-    
-    const video = document.getElementById('studioVideoPlayer');
-    const videoURL = URL.createObjectURL(file);
-    video.src = videoURL;
-    
-    window.studioEngine.videoElement = video;
-    window.studioEngine.renderCanvas = document.getElementById('studioCanvas');
-    window.studioEngine.renderCtx = window.studioEngine.renderCanvas.getContext('2d');
-
-    document.getElementById('studioWorkArea').style.display = 'block';
-
-    video.onloadeddata = () => {
-        window.studioEngine.trimEnd = Math.floor(video.duration);
-        document.getElementById('trimEndInput').value = window.studioEngine.trimEnd;
-        window.updateStudioLayoutConfig();
-        window.updateEstimatedSize();
-        window.drawSingleStudioFrame();
-    };
-
-    video.onplay = () => {
-        window.initStudioAudioEngine();
-        window.startCanvasRenderLoop();
-        window.drawAudioWaveform();
-    };
-};
-
-// 🖼️ معالجة رفع الشعار
+// 🖼️ رفع الشعار
 window.handleLogoUpload = function(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -535,7 +623,7 @@ window.handleLogoUpload = function(event) {
         window.studioEngine.logoImage = img;
         window.studioEngine.logoX = window.studioEngine.renderCanvas.width - 150;
         window.studioEngine.logoY = 30;
-        document.getElementById('studioStatusLog').textContent = "✅ تم إضافة اللوجو! يمكنك تحريكه بسحبه في أي مكان بالأعلى.";
+        document.getElementById('studioStatusLog').textContent = "✅ تم إضافة اللوجو! يمكنك تحريكه بسحبه بيدك.";
     };
     img.src = URL.createObjectURL(file);
 };
@@ -544,7 +632,7 @@ window.updateLogoSize = function(val) {
     window.studioEngine.logoSize = parseInt(val);
 };
 
-// 🍃 توليد وتشغيل المؤثرات الصوتية الطبيعية أوفلاين
+// 🍃 المؤثرات الصوتية
 window.updateAmbientSound = function() {
     const type = document.getElementById('ambientSoundSelect').value;
     const e = window.studioEngine;
@@ -559,7 +647,6 @@ window.updateAmbientSound = function() {
 
     if (type === 'none') return;
 
-    // توليد وايت نويز ناعم وتصفيته للـ Synth
     const bufferSize = e.audioCtx.sampleRate * 2;
     const noiseBuffer = e.audioCtx.createBuffer(1, bufferSize, e.audioCtx.sampleRate);
     const output = noiseBuffer.getChannelData(0);
@@ -601,10 +688,10 @@ window.updateAmbientSound = function() {
     e.ambientNode = whiteNoise;
     e.ambientGainNode = ambGain;
 
-    document.getElementById('studioStatusLog').textContent = `🍃 تم تشغيل مؤثر (${type}) الخلفي أوفلاين بنجاح!`;
+    document.getElementById('studioStatusLog').textContent = `🍃 تم تشغيل مؤثر (${type}) أوفلاين بنجاح!`;
 };
 
-// ⚙️ 4. محرك الصوت الرئيسي
+// ⚙️ محرك الصوت
 window.initStudioAudioEngine = function() {
     if (window.studioEngine.audioCtx) return;
 
@@ -744,19 +831,12 @@ window.updateStudioLayoutConfig = function() {
         canvas.height = 720;
     }
     
-    // ضبط موقع النص واللوجو المبدئي حسب الأبعاد
     e.textX = canvas.width / 2;
     e.textY = canvas.height * 0.8;
     e.logoX = canvas.width - 150;
     e.logoY = 40;
 
     window.updateEstimatedSize();
-};
-
-window.updateStudioTrimConfig = function() {
-    const e = window.studioEngine;
-    e.trimStart = parseFloat(document.getElementById('trimStartInput').value) || 0;
-    e.trimEnd = parseFloat(document.getElementById('trimEndInput').value) || (e.videoElement?.duration || 0);
 };
 
 window.updateStudioBlurConfig = function() {
@@ -841,7 +921,7 @@ window.fixStereoToMono = function() {
     document.getElementById('studioStatusLog').textContent = "✅ تم دمج وتوزيع الصوت ليخرج من السماعتين بكفاءة!";
 };
 
-// 🎥 5. محرك الرسم والتصميم الحي على الكانفاس (متجاوب بالسحب والتحريك)
+// 🎥 5. محرك الرسم والتصميم المتقدم بالانتقالات
 window.startCanvasRenderLoop = function() {
     const e = window.studioEngine;
     const video = e.videoElement;
@@ -853,8 +933,18 @@ window.startCanvasRenderLoop = function() {
     function drawFrame() {
         if (!video.paused && !video.ended) {
             
-            if (e.trimEnd > 0 && video.currentTime >= e.trimEnd) {
-                video.currentTime = e.trimStart;
+            // التحكم بحدود الكليب الحالي
+            const currentClip = e.clips[e.selectedClipIndex];
+            if (currentClip && video.currentTime >= currentClip.end) {
+                if (e.selectedClipIndex < e.clips.length - 1) {
+                    e.selectedClipIndex++;
+                    video.currentTime = e.clips[e.selectedClipIndex].start;
+                    window.renderTimelineUI();
+                } else {
+                    video.currentTime = e.clips[0].start;
+                    e.selectedClipIndex = 0;
+                    window.renderTimelineUI();
+                }
             }
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -931,14 +1021,12 @@ window.startCanvasRenderLoop = function() {
                 ctx.strokeRect(pad + 8, pad + 8, canvas.width - ((pad + 8) * 2), canvas.height - ((pad + 8) * 2));
             }
 
-            // 🔲 مربع التمويه الذكي (تحريك بالسحب)
             if (e.enableBlurBox) {
                 ctx.save();
                 ctx.filter = 'blur(12px)';
                 ctx.drawImage(canvas, e.blurBoxX, e.blurBoxY, e.blurBoxW, e.blurBoxH, e.blurBoxX, e.blurBoxY, e.blurBoxW, e.blurBoxH);
                 ctx.restore();
 
-                // حدود وهمية للإرشاد أثناء السحب
                 ctx.strokeStyle = "rgba(212, 175, 55, 0.6)";
                 ctx.lineWidth = 1;
                 ctx.strokeRect(e.blurBoxX, e.blurBoxY, e.blurBoxW, e.blurBoxH);
@@ -983,7 +1071,6 @@ window.startCanvasRenderLoop = function() {
                 }
             }
 
-            // ✍️ رسم النص فوق المكان المخصص بالسحب
             if (e.overlayText && e.overlayText.trim() !== "") {
                 const calculatedFontSize = e.textSize * (canvas.width / 800);
                 ctx.font = `bold ${calculatedFontSize}px ${e.textFont}`;
@@ -1008,7 +1095,6 @@ window.startCanvasRenderLoop = function() {
                 ctx.shadowBlur = 0;
             }
 
-            // 🖼️ رسم الشعار فوق المكان المخصص بالسحب
             if (e.logoImage) {
                 ctx.globalAlpha = e.logoOpacity;
                 const logoW = e.logoSize * (canvas.width / 1000);
@@ -1109,17 +1195,6 @@ window.drawAudioWaveform = function() {
     draw();
 };
 
-window.captureVideoSnapshot = function() {
-    const canvas = window.studioEngine.renderCanvas;
-    if (!canvas) return;
-
-    const link = document.createElement('a');
-    link.download = `غلاف_موعظة_أثر_${Date.now()}.png`;
-    link.href = canvas.toDataURL('image/png');
-    link.click();
-    document.getElementById('studioStatusLog').textContent = "📸 تم حفظ غلاف المقطع كصورة PNG عالية الدقة!";
-};
-
 window.exportStudioPureAudio = function() {
     const video = window.studioEngine.videoElement;
     const log = document.getElementById('studioStatusLog');
@@ -1147,7 +1222,7 @@ window.exportStudioPureAudio = function() {
         log.textContent = `✅ تم استخراج الملف الصوتي بنجاح! الحجم الفعلي: (${sizeMB} MB)`;
     };
 
-    video.currentTime = window.studioEngine.trimStart || 0;
+    video.currentTime = window.studioEngine.clips[0]?.start || 0;
     video.play();
     recorder.start();
 
@@ -1203,7 +1278,7 @@ window.exportStudioFilteredVideo = function() {
         log.textContent = `🎉 تم تصدير الفيديو بنجاح! الحجم الفعلي المستخرج: (${sizeMB} MB)`;
     };
 
-    video.currentTime = window.studioEngine.trimStart || 0;
+    video.currentTime = window.studioEngine.clips[0]?.start || 0;
     video.play();
     recorder.start();
 
@@ -1212,7 +1287,7 @@ window.exportStudioFilteredVideo = function() {
     };
 };
 
-// 🎯 تهيئة الاستوديو فور التحميل
+// 🎯 تهيئة الاستوديو
 document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('studioContainer')) {
         window.renderStudioUI();
