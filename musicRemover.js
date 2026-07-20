@@ -11,19 +11,26 @@ window.studioEngine = {
     noiseFilter: null,
     reverbDelay: null,
     reverbFeedback: null,
+// 🖼️ إعدادات الخلفية المخصصة (الصورة + الشفافية + الحجم)
+    bgCustomImage: null,
+    bgImageOpacity: 1.0,
+    bgImageScale: 1.0,
+    
     reverbGain: null,
     gainNode: null,
     analyserNode: null,
     isOriginal: false,
     originalFileSize: 0,
-    
+    // إحداثيات السحب الحر لشريط اسم الشيخ
+    bannerX: 40,
+    bannerY: 520,
     // عناصر الكانفاس والفيديو
     videoElement: null,
     renderCanvas: null,
     renderCtx: null,
     logoImage: null,
     animFrameId: null,
-
+videoMaskShape: 'none', // الخيارات: 'none' | 'rounded' | 'circle' | 'arch'
     // نظام المقاطع المتقدم (Multi-Clip Timeline)
     clips: [], // [{ id, start, end, duration }]
     selectedClipIndex: 0,
@@ -176,16 +183,22 @@ window.renderStudioUI = function() {
                         </div>
                     </div>
 
-                    <div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid var(--border); font-size: 12px;">
-                        <label style="display:block; color:var(--gold); font-weight:bold; margin-bottom:6px;">🍃 المؤثرات الصوتية الخلفية المدمجة:</label>
-                        <select id="ambientSoundSelect" onchange="window.updateAmbientSound()" style="width:100%; padding:8px; border-radius:6px; background:var(--card); color:var(--text); border:1px solid var(--border);">
-                            <option value="none">بدون مؤثر خلفي</option>
-                            <option value="rain">🌧️ صوت مطر ناعم وتهتان</option>
-                            <option value="birds">🍃 صوت عصافير وزقزقة طبيعة</option>
-                            <option value="waves">🌊 صوت أمواج ومحيط هادئ</option>
-                            <option value="wind">🍃 صوت هواء مساجد وروحانيات</option>
-                        </select>
-                    </div>
+                   <div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid var(--border); font-size: 12px;">
+    <label style="display:block; color:var(--gold); font-weight:bold; margin-bottom:6px;">🍃 المؤثرات الصوتية الخلفية (أوفلاين):</label>
+    <select id="ambientSoundSelect" onchange="window.updateAmbientSound()" style="width:100%; padding:8px; border-radius:6px; background:var(--card); color:var(--text); border:1px solid var(--border); margin-bottom:8px;">
+        <option value="none">بدون مؤثر خلفي</option>
+        <option value="rain">🌧️ صوت مطر ناعم</option>
+        <option value="birds">🍃 صوت عصافير وزقزقة طبيعة</option>
+        <option value="waves">🌊 صوت أمواج ومحيط هادئ</option>
+        <option value="wind">🍃 صوت هواء مساجد وروحانيات</option>
+    </select>
+
+    <label style="display:block; color:var(--text2); margin-bottom:4px;">🔊 مستوى صوت المؤثر الخلفي:</label>
+    <input type="range" id="ambientVol" min="0" max="1" step="0.05" value="0.3" oninput="window.updateAmbientVolume(this.value)" style="width:100%; accent-color:var(--gold); margin-bottom:8px;">
+
+    <label style="display:block; color:var(--text2); margin-bottom:4px;">📂 أو اختر مؤثر من جهازك (MP3/WAV):</label>
+    <input type="file" accept="audio/*" onchange="window.handleUserAmbientAudio(event)" style="font-size:11px; color:var(--text);" />
+</div>
 
                     <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; pt: 10px; border-top: 1px solid var(--border);">
                         <button id="toggleCompareBtn" onclick="window.toggleStudioLiveCompare()" style="flex: 1; background: rgba(212,175,55,0.15); color: var(--gold); border: 1px solid var(--gold); padding: 8px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer;">
@@ -237,6 +250,36 @@ window.renderStudioUI = function() {
                     </div>
                 </div>
             </div>
+            
+            
+<div>
+    <label style="display:block; color:var(--text2); margin-bottom:4px;">🎭 شكل كادر الفيديو (Video Mask):</label>
+    <select id="videoMaskSelect" onchange="window.studioEngine.videoMaskShape = this.value" style="width:100%; padding:6px; border-radius:6px; background:var(--card); color:var(--text); border:1px solid var(--border);">
+        <option value="none">مستطيل عادي (كلاسيكي)</option>
+        <option value="rounded">حواف مدورة ناعمة (Rounded)</option>
+        <option value="circle">شكل دائري / بيضاوي (Circle)</option>
+        <option value="arch">قوس محراب إسلامي (Islamic Arch)</option>
+    </select>
+</div>
+
+<!-- 🖼️ قسم الخلفية المخصصة -->
+<div style="padding-top: 10px; border-top: 1px solid var(--border); margin-top: 10px;">
+    <label style="display:block; color:var(--gold); font-weight:bold; margin-bottom:6px;">🖼️ رفع صورة خلفية مخصصة من جهازك:</label>
+    <input type="file" accept="image/*" onchange="window.handleStudioBgImageUpload(event)" style="font-size:11px; color:var(--text); margin-bottom:10px;" />
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div>
+            <label style="display:block; color:var(--text2); margin-bottom:2px;">👁️ شفافية الصورة:</label>
+            <input type="range" id="bgOpacitySlider" min="0.1" max="1.0" step="0.05" value="1.0" oninput="window.updateBgImageConfig()" style="width:100%; accent-color:var(--gold);" />
+        </div>
+        <div>
+            <label style="display:block; color:var(--text2); margin-bottom:2px;">🔍 حجم / زوم الصورة:</label>
+            <input type="range" id="bgScaleSlider" min="0.5" max="3.0" step="0.1" value="1.0" oninput="window.updateBgImageConfig()" style="width:100%; accent-color:var(--gold);" />
+        </div>
+    </div>
+</div>
+
+
 
             <!-- 🎬 3. تبويب الأبعاد والتمويه -->
             <div id="tabContent_videoTab" class="studio-tab-content" style="display: none;">
@@ -539,10 +582,20 @@ window.handleStudioFileUpload = function(event) {
         window.drawSingleStudioFrame();
     };
 
-    video.onplay = () => {
+  video.onplay = () => {
         window.initStudioAudioEngine();
+        if (window.studioEngine.ambientAudioEl) {
+            window.studioEngine.ambientAudioEl.play();
+        }
         window.startCanvasRenderLoop();
         window.drawAudioWaveform();
+    };
+
+    // 🛑 توقف المؤثر عند توقف الفيديو
+    video.onpause = () => {
+        if (window.studioEngine.ambientAudioEl) {
+            window.studioEngine.ambientAudioEl.pause();
+        }
     };
 };
 
@@ -580,6 +633,23 @@ window.setupCanvasDragAndDrop = function() {
             }
         }
 
+
+// فحص النقر على شريط اسم الشيخ والدرس
+        if (engine.speakerName || engine.lessonTitle) {
+            const bWidth = canvas.width * 0.55;
+            const bHeight = 85;
+            if (coords.x >= engine.bannerX && coords.x <= engine.bannerX + bWidth &&
+                coords.y >= engine.bannerY && coords.y <= engine.bannerY + bHeight) {
+                engine.isDragging = true;
+                engine.dragTarget = 'banner';
+                engine.dragOffsetX = coords.x - engine.bannerX;
+                engine.dragOffsetY = coords.y - engine.bannerY;
+                return;
+            }
+        }
+
+
+        
         if (engine.enableBlurBox) {
             if (coords.x >= engine.blurBoxX && coords.x <= engine.blurBoxX + engine.blurBoxW &&
                 coords.y >= engine.blurBoxY && coords.y <= engine.blurBoxY + engine.blurBoxH) {
@@ -614,6 +684,9 @@ window.setupCanvasDragAndDrop = function() {
         } else if (engine.dragTarget === 'blur') {
             engine.blurBoxX = coords.x - engine.dragOffsetX;
             engine.blurBoxY = coords.y - engine.dragOffsetY;
+    } else if (engine.dragTarget === 'banner') {
+            engine.bannerX = coords.x - engine.dragOffsetX;
+            engine.bannerY = coords.y - engine.dragOffsetY;
         }
     };
 
@@ -1010,15 +1083,63 @@ window.startCanvasRenderLoop = function() {
             else if (e.colorFilter === 'cinematic') ctx.filter = 'contrast(1.25) saturate(1.15) brightness(0.95)';
             else if (e.colorFilter === 'bw') ctx.filter = 'grayscale(1) contrast(1.2)';
 
-            if (e.aspectRatio === "9:16") {
-                if (e.aspectBgStyle === "blur") {
-                    ctx.save(); ctx.filter += ' blur(25px) brightness(0.4)';
-                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height); ctx.restore();
-                } else {
-                    ctx.fillStyle = "#0a0f0d"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+// 🎨 1. رسم خلفية الشاشة (صورة مخصصة أو مموهة أو أسود)
+            if (e.bgCustomImage) {
+                ctx.save();
+                ctx.globalAlpha = e.bgImageOpacity; // تطبيق الشفافية
+                
+                // حساب أبعاد الحجم والزوم المتمركز في المنتصف
+                const scale = e.bgImageScale || 1.0;
+                const imgW = canvas.width * scale;
+                const imgH = canvas.height * scale;
+                const imgX = (canvas.width - imgW) / 2;
+                const imgY = (canvas.height - imgH) / 2;
+
+                ctx.drawImage(e.bgCustomImage, imgX, imgY, imgW, imgH);
+                ctx.restore();
+            } else if (e.aspectBgStyle === "blur") {
+                ctx.save();
+                ctx.filter += ' blur(25px) brightness(0.4)';
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                ctx.restore();
+            } else {
+                ctx.fillStyle = "#0a0f0d";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+
+
+            
+           // 🎭 تطبيق قناع الشكل على الفيديو (Video Masking)
+            const mask = e.videoMaskShape || 'none';
+            
+            if (mask !== 'none') {
+                ctx.beginPath();
+                if (mask === 'rounded') {
+                    // حواف مدورة ناعمة
+                    const rx = 0, ry = 0, rw = canvas.width, rh = canvas.height, radius = 40;
+                    ctx.roundRect(rx + 15, ry + 15, rw - 30, rh - 30, radius);
+                } else if (mask === 'circle') {
+                    // شكل بيضاوي / دائري في المنتصف
+                    ctx.ellipse(canvas.width / 2, canvas.height / 2, canvas.width * 0.42, canvas.height * 0.42, 0, 0, 2 * Math.PI);
+                } else if (mask === 'arch') {
+                    // شكل قوس إسلامي
+                    const w = canvas.width, h = canvas.height;
+                    ctx.moveTo(w * 0.1, h);
+                    ctx.lineTo(w * 0.1, h * 0.35);
+                    ctx.quadraticCurveTo(w * 0.1, h * 0.05, w * 0.5, h * 0.05); // أعلى القوس
+                    ctx.quadraticCurveTo(w * 0.9, h * 0.05, w * 0.9, h * 0.35);
+                    ctx.lineTo(w * 0.9, h);
+                    ctx.closePath();
                 }
+                ctx.clip(); // اقتصاص الرسم داخل الشكل المحدّد فقط
+            }
+
+            // رسم الفيديو بناءً على الأبعاد (عريض 16:9 أو طولي 9:16)
+            if (e.aspectRatio === "9:16") {
                 const scale = Math.min(canvas.width / video.videoWidth, canvas.height / video.videoHeight);
-                ctx.drawImage(video, (canvas.width - video.videoWidth*scale)/2, (canvas.height - video.videoHeight*scale)/2, video.videoWidth*scale, video.videoHeight*scale);
+                const drawW = video.videoWidth * scale;
+                const drawH = video.videoHeight * scale;
+                ctx.drawImage(video, (canvas.width - drawW) / 2, (canvas.height - drawH) / 2, drawW, drawH);
             } else {
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             }
@@ -1036,6 +1157,35 @@ window.startCanvasRenderLoop = function() {
                 const pad = canvas.width * 0.03;
                 ctx.strokeStyle = "#d4af37"; ctx.lineWidth = 12;
                 ctx.strokeRect(pad, pad, canvas.width - (pad*2), canvas.height - (pad*2));
+            }
+            // 🏷️ رسم شريط اسم الشيخ والدرس بالسحب الحر
+            if (e.speakerName || e.lessonTitle) {
+                const bWidth = canvas.width * 0.55;
+                const bHeight = 75;
+                const bx = e.bannerX || 40;
+                const by = e.bannerY || (canvas.height - 120);
+
+                const bGrad = ctx.createLinearGradient(bx, by, bx + bWidth, by);
+                bGrad.addColorStop(0, 'rgba(15, 25, 20, 0.92)');
+                bGrad.addColorStop(1, 'rgba(15, 25, 20, 0.1)');
+
+                ctx.fillStyle = bGrad;
+                ctx.fillRect(bx, by, bWidth, bHeight);
+
+                ctx.fillStyle = "#d4af37";
+                ctx.fillRect(bx, by, 6, bHeight);
+
+                ctx.textAlign = "right";
+                if (e.speakerName) {
+                    ctx.font = `bold ${canvas.width * 0.03}px 'Amiri', serif`;
+                    ctx.fillStyle = "#d4af37";
+                    ctx.fillText(e.speakerName, bx + bWidth - 15, by + 30);
+                }
+                if (e.lessonTitle) {
+                    ctx.font = `${canvas.width * 0.02}px 'Cairo', sans-serif`;
+                    ctx.fillStyle = "#ffffff";
+                    ctx.fillText(e.lessonTitle, bx + bWidth - 15, by + 58);
+                }
             }
             
             // رسم النص واللوجو (باستخدام إحداثيات e.textX/Y و e.logoX/Y عشان السحب الحر)
@@ -1117,23 +1267,28 @@ window.exportStudioPureAudio = function() {
     recorder.ondataavailable = e => chunks.push(e.data);
     recorder.onstop = () => {
         const blob = new Blob(chunks, { type: 'audio/mp3' });
-        const sizeMB = (blob.size / (1024 * 1024)).toFixed(2);
-        
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
         link.download = `صوت_منقى_أثر_${Date.now()}.mp3`;
         link.click();
-
-        log.textContent = `✅ تم استخراج الملف الصوتي بنجاح! الحجم الفعلي: (${sizeMB} MB)`;
+        log.textContent = "✅ تم استخراج الملف الصوتي بنجاح!";
     };
 
     video.currentTime = window.studioEngine.clips[0]?.start || 0;
     video.play();
     recorder.start();
 
-    video.onended = () => {
-        recorder.stop();
-    };
+    // 💡 حل التعليق: فحص انتهاء المقطع أو انتهاء التايم لاين
+    const checkEnd = setInterval(() => {
+        const currentClip = window.studioEngine.clips[window.studioEngine.selectedClipIndex];
+        if (video.paused || video.ended || (currentClip && video.currentTime >= currentClip.end)) {
+            clearInterval(checkEnd);
+            if (recorder.state === "recording") {
+                recorder.stop();
+                video.pause();
+            }
+        }
+    }, 500);
 };
 
 window.exportStudioFilteredVideo = function() {
@@ -1156,15 +1311,9 @@ window.exportStudioFilteredVideo = function() {
         ...audioStream.getAudioTracks()
     ]);
 
-    const options = {
-        mimeType: 'video/webm;codecs=vp9,opus',
-        videoBitsPerSecond: vBitrate,
-        audioBitsPerSecond: aBitrate
-    };
-
     let recorder;
     try {
-        recorder = new MediaRecorder(combinedStream, options);
+        recorder = new MediaRecorder(combinedStream, { mimeType: 'video/webm;codecs=vp9,opus', videoBitsPerSecond: vBitrate, audioBitsPerSecond: aBitrate });
     } catch (e) {
         recorder = new MediaRecorder(combinedStream);
     }
@@ -1173,28 +1322,88 @@ window.exportStudioFilteredVideo = function() {
     recorder.ondataavailable = e => chunks.push(e.data);
     recorder.onstop = () => {
         const blob = new Blob(chunks, { type: 'video/mp4' });
-        const sizeMB = (blob.size / (1024 * 1024)).toFixed(2);
-
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
         link.download = `فيديو_منقى_أثر_${Date.now()}.mp4`;
         link.click();
-
-        log.textContent = `🎉 تم تصدير الفيديو بنجاح! الحجم الفعلي المستخرج: (${sizeMB} MB)`;
+        log.textContent = "🎉 تم تصدير وتحميل الفيديو بنجاح!";
     };
 
     video.currentTime = window.studioEngine.clips[0]?.start || 0;
     video.play();
     recorder.start();
 
-    video.onended = () => {
-        recorder.stop();
-    };
+    // 💡 حل التعليق: مراقبة النهاية بأمان دون التعليق في الانتظار
+    const checkEnd = setInterval(() => {
+        const currentClip = window.studioEngine.clips[window.studioEngine.selectedClipIndex];
+        if (video.paused || video.ended || (currentClip && video.currentTime >= currentClip.end)) {
+            clearInterval(checkEnd);
+            if (recorder.state === "recording") {
+                recorder.stop();
+                video.pause();
+            }
+        }
+    }, 500);
+};
+// 🔊 التحكم الحظي في مستوى صوت المؤثر
+window.updateAmbientVolume = function(val) {
+    if (window.studioEngine.ambientGainNode) {
+        window.studioEngine.ambientGainNode.gain.value = parseFloat(val);
+    }
 };
 
-// 🎯 تهيئة الاستوديو
-document.addEventListener('DOMContentLoaded', () => {
-    if (document.getElementById('studioContainer')) {
-        window.renderStudioUI();
+// 📂 رفع ملف صوتي خاص من الجهاز
+window.handleUserAmbientAudio = function(event) {
+    const file = event.target.files[0];
+    const e = window.studioEngine;
+    if (!file) return;
+
+    window.initStudioAudioEngine();
+
+    if (e.ambientAudioEl) {
+        e.ambientAudioEl.pause();
+        e.ambientAudioEl = null;
     }
-});
+
+    const audioEl = new Audio(URL.createObjectURL(file));
+    audioEl.loop = true;
+
+    const source = e.audioCtx.createMediaElementSource(audioEl);
+    const gain = e.audioCtx.createGain();
+    gain.gain.value = parseFloat(document.getElementById('ambientVol')?.value || 0.3);
+
+    source.connect(gain);
+    gain.connect(e.audioCtx.destination);
+
+    e.ambientNode = source;
+    e.ambientGainNode = gain;
+    e.ambientAudioEl = audioEl;
+
+    if (!e.videoElement.paused) {
+        audioEl.play();
+    }
+
+    document.getElementById('studioStatusLog').textContent = "✅ تم إضافة المؤثر الصوتي من جهازك بنجاح!";
+};
+// 📂 رفع صورة خلفية خاصة من الجهاز
+window.handleStudioBgImageUpload = function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const img = new Image();
+    img.onload = () => {
+        window.studioEngine.bgCustomImage = img;
+        document.getElementById('studioStatusLog').textContent = "✅ تم تحميل صورة الخلفية بنجاح! يمكنك التحكم في حجمها وشفافيتها الآن.";
+    };
+    img.src = URL.createObjectURL(file);
+};
+
+// 🎛️ تحديث الشفافية والحجم من السلايدرات
+window.updateBgImageConfig = function() {
+    const e = window.studioEngine;
+    const opacityInput = document.getElementById('bgOpacitySlider');
+    const scaleInput = document.getElementById('bgScaleSlider');
+
+    if (opacityInput) e.bgImageOpacity = parseFloat(opacityInput.value);
+    if (scaleInput) e.bgImageScale = parseFloat(scaleInput.value);
+};
