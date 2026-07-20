@@ -11,26 +11,29 @@ window.studioEngine = {
     noiseFilter: null,
     reverbDelay: null,
     reverbFeedback: null,
-// 🖼️ إعدادات الخلفية المخصصة (الصورة + الشفافية + الحجم)
-    bgCustomImage: null,
-    bgImageOpacity: 1.0,
-    bgImageScale: 1.0,
-    
     reverbGain: null,
     gainNode: null,
     analyserNode: null,
     isOriginal: false,
     originalFileSize: 0,
+
+    // 🖼️ إعدادات الخلفية المخصصة والقناع
+    bgCustomImage: null,
+    bgImageOpacity: 1.0,
+    bgImageScale: 1.0,
+    videoMaskShape: 'none', // 'none' | 'rounded' | 'circle' | 'arch'
+
     // إحداثيات السحب الحر لشريط اسم الشيخ
     bannerX: 40,
     bannerY: 520,
+
     // عناصر الكانفاس والفيديو
     videoElement: null,
     renderCanvas: null,
     renderCtx: null,
     logoImage: null,
     animFrameId: null,
-videoMaskShape: 'none', // الخيارات: 'none' | 'rounded' | 'circle' | 'arch'
+
     // نظام المقاطع المتقدم (Multi-Clip Timeline)
     clips: [], // [{ id, start, end, duration }]
     selectedClipIndex: 0,
@@ -81,7 +84,8 @@ videoMaskShape: 'none', // الخيارات: 'none' | 'rounded' | 'circle' | 'ar
     // المؤثرات الصوتية أوفلاين
     ambientType: "none",
     ambientNode: null,
-    ambientGainNode: null
+    ambientGainNode: null,
+    ambientAudioEl: null
 };
 
 // 🎨 1. بناء واجهة الاستوديو ومسرح التايم لاين البصري
@@ -113,7 +117,7 @@ window.renderStudioUI = function() {
                 <canvas id="waveformCanvas" width="800" height="60" style="width: 100%; height: 50px; background: rgba(0,0,0,0.5); position: absolute; bottom: 0; left: 0; pointer-events: none;"></canvas>
             </div>
 
-            <!-- 🎞️ شريط التايم لاين البصري الاحترافي (CapCut Visual Timeline) -->
+            <!-- 🎞️ شريط التايم لاين البصري الاحترافي -->
             <div style="background: var(--bg2); padding: 15px; border-radius: 12px; border: 1px solid var(--gold); margin-bottom: 20px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                     <strong style="color: var(--gold); font-size: 14px;">🎞️ الشريط الزمني البصري (Timeline):</strong>
@@ -123,9 +127,7 @@ window.renderStudioUI = function() {
                     </div>
                 </div>
 
-                <!-- مسار الكليبات البصرية (Clips Container) -->
                 <div id="timelineTrack" style="display: flex; gap: 4px; overflow-x: auto; padding: 10px; background: #000; border-radius: 8px; min-height: 70px; border: 1px solid var(--border); align-items: center;">
-                    <!-- يتم توليد كليبات صور الفريمات والفواصل ديناميكياً هنا -->
                 </div>
             </div>
 
@@ -138,7 +140,7 @@ window.renderStudioUI = function() {
             <div style="display: flex; gap: 6px; margin-bottom: 15px; border-bottom: 2px solid var(--border); padding-bottom: 10px; overflow-x: auto;">
                 <button onclick="window.switchStudioTab('audioTab')" id="tabBtn_audioTab" class="studio-tab-btn active-tab" style="padding: 8px 14px; border-radius: 8px; background: var(--gold); color: #111; font-weight: bold; border: none; cursor: pointer; font-size: 12px;">🎙️ الصوت والمؤثرات</button>
                 <button onclick="window.switchStudioTab('textTab')" id="tabBtn_textTab" class="studio-tab-btn" style="padding: 8px 14px; border-radius: 8px; background: var(--bg2); color: var(--text); border: 1px solid var(--border); cursor: pointer; font-size: 12px;">✍️ النص والشعار (سحب حر)</button>
-                <button onclick="window.switchStudioTab('videoTab')" id="tabBtn_videoTab" class="studio-tab-btn" style="padding: 8px 14px; border-radius: 8px; background: var(--bg2); color: var(--text); border: 1px solid var(--border); cursor: pointer; font-size: 12px;">🎬 الأبعاد والتمويه</button>
+                <button onclick="window.switchStudioTab('videoTab')" id="tabBtn_videoTab" class="studio-tab-btn" style="padding: 8px 14px; border-radius: 8px; background: var(--bg2); color: var(--text); border: 1px solid var(--border); cursor: pointer; font-size: 12px;">🎬 الأبعاد والأشكال والخلفيات</button>
                 <button onclick="window.switchStudioTab('cinematicTab')" id="tabBtn_cinematicTab" class="studio-tab-btn" style="padding: 8px 14px; border-radius: 8px; background: var(--bg2); color: var(--text); border: 1px solid var(--border); cursor: pointer; font-size: 12px;">🌟 المؤثرات والإطارات</button>
             </div>
 
@@ -183,22 +185,22 @@ window.renderStudioUI = function() {
                         </div>
                     </div>
 
-                   <div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid var(--border); font-size: 12px;">
-    <label style="display:block; color:var(--gold); font-weight:bold; margin-bottom:6px;">🍃 المؤثرات الصوتية الخلفية (أوفلاين):</label>
-    <select id="ambientSoundSelect" onchange="window.updateAmbientSound()" style="width:100%; padding:8px; border-radius:6px; background:var(--card); color:var(--text); border:1px solid var(--border); margin-bottom:8px;">
-        <option value="none">بدون مؤثر خلفي</option>
-        <option value="rain">🌧️ صوت مطر ناعم</option>
-        <option value="birds">🍃 صوت عصافير وزقزقة طبيعة</option>
-        <option value="waves">🌊 صوت أمواج ومحيط هادئ</option>
-        <option value="wind">🍃 صوت هواء مساجد وروحانيات</option>
-    </select>
+                    <div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid var(--border); font-size: 12px;">
+                        <label style="display:block; color:var(--gold); font-weight:bold; margin-bottom:6px;">🍃 المؤثرات الصوتية الخلفية (أوفلاين):</label>
+                        <select id="ambientSoundSelect" onchange="window.updateAmbientSound()" style="width:100%; padding:8px; border-radius:6px; background:var(--card); color:var(--text); border:1px solid var(--border); margin-bottom:8px;">
+                            <option value="none">بدون مؤثر خلفي</option>
+                            <option value="rain">🌧️ صوت مطر ناعم</option>
+                            <option value="birds">🍃 صوت عصافير وزقزقة طبيعة</option>
+                            <option value="waves">🌊 صوت أمواج ومحيط هادئ</option>
+                            <option value="wind">🍃 صوت هواء مساجد وروحانيات</option>
+                        </select>
 
-    <label style="display:block; color:var(--text2); margin-bottom:4px;">🔊 مستوى صوت المؤثر الخلفي:</label>
-    <input type="range" id="ambientVol" min="0" max="1" step="0.05" value="0.3" oninput="window.updateAmbientVolume(this.value)" style="width:100%; accent-color:var(--gold); margin-bottom:8px;">
+                        <label style="display:block; color:var(--text2); margin-bottom:4px;">🔊 مستوى صوت المؤثر الخلفي:</label>
+                        <input type="range" id="ambientVol" min="0" max="1" step="0.05" value="0.3" oninput="window.updateAmbientVolume(this.value)" style="width:100%; accent-color:var(--gold); margin-bottom:8px;">
 
-    <label style="display:block; color:var(--text2); margin-bottom:4px;">📂 أو اختر مؤثر من جهازك (MP3/WAV):</label>
-    <input type="file" accept="audio/*" onchange="window.handleUserAmbientAudio(event)" style="font-size:11px; color:var(--text);" />
-</div>
+                        <label style="display:block; color:var(--text2); margin-bottom:4px;">📂 أو اختر مؤثر من جهازك (MP3/WAV):</label>
+                        <input type="file" accept="audio/*" onchange="window.handleUserAmbientAudio(event)" style="font-size:11px; color:var(--text);" />
+                    </div>
 
                     <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; pt: 10px; border-top: 1px solid var(--border);">
                         <button id="toggleCompareBtn" onclick="window.toggleStudioLiveCompare()" style="flex: 1; background: rgba(212,175,55,0.15); color: var(--gold); border: 1px solid var(--gold); padding: 8px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer;">
@@ -250,38 +252,8 @@ window.renderStudioUI = function() {
                     </div>
                 </div>
             </div>
-            
-            
-<div>
-    <label style="display:block; color:var(--text2); margin-bottom:4px;">🎭 شكل كادر الفيديو (Video Mask):</label>
-    <select id="videoMaskSelect" onchange="window.studioEngine.videoMaskShape = this.value" style="width:100%; padding:6px; border-radius:6px; background:var(--card); color:var(--text); border:1px solid var(--border);">
-        <option value="none">مستطيل عادي (كلاسيكي)</option>
-        <option value="rounded">حواف مدورة ناعمة (Rounded)</option>
-        <option value="circle">شكل دائري / بيضاوي (Circle)</option>
-        <option value="arch">قوس محراب إسلامي (Islamic Arch)</option>
-    </select>
-</div>
 
-<!-- 🖼️ قسم الخلفية المخصصة -->
-<div style="padding-top: 10px; border-top: 1px solid var(--border); margin-top: 10px;">
-    <label style="display:block; color:var(--gold); font-weight:bold; margin-bottom:6px;">🖼️ رفع صورة خلفية مخصصة من جهازك:</label>
-    <input type="file" accept="image/*" onchange="window.handleStudioBgImageUpload(event)" style="font-size:11px; color:var(--text); margin-bottom:10px;" />
-
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-        <div>
-            <label style="display:block; color:var(--text2); margin-bottom:2px;">👁️ شفافية الصورة:</label>
-            <input type="range" id="bgOpacitySlider" min="0.1" max="1.0" step="0.05" value="1.0" oninput="window.updateBgImageConfig()" style="width:100%; accent-color:var(--gold);" />
-        </div>
-        <div>
-            <label style="display:block; color:var(--text2); margin-bottom:2px;">🔍 حجم / زوم الصورة:</label>
-            <input type="range" id="bgScaleSlider" min="0.5" max="3.0" step="0.1" value="1.0" oninput="window.updateBgImageConfig()" style="width:100%; accent-color:var(--gold);" />
-        </div>
-    </div>
-</div>
-
-
-
-            <!-- 🎬 3. تبويب الأبعاد والتمويه -->
+            <!-- 🎬 3. تبويب الأبعاد والأشكال والخلفيات -->
             <div id="tabContent_videoTab" class="studio-tab-content" style="display: none;">
                 <div style="background: var(--bg2); padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 15px; font-size: 12px;">
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 10px;">
@@ -305,14 +277,41 @@ window.renderStudioUI = function() {
                         </div>
                     </div>
 
-                    <div style="display: flex; flex-wrap: wrap; gap: 15px; color: var(--text); margin-top: 10px;">
+                    <div style="margin-bottom: 10px;">
+                        <label style="display:block; color:var(--text2); margin-bottom:4px;">🎭 شكل كادر الفيديو (Video Mask):</label>
+                        <select id="videoMaskSelect" onchange="window.studioEngine.videoMaskShape = this.value" style="width:100%; padding:6px; border-radius:6px; background:var(--card); color:var(--text); border:1px solid var(--border);">
+                            <option value="none">مستطيل عادي (كلاسيكي)</option>
+                            <option value="rounded">حواف مدورة ناعمة (Rounded)</option>
+                            <option value="circle">شكل دائري / بيضاوي (Circle)</option>
+                            <option value="arch">قوس محراب إسلامي (Islamic Arch)</option>
+                        </select>
+                    </div>
+
+                    <!-- 🖼️ قسم الخلفية المخصصة -->
+                    <div style="padding-top: 10px; border-top: 1px solid var(--border); margin-top: 10px;">
+                        <label style="display:block; color:var(--gold); font-weight:bold; margin-bottom:6px;">🖼️ رفع صورة خلفية مخصصة من جهازك:</label>
+                        <input type="file" accept="image/*" onchange="window.handleStudioBgImageUpload(event)" style="font-size:11px; color:var(--text); margin-bottom:10px;" />
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div>
+                                <label style="display:block; color:var(--text2); margin-bottom:2px;">👁️ شفافية الصورة:</label>
+                                <input type="range" id="bgOpacitySlider" min="0.1" max="1.0" step="0.05" value="1.0" oninput="window.updateBgImageConfig()" style="width:100%; accent-color:var(--gold);" />
+                            </div>
+                            <div>
+                                <label style="display:block; color:var(--text2); margin-bottom:2px;">🔍 حجم / زوم الصورة:</label>
+                                <input type="range" id="bgScaleSlider" min="0.5" max="3.0" step="0.1" value="1.0" oninput="window.updateBgImageConfig()" style="width:100%; accent-color:var(--gold);" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; flex-wrap: wrap; gap: 15px; color: var(--text); margin-top: 15px;">
                         <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                             <input type="checkbox" id="enableMirrorFlipCheck" onchange="window.updateStudioLayoutConfig()" style="accent-color:var(--gold);" />
                             🪞 العكس الأفقي للمشهد (Mirror Flip)
                         </label>
                         <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                             <input type="checkbox" id="enableBlurBoxCheck" onchange="window.updateStudioBlurConfig()" style="accent-color:var(--gold);" />
-                            🔲 مربع التمويه الذكي
+                            𔲲 مربع التمويه الذكي
                         </label>
                         <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                             <input type="checkbox" id="enableGridLinesCheck" onchange="window.updateStudioLayoutConfig()" style="accent-color:var(--gold);" />
@@ -424,7 +423,7 @@ window.switchStudioTab = function(tabId) {
     }
 };
 
-// 🎞️ 2. محرك التايم لاين البصري والتقسيم والحذف (CapCut Multi-Track Engine)
+// 🎞️ 2. محرك التايم لاين البصري والتقسيم والحذف
 window.renderTimelineUI = function() {
     const track = document.getElementById('timelineTrack');
     if (!track) return;
@@ -433,7 +432,6 @@ window.renderTimelineUI = function() {
     track.innerHTML = '';
 
     e.clips.forEach((clip, idx) => {
-        // 1. عنصر الكليب البصري (Clip Box)
         const clipDiv = document.createElement('div');
         clipDiv.style.cssText = `
             background: ${idx === e.selectedClipIndex ? '#d4af37' : '#1a2920'};
@@ -459,7 +457,6 @@ window.renderTimelineUI = function() {
 
         track.appendChild(clipDiv);
 
-        // 2. زر الفاصل والانتقال بين الكليبات (Transition Button)
         if (idx < e.clips.length - 1) {
             const transBtn = document.createElement('button');
             const currentTrans = e.transitions[idx] || 'none';
@@ -484,7 +481,7 @@ window.renderTimelineUI = function() {
     });
 };
 
-// ✂️ التقسيم عند المؤشر الحالي (Split Clip)
+// ✂️ التقسيم عند المؤشر الحالي
 window.splitClipAtPlayhead = function() {
     const e = window.studioEngine;
     const v = e.videoElement;
@@ -505,7 +502,7 @@ window.splitClipAtPlayhead = function() {
     }
 };
 
-// 🗑️ حذف الكليب المحدد (Delete Clip)
+// 🗑️ حذف الكليب المحدد
 window.deleteSelectedClip = function() {
     const e = window.studioEngine;
     if (e.clips.length <= 1) {
@@ -521,10 +518,8 @@ window.deleteSelectedClip = function() {
     window.renderTimelineUI();
 };
 
-// 🔄 قائمة خيارات الانتقالات بين الكليبات (Transitions Popup)
-// 🔄 قائمة انتقالات احترافية (بدل الـ Prompt البلدي)
+// 🔄 قائمة انتقالات احترافية
 window.openTransitionMenu = function(clipIdx) {
-    // إنشاء عنصر القائمة لو مش موجود
     let menu = document.getElementById('transitionMenu');
     if (!menu) {
         menu = document.createElement('div');
@@ -540,7 +535,6 @@ window.openTransitionMenu = function(clipIdx) {
             <button onclick="window.setTransition(${clipIdx}, 'slide')" style="padding:10px; background:#333; color:#fff; border:none; border-radius:5px; cursor:pointer;">2. انزلاق جانبي (Slide)</button>
             <button onclick="window.setTransition(${clipIdx}, 'zoom')" style="padding:10px; background:#333; color:#fff; border:none; border-radius:5px; cursor:pointer;">3. زوم خاطف (Zoom)</button>
             <button onclick="window.setTransition(${clipIdx}, 'rotate')" style="padding:10px; background:#333; color:#fff; border:none; border-radius:5px; cursor:pointer;">4. انقلاب (Rotate)</button>
-            <button onclick="window.setTransition(${clipIdx}, 'blur')" style="padding:10px; background:#333; color:#fff; border:none; border-radius:5px; cursor:pointer;">5. تداخل ضبابي (Blur)</button>
         </div>
         <button onclick="document.getElementById('transitionMenu').style.display='none'" style="margin-top:15px; width:100%; padding:8px; background:#ff4d4d; color:#fff; border:none; border-radius:5px; cursor:pointer;">إلغاء</button>
     `;
@@ -582,7 +576,7 @@ window.handleStudioFileUpload = function(event) {
         window.drawSingleStudioFrame();
     };
 
-  video.onplay = () => {
+    video.onplay = () => {
         window.initStudioAudioEngine();
         if (window.studioEngine.ambientAudioEl) {
             window.studioEngine.ambientAudioEl.play();
@@ -591,7 +585,6 @@ window.handleStudioFileUpload = function(event) {
         window.drawAudioWaveform();
     };
 
-    // 🛑 توقف المؤثر عند توقف الفيديو
     video.onpause = () => {
         if (window.studioEngine.ambientAudioEl) {
             window.studioEngine.ambientAudioEl.pause();
@@ -633,8 +626,6 @@ window.setupCanvasDragAndDrop = function() {
             }
         }
 
-
-// فحص النقر على شريط اسم الشيخ والدرس
         if (engine.speakerName || engine.lessonTitle) {
             const bWidth = canvas.width * 0.55;
             const bHeight = 85;
@@ -648,8 +639,6 @@ window.setupCanvasDragAndDrop = function() {
             }
         }
 
-
-        
         if (engine.enableBlurBox) {
             if (coords.x >= engine.blurBoxX && coords.x <= engine.blurBoxX + engine.blurBoxW &&
                 coords.y >= engine.blurBoxY && coords.y <= engine.blurBoxY + engine.blurBoxH) {
@@ -684,7 +673,7 @@ window.setupCanvasDragAndDrop = function() {
         } else if (engine.dragTarget === 'blur') {
             engine.blurBoxX = coords.x - engine.dragOffsetX;
             engine.blurBoxY = coords.y - engine.dragOffsetY;
-    } else if (engine.dragTarget === 'banner') {
+        } else if (engine.dragTarget === 'banner') {
             engine.bannerX = coords.x - engine.dragOffsetX;
             engine.bannerY = coords.y - engine.dragOffsetY;
         }
@@ -1012,7 +1001,7 @@ window.fixStereoToMono = function() {
     document.getElementById('studioStatusLog').textContent = "✅ تم دمج وتوزيع الصوت ليخرج من السماعتين بكفاءة!";
 };
 
-// 🎥 5. محرك الرسم والتصميم المتقدم بالانتقالات
+// 🎥 5. محرك الرسم والتصميم المتقدم بالانتقالات والقناع والخلفيات
 window.startCanvasRenderLoop = function() {
     const e = window.studioEngine;
     const video = e.videoElement;
@@ -1038,18 +1027,59 @@ window.startCanvasRenderLoop = function() {
                 }
             }
 
-            // 2. حساب وقت الانتقال (عشان نعرف إحنا في أول الكليب ولا لا)
-            const timeInClip = video.currentTime - currentClip.start;
+            // 2. حساب وقت الانتقال
+            const timeInClip = video.currentTime - (currentClip ? currentClip.start : 0);
             const transType = e.transitions[e.selectedClipIndex - 1] || 'none';
-            const transDuration = 1.0; // ثانية واحدة للانتقال
+            const transDuration = 1.0;
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.save();
 
-            // --- تطبيق منطق الانتقالات البصرية ---
+            // 🎨 أ) رسم خلفية الشاشة (صورة مخصصة أو مموهة أو أسود)
+            if (e.bgCustomImage) {
+                ctx.save();
+                ctx.globalAlpha = e.bgImageOpacity;
+                const scale = e.bgImageScale || 1.0;
+                const imgW = canvas.width * scale;
+                const imgH = canvas.height * scale;
+                const imgX = (canvas.width - imgW) / 2;
+                const imgY = (canvas.height - imgH) / 2;
+                ctx.drawImage(e.bgCustomImage, imgX, imgY, imgW, imgH);
+                ctx.restore();
+            } else if (e.aspectBgStyle === "blur") {
+                ctx.save();
+                ctx.filter += ' blur(25px) brightness(0.4)';
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                ctx.restore();
+            } else {
+                ctx.fillStyle = "#0a0f0d";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+
+            // 🎭 ب) تطبيق قناع الشكل على الفيديو (Video Masking)
+            const mask = e.videoMaskShape || 'none';
+            if (mask !== 'none') {
+                ctx.beginPath();
+                if (mask === 'rounded') {
+                    const rx = 0, ry = 0, rw = canvas.width, rh = canvas.height, radius = 40;
+                    ctx.roundRect(rx + 15, ry + 15, rw - 30, rh - 30, radius);
+                } else if (mask === 'circle') {
+                    ctx.ellipse(canvas.width / 2, canvas.height / 2, canvas.width * 0.42, canvas.height * 0.42, 0, 0, 2 * Math.PI);
+                } else if (mask === 'arch') {
+                    const w = canvas.width, h = canvas.height;
+                    ctx.moveTo(w * 0.1, h);
+                    ctx.lineTo(w * 0.1, h * 0.35);
+                    ctx.quadraticCurveTo(w * 0.1, h * 0.05, w * 0.5, h * 0.05);
+                    ctx.quadraticCurveTo(w * 0.9, h * 0.05, w * 0.9, h * 0.35);
+                    ctx.lineTo(w * 0.9, h);
+                    ctx.closePath();
+                }
+                ctx.clip();
+            }
+
+            // --- جـ) تطبيق منطق الانتقالات البصرية ---
             if (timeInClip < transDuration && transType !== 'none') {
                 const progress = timeInClip / transDuration;
-                
                 if (transType === 'fade') {
                     ctx.globalAlpha = progress;
                 } else if (transType === 'slide') {
@@ -1066,7 +1096,7 @@ window.startCanvasRenderLoop = function() {
                 }
             }
 
-            // رسم محتوى الفيديو
+            // د) رسم محتوى الفيديو
             if (e.enableMirrorFlip) {
                 ctx.translate(canvas.width, 0);
                 ctx.scale(-1, 1);
@@ -1078,63 +1108,10 @@ window.startCanvasRenderLoop = function() {
                 ctx.translate(-canvas.width / 2, -canvas.height / 2);
             }
 
-            // تطبيق الفلاتر والأبعاد (نفس كودك السابق)
             if (e.colorFilter === 'warm-gold') ctx.filter = 'sepia(0.35) contrast(1.1) brightness(1.05)';
             else if (e.colorFilter === 'cinematic') ctx.filter = 'contrast(1.25) saturate(1.15) brightness(0.95)';
             else if (e.colorFilter === 'bw') ctx.filter = 'grayscale(1) contrast(1.2)';
 
-// 🎨 1. رسم خلفية الشاشة (صورة مخصصة أو مموهة أو أسود)
-            if (e.bgCustomImage) {
-                ctx.save();
-                ctx.globalAlpha = e.bgImageOpacity; // تطبيق الشفافية
-                
-                // حساب أبعاد الحجم والزوم المتمركز في المنتصف
-                const scale = e.bgImageScale || 1.0;
-                const imgW = canvas.width * scale;
-                const imgH = canvas.height * scale;
-                const imgX = (canvas.width - imgW) / 2;
-                const imgY = (canvas.height - imgH) / 2;
-
-                ctx.drawImage(e.bgCustomImage, imgX, imgY, imgW, imgH);
-                ctx.restore();
-            } else if (e.aspectBgStyle === "blur") {
-                ctx.save();
-                ctx.filter += ' blur(25px) brightness(0.4)';
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                ctx.restore();
-            } else {
-                ctx.fillStyle = "#0a0f0d";
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-            }
-
-
-            
-           // 🎭 تطبيق قناع الشكل على الفيديو (Video Masking)
-            const mask = e.videoMaskShape || 'none';
-            
-            if (mask !== 'none') {
-                ctx.beginPath();
-                if (mask === 'rounded') {
-                    // حواف مدورة ناعمة
-                    const rx = 0, ry = 0, rw = canvas.width, rh = canvas.height, radius = 40;
-                    ctx.roundRect(rx + 15, ry + 15, rw - 30, rh - 30, radius);
-                } else if (mask === 'circle') {
-                    // شكل بيضاوي / دائري في المنتصف
-                    ctx.ellipse(canvas.width / 2, canvas.height / 2, canvas.width * 0.42, canvas.height * 0.42, 0, 0, 2 * Math.PI);
-                } else if (mask === 'arch') {
-                    // شكل قوس إسلامي
-                    const w = canvas.width, h = canvas.height;
-                    ctx.moveTo(w * 0.1, h);
-                    ctx.lineTo(w * 0.1, h * 0.35);
-                    ctx.quadraticCurveTo(w * 0.1, h * 0.05, w * 0.5, h * 0.05); // أعلى القوس
-                    ctx.quadraticCurveTo(w * 0.9, h * 0.05, w * 0.9, h * 0.35);
-                    ctx.lineTo(w * 0.9, h);
-                    ctx.closePath();
-                }
-                ctx.clip(); // اقتصاص الرسم داخل الشكل المحدّد فقط
-            }
-
-            // رسم الفيديو بناءً على الأبعاد (عريض 16:9 أو طولي 9:16)
             if (e.aspectRatio === "9:16") {
                 const scale = Math.min(canvas.width / video.videoWidth, canvas.height / video.videoHeight);
                 const drawW = video.videoWidth * scale;
@@ -1158,6 +1135,7 @@ window.startCanvasRenderLoop = function() {
                 ctx.strokeStyle = "#d4af37"; ctx.lineWidth = 12;
                 ctx.strokeRect(pad, pad, canvas.width - (pad*2), canvas.height - (pad*2));
             }
+
             // 🏷️ رسم شريط اسم الشيخ والدرس بالسحب الحر
             if (e.speakerName || e.lessonTitle) {
                 const bWidth = canvas.width * 0.55;
@@ -1187,22 +1165,22 @@ window.startCanvasRenderLoop = function() {
                     ctx.fillText(e.lessonTitle, bx + bWidth - 15, by + 58);
                 }
             }
-            
-            // رسم النص واللوجو (باستخدام إحداثيات e.textX/Y و e.logoX/Y عشان السحب الحر)
+
+            // رسم النص واللوجو
             if (e.overlayText) {
                 ctx.fillStyle = e.textBgColor;
                 ctx.font = `bold ${e.textSize * (canvas.width / 800)}px ${e.textFont}`;
                 ctx.textAlign = "center";
                 ctx.fillText(e.overlayText, e.textX, e.textY);
             }
-            
+
             if (e.logoImage) {
                 ctx.drawImage(e.logoImage, e.logoX, e.logoY, e.logoSize, e.logoSize * (e.logoImage.height/e.logoImage.width));
             }
         }
         e.animFrameId = requestAnimationFrame(drawFrame);
     }
-    
+
     if (e.animFrameId) cancelAnimationFrame(e.animFrameId);
     drawFrame();
 };
@@ -1278,7 +1256,6 @@ window.exportStudioPureAudio = function() {
     video.play();
     recorder.start();
 
-    // 💡 حل التعليق: فحص انتهاء المقطع أو انتهاء التايم لاين
     const checkEnd = setInterval(() => {
         const currentClip = window.studioEngine.clips[window.studioEngine.selectedClipIndex];
         if (video.paused || video.ended || (currentClip && video.currentTime >= currentClip.end)) {
@@ -1333,7 +1310,6 @@ window.exportStudioFilteredVideo = function() {
     video.play();
     recorder.start();
 
-    // 💡 حل التعليق: مراقبة النهاية بأمان دون التعليق في الانتظار
     const checkEnd = setInterval(() => {
         const currentClip = window.studioEngine.clips[window.studioEngine.selectedClipIndex];
         if (video.paused || video.ended || (currentClip && video.currentTime >= currentClip.end)) {
@@ -1345,6 +1321,7 @@ window.exportStudioFilteredVideo = function() {
         }
     }, 500);
 };
+
 // 🔊 التحكم الحظي في مستوى صوت المؤثر
 window.updateAmbientVolume = function(val) {
     if (window.studioEngine.ambientGainNode) {
@@ -1385,6 +1362,7 @@ window.handleUserAmbientAudio = function(event) {
 
     document.getElementById('studioStatusLog').textContent = "✅ تم إضافة المؤثر الصوتي من جهازك بنجاح!";
 };
+
 // 📂 رفع صورة خلفية خاصة من الجهاز
 window.handleStudioBgImageUpload = function(event) {
     const file = event.target.files[0];
@@ -1407,3 +1385,17 @@ window.updateBgImageConfig = function() {
     if (opacityInput) e.bgImageOpacity = parseFloat(opacityInput.value);
     if (scaleInput) e.bgImageScale = parseFloat(scaleInput.value);
 };
+
+window.drawSingleStudioFrame = function() {
+    const e = window.studioEngine;
+    if (e.videoElement && e.renderCtx && e.renderCanvas) {
+        e.renderCtx.drawImage(e.videoElement, 0, 0, e.renderCanvas.width, e.renderCanvas.height);
+    }
+};
+
+// 🎯 تهيئة الاستوديو
+document.addEventListener('DOMContentLoaded', () => {
+    if (document.getElementById('studioContainer')) {
+        window.renderStudioUI();
+    }
+});
