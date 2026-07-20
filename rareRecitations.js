@@ -31,6 +31,25 @@ window.rareRecitations = [
   { name: "محمد عباده: تلاوة خاشعة 26 🎙️", url: "audio/obada_26.mp3", desc: "", tag: "محمد عباده" },
   { name: "محمد عباده: تلاوة خاشعة 27 🎙️", url: "audio/obada_27.mp3", desc: "", tag: "محمد عباده" },
 
+
+// تلاوات الشيخ أحمد النفيس (5 تلاوات)
+  { name: "أحمد النفيس: تلاوة خاشعة 1 🎙️", url: "audio/nafes_1.mp3", desc: "", tag: "أحمد النفيس" },
+  { name: "أحمد النفيس: تلاوة خاشعة 2 🎙️", url: "audio/nafes_2.mp3", desc: "", tag: "أحمد النفيس" },
+  { name: "أحمد النفيس: تلاوة خاشعة 3 🎙️", url: "audio/nafes_3.mp3", desc: "", tag: "أحمد النفيس" },
+  { name: "أحمد النفيس: تلاوة خاشعة 4 🎙️", url: "audio/nafes_4.mp3", desc: "", tag: "أحمد النفيس" },
+  { name: "أحمد النفيس: تلاوة خاشعة 5 🎙️", url: "audio/nafes_5.mp3", desc: "", tag: "أحمد النفيس" },
+
+  // تلاوات القارئ حسن فهمي العدني (7 تلاوات)
+  { name: "حسن فهمي العدني: تلاوة خاشعة 1 🎙️", url: "audio/hassan_1.mp3", desc: "", tag: "حسن فهمي" },
+  { name: "حسن فهمي العدني: تلاوة خاشعة 2 🎙️", url: "audio/hassan_2.mp3", desc: "", tag: "حسن فهمي" },
+  { name: "حسن فهمي العدني: تلاوة خاشعة 3 🎙️", url: "audio/hassan_3.mp3", desc: "", tag: "حسن فهمي" },
+  { name: "حسن فهمي العدني: تلاوة خاشعة 4 🎙️", url: "audio/hassan_4.mp3", desc: "", tag: "حسن فهمي" },
+  { name: "حسن فهمي العدني: تلاوة خاشعة 5 🎙️", url: "audio/hassan_5.mp3", desc: "", tag: "حسن فهمي" },
+  { name: "حسن فهمي العدني: تلاوة خاشعة 6 🎙️", url: "audio/hassan_6.mp3", desc: "", tag: "حسن فهمي" },
+  { name: "حسن فهمي العدني: تلاوة خاشعة 7 🎙️", url: "audio/hassan_7.mp3", desc: "", tag: "حسن فهمي" },
+
+
+  
   // تلاوات الشيخ محمد صديق المنشاوي (9 تلاوات)
   { name: "المنشاوي: تلاوة خاشعة 1 🎙️", url: "audio/minshawi_1.mp3", desc: "", tag: "منشاوي" },
   { name: "المنشاوي: تلاوة خاشعة 2 🎙️", url: "audio/minshawi_2.mp3", desc: "", tag: "منشاوي" },
@@ -347,6 +366,9 @@ window.renderRareRecitations = function () {
               <div style="display:flex; align-items:center; gap:10px;">
                 <button onclick="window.currentRareGlobalId=${realIndex}; window.playRare('${item.url}')" style="background:var(--gold); border:none; width:42px; height:42px; border-radius:50%; color:#111; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.2s;">${icon}</button>
                 <button id="rare_dl_${item.url.replace(/[^a-zA-Z0-9]/g,'_')}" onclick="window.downloadRareAudio('${item.url}')" style="background:rgba(255,255,255,0.1); border:1px solid var(--border); width:42px; height:42px; border-radius:50%; color:var(--text); font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.2s;" title="تحميل للاستماع أوفلاين">📥</button>
+              <button onclick="window.shareRareAudio('${item.name.replace(/'/g, "\\'")}', '${item.url}')" style="background:rgba(212,175,55,0.15); border:1px solid var(--gold); width:42px; height:42px; border-radius:50%; color:var(--gold); font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.2s;" title="مشاركة التلاوة">🔗</button>
+             
+              
               </div>
               <div style="flex:1; text-align:right; direction:rtl;">
                 <div style="font-weight:bold; color:var(--text); font-family:'Amiri',serif; font-size:15px; line-height:1.4;">${item.name}</div>
@@ -434,3 +456,26 @@ async function markAlreadyDownloadedRareButtons() {
 }
 
 document.addEventListener('DOMContentLoaded', () => { renderRareRecitations(); });
+// 📲 دالة مشاركة التلاوة الذكية (الملف المباشر)
+window.shareRareAudio = async function(name, url) {
+    let safeUrl = url === "audio/nasr_6.mp3" ? "audio/nast_6.mp3" : url;
+    
+    try {
+        const response = await fetch(safeUrl);
+        const blob = await response.blob();
+        const file = new File([blob], `${name}.mp3`, { type: 'audio/mp3' });
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({
+                title: name,
+                text: `تلاوة خاشعة: ${name} 🎙️`,
+                files: [file]
+            });
+        } else {
+            const fullAudioUrl = new URL(safeUrl, window.location.href).href;
+            await navigator.share({ title: name, text: name, url: fullAudioUrl });
+        }
+    } catch (e) {
+        window.downloadRareAudio(url);
+    }
+};
