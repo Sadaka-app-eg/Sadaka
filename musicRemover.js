@@ -2,6 +2,79 @@
 // 🎬 اسْتُودْيُو أثَرٍ الشَّامِلُ - محرر الفيديوهات والتايم لاين الاحترافي (CapCut Style)
 // =========================================================================
 
+// =========================================================================
+// 🎬 كلاسات المحرك المطور لمشروع أثر - CapCut Modular Architecture
+// =========================================================================
+
+class AthrProjectState {
+    constructor() {
+        this.version = "2.0.0";
+        this.projectName = "مشروع_أثر_جديد";
+        this.tracks = [
+            { id: 'v1', type: 'video', name: '🎥 مسار الفيديو الرئيسي', clips: [], visible: true, locked: false },
+            { id: 'ov1', type: 'overlay', name: '🖼️ مسار الطبقات والملصقات', clips: [], visible: true, locked: false },
+            { id: 't1', type: 'text', name: '✍️ مسار النصوص والآيات', clips: [], visible: true, locked: false },
+            { id: 'a1', type: 'audio', name: '🎙️ مسار الصوت والمؤثرات', clips: [], visible: true, locked: false }
+        ];
+        this.history = [];
+        this.historyIndex = -1;
+    }
+
+    pushHistory(snapshot) {
+        if (this.historyIndex < this.history.length - 1) {
+            this.history = this.history.slice(0, this.historyIndex + 1);
+        }
+        this.history.push(JSON.stringify(snapshot));
+        this.historyIndex++;
+    }
+
+    undo() {
+        if (this.historyIndex > 0) {
+            this.historyIndex--;
+            return JSON.parse(this.history[this.historyIndex]);
+        }
+        return null;
+    }
+
+    redo() {
+        if (this.historyIndex < this.history.length - 1) {
+            this.historyIndex++;
+            return JSON.parse(this.history[this.historyIndex]);
+        }
+        return null;
+    }
+}
+
+class AthrKeyframeEngine {
+    static interpolate(kf1, kf2, progress, easing = 'linear') {
+        let p = progress;
+        if (easing === 'easeIn') p = p * p;
+        else if (easing === 'easeOut') p = p * (2 - p);
+        else if (easing === 'easeInOut') p = p < 0.5 ? 2 * p * p : -1 + (4 - 2 * p) * p;
+        return kf1 + (kf2 - kf1) * p;
+    }
+
+    static getValueAtTime(keyframes, currentTime, defaultValue = 0) {
+        if (!keyframes || keyframes.length === 0) return defaultValue;
+        if (currentTime <= keyframes[0].time) return keyframes[0].value;
+        if (currentTime >= keyframes[keyframes.length - 1].time) return keyframes[keyframes.length - 1].value;
+
+        for (let i = 0; i < keyframes.length - 1; i++) {
+            const kf1 = keyframes[i];
+            const kf2 = keyframes[i + 1];
+            if (currentTime >= kf1.time && currentTime <= kf2.time) {
+                const progress = (currentTime - kf1.time) / (kf2.time - kf1.time);
+                return this.interpolate(kf1.value, kf2.value, progress, kf2.easing || 'linear');
+            }
+        }
+        return defaultValue;
+    }
+}
+
+
+
+
+
 window.studioEngine = {
     audioCtx: null,
     sourceNode: null,
@@ -17,6 +90,13 @@ window.studioEngine = {
     isOriginal: false,
     originalFileSize: 0,
 
+    // 🆕 خصائص الدفعة الثالثة (Stickers & PiP Overlay)
+    stickersList: [], // [{ id, text, img, x, y, size, opacity }]
+    pipOverlayImage: null,
+    pipX: 50,
+    pipY: 50,
+    pipSize: 150,
+    pipOpacity: 0.9,
     // 🖼️ إعدادات الخلفية المخصصة والقناع
     bgCustomImage: null,
     bgImageOpacity: 1.0,
@@ -34,6 +114,63 @@ window.studioEngine = {
     logoImage: null,
     animFrameId: null,
 
+
+
+
+
+
+
+// 🆕 خصائص CapCut Engine الجديدة
+    projectState: new AthrProjectState(),
+    timelineZoom: 1.0,
+    snapEnabled: true,
+    activeTrackId: 'v1',
+    colorAdjustments: {
+        exposure: 0,
+        contrast: 0,
+        saturation: 0,
+        temperature: 0,
+        hue: 0
+    },
+
+    // 💾 تصدير المشروع كملف .athr
+    exportAthrProject: function() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.projectState));
+        const a = document.createElement('a');
+        a.setAttribute("href", dataStr);
+        a.setAttribute("download", `${this.projectState.projectName}_${Date.now()}.athr`);
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+    },
+
+    // 📂 استيراد مشروع .athr
+    importAthrProject: function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const parsed = JSON.parse(e.target.result);
+                this.projectState = Object.assign(new AthrProjectState(), parsed);
+                window.renderTimelineUI();
+                alert("✅ تم تحميل مشروع أثر (.athr) بنجاح!");
+            } catch (err) {
+                alert("⚠️ ملف المشروع غير صالح!");
+            }
+        };
+        reader.readAsText(file);
+    },
+
+
+
+
+
+
+
+
+
+    
     // نظام المقاطع المتقدم (Multi-Clip Timeline)
     clips: [], // [{ id, start, end, duration }]
     selectedClipIndex: 0,
@@ -118,16 +255,23 @@ window.renderStudioUI = function() {
             </div>
 
             <!-- 🎞️ شريط التايم لاين البصري الاحترافي -->
+           <!-- 🎞️ شريط التايم لاين المطور متعدد المسارات (CapCut Multitrack Timeline) -->
             <div style="background: var(--bg2); padding: 15px; border-radius: 12px; border: 1px solid var(--gold); margin-bottom: 20px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <strong style="color: var(--gold); font-size: 14px;">🎞️ الشريط الزمني البصري (Timeline):</strong>
-                    <div style="display: flex; gap: 8px;">
-                        <button onclick="window.splitClipAtPlayhead()" style="background: var(--gold); color: #111; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px;">✂️ تقسيم (Split)</button>
-                        <button onclick="window.deleteSelectedClip()" style="background: #ff4d4d; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px;">🗑️ حذف الكليب (Delete)</button>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+                    <strong style="color: var(--gold); font-size: 14px;">🎞️ المحرر متعدد المسارات (Multi-Track Timeline):</strong>
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                        <button onclick="window.splitClipAtPlayhead()" style="background: var(--gold); color: #111; border: none; padding: 6px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 11px;">✂️ تقسيم</button>
+                        <button onclick="window.deleteSelectedClip()" style="background: #ff4d4d; color: #fff; border: none; padding: 6px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 11px;">🗑️ حذف</button>
+                        <button onclick="window.studioEngine.exportAthrProject()" style="background: #005485; color: #fff; border: 1px solid var(--border); padding: 6px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 11px;">💾 حفظ مشروع (.athr)</button>
+                        <label style="background: var(--card); color: var(--gold); border: 1px solid var(--gold); padding: 6px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 11px; display: inline-block;">
+                            📂 فتح مشروع
+                            <input type="file" accept=".athr" onchange="window.studioEngine.importAthrProject(event)" style="display:none;" />
+                        </label>
                     </div>
                 </div>
 
-                <div id="timelineTrack" style="display: flex; gap: 4px; overflow-x: auto; padding: 10px; background: #000; border-radius: 8px; min-height: 70px; border: 1px solid var(--border); align-items: center;">
+                <!-- مسار الكليبات البصرية -->
+                <div id="timelineTrack" style="display: flex; flex-direction: column; gap: 8px; overflow-x: auto; padding: 10px; background: #000; border-radius: 8px; min-height: 90px; border: 1px solid var(--border);">
                 </div>
             </div>
 
@@ -142,7 +286,103 @@ window.renderStudioUI = function() {
                 <button onclick="window.switchStudioTab('textTab')" id="tabBtn_textTab" class="studio-tab-btn" style="padding: 8px 14px; border-radius: 8px; background: var(--bg2); color: var(--text); border: 1px solid var(--border); cursor: pointer; font-size: 12px;">✍️ النص والشعار (سحب حر)</button>
                 <button onclick="window.switchStudioTab('videoTab')" id="tabBtn_videoTab" class="studio-tab-btn" style="padding: 8px 14px; border-radius: 8px; background: var(--bg2); color: var(--text); border: 1px solid var(--border); cursor: pointer; font-size: 12px;">🎬 الأبعاد والأشكال والخلفيات</button>
                 <button onclick="window.switchStudioTab('cinematicTab')" id="tabBtn_cinematicTab" class="studio-tab-btn" style="padding: 8px 14px; border-radius: 8px; background: var(--bg2); color: var(--text); border: 1px solid var(--border); cursor: pointer; font-size: 12px;">🌟 المؤثرات والإطارات</button>
+        <button onclick="window.switchStudioTab('colorGradingTab')" id="tabBtn_colorGradingTab" class="studio-tab-btn" style="padding: 8px 14px; border-radius: 8px; background: var(--bg2); color: var(--text); border: 1px solid var(--border); cursor: pointer; font-size: 12px;">🎨 تصحيح الألوان والأنيميشن</button>
+            <button onclick="window.switchStudioTab('stickersTab')" id="tabBtn_stickersTab" class="studio-tab-btn" style="padding: 8px 14px; border-radius: 8px; background: var(--bg2); color: var(--text); border: 1px solid var(--border); cursor: pointer; font-size: 12px;">🎨 الملصقات والطبقات (PiP)</button>
+            
             </div>
+
+
+
+<!-- 🎨 6. تبويب الملصقات والـ Picture-in-Picture -->
+<div id="tabContent_stickersTab" class="studio-tab-content" style="display: none;">
+    <div style="background: var(--bg2); padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 15px; font-size: 12px;">
+        
+        <!-- 🕌 قسم الملصقات والرموز الإسلامية -->
+        <strong style="color: var(--gold); font-size: 14px; display: block; margin-bottom: 8px;">🕌 مكتبة الملصقات والرموز السريعة:</strong>
+        <p style="color: var(--text2); margin-bottom: 10px; font-size: 11px;">اضغط على أي رمز لإضافته كطبقة عائمة على الفيديو (يمكنك سحبه بيدك على الشاشة):</p>
+        
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px;">
+            <button onclick="window.addTextSticker('﷽')" style="background:var(--card); color:var(--gold); border:1px solid var(--gold); padding:8px 12px; border-radius:8px; font-family:'Amiri',serif; font-size:16px; cursor:pointer;">﷽</button>
+            <button onclick="window.addTextSticker('﴿ ۞ ﴾')" style="background:var(--card); color:var(--gold); border:1px solid var(--gold); padding:8px 12px; border-radius:8px; font-family:'Amiri',serif; font-size:16px; cursor:pointer;">﴿ ۞ ﴾</button>
+            <button onclick="window.addTextSticker('ﷺ')" style="background:var(--card); color:var(--gold); border:1px solid var(--gold); padding:8px 12px; border-radius:8px; font-family:'Amiri',serif; font-size:16px; cursor:pointer;">ﷺ</button>
+            <button onclick="window.addTextSticker('ﷻ')" style="background:var(--card); color:var(--gold); border:1px solid var(--gold); padding:8px 12px; border-radius:8px; font-family:'Amiri',serif; font-size:16px; cursor:pointer;">ﷻ</button>
+            <button onclick="window.addTextSticker('🕌')" style="background:var(--card); border:1px solid var(--border); padding:8px 12px; border-radius:8px; font-size:18px; cursor:pointer;">🕌</button>
+            <button onclick="window.addTextSticker('🌙')" style="background:var(--card); border:1px solid var(--border); padding:8px 12px; border-radius:8px; font-size:18px; cursor:pointer;">🌙</button>
+            <button onclick="window.addTextSticker('📖')" style="background:var(--card); border:1px solid var(--border); padding:8px 12px; border-radius:8px; font-size:18px; cursor:pointer;">📖</button>
+            <button onclick="window.addTextSticker('✨')" style="background:var(--card); border:1px solid var(--border); padding:8px 12px; border-radius:8px; font-size:18px; cursor:pointer;">✨</button>
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label style="display:block; color:var(--gold); font-weight:bold; margin-bottom:4px;">🖼️ أو ارفع ملصق خاص من جهازك (PNG مفرغ):</label>
+            <input type="file" accept="image/*" onchange="window.handleCustomStickerUpload(event)" style="font-size:11px; color:var(--text);" />
+        </div>
+
+        <hr style="border:none; border-top:1px solid var(--border); margin: 15px 0;" />
+
+        <!-- 📺 قسم Picture-in-Picture (فيديو/صورة فوق فيديو) -->
+        <strong style="color: var(--gold); font-size: 14px; display: block; margin-bottom: 8px;">📺 طبقة عائمة (Picture in Picture):</strong>
+        <label style="display:block; color:var(--text2); margin-bottom:4px;">رفع صورة / لوجو ثانوي كـ Overlay فوق الفيديو:</label>
+        <input type="file" accept="image/*" onchange="window.handlePipOverlayUpload(event)" style="font-size:11px; color:var(--text); margin-bottom: 10px;" />
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div>
+                <label style="display:block; color:var(--text2); margin-bottom:2px;">🔍 حجم الطبقة العائمة:</label>
+                <input type="range" id="pipSizeSlider" min="50" max="500" value="150" oninput="window.updatePipConfig()" style="width:100%; accent-color:var(--gold);" />
+            </div>
+            <div>
+                <label style="display:block; color:var(--text2); margin-bottom:2px;">👁️ الشفافية:</label>
+                <input type="range" id="pipOpacitySlider" min="0.1" max="1.0" step="0.05" value="0.9" oninput="window.updatePipConfig()" style="width:100%; accent-color:var(--gold);" />
+            </div>
+        </div>
+
+        <div style="margin-top: 10px; text-align: left;">
+            <button onclick="window.clearAllStickersAndPip()" style="background:#ff4d4d; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:11px;">🗑️ حظر/حذف جميع الطبقات والملصقات</button>
+        </div>
+    </div>
+</div>
+
+
+
+
+<!-- 🎨 5. تبويب تصحيح الألوان والكي فريمز -->
+<div id="tabContent_colorGradingTab" class="studio-tab-content" style="display: none;">
+    <div style="background: var(--bg2); padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 15px; font-size: 12px;">
+        <strong style="color: var(--gold); font-size: 14px; display: block; margin-bottom: 10px;">🎛️ تصحيح الألوان الاحترافي (Color Grading):</strong>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 15px;">
+            <div>
+                <label style="display:block; color:var(--text2); margin-bottom:2px;">☀️ التعريض / السطوع (Exposure):</label>
+                <input type="range" id="adjExposure" min="-100" max="100" value="0" oninput="window.updateColorAdjustments()" style="width:100%; accent-color:var(--gold);">
+            </div>
+            <div>
+                <label style="display:block; color:var(--text2); margin-bottom:2px;">🌓 التباين (Contrast):</label>
+                <input type="range" id="adjContrast" min="-100" max="100" value="0" oninput="window.updateColorAdjustments()" style="width:100%; accent-color:var(--gold);">
+            </div>
+            <div>
+                <label style="display:block; color:var(--text2); margin-bottom:2px;">🎨 التشبع (Saturation):</label>
+                <input type="range" id="adjSaturation" min="-100" max="100" value="0" oninput="window.updateColorAdjustments()" style="width:100%; accent-color:var(--gold);">
+            </div>
+            <div>
+                <label style="display:block; color:var(--text2); margin-bottom:2px;">🌈 درجة اللون (Hue):</label>
+                <input type="range" id="adjHue" min="-180" max="180" value="0" oninput="window.updateColorAdjustments()" style="width:100%; accent-color:var(--gold);">
+            </div>
+        </div>
+
+        <button onclick="window.resetColorAdjustments()" style="background:var(--card); color:var(--text2); border:1px solid var(--border); padding:6px 12px; border-radius:6px; cursor:pointer; font-size:11px;">🔄 إعادة ضبط الألوان</button>
+
+        <hr style="border:none; border-top:1px solid var(--border); margin: 15px 0;" />
+
+        <strong style="color: var(--gold); font-size: 14px; display: block; margin-bottom: 10px;">🔑 لوحة الكي فريمز (Keyframe Motion):</strong>
+        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <button onclick="window.addKeyframeAtPlayhead('logoScale')" style="background:var(--gold); color:#111; border:none; padding:6px 12px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:11px;">📌 إضافة نقطة زوم للشعار</button>
+            <button onclick="window.addKeyframeAtPlayhead('textOpacity')" style="background:var(--gold); color:#111; border:none; padding:6px 12px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:11px;">📌 إضافة نقطة شفافية للنص</button>
+            <button onclick="window.clearAllKeyframes()" style="background:#ff4d4d; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:11px;">🗑️ مسح جميع النقاط</button>
+        </div>
+    </div>
+</div>
+
+
+
 
             <!-- 🎙️ 1. تبويب الصوت -->
             <div id="tabContent_audioTab" class="studio-tab-content">
@@ -424,6 +664,7 @@ window.switchStudioTab = function(tabId) {
 };
 
 // 🎞️ 2. محرك التايم لاين البصري والتقسيم والحذف
+// 🎞️ 2. محرك التايم لاين البصري المطور (Multitrack Engine)
 window.renderTimelineUI = function() {
     const track = document.getElementById('timelineTrack');
     if (!track) return;
@@ -431,53 +672,58 @@ window.renderTimelineUI = function() {
     const e = window.studioEngine;
     track.innerHTML = '';
 
-    e.clips.forEach((clip, idx) => {
-        const clipDiv = document.createElement('div');
-        clipDiv.style.cssText = `
-            background: ${idx === e.selectedClipIndex ? '#d4af37' : '#1a2920'};
-            color: ${idx === e.selectedClipIndex ? '#111' : '#fff'};
-            padding: 8px 14px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 11px;
-            font-weight: bold;
-            white-space: nowrap;
-            border: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: all 0.2s ease;
-        `;
-        clipDiv.innerHTML = `🎬 كليب ${idx + 1} (${(clip.end - clip.start).toFixed(1)}s)`;
-        clipDiv.onclick = () => {
-            e.selectedClipIndex = idx;
-            e.videoElement.currentTime = clip.start;
-            window.renderTimelineUI();
-        };
+    // رسم مسارات المشروع (Tracks)
+    e.projectState.tracks.forEach(tr => {
+        const trackHeader = document.createElement('div');
+        trackHeader.style.cssText = "font-size:11px; color:var(--gold); font-weight:bold; margin-bottom:2px; text-align:right;";
+        trackHeader.textContent = tr.name;
+        track.appendChild(trackHeader);
 
-        track.appendChild(clipDiv);
+        const trackRow = document.createElement('div');
+        trackRow.style.cssText = "display: flex; gap: 4px; align-items: center; background: rgba(255,255,255,0.03); padding: 6px; border-radius: 6px; min-height: 45px; border: 1px dashed rgba(212,175,55,0.2);";
 
-        if (idx < e.clips.length - 1) {
-            const transBtn = document.createElement('button');
-            const currentTrans = e.transitions[idx] || 'none';
-            transBtn.style.cssText = `
-                background: #005485;
-                color: #fff;
-                border: 1px solid var(--gold);
-                border-radius: 50%;
-                width: 26px;
-                height: 26px;
-                cursor: pointer;
-                font-size: 10px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            `;
-            transBtn.innerHTML = currentTrans !== 'none' ? '✨' : '⧉';
-            transBtn.title = 'تغيير نوع الانتقال بين المقطعين';
-            transBtn.onclick = () => window.openTransitionMenu(idx);
-            track.appendChild(transBtn);
+        if (tr.type === 'video') {
+            e.clips.forEach((clip, idx) => {
+                const clipDiv = document.createElement('div');
+                clipDiv.style.cssText = `
+                    background: ${idx === e.selectedClipIndex ? '#d4af37' : '#1a2920'};
+                    color: ${idx === e.selectedClipIndex ? '#111' : '#fff'};
+                    padding: 8px 14px;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-size: 11px;
+                    font-weight: bold;
+                    white-space: nowrap;
+                    border: 1px solid var(--border);
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    transition: all 0.2s ease;
+                `;
+                clipDiv.innerHTML = `🎬 كليب ${idx + 1} (${(clip.end - clip.start).toFixed(1)}s)`;
+                clipDiv.onclick = () => {
+                    e.selectedClipIndex = idx;
+                    e.videoElement.currentTime = clip.start;
+                    window.renderTimelineUI();
+                };
+
+                trackRow.appendChild(clipDiv);
+
+                if (idx < e.clips.length - 1) {
+                    const transBtn = document.createElement('button');
+                    const currentTrans = e.transitions[idx] || 'none';
+                    transBtn.style.cssText = "background: #005485; color: #fff; border: 1px solid var(--gold); border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 10px; display: flex; align-items: center; justify-content: center;";
+                    transBtn.innerHTML = currentTrans !== 'none' ? '✨' : '⧉';
+                    transBtn.title = 'تغيير نوع الانتقال بين المقطعين';
+                    transBtn.onclick = () => window.openTransitionMenu(idx);
+                    trackRow.appendChild(transBtn);
+                }
+            });
+        } else {
+            trackRow.innerHTML = `<span style="font-size:10px; color:var(--text2);">لا توجد عناصر في هذا المسار بعد</span>`;
         }
+
+        track.appendChild(trackRow);
     });
 };
 
@@ -639,6 +885,22 @@ window.setupCanvasDragAndDrop = function() {
             }
         }
 
+// فحص سحب طبقة الـ PiP
+        if (engine.pipOverlayImage) {
+            if (coords.x >= engine.pipX && coords.x <= engine.pipX + engine.pipSize &&
+                coords.y >= engine.pipY && coords.y <= engine.pipY + engine.pipSize) {
+                engine.isDragging = true;
+                engine.dragTarget = 'pip';
+                engine.dragOffsetX = coords.x - engine.pipX;
+                engine.dragOffsetY = coords.y - engine.pipY;
+                return;
+            }
+        }
+
+
+
+
+        
         if (engine.enableBlurBox) {
             if (coords.x >= engine.blurBoxX && coords.x <= engine.blurBoxX + engine.blurBoxW &&
                 coords.y >= engine.blurBoxY && coords.y <= engine.blurBoxY + engine.blurBoxH) {
@@ -679,6 +941,12 @@ window.setupCanvasDragAndDrop = function() {
         }
     };
 
+if (engine.dragTarget === 'pip') {
+            engine.pipX = coords.x - engine.dragOffsetX;
+            engine.pipY = coords.y - engine.dragOffsetY;
+        }
+
+    
     const stopDrag = () => {
         window.studioEngine.isDragging = false;
         window.studioEngine.dragTarget = null;
@@ -1010,6 +1278,8 @@ window.startCanvasRenderLoop = function() {
 
     if (!video || !canvas || !ctx) return;
 
+
+    
     function drawFrame() {
         if (!video.paused && !video.ended) {
             
@@ -1107,11 +1377,66 @@ window.startCanvasRenderLoop = function() {
                 ctx.rotate((e.rotationAngle * Math.PI) / 180);
                 ctx.translate(-canvas.width / 2, -canvas.height / 2);
             }
+            
 
-            if (e.colorFilter === 'warm-gold') ctx.filter = 'sepia(0.35) contrast(1.1) brightness(1.05)';
-            else if (e.colorFilter === 'cinematic') ctx.filter = 'contrast(1.25) saturate(1.15) brightness(0.95)';
-            else if (e.colorFilter === 'bw') ctx.filter = 'grayscale(1) contrast(1.2)';
+// 📺 1. رسم طبقة الـ Picture-in-Picture (PiP)
+            if (e.pipOverlayImage) {
+                ctx.save();
+                ctx.globalAlpha = e.pipOpacity || 0.9;
+                const pRatio = e.pipOverlayImage.height / e.pipOverlayImage.width;
+                ctx.drawImage(e.pipOverlayImage, e.pipX, e.pipY, e.pipSize, e.pipSize * pRatio);
+                ctx.restore();
+            }
 
+            // 🕌 2. رسم كافة الملصقات والرموز المضافة
+            if (e.stickersList && e.stickersList.length > 0) {
+                e.stickersList.forEach(stk => {
+                    ctx.save();
+                    ctx.globalAlpha = stk.opacity || 1.0;
+                    if (stk.type === 'text') {
+                        ctx.font = `${stk.size || 48}px 'Amiri', serif`;
+                        ctx.fillStyle = "#d4af37";
+                        ctx.textAlign = "center";
+                        ctx.fillText(stk.content, stk.x, stk.y);
+                    } else if (stk.type === 'image' && stk.imgElement) {
+                        const imgH = stk.size * (stk.imgElement.height / stk.imgElement.width);
+                        ctx.drawImage(stk.imgElement, stk.x, stk.y, stk.size, imgH);
+                    }
+                    ctx.restore();
+                });
+            }
+
+
+
+
+
+
+            
+          // 🎨 تطبيق فلاتر الألوان والـ Advanced Color Grading
+            let filterStr = "";
+            if (e.colorFilter === 'warm-gold') filterStr += 'sepia(0.35) contrast(1.1) brightness(1.05)';
+            else if (e.colorFilter === 'cinematic') filterStr += 'contrast(1.25) saturate(1.15) brightness(0.95)';
+            else if (e.colorFilter === 'bw') filterStr += 'grayscale(1) contrast(1.2)';
+
+            if (e.colorAdjustments) {
+                const ca = e.colorAdjustments;
+                if (ca.exposure) filterStr += ` brightness(${1 + ca.exposure / 100})`;
+                if (ca.contrast) filterStr += ` contrast(${1 + ca.contrast / 100})`;
+                if (ca.saturation) filterStr += ` saturate(${1 + ca.saturation / 100})`;
+                if (ca.hue) filterStr += ` hue-rotate(${ca.hue}deg)`;
+            }
+
+            if (filterStr.trim() !== "") {
+                ctx.filter = filterStr.trim();
+            }
+
+
+
+
+
+
+
+            
             if (e.aspectRatio === "9:16") {
                 const scale = Math.min(canvas.width / video.videoWidth, canvas.height / video.videoHeight);
                 const drawW = video.videoWidth * scale;
@@ -1174,9 +1499,30 @@ window.startCanvasRenderLoop = function() {
                 ctx.fillText(e.overlayText, e.textX, e.textY);
             }
 
+
+
+
+
+            
             if (e.logoImage) {
-                ctx.drawImage(e.logoImage, e.logoX, e.logoY, e.logoSize, e.logoSize * (e.logoImage.height/e.logoImage.width));
+                // 🔑 تطبيق حسابات الحركة من الـ Keyframes لو موجودة
+                let currentLogoSize = e.logoSize;
+                if (e.keyframes && e.keyframes['logoScale'] && e.keyframes['logoScale'].length > 0) {
+                    currentLogoSize = AthrKeyframeEngine.getValueAtTime(e.keyframes['logoScale'], video.currentTime, e.logoSize);
+                }
+
+                ctx.drawImage(e.logoImage, e.logoX, e.logoY, currentLogoSize, currentLogoSize * (e.logoImage.height / e.logoImage.width));
             }
+
+
+
+
+
+
+
+
+
+            
         }
         e.animFrameId = requestAnimationFrame(drawFrame);
     }
@@ -1424,3 +1770,135 @@ document.addEventListener('DOMContentLoaded', () => {
         window.renderStudioUI();
     }
 });
+
+
+
+
+// 🎛️ تحديث قيم تصحيح الألوان
+window.updateColorAdjustments = function() {
+    const e = window.studioEngine;
+    if (!e.colorAdjustments) e.colorAdjustments = {};
+
+    e.colorAdjustments.exposure = parseFloat(document.getElementById('adjExposure')?.value || 0);
+    e.colorAdjustments.contrast = parseFloat(document.getElementById('adjContrast')?.value || 0);
+    e.colorAdjustments.saturation = parseFloat(document.getElementById('adjSaturation')?.value || 0);
+    e.colorAdjustments.hue = parseFloat(document.getElementById('adjHue')?.value || 0);
+};
+
+// 🔄 إعادة ضبط الألوان
+window.resetColorAdjustments = function() {
+    ['adjExposure', 'adjContrast', 'adjSaturation', 'adjHue'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = 0;
+    });
+    window.updateColorAdjustments();
+    document.getElementById('studioStatusLog').textContent = "🔄 تم إعادة ضبط الألوان للوضع الطبيعي.";
+};
+
+// 🔑 إضافة Keyframe عند المؤشر الحالي
+window.addKeyframeAtPlayhead = function(property) {
+    const e = window.studioEngine;
+    if (!e.videoElement) return;
+
+    const currentTime = e.videoElement.currentTime;
+    if (!e.keyframes) e.keyframes = {};
+    if (!e.keyframes[property]) e.keyframes[property] = [];
+
+    let val = 1.0;
+    if (property === 'logoScale') val = e.logoSize;
+    else if (property === 'textOpacity') val = 1.0;
+
+    // إضافة أو تحديث النقطة الزمانية
+    const existingIndex = e.keyframes[property].findIndex(kf => Math.abs(kf.time - currentTime) < 0.2);
+    if (existingIndex !== -1) {
+        e.keyframes[property][existingIndex].value = val;
+    } else {
+        e.keyframes[property].push({ time: currentTime, value: val, easing: 'easeInOut' });
+        e.keyframes[property].sort((a, b) => a.time - b.time);
+    }
+
+    document.getElementById('studioStatusLog').textContent = `📌 تم إضافة نقطة حركة (Keyframe) لـ ${property} عند الثانية ${currentTime.toFixed(1)}s!`;
+};
+
+// 🗑️ مسح جميع النقاط
+window.clearAllKeyframes = function() {
+    window.studioEngine.keyframes = {};
+    document.getElementById('studioStatusLog').textContent = "🗑️ تم مسح جميع نقاط الحركة.";
+};
+
+
+
+
+// 🕌 إضافة ملصق نصي/إيموجي
+window.addTextSticker = function(textSymbol) {
+    const e = window.studioEngine;
+    const canvas = e.renderCanvas || { width: 1280, height: 720 };
+    
+    e.stickersList.push({
+        id: Date.now(),
+        type: 'text',
+        content: textSymbol,
+        x: canvas.width / 2,
+        y: canvas.height / 2,
+        size: 48,
+        opacity: 1.0
+    });
+    
+    document.getElementById('studioStatusLog').textContent = `✅ تم إضافة الملصق (${textSymbol})! يمكنك سحبه بيدك على الشاشة.`;
+};
+
+// 🖼️ رفع ملصق صورة مخصص
+window.handleCustomStickerUpload = function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const img = new Image();
+    img.onload = () => {
+        const e = window.studioEngine;
+        const canvas = e.renderCanvas || { width: 1280, height: 720 };
+        e.stickersList.push({
+            id: Date.now(),
+            type: 'image',
+            imgElement: img,
+            x: canvas.width / 3,
+            y: canvas.height / 3,
+            size: 120,
+            opacity: 1.0
+        });
+        document.getElementById('studioStatusLog').textContent = "✅ تم تحميل الملصق المخصص بنجاح!";
+    };
+    img.src = URL.createObjectURL(file);
+};
+
+// 📺 رفع طبقة PiP عائمة
+window.handlePipOverlayUpload = function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const img = new Image();
+    img.onload = () => {
+        window.studioEngine.pipOverlayImage = img;
+        document.getElementById('studioStatusLog').textContent = "✅ تم إضافة الطبقة العائمة (PiP)!";
+    };
+    img.src = URL.createObjectURL(file);
+};
+
+// 🎛️ تحديث إعدادات الـ PiP
+window.updatePipConfig = function() {
+    const e = window.studioEngine;
+    const sizeVal = document.getElementById('pipSizeSlider')?.value;
+    const opacityVal = document.getElementById('pipOpacitySlider')?.value;
+
+    if (sizeVal) e.pipSize = parseFloat(sizeVal);
+    if (opacityVal) e.pipOpacity = parseFloat(opacityVal);
+};
+
+// 🗑️ حذف كافة الملصقات والـ PiP
+window.clearAllStickersAndPip = function() {
+    const e = window.studioEngine;
+    e.stickersList = [];
+    e.pipOverlayImage = null;
+    document.getElementById('studioStatusLog').textContent = "🗑️ تم إزالة كافة الملصقات والطبقات العائمة.";
+};
+
+
