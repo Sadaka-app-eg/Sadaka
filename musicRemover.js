@@ -1274,12 +1274,9 @@ window.exportStudioFilteredVideo = function() {
     const log = document.getElementById('studioStatusLog');
     if (!video || !canvas) return;
 
-    log.textContent = "⏳ جاري تسجِيل ودمج الفيديو، يرجى الانتظار...";
+    log.textContent = "⏳ جاري تسجيل الفيديو بالكامل... يرجى الانتظار وعدم إغلاق الصفحة";
 
-    const fps = parseInt(document.getElementById('exportFPS')?.value || 30);
-    const vBitrate = parseInt(document.getElementById('exportBitrate')?.value || 2500000);
-
-    // 1. التقاط مسار الصوت المصفى من Web Audio API
+    // 1. تجهيز تيار الصوت المصفى
     const dest = window.studioEngine.audioCtx ? window.studioEngine.audioCtx.createMediaStreamDestination() : null;
     if (dest && window.studioEngine.gainNode) {
         window.studioEngine.gainNode.connect(dest);
@@ -1288,7 +1285,8 @@ window.exportStudioFilteredVideo = function() {
         }
     }
 
-    // 2. دمج فيديو الكانفاس مع مسار الصوت
+    // 2. دمج الصورة من الكانفاس مع الصوت
+    const fps = parseInt(document.getElementById('exportFPS')?.value || 30);
     const canvasStream = canvas.captureStream(fps);
     const tracks = [...canvasStream.getVideoTracks()];
     if (dest && dest.stream.getAudioTracks().length > 0) {
@@ -1297,69 +1295,56 @@ window.exportStudioFilteredVideo = function() {
 
     const combinedStream = new MediaStream(tracks);
 
-    // 3. تحديد الترميز الحقيقي الصريح
-    let selectedMime = '';
-    let ext = 'webm';
-
-    const types = [
-        'video/webm;codecs=vp8,opus',
-        'video/webm;codecs=vp9,opus',
-        'video/webm',
-        'video/mp4'
-    ];
-
-    for (let t of types) {
-        if (MediaRecorder.isTypeSupported(t)) {
-            selectedMime = t;
-            if (t.includes('mp4')) ext = 'mp4';
-            break;
-        }
+    // 3. اختيار الترميز المدعوم
+    let options = { mimeType: 'video/webm;codecs=vp8,opus' };
+    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+        options = { mimeType: 'video/webm' };
     }
 
-    let recorder;
-    try {
-        recorder = new MediaRecorder(combinedStream, { 
-            mimeType: selectedMime,
-            videoBitsPerSecond: vBitrate 
-        });
-    } catch (e) {
-        recorder = new MediaRecorder(combinedStream);
-    }
-
+    const recorder = new MediaRecorder(combinedStream, options);
     const chunks = [];
+
     recorder.ondataavailable = e => {
         if (e.data && e.data.size > 0) chunks.push(e.data);
     };
 
     recorder.onstop = () => {
-        const finalBlob = new Blob(chunks, { type: recorder.mimeType || 'video/webm' });
-        const downloadUrl = URL.createObjectURL(finalBlob);
+        const blob = new Blob(chunks, { type: 'video/webm' });
+        const downloadUrl = URL.createObjectURL(blob);
         
-        const link = document.createElement('a');
-        link.href = downloadUrl;
-        link.download = `فيديو_أثر_${Date.now()}.${ext}`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = `فيديو_أثر_${Date.now()}.webm`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
 
-        log.textContent = "🎉 تم تصدير وتحميل الفيديو بنجاح!";
+        log.textContent = "🎉 تم تصدير الفيديو كاملاً بنجاح!";
     };
 
-    // إعادة التشغيل للتسجيل من البداية
-    video.currentTime = window.studioEngine.clips[0]?.start || 0;
-    video.play();
-    recorder.start(1000); // تجميع البيانات كل ثانية لضمان الثبات
+    // 4. ضبط الفيديو للبداية والتشغيل المضمون
+    const currentClip = window.studioEngine.clips[window.studioEngine.selectedClipIndex];
+    const startTime = currentClip ? currentClip.start : 0;
+    const endTime = currentClip ? currentClip.end : video.duration;
 
-    const checkEnd = setInterval(() => {
-        const currentClip = window.studioEngine.clips[window.studioEngine.selectedClipIndex];
-        if (video.paused || video.ended || (currentClip && video.currentTime >= currentClip.end)) {
-            clearInterval(checkEnd);
+    video.currentTime = startTime;
+
+    // لبدء التسجيل فقط بعد تأكد تشغيل الفيديو
+    video.onseeked = () => {
+        video.play();
+        recorder.start(500); // تجميع البيانات كل نص ثانية
+    };
+
+    // إيقاف التسجيل فقط لما الفيديو يوصل لنهاية الكليب أو المقطع
+    const timeCheck = setInterval(() => {
+        if (video.currentTime >= endTime || video.ended) {
+            clearInterval(timeCheck);
+            video.pause();
             if (recorder.state === "recording") {
                 recorder.stop();
-                video.pause();
             }
         }
-    }, 400);
+    }, 200);
 };
 
 // 🔊 التحكم الحظي في مستوى صوت المؤثر
