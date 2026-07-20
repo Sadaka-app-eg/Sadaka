@@ -64,7 +64,7 @@ window.renderStudioUI = function() {
         <!-- 📺 مسرح العمل والمعاينة الحية -->
         <div id="studioWorkArea" style="display: none;">
             
-            <video id="studioVideoPlayer" controls style="display: none;"></video>
+          <video id="studioVideoPlayer" controls style="width: 100%; margin-top: 10px; border-radius: 8px;"></video>
 
             <!-- الكانفاس الموحد الذي يعرض المونتاج والنصوص حياً -->
             <div style="position: relative; text-align: center; margin-bottom: 15px; background: #000; border-radius: 12px; overflow: hidden; border: 1px solid var(--border);">
