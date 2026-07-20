@@ -214,11 +214,11 @@ window.renderStudioUI = function() {
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
                     <div>
                         <label style="display:block; color:var(--text2); margin-bottom:2px;">جودة الفيديو (Bitrate):</label>
-                        <select id="exportBitrate" onchange="window.updateEstimatedSize()" style="width:100%; padding:6px; border-radius:6px; background:var(--card); color:var(--text); border:1px solid var(--border);">
-                            <option value="2000000">اقتصادي (2 Mbps)</option>
-                            <option value="5000000" selected>متوسطة HD (5 Mbps)</option>
-                            <option value="8000000">عالية جداً Full HD (8 Mbps)</option>
-                        </select>
+                       <select id="exportBitrate" onchange="window.updateEstimatedSize()" style="width:100%; padding:6px; border-radius:6px; background:var(--card); color:var(--text); border:1px solid var(--border);">
+    <option value="1200000">منخفضة / واتساب (1.2 Mbps)</option>
+    <option value="2500000" selected>متوسطة HD (2.5 Mbps)</option>
+    <option value="4500000">عالية Full HD (4.5 Mbps)</option>
+</select>
                     </div>
                     <div>
                         <label style="display:block; color:var(--text2); margin-bottom:2px;">سلاسة الحركة (FPS):</label>
@@ -269,9 +269,21 @@ window.handleStudioFileUpload = function(event) {
 
     document.getElementById('studioWorkArea').style.display = 'block';
 
-    video.onloadedmetadata = () => {
+    video.onloadeddata = () => {
         window.updateStudioLayoutConfig();
         window.updateEstimatedSize();
+        // رسم الكادر الأول فوراً قبل الضغط على تشغيل
+        window.drawSingleStudioFrame();
+    };
+
+    // تشغيل وإيقاف الفيديو بالضغط المباشر على الكانفاس
+    const canvas = document.getElementById('studioCanvas');
+    canvas.onclick = () => {
+        if (video.paused) {
+            video.play();
+        } else {
+            video.pause();
+        }
     };
 
     video.onplay = () => {
@@ -628,16 +640,28 @@ window.startCanvasRenderLoop = function() {
     drawFrame();
 };
 
+// 🖼️ رسم كادر واحد فوراً حتى لو الفيديو متوقف
+window.drawSingleStudioFrame = function() {
+    const e = window.studioEngine;
+    if (e.videoElement && e.renderCtx && e.renderCanvas) {
+        e.renderCtx.drawImage(e.videoElement, 0, 0, e.renderCanvas.width, e.renderCanvas.height);
+    }
+};
+
+
+
 // 📊 6. حساب الحجم التقديري للملف قبل التصدير
+// 📊 حساب المساحة التقديرية الحقيقية والمضغوطة
 window.updateEstimatedSize = function() {
     const video = window.studioEngine.videoElement;
-    const vBitrate = parseInt(document.getElementById('exportBitrate')?.value || 5000000);
-    const aBitrate = parseInt(document.getElementById('exportAudioBitrate')?.value || 256000);
+    const vBitrate = parseInt(document.getElementById('exportBitrate')?.value || 2500000);
+    const aBitrate = parseInt(document.getElementById('exportAudioBitrate')?.value || 128000);
     const speed = parseFloat(document.getElementById('sliderSpeed')?.value || 1.0);
     
     const duration = (video?.duration || 0) / speed;
 
-    if (duration > 0 && !isNaN(duration)) {
+    if (duration > 0 && !isNaN(duration) && duration !== Infinity) {
+        // معادلة البث المضغوط المعتدلة
         const videoSizeMB = (((vBitrate + aBitrate) * duration) / (8 * 1024 * 1024)).toFixed(1);
         const audioSizeMB = ((aBitrate * duration) / (8 * 1024 * 1024)).toFixed(1);
 
