@@ -33,6 +33,7 @@ const APP_SHELL_FILES = [
   './community/community.js',
   './community/community.css',
   './prayforthem/prayforthem.js',
+  './musicRemover.js',
   './prayforthem/prayforthem.css'
 ];
 
