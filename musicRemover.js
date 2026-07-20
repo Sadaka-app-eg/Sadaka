@@ -1288,20 +1288,32 @@ window.exportStudioFilteredVideo = function() {
         ...audioStream.getAudioTracks()
     ]);
 
+    // 🔍 تحديد الصيغة المناسبة المتوافقة مع المتصفح والويندوز
+    let mimeType = 'video/webm;codecs=vp9,opus';
+    let fileExt = 'webm';
+
+    if (MediaRecorder.isTypeSupported('video/mp4')) {
+        mimeType = 'video/mp4';
+        fileExt = 'mp4';
+    } else if (MediaRecorder.isTypeSupported('video/webm;codecs=h264')) {
+        mimeType = 'video/webm;codecs=h264';
+    }
+
     let recorder;
     try {
-        recorder = new MediaRecorder(combinedStream, { mimeType: 'video/webm;codecs=vp9,opus', videoBitsPerSecond: vBitrate, audioBitsPerSecond: aBitrate });
+        recorder = new MediaRecorder(combinedStream, { mimeType, videoBitsPerSecond: vBitrate, audioBitsPerSecond: aBitrate });
     } catch (e) {
         recorder = new MediaRecorder(combinedStream);
+        fileExt = 'webm';
     }
 
     const chunks = [];
     recorder.ondataavailable = e => chunks.push(e.data);
     recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: 'video/mp4' });
+        const blob = new Blob(chunks, { type: mimeType });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = `فيديو_منقى_أثر_${Date.now()}.mp4`;
+        link.download = `فيديو_أثر_${Date.now()}.${fileExt}`;
         link.click();
         log.textContent = "🎉 تم تصدير وتحميل الفيديو بنجاح!";
     };
@@ -1310,6 +1322,7 @@ window.exportStudioFilteredVideo = function() {
     video.play();
     recorder.start();
 
+    // 💡 متابعة انتهاء المقطع للتصدير
     const checkEnd = setInterval(() => {
         const currentClip = window.studioEngine.clips[window.studioEngine.selectedClipIndex];
         if (video.paused || video.ended || (currentClip && video.currentTime >= currentClip.end)) {
