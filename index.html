@@ -940,7 +940,8 @@ body.hide-controls #quran {
   <div class="tab" onclick="showPage('shareAppPage', this)">💝 ساهم في تطوير التطبيق</div>
 <div class="tab" onclick="showPage('heartMirrorPage',this)">🪞 مرآة القلب</div>
 <div class="tab" onclick="showPage('downloadsManagerPage',this)">📥 إدارة التنزيلات</div>
-
+<div class="tab" onclick="showPage('studioPage',this)">🎬 استوديو تنقية الفيديوهات والمقاطع</div>
+ 
 </div>
 
 
@@ -2047,7 +2048,15 @@ body.hide-controls #quran {
   <div id="quranQuizzesContainer"></div>
 </div>
 
-
+<!-- 🎬 صفحة استوديو أثر الشامل لمعالجة الفيديوهات -->
+<div class="page" id="studioPage">
+  <div style="text-align: center; margin-bottom: 20px; direction: rtl;">
+    <h2 style="color: var(--gold); font-family: 'Amiri', serif; font-size: 24px;">🎬 اسْتُودْيُو أثَرٍ الشَّامِلُ لِتَنْقِيَةِ المَقَاطِعِ</h2>
+    <p style="color: var(--text2); font-size: 13px;">عزل الموسيقى، تنقية الصوت البشري، معالجة الضوضاء، وتصدير المواعظ بدقة عالية أوفلاين</p>
+  </div>
+  
+  <div id="studioContainer"></div>
+</div>
  
 <!-- OVERLAY DIMMER -->
 <div class="overlay-dimmer" id="overlayDimmer" onclick="closeActionMenu()"></div>
@@ -7401,7 +7410,7 @@ async function downloadBatchWithProgress(urls, ringContainerId, cacheName = 'ath
 <script src="shareApp.js"></script>
 <script src="heartMirror.js"></script>
 <script src="downloadsManager.js"></script>
- 
+ <script src="musicRemover.js"></script>
  <!-- مكتبة موزيلا الرسمية لقراءة ملفات الـ PDF داخلياً -->
 
  
