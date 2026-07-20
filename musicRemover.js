@@ -479,17 +479,35 @@ window.deleteSelectedClip = function() {
 };
 
 // 🔄 قائمة خيارات الانتقالات بين الكليبات (Transitions Popup)
+// 🔄 قائمة انتقالات احترافية (بدل الـ Prompt البلدي)
 window.openTransitionMenu = function(clipIdx) {
-    const choice = prompt("اختر نوع الانتقال البصري بين الكليبين:\n1. تلاشي ناعم (Fade)\n2. انزلاق جانبي (Slide)\n3. زوم خاطف (Zoom)\n4. انقلاب سينمائي (Rotate)\n5. تداخل ضبابي (Blur)", "1");
+    // إنشاء عنصر القائمة لو مش موجود
+    let menu = document.getElementById('transitionMenu');
+    if (!menu) {
+        menu = document.createElement('div');
+        menu.id = 'transitionMenu';
+        menu.style.cssText = "position:fixed; top:20%; right:20%; width:300px; background:#1a1a1a; border:2px solid var(--gold); border-radius:15px; padding:20px; z-index:9999; color:#fff; font-family:sans-serif; text-align:center;";
+        document.body.appendChild(menu);
+    }
     
-    const e = window.studioEngine;
-    if (choice === '1') e.transitions[clipIdx] = 'fade';
-    else if (choice === '2') e.transitions[clipIdx] = 'slide';
-    else if (choice === '3') e.transitions[clipIdx] = 'zoom';
-    else if (choice === '4') e.transitions[clipIdx] = 'rotate';
-    else if (choice === '5') e.transitions[clipIdx] = 'blur';
+    menu.innerHTML = `
+        <h4 style="margin-top:0; color:var(--gold);">اختر التأثير البصري:</h4>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+            <button onclick="window.setTransition(${clipIdx}, 'fade')" style="padding:10px; background:#333; color:#fff; border:none; border-radius:5px; cursor:pointer;">1. تلاشي ناعم (Fade)</button>
+            <button onclick="window.setTransition(${clipIdx}, 'slide')" style="padding:10px; background:#333; color:#fff; border:none; border-radius:5px; cursor:pointer;">2. انزلاق جانبي (Slide)</button>
+            <button onclick="window.setTransition(${clipIdx}, 'zoom')" style="padding:10px; background:#333; color:#fff; border:none; border-radius:5px; cursor:pointer;">3. زوم خاطف (Zoom)</button>
+            <button onclick="window.setTransition(${clipIdx}, 'rotate')" style="padding:10px; background:#333; color:#fff; border:none; border-radius:5px; cursor:pointer;">4. انقلاب (Rotate)</button>
+            <button onclick="window.setTransition(${clipIdx}, 'blur')" style="padding:10px; background:#333; color:#fff; border:none; border-radius:5px; cursor:pointer;">5. تداخل ضبابي (Blur)</button>
+        </div>
+        <button onclick="document.getElementById('transitionMenu').style.display='none'" style="margin-top:15px; width:100%; padding:8px; background:#ff4d4d; color:#fff; border:none; border-radius:5px; cursor:pointer;">إلغاء</button>
+    `;
+    menu.style.display = 'block';
+};
 
-    document.getElementById('studioStatusLog').textContent = "✨ تم إضافة تأثير الانتقال البصري بنجاح!";
+window.setTransition = function(clipIdx, type) {
+    window.studioEngine.transitions[clipIdx] = type;
+    document.getElementById('transitionMenu').style.display = 'none';
+    document.getElementById('studioStatusLog').textContent = `✨ تم تفعيل تأثير (${type}) بنجاح!`;
     window.renderTimelineUI();
 };
 
