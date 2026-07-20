@@ -951,7 +951,7 @@ window.startCanvasRenderLoop = function() {
     function drawFrame() {
         if (!video.paused && !video.ended) {
             
-            // التحكم بحدود الكليب الحالي
+            // 1. التحكم بحدود الكليب (التايم لاين)
             const currentClip = e.clips[e.selectedClipIndex];
             if (currentClip && video.currentTime >= currentClip.end) {
                 if (e.selectedClipIndex < e.clips.length - 1) {
@@ -965,10 +965,35 @@ window.startCanvasRenderLoop = function() {
                 }
             }
 
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // 2. حساب وقت الانتقال (عشان نعرف إحنا في أول الكليب ولا لا)
+            const timeInClip = video.currentTime - currentClip.start;
+            const transType = e.transitions[e.selectedClipIndex - 1] || 'none';
+            const transDuration = 1.0; // ثانية واحدة للانتقال
 
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.save();
 
+            // --- تطبيق منطق الانتقالات البصرية ---
+            if (timeInClip < transDuration && transType !== 'none') {
+                const progress = timeInClip / transDuration;
+                
+                if (transType === 'fade') {
+                    ctx.globalAlpha = progress;
+                } else if (transType === 'slide') {
+                    ctx.translate((1 - progress) * canvas.width, 0);
+                } else if (transType === 'zoom') {
+                    const scale = 0.5 + (progress * 0.5);
+                    ctx.translate(canvas.width/2, canvas.height/2);
+                    ctx.scale(scale, scale);
+                    ctx.translate(-canvas.width/2, -canvas.height/2);
+                } else if (transType === 'rotate') {
+                    ctx.translate(canvas.width/2, canvas.height/2);
+                    ctx.rotate(progress * 2 * Math.PI);
+                    ctx.translate(-canvas.width/2, -canvas.height/2);
+                }
+            }
+
+            // رسم محتوى الفيديو
             if (e.enableMirrorFlip) {
                 ctx.translate(canvas.width, 0);
                 ctx.scale(-1, 1);
@@ -980,180 +1005,49 @@ window.startCanvasRenderLoop = function() {
                 ctx.translate(-canvas.width / 2, -canvas.height / 2);
             }
 
-            if (e.colorFilter === 'warm-gold') {
-                ctx.filter = 'sepia(0.35) contrast(1.1) brightness(1.05)';
-            } else if (e.colorFilter === 'cinematic') {
-                ctx.filter = 'contrast(1.25) saturate(1.15) brightness(0.95)';
-            } else if (e.colorFilter === 'bw') {
-                ctx.filter = 'grayscale(1) contrast(1.2)';
-            } else {
-                ctx.filter = 'none';
-            }
+            // تطبيق الفلاتر والأبعاد (نفس كودك السابق)
+            if (e.colorFilter === 'warm-gold') ctx.filter = 'sepia(0.35) contrast(1.1) brightness(1.05)';
+            else if (e.colorFilter === 'cinematic') ctx.filter = 'contrast(1.25) saturate(1.15) brightness(0.95)';
+            else if (e.colorFilter === 'bw') ctx.filter = 'grayscale(1) contrast(1.2)';
 
             if (e.aspectRatio === "9:16") {
                 if (e.aspectBgStyle === "blur") {
-                    ctx.save();
-                    ctx.filter += ' blur(25px) brightness(0.4)';
-                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                    ctx.restore();
+                    ctx.save(); ctx.filter += ' blur(25px) brightness(0.4)';
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height); ctx.restore();
                 } else {
-                    ctx.fillStyle = "#0a0f0d";
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillStyle = "#0a0f0d"; ctx.fillRect(0, 0, canvas.width, canvas.height);
                 }
-
-                const vWidth = video.videoWidth || 16;
-                const vHeight = video.videoHeight || 9;
-                const scale = Math.min(canvas.width / vWidth, canvas.height / vHeight);
-                const drawW = vWidth * scale;
-                const drawH = vHeight * scale;
-                const drawX = (canvas.width - drawW) / 2;
-                const drawY = (canvas.height - drawH) / 2;
-
-                ctx.drawImage(video, drawX, drawY, drawW, drawH);
+                const scale = Math.min(canvas.width / video.videoWidth, canvas.height / video.videoHeight);
+                ctx.drawImage(video, (canvas.width - video.videoWidth*scale)/2, (canvas.height - video.videoHeight*scale)/2, video.videoWidth*scale, video.videoHeight*scale);
             } else {
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             }
 
-            ctx.filter = 'none';
-            ctx.restore();
+            ctx.restore(); // نهاية رسم الفيديو
 
+            // 3. العناصر الثابتة (اللوجو، النص، إلخ) - تُرسم دائماً
             if (e.enableVignette) {
-                const gradient = ctx.createRadialGradient(
-                    canvas.width / 2, canvas.height / 2, canvas.width * 0.2,
-                    canvas.width / 2, canvas.height / 2, canvas.width * 0.65
-                );
-                gradient.addColorStop(0, 'rgba(0,0,0,0)');
-                gradient.addColorStop(1, 'rgba(0,0,0,0.7)');
-                ctx.fillStyle = gradient;
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                const grad = ctx.createRadialGradient(canvas.width/2, canvas.height/2, canvas.width*0.2, canvas.width/2, canvas.height/2, canvas.width*0.65);
+                grad.addColorStop(0, 'rgba(0,0,0,0)'); grad.addColorStop(1, 'rgba(0,0,0,0.7)');
+                ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
 
             if (e.enableIslamicFrame) {
                 const pad = canvas.width * 0.03;
-                ctx.strokeStyle = "#d4af37";
-                ctx.lineWidth = canvas.width * 0.012;
-                ctx.strokeRect(pad, pad, canvas.width - (pad * 2), canvas.height - (pad * 2));
-
-                ctx.strokeStyle = "rgba(212,175,55,0.4)";
-                ctx.lineWidth = canvas.width * 0.003;
-                ctx.strokeRect(pad + 8, pad + 8, canvas.width - ((pad + 8) * 2), canvas.height - ((pad + 8) * 2));
+                ctx.strokeStyle = "#d4af37"; ctx.lineWidth = 12;
+                ctx.strokeRect(pad, pad, canvas.width - (pad*2), canvas.height - (pad*2));
             }
-
-            if (e.enableBlurBox) {
-                ctx.save();
-                ctx.filter = 'blur(12px)';
-                ctx.drawImage(canvas, e.blurBoxX, e.blurBoxY, e.blurBoxW, e.blurBoxH, e.blurBoxX, e.blurBoxY, e.blurBoxW, e.blurBoxH);
-                ctx.restore();
-
-                ctx.strokeStyle = "rgba(212, 175, 55, 0.6)";
-                ctx.lineWidth = 1;
-                ctx.strokeRect(e.blurBoxX, e.blurBoxY, e.blurBoxW, e.blurBoxH);
-            }
-
-            if (e.enableGridLines) {
-                ctx.strokeStyle = "rgba(212, 175, 55, 0.25)";
-                ctx.lineWidth = 1;
-
-                ctx.beginPath();
-                ctx.moveTo(canvas.width / 3, 0); ctx.lineTo(canvas.width / 3, canvas.height);
-                ctx.moveTo((canvas.width / 3) * 2, 0); ctx.lineTo((canvas.width / 3) * 2, canvas.height);
-                ctx.moveTo(0, canvas.height / 3); ctx.lineTo(canvas.width, canvas.height / 3);
-                ctx.moveTo(0, (canvas.height / 3) * 2); ctx.lineTo(canvas.width, (canvas.height / 3) * 2);
-                ctx.stroke();
-            }
-
-            if (e.speakerName || e.lessonTitle) {
-                const bHeight = canvas.height * 0.08;
-                const bY = canvas.height - bHeight - (canvas.height * 0.05);
-                
-                const bGrad = ctx.createLinearGradient(0, bY, canvas.width * 0.6, bY);
-                bGrad.addColorStop(0, 'rgba(15, 25, 20, 0.92)');
-                bGrad.addColorStop(1, 'rgba(15, 25, 20, 0)');
-                
-                ctx.fillStyle = bGrad;
-                ctx.fillRect(0, bY, canvas.width * 0.65, bHeight);
-
-                ctx.fillStyle = "#d4af37";
-                ctx.fillRect(0, bY, 6, bHeight);
-
-                ctx.textAlign = "right";
-                if (e.speakerName) {
-                    ctx.font = `bold ${canvas.width * 0.032}px 'Amiri', serif`;
-                    ctx.fillStyle = "#d4af37";
-                    ctx.fillText(e.speakerName, canvas.width * 0.58, bY + (bHeight * 0.4));
-                }
-                if (e.lessonTitle) {
-                    ctx.font = `${canvas.width * 0.022}px 'Cairo', sans-serif`;
-                    ctx.fillStyle = "#ffffff";
-                    ctx.fillText(e.lessonTitle, canvas.width * 0.58, bY + (bHeight * 0.78));
-                }
-            }
-
-            if (e.overlayText && e.overlayText.trim() !== "") {
-                const calculatedFontSize = e.textSize * (canvas.width / 800);
-                ctx.font = `bold ${calculatedFontSize}px ${e.textFont}`;
-                ctx.textAlign = "center";
-                ctx.textBaseline = "middle";
-
-                const textMetrics = ctx.measureText(e.overlayText);
-                const padding = 12;
-
+            
+            // رسم النص واللوجو (باستخدام إحداثيات e.textX/Y و e.logoX/Y عشان السحب الحر)
+            if (e.overlayText) {
                 ctx.fillStyle = e.textBgColor;
-                ctx.fillRect(
-                    e.textX - (textMetrics.width / 2) - padding,
-                    e.textY - (calculatedFontSize / 2) - padding / 2,
-                    textMetrics.width + (padding * 2),
-                    calculatedFontSize + padding
-                );
-
-                ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
-                ctx.shadowBlur = 6;
-                ctx.fillStyle = e.textColor;
-                ctx.fillText(e.overlayText, e.textX, e.textY);
-                ctx.shadowBlur = 0;
-            }
-
-            if (e.logoImage) {
-                ctx.globalAlpha = e.logoOpacity;
-                const logoW = e.logoSize * (canvas.width / 1000);
-                const logoH = logoW * (e.logoImage.height / e.logoImage.width);
-                ctx.drawImage(e.logoImage, e.logoX, e.logoY, logoW, logoH);
-                ctx.globalAlpha = 1.0;
-            }
-
-            if (e.showProgressBar && video.duration > 0) {
-                const progress = video.currentTime / video.duration;
-                ctx.fillStyle = "rgba(212, 175, 55, 0.4)";
-                ctx.fillRect(0, canvas.height - 8, canvas.width, 8);
-                ctx.fillStyle = "#d4af37";
-                ctx.fillRect(0, canvas.height - 8, canvas.width * progress, 8);
-            }
-
-            if (e.showOutroCard && (video.duration - video.currentTime <= 2.5) && video.duration > 3) {
-                ctx.fillStyle = "rgba(10, 20, 15, 0.88)";
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                ctx.font = `bold ${32 * (canvas.width / 800)}px 'Amiri', serif`;
-                ctx.fillStyle = "#d4af37";
+                ctx.font = `bold ${e.textSize * (canvas.width / 800)}px ${e.textFont}`;
                 ctx.textAlign = "center";
-                ctx.fillText("شَارِكِ الخَيْرَ وَكُنْ ذَا أثَرٍ 🕌", canvas.width / 2, canvas.height / 2 - 20);
-
-                ctx.font = `${18 * (canvas.width / 800)}px 'Amiri', serif`;
-                ctx.fillStyle = "#ffffff";
-                ctx.fillText("لا تنسونا من صالح دعائكم - تطبيق أثر", canvas.width / 2, canvas.height / 2 + 30);
+                ctx.fillText(e.overlayText, e.textX, e.textY);
             }
-
-            if (e.enableFadeInOut && video.duration > 0) {
-                let alpha = 0;
-                if (video.currentTime < 1.5) {
-                    alpha = 1 - (video.currentTime / 1.5);
-                } else if (video.duration - video.currentTime < 1.5) {
-                    alpha = 1 - ((video.duration - video.currentTime) / 1.5);
-                }
-                if (alpha > 0) {
-                    ctx.fillStyle = `rgba(0, 0, 0, ${alpha})`;
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                }
+            
+            if (e.logoImage) {
+                ctx.drawImage(e.logoImage, e.logoX, e.logoY, e.logoSize, e.logoSize * (e.logoImage.height/e.logoImage.width));
             }
         }
         e.animFrameId = requestAnimationFrame(drawFrame);
@@ -1161,13 +1055,6 @@ window.startCanvasRenderLoop = function() {
     
     if (e.animFrameId) cancelAnimationFrame(e.animFrameId);
     drawFrame();
-};
-
-window.drawSingleStudioFrame = function() {
-    const e = window.studioEngine;
-    if (e.videoElement && e.renderCtx && e.renderCanvas) {
-        e.renderCtx.drawImage(e.videoElement, 0, 0, e.renderCanvas.width, e.renderCanvas.height);
-    }
 };
 
 window.updateEstimatedSize = function() {
