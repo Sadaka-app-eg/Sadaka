@@ -1806,97 +1806,79 @@ window.exportStudioFilteredVideo = async function() {
     const log = document.getElementById('studioStatusLog');
 
     if (!video || !canvas || !video.src) {
-        alert("⚠️ يرجى رفع مقطع فيديو أولاً قبل بدء التصدير!");
+        alert("⚠️ يرجى رفع مقطع فيديو أولاً!");
         return;
     }
 
-    log.textContent = "⏳ جاري تسجِيل وتصدير الفيديو بالكامل... يرجى الانتظار دون إغلاق الصفحة";
-
-    try {
-        // 1. تشغيل الفيديو مباشرة أثناء سياق ضغطة المستخدم (Synchronous User Activation)
-        const currentClip = window.studioEngine.clips[window.studioEngine.selectedClipIndex];
-        const startTime = currentClip ? currentClip.start : 0;
-        const endTime = currentClip ? currentClip.end : video.duration;
-
-        video.currentTime = startTime;
-        await video.play(); // تشغيل فوري لتفادي حظر الـ Autoplay
-
-        // 2. تجهيز الصوت المصفى
-        const dest = window.studioEngine.audioCtx ? window.studioEngine.audioCtx.createMediaStreamDestination() : null;
-        if (dest && window.studioEngine.gainNode) {
-            window.studioEngine.gainNode.connect(dest);
-            if (window.studioEngine.ambientGainNode) {
-                window.studioEngine.ambientGainNode.connect(dest);
-            }
-        }
-
-        const fps = parseInt(document.getElementById('exportFPS')?.value || 30);
-        const canvasStream = canvas.captureStream(fps);
-        const combinedTracks = [...canvasStream.getVideoTracks()];
-
-        if (dest && dest.stream.getAudioTracks().length > 0) {
-            combinedTracks.push(...dest.stream.getAudioTracks());
-        }
-
-        const combinedStream = new MediaStream(combinedTracks);
-
-        // 3. دعم الفولباك التلقائي لـ MP4/WebM لجميع الشاشات
-        let options = { mimeType: 'video/webm;codecs=vp8,opus' };
-        if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-            if (MediaRecorder.isTypeSupported('video/mp4')) {
-                options = { mimeType: 'video/mp4' };
-            } else if (MediaRecorder.isTypeSupported('video/webm')) {
-                options = { mimeType: 'video/webm' };
-            } else {
-                options = {};
-            }
-        }
-
-        const recorder = new MediaRecorder(combinedStream, options);
-        const chunks = [];
-
-        recorder.ondataavailable = e => {
-            if (e.data && e.data.size > 0) chunks.push(e.data);
-        };
-
-        recorder.onstop = () => {
-            const mimeType = recorder.mimeType || 'video/webm';
-            const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
-            const blob = new Blob(chunks, { type: mimeType });
-            const downloadUrl = URL.createObjectURL(blob);
-
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = downloadUrl;
-            a.download = `فيديو_أثر_${Date.now()}.${ext}`;
-            document.body.appendChild(a);
-            a.click();
-
-            setTimeout(() => {
-                document.body.removeChild(a);
-                URL.revokeObjectURL(downloadUrl);
-            }, 1000);
-
-            log.textContent = "🎉 تم تصدير الفيديو وتنزيله بنجاح!";
-        };
-
-        recorder.start(200);
-
-        // 4. مراقبة انتهاء المقطع
-        const timeCheck = setInterval(() => {
-            if (video.currentTime >= endTime || video.ended) {
-                clearInterval(timeCheck);
-                if (recorder.state === "recording") {
-                    recorder.stop();
-                    video.pause();
-                }
-            }
-        }, 200);
-
-    } catch (err) {
-        console.error("خطأ التصدير:", err);
-        log.textContent = "❌ حدث خطأ أثناء التصدير، حاول مرة أخرى.";
+    // 1. تفعيل محرك الصوت والتشغيل بضمان
+    if (!window.studioEngine.audioCtx) window.initStudioAudioEngine();
+    if (window.studioEngine.audioCtx && window.studioEngine.audioCtx.state === 'suspended') {
+        await window.studioEngine.audioCtx.resume();
     }
+
+    const currentClip = window.studioEngine.clips[window.studioEngine.selectedClipIndex];
+    const startTime = currentClip ? currentClip.start : 0;
+    const endTime = currentClip ? currentClip.end : video.duration;
+    const totalDuration = endTime - startTime;
+
+    log.textContent = "⏳ جاري تحضير المحرك...";
+
+    // 2. تجهيز الصوت والصورة للتسجيل
+    const dest = window.studioEngine.audioCtx.createMediaStreamDestination();
+    if (window.studioEngine.gainNode) window.studioEngine.gainNode.connect(dest);
+    if (window.studioEngine.ambientGainNode) window.studioEngine.ambientGainNode.connect(dest);
+
+    const fps = parseInt(document.getElementById('exportFPS')?.value || 30);
+    const canvasStream = canvas.captureStream(fps);
+    const tracks = [...canvasStream.getVideoTracks(), ...dest.stream.getAudioTracks()];
+    const combinedStream = new MediaStream(tracks);
+
+    let options = { mimeType: 'video/webm;codecs=vp8,opus' };
+    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+        options = MediaRecorder.isTypeSupported('video/mp4') ? { mimeType: 'video/mp4' } : {};
+    }
+
+    const recorder = new MediaRecorder(combinedStream, options);
+    const chunks = [];
+
+    recorder.ondataavailable = e => { if (e.data && e.data.size > 0) chunks.push(e.data); };
+
+    recorder.onstop = () => {
+        const mimeType = recorder.mimeType || 'video/webm';
+        const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
+        const blob = new Blob(chunks, { type: mimeType });
+        const downloadUrl = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = `فيديو_أثر_${Date.now()}.${ext}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        log.textContent = "🎉 تم تصدير الفيديو وتنزيله بنجاح!";
+    };
+
+    // 3. ضبط التوقيت وبدء التسجيل مع عداد مباشر
+    video.currentTime = startTime;
+    await video.play();
+    recorder.start(100);
+
+    const checkInterval = setInterval(() => {
+        const processedSecs = Math.max(0, video.currentTime - startTime);
+        const percent = Math.min(100, Math.floor((processedSecs / totalDuration) * 100));
+        
+        // 📊 عرض التقدم للمستخدم فوراً
+        log.textContent = `⏳ جاري تسجيل الفيديو: ${percent}% (${processedSecs.toFixed(1)}s / ${totalDuration.toFixed(1)}s)`;
+
+        if (video.currentTime >= endTime || video.ended || video.paused) {
+            clearInterval(checkInterval);
+            if (recorder.state === "recording") {
+                recorder.stop();
+                video.pause();
+            }
+        }
+    }, 100);
 };
 
 // 🔊 التحكم الحظي في مستوى صوت المؤثر
