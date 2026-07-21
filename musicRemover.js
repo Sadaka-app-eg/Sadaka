@@ -89,6 +89,7 @@ window.studioEngine = {
     gainNode: null,
     analyserNode: null,
     isOriginal: false,
+    isExporting: false,
     originalFileSize: 0,
 // 📖 مصفوفة آيات القرآن والنصوص الموقوتة
     timedCaptions: [], // [{ id, text, start, end }]
@@ -1000,7 +1001,8 @@ window.handleStudioFileUpload = function(event) {
         window.studioEngine.selectedClipIndex = 0;
         window.renderTimelineUI();
         window.updateStudioLayoutConfig();
-        window.updateEstimatedSize();
+       window.updateEstimatedSize();
+        window.updateExportEstimates();
         window.drawSingleStudioFrame();
     };
 
@@ -1509,13 +1511,16 @@ window.startCanvasRenderLoop = function() {
 
     function drawFrame() {
         // 1. التحكم بحدود الكليب (التايم لاين) فقط أثناء التشغيل
-        if (!video.paused && !video.ended) {
+       if (!video.paused && !video.ended) {
             const currentClip = e.clips[e.selectedClipIndex];
            if (currentClip && video.currentTime >= (currentClip.end - 0.05)) {
     if (e.selectedClipIndex < e.clips.length - 1) {
         e.selectedClipIndex++;
         video.currentTime = e.clips[e.selectedClipIndex].start;
         window.renderTimelineUI();
+    } else if (e.isExporting) {
+        // 🎬 إحنا بنصدّر: نوقف هنا نهائي ونسيب الـ MediaRecorder يقفل بنفسه
+        video.pause();
     } else {
         video.currentTime = e.clips[0].start;
         e.selectedClipIndex = 0;
@@ -1846,7 +1851,7 @@ window.exportStudioFilteredVideo = async function() {
 
         console.log(`⏱️ نطاق التصدير: من ${startTime}s إلى ${endTime}s (الإجمالي: ${totalDuration}s)`);
         log.textContent = "⏳ جاري تحضير المحرك للرسم...";
-
+window.studioEngine.isExporting = true;
         // 2. تجهيز الصوت والصورة
         const dest = window.studioEngine.audioCtx.createMediaStreamDestination();
         if (window.studioEngine.gainNode) window.studioEngine.gainNode.connect(dest);
@@ -1900,6 +1905,8 @@ window.exportStudioFilteredVideo = async function() {
         };
 
         recorder.onstop = () => {
+                window.studioEngine.isExporting = false;
+            
             console.log(`🏁 توقف التسجيل. إجمالي الحزم المجمعة: ${chunks.length}`);
             if (chunks.length === 0) {
                 alert("⚠️ تحذير: ملف الفيديو خرج فارغاً (0 بايت). المتصفح ربما رفض التسجيل.");
@@ -1949,6 +1956,7 @@ window.exportStudioFilteredVideo = async function() {
     }, 100);
 
     } catch (err) {
+         window.studioEngine.isExporting = false;
         console.error("❌ استثناء خطير أثناء التصدير:", err);
         log.textContent = "❌ خطأ في التصدير، راجع الكونسول لمعرفة التفاصيل.";
     }
