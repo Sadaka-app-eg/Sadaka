@@ -1770,10 +1770,14 @@ window.startCanvasRenderLoop = function() {
             ctx.restore();
         }
 
-        e.animFrameId = requestAnimationFrame(drawFrame);
+      if (e.isExporting) {
+            e.animFrameId = setTimeout(drawFrame, 33); // ~30fps حتى لو التاب في الخلفية
+        } else {
+            e.animFrameId = requestAnimationFrame(drawFrame);
+        }
     }
 
-    if (e.animFrameId) cancelAnimationFrame(e.animFrameId);
+ if (e.animFrameId) { cancelAnimationFrame(e.animFrameId); clearTimeout(e.animFrameId); }
     drawFrame();
 
 
@@ -1830,6 +1834,24 @@ window.exportStudioFilteredVideo = async function() {
 
     console.log("🔍 [تشخيص أثر]: بدء طلب التصدير...", { video, canvas, src: video?.src });
 
+// 🎨 حقن تصميم دائرة التحميل الذهبية (مرة واحدة بس)
+    if (!document.getElementById('athrExportSpinnerStyle')) {
+        const style = document.createElement('style');
+        style.id = 'athrExportSpinnerStyle';
+        style.textContent = `
+        @keyframes athrSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .athr-export-spinner {
+            width: 38px; height: 38px;
+            border: 4px solid rgba(212,175,55,0.2);
+            border-top-color: var(--gold);
+            border-radius: 50%;
+            animation: athrSpin 1s linear infinite;
+            margin: 0 auto 10px auto;
+        }`;
+        document.head.appendChild(style);
+    }
+
+    
     if (!video || !canvas || !video.src) {
         alert("⚠️ يرجى رفع مقطع فيديو أولاً!");
         console.warn("⚠️ أزمة: الفيديو أو الكانفاس غير متاحين.");
@@ -1938,22 +1960,32 @@ window.studioEngine.isExporting = true;
         recorder.start(200); // تجميع الحزم كل 200 ملي ثانية
         console.log("🔴 بدأ التسجيل (MediaRecorder State):", recorder.state);
 
-        const checkInterval = setInterval(() => {
-        // حماية تمنع العداد من تجاوز الـ 100% أو العداد العكسي للصفر
-        const processedSecs = Math.min(totalDuration, Math.max(0, video.currentTime - startTime));
-        const percent = Math.min(100, Math.floor((processedSecs / totalDuration) * 100));
-        
-        log.textContent = `⏳ جاري تسجيل الفيديو: ${percent}% (${processedSecs.toFixed(1)}s / ${totalDuration.toFixed(1)}s)`;
+    // 🎨 عرض الشكل الجمالي بدل الأرقام والنسب
+       log.innerHTML = `
+            <div class="athr-export-spinner"></div>
+            <div style="color:var(--gold); font-family:'Amiri', serif; font-size:15px; font-weight:bold;">
+                جاري تجهيز أثرك بإذن الله... ✨
+            </div>
+            <div style="color:var(--text2); font-size:12px; margin-top:6px; font-family:'Amiri', serif;">
+                استغل وقتك في الصلاة على الحبيب محمد ﷺ
+            </div>
+            <div style="color:var(--text2); font-size:10px; margin-top:8px; opacity:0.7;">
+                (يُفضّل ترك هذه النافذة مفتوحة حتى انتهاء التصدير)
+            </div>
+        `;
 
-        // الشرط الحاسم: لو وصل لنهاية المقطع أو الـ 100% أو الفيديو وقف
-        if (processedSecs >= totalDuration - 0.1 || video.currentTime >= endTime || video.ended || video.paused) {
-            clearInterval(checkInterval);
-            if (recorder.state === "recording") {
-                video.pause();
-                recorder.stop(); // هنا هيقف وينزل الملف فورا بدون ما يعيد من الأول
-            }
-        }
-    }, 100);
+        const checkInterval = setInterval(() => {
+            const processedSecs = Math.min(totalDuration, Math.max(0, video.currentTime - startTime));
+
+            // الشرط الحاسم: لو وصل لنهاية المقطع أو الفيديو وقف
+            if (processedSecs >= totalDuration - 0.1 || video.currentTime >= endTime || video.ended || video.paused) {
+                clearInterval(checkInterval);
+                if (recorder.state === "recording") {
+                    video.pause();
+                    recorder.stop();
+                }
+            }
+        }, 200);
 
     } catch (err) {
          window.studioEngine.isExporting = false;
