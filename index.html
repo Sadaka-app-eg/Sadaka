@@ -929,6 +929,7 @@ body.hide-controls #quran {
 <div class="tab" onclick="showPage('rareRecitationsPage',this)">🎧 تلاوات خاشعة</div>
 <div class="tab" onclick="showPage('lecturesPage', this)">🎙️ مواعظ ودروس</div>
  <div class="tab" onclick="showPage('quranQuizzesPage',this)">🧠 المسابقات والاختبارات القرآنيّة</div>
+ <div class="tab" onclick="showPage('studioPage', this); if(typeof window.renderStudioUI === 'function') window.renderStudioUI();">🎬 استوديو أثر المعالج</div>
 <div class="tab" onclick="showPage('notifPage',this)">🔔 الإشعارات والتذكيرات</div>
  <div class="tab" onclick="showPage('moodPage',this)">💭 حالتي اليوم</div>
    <div class="tab" onclick="showPage('prayForThemPage',this)">🤲 ادعُ لهم (ظهر الغيب)</div>
@@ -940,7 +941,8 @@ body.hide-controls #quran {
   <div class="tab" onclick="showPage('shareAppPage', this)">💝 ساهم في تطوير التطبيق</div>
 <div class="tab" onclick="showPage('heartMirrorPage',this)">🪞 مرآة القلب</div>
 <div class="tab" onclick="showPage('downloadsManagerPage',this)">📥 إدارة التنزيلات</div>
-<div class="tab" onclick="showPage('moreAppsTab', this)">🚀 مزيد من تطبيقاتنا</div> 
+
+
  
 </div>
 
@@ -2063,38 +2065,8 @@ body.hide-controls #quran {
   <div id="studioContainer"></div>
 </div>
 
-<!-- 🚀 تبويب مزيد من تطبيقاتنا -->
-<<div id="moreAppsTab" class="page tab-content" style="padding: 20px;">
-    <div style="max-width: 600px; margin: 0 auto; text-align: center;">
-        
-        <h2 style="color: var(--gold); font-family: 'Amiri', serif; margin-bottom: 20px;">📱 منظومة تطبيقات أثر الرقمية</h2>
-        
-        <!-- كارت استوديو أثر -->
-        <div style="background: var(--card); border: 2px solid var(--gold); border-radius: 16px; padding: 25px; box-shadow: 0 8px 25px rgba(0,0,0,0.3); position: relative; overflow: hidden; text-align: right; margin-bottom: 20px;">
-            <span style="position: absolute; top: 12px; left: 12px; background: var(--gold); color: #111; font-size: 10px; font-weight: bold; padding: 4px 10px; border-radius: 20px;">إصدار النخبة 2.0 🎬</span>
-            
-            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
-                <span style="font-size: 40px; background: rgba(212,175,55,0.1); padding: 10px; border-radius: 12px;">🎬</span>
-                <div>
-                    <h3 style="margin: 0; color: var(--gold); font-size: 20px;">اسْتُودْيُو أثَرٍ السينمائي المتقدم</h3>
-                    <p style="margin: 5px 0 0 0; color: var(--text2); font-size: 12px;">أقوى محرر ريلز ومقاطع دعوية متكامل لإنتاج المحتوى الهادف</p>
-                </div>
-            </div>
 
-            <ul style="color: var(--text); font-size: 13px; line-height: 1.8; margin-bottom: 20px; padding-right: 20px;">
-                <li>✨ واجهة سينمائية متطورة ومصممة خصيصاً للشاشة الكاملة.</li>
-                <li>📖 نظام ذكي لدمج ورسم آيات القرآن الموقوتة بدقة بالثواني.</li>
-                <li>🎙️ هندسة صوتية متكاملة لفلترة وترميم الصوت والصدى أوفلاين.</li>
-                <li>🤖 تقنيات ذكاء اصطناعي حديثة ومتطورة لخدمة صانعي المحتوى.</li>
-            </ul>
 
-            <a href="studio.html" target="_blank" style="display: block; text-align: center; background: var(--gold); color: #111; font-weight: bold; padding: 14px; border-radius: 10px; text-decoration: none; font-size: 15px; box-shadow: 0 4px 15px rgba(212,175,55,0.3);">
-                🚀 إطلاق وتشغيل استوديو أثر في شاشة كاملة
-            </a>
-        </div>
-
-    </div>
-</div>
  
 <!-- OVERLAY DIMMER -->
 <div class="overlay-dimmer" id="overlayDimmer" onclick="closeActionMenu()"></div>
