@@ -76,6 +76,7 @@ class AthrKeyframeEngine {
 
 
 window.studioEngine = {
+    
     audioCtx: null,
     sourceNode: null,
     voiceFilter: null,
@@ -117,7 +118,15 @@ window.studioEngine = {
 
 
 
-
+// 🥞 التحكم في ظهور وقفل الطبقات (Layers)
+    layerSettings: {
+        video: { visible: true, locked: false },
+        overlayText: { visible: true, locked: false },
+        logo: { visible: true, locked: false },
+        banner: { visible: true, locked: false },
+        pip: { visible: true, locked: false },
+        stickers: { visible: true, locked: false }
+    },
 
 
 // 🆕 خصائص CapCut Engine الجديدة
@@ -257,19 +266,27 @@ window.renderStudioUI = function() {
             <!-- 🎞️ شريط التايم لاين البصري الاحترافي -->
            <!-- 🎞️ شريط التايم لاين المطور متعدد المسارات (CapCut Multitrack Timeline) -->
             <div style="background: var(--bg2); padding: 15px; border-radius: 12px; border: 1px solid var(--gold); margin-bottom: 20px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
-                    <strong style="color: var(--gold); font-size: 14px;">🎞️ المحرر متعدد المسارات (Multi-Track Timeline):</strong>
-                    <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-                        <button onclick="window.splitClipAtPlayhead()" style="background: var(--gold); color: #111; border: none; padding: 6px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 11px;">✂️ تقسيم</button>
-                        <button onclick="window.deleteSelectedClip()" style="background: #ff4d4d; color: #fff; border: none; padding: 6px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 11px;">🗑️ حذف</button>
-                        <button onclick="window.studioEngine.exportAthrProject()" style="background: #005485; color: #fff; border: 1px solid var(--border); padding: 6px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 11px;">💾 حفظ مشروع (.athr)</button>
-                        <label style="background: var(--card); color: var(--gold); border: 1px solid var(--gold); padding: 6px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 11px; display: inline-block;">
-                            📂 فتح مشروع
-                            <input type="file" accept=".athr" onchange="window.studioEngine.importAthrProject(event)" style="display:none;" />
-                        </label>
-                    </div>
-                </div>
+               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+    <strong style="color: var(--gold); font-size: 14px;">🎞️ المحرر متعدد المسارات (Multi-Track Timeline):</strong>
+    <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
+        <button onclick="window.undoStudioState()" style="background: var(--card); color: var(--gold); border: 1px solid var(--gold); padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 11px;" title="تراجع (Ctrl+Z)">↩️ تراجع</button>
+        <button onclick="window.redoStudioState()" style="background: var(--card); color: var(--gold); border: 1px solid var(--gold); padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 11px;" title="إعادة (Ctrl+Y)">↪️ تقدم</button>
+        <button onclick="window.splitClipAtPlayhead()" style="background: var(--gold); color: #111; border: none; padding: 6px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 11px;">✂️ تقسيم</button>
+        <button onclick="window.deleteSelectedClip()" style="background: #ff4d4d; color: #fff; border: none; padding: 6px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 11px;">🗑️ حذف</button>
+        <button onclick="window.studioEngine.exportAthrProject()" style="background: #005485; color: #fff; border: 1px solid var(--border); padding: 6px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 11px;">💾 حفظ مشروع (.athr)</button>
+        <label style="background: var(--card); color: var(--gold); border: 1px solid var(--gold); padding: 6px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 11px; display: inline-block;">
+            📂 فتح مشروع
+            <input type="file" accept=".athr" onchange="window.studioEngine.importAthrProject(event)" style="display:none;" />
+        </label>
+    </div>
+</div>
 
+<!-- 🔍 شريط التحكم بزوم التايم لاين -->
+<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 11px; color: var(--text2);">
+    <span>🔍 زوم التايم لاين:</span>
+    <input type="range" id="timelineZoomSlider" min="0.5" max="3.0" step="0.1" value="1.0" oninput="window.updateTimelineZoom(this.value)" style="width: 120px; accent-color: var(--gold);" />
+    <span id="zoomValLabel">100%</span>
+</div>
                 <!-- مسار الكليبات البصرية -->
                 <div id="timelineTrack" style="display: flex; flex-direction: column; gap: 8px; overflow-x: auto; padding: 10px; background: #000; border-radius: 8px; min-height: 90px; border: 1px solid var(--border);">
                 </div>
@@ -288,6 +305,8 @@ window.renderStudioUI = function() {
                 <button onclick="window.switchStudioTab('cinematicTab')" id="tabBtn_cinematicTab" class="studio-tab-btn" style="padding: 8px 14px; border-radius: 8px; background: var(--bg2); color: var(--text); border: 1px solid var(--border); cursor: pointer; font-size: 12px;">🌟 المؤثرات والإطارات</button>
         <button onclick="window.switchStudioTab('colorGradingTab')" id="tabBtn_colorGradingTab" class="studio-tab-btn" style="padding: 8px 14px; border-radius: 8px; background: var(--bg2); color: var(--text); border: 1px solid var(--border); cursor: pointer; font-size: 12px;">🎨 تصحيح الألوان والأنيميشن</button>
             <button onclick="window.switchStudioTab('stickersTab')" id="tabBtn_stickersTab" class="studio-tab-btn" style="padding: 8px 14px; border-radius: 8px; background: var(--bg2); color: var(--text); border: 1px solid var(--border); cursor: pointer; font-size: 12px;">🎨 الملصقات والطبقات (PiP)</button>
+<button onclick="window.switchStudioTab('layersTab')" id="tabBtn_layersTab" class="studio-tab-btn" style="padding: 8px 14px; border-radius: 8px; background: var(--bg2); color: var(--text); border: 1px solid var(--border); cursor: pointer; font-size: 12px;">🥞 الطبقات والسجل</button>
+
             
             </div>
 
@@ -342,6 +361,36 @@ window.renderStudioUI = function() {
 </div>
 
 
+<!-- 🥞 7. تبويب الطبقات والسجل وإدارة الأصول -->
+<div id="tabContent_layersTab" class="studio-tab-content" style="display: none;">
+    <div style="background: var(--bg2); padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 15px; font-size: 12px;">
+        
+        <!-- 👁️ لوحة التحكم بالطبقات -->
+        <strong style="color: var(--gold); font-size: 14px; display: block; margin-bottom: 10px;">🥞 لوحة إدارة الطبقات (Layers Panel):</strong>
+        <div id="layersListContainer" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;">
+            <!-- سيتم توليد أسطر الطبقات تلقائياً بواسطة الجافاسكريبت -->
+        </div>
+
+        <hr style="border:none; border-top:1px solid var(--border); margin: 15px 0;" />
+
+        <!-- 📜 لوحة سجل الحركات History -->
+        <strong style="color: var(--gold); font-size: 14px; display: block; margin-bottom: 8px;">📜 سجل العمليات (History Log):</strong>
+        <div id="historyLogList" style="max-height: 120px; overflow-y: auto; background: #000; border: 1px solid var(--border); border-radius: 8px; padding: 8px; font-size: 11px; color: var(--text2);">
+            <div style="color: var(--gold);">• بداية مشروع جديد</div>
+        </div>
+    </div>
+</div>
+
+
+<!-- 🚀 قسم القوالب الجاهزة السريعة (Templates) -->
+            <div style="background: var(--bg2); padding: 12px; border-radius: 10px; border: 1px solid var(--gold); margin-bottom: 15px; font-size: 12px;">
+                <strong style="color: var(--gold); display: block; margin-bottom: 8px;">⚡ قوالب المونتاج السريعة (Templates):</strong>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button onclick="window.applyAthrTemplate('dawah')" style="background: var(--card); color: var(--gold); border: 1px solid var(--gold); padding: 6px 12px; border-radius: 6px; font-weight: bold; cursor: pointer;">🕌 قالب دعوي احترافي</button>
+                    <button onclick="window.applyAthrTemplate('reels')" style="background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; cursor: pointer;">📱 قالب ريلز / Shorts (9:16)</button>
+                    <button onclick="window.applyAthrTemplate('youtube')" style="background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; cursor: pointer;">📺 قالب يوتيوب (16:9)</button>
+                </div>
+            </div>
 
 
 <!-- 🎨 5. تبويب تصحيح الألوان والكي فريمز -->
@@ -665,6 +714,15 @@ window.switchStudioTab = function(tabId) {
 
 // 🎞️ 2. محرك التايم لاين البصري والتقسيم والحذف
 // 🎞️ 2. محرك التايم لاين البصري المطور (Multitrack Engine)
+
+window.updateTimelineZoom = function(val) {
+    const e = window.studioEngine;
+    e.timelineZoom = parseFloat(val);
+    const label = document.getElementById('zoomValLabel');
+    if (label) label.textContent = `${Math.round(e.timelineZoom * 100)}%`;
+    window.renderTimelineUI();
+};
+
 window.renderTimelineUI = function() {
     const track = document.getElementById('timelineTrack');
     if (!track) return;
@@ -685,21 +743,22 @@ window.renderTimelineUI = function() {
         if (tr.type === 'video') {
             e.clips.forEach((clip, idx) => {
                 const clipDiv = document.createElement('div');
-                clipDiv.style.cssText = `
-                    background: ${idx === e.selectedClipIndex ? '#d4af37' : '#1a2920'};
-                    color: ${idx === e.selectedClipIndex ? '#111' : '#fff'};
-                    padding: 8px 14px;
-                    border-radius: 6px;
-                    cursor: pointer;
-                    font-size: 11px;
-                    font-weight: bold;
-                    white-space: nowrap;
-                    border: 1px solid var(--border);
-                    display: flex;
-                    align-items: center;
-                    gap: 6px;
-                    transition: all 0.2s ease;
-                `;
+             const zoomPadding = Math.round(14 * e.timelineZoom);
+            clipDiv.style.cssText = `
+                background: ${idx === e.selectedClipIndex ? '#d4af37' : '#1a2920'};
+                color: ${idx === e.selectedClipIndex ? '#111' : '#fff'};
+                padding: 8px ${zoomPadding}px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: ${Math.max(10, Math.round(11 * e.timelineZoom))}px;
+                font-weight: bold;
+                white-space: nowrap;
+                border: 1px solid var(--border);
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                transition: all 0.1s ease;
+            `;
                 clipDiv.innerHTML = `🎬 كليب ${idx + 1} (${(clip.end - clip.start).toFixed(1)}s)`;
                 clipDiv.onclick = () => {
                     e.selectedClipIndex = idx;
@@ -725,6 +784,39 @@ window.renderTimelineUI = function() {
 
         track.appendChild(trackRow);
     });
+
+// ✂️ إضافة مقابض قص الحواف (Trim Handles) للكليب المحدد
+    const trimContainer = document.getElementById('clipTrimControls');
+    const selectedClip = e.clips[e.selectedClipIndex];
+    if (selectedClip && e.videoElement) {
+        if (!trimContainer) {
+            const trackParent = document.getElementById('timelineTrack')?.parentElement;
+            if (trackParent) {
+                const div = document.createElement('div');
+                div.id = 'clipTrimControls';
+                div.style.cssText = "display:flex; justify-content:space-between; align-items:center; gap:10px; margin-top:10px; font-size:11px; color:var(--text2); background:var(--card); padding:8px; border-radius:8px; border:1px solid var(--border);";
+                div.innerHTML = `
+                    <span>✂️ قص بداية الكليب: <input type="range" id="trimStartSlider" step="0.1" oninput="window.updateClipTrim()" style="accent-color:var(--gold); width:100px;"> <b id="trimStartVal">0s</b></span>
+                    <span>✂️ قص نهاية الكليب: <input type="range" id="trimEndSlider" step="0.1" oninput="window.updateClipTrim()" style="accent-color:var(--gold); width:100px;"> <b id="trimEndVal">0s</b></span>
+                `;
+                trackParent.appendChild(div);
+            }
+        }
+
+        const startSlider = document.getElementById('trimStartSlider');
+        const endSlider = document.getElementById('trimEndSlider');
+        if (startSlider && endSlider) {
+            startSlider.max = selectedClip.end - 0.5;
+            startSlider.value = selectedClip.start;
+            endSlider.min = selectedClip.start + 0.5;
+            endSlider.max = e.videoElement.duration || 100;
+            endSlider.value = selectedClip.end;
+
+            document.getElementById('trimStartVal').textContent = `${selectedClip.start.toFixed(1)}s`;
+            document.getElementById('trimEndVal').textContent = `${selectedClip.end.toFixed(1)}s`;
+        }
+    }
+    
 };
 
 // ✂️ التقسيم عند المؤشر الحالي
@@ -795,12 +887,12 @@ window.setTransition = function(clipIdx, type) {
 };
 
 // 📂 معالجة رفع الفيديو
+// 📂 معالجة رفع الفيديو
 window.handleStudioFileUpload = function(event) {
     const file = event.target.files[0];
     if (!file) return;
 
     window.studioEngine.originalFileSize = file.size;
-
     document.getElementById('studioFileName').textContent = `📹 الملف المختار: ${file.name} (${(file.size / (1024 * 1024)).toFixed(1)} MB)`;
     
     const video = document.getElementById('studioVideoPlayer');
@@ -819,7 +911,8 @@ window.handleStudioFileUpload = function(event) {
         window.renderTimelineUI();
         window.updateStudioLayoutConfig();
         window.updateEstimatedSize();
-        window.drawSingleStudioFrame();
+        // 🚀 بدء محرك الرسم فوراً حتى أثناء إيقاف الفيديو لرؤية الملصقات والنصوص لحظياً
+        window.startCanvasRenderLoop();
     };
 
     video.onplay = () => {
@@ -827,7 +920,6 @@ window.handleStudioFileUpload = function(event) {
         if (window.studioEngine.ambientAudioEl) {
             window.studioEngine.ambientAudioEl.play();
         }
-        window.startCanvasRenderLoop();
         window.drawAudioWaveform();
     };
 
@@ -1270,6 +1362,7 @@ window.fixStereoToMono = function() {
 };
 
 // 🎥 5. محرك الرسم والتصميم المتقدم بالانتقالات والقناع والخلفيات
+// 🎥 5. محرك الرسم والتصميم المتقدم بالانتقالات والقناع والخلفيات (مع حماية وإخفاء الطبقات)
 window.startCanvasRenderLoop = function() {
     const e = window.studioEngine;
     const video = e.videoElement;
@@ -1278,12 +1371,9 @@ window.startCanvasRenderLoop = function() {
 
     if (!video || !canvas || !ctx) return;
 
-
-    
     function drawFrame() {
+        // 1. التحكم بحدود الكليب (التايم لاين) فقط أثناء التشغيل
         if (!video.paused && !video.ended) {
-            
-            // 1. التحكم بحدود الكليب (التايم لاين)
             const currentClip = e.clips[e.selectedClipIndex];
             if (currentClip && video.currentTime >= currentClip.end) {
                 if (e.selectedClipIndex < e.clips.length - 1) {
@@ -1296,77 +1386,81 @@ window.startCanvasRenderLoop = function() {
                     window.renderTimelineUI();
                 }
             }
+        }
 
-            // 2. حساب وقت الانتقال
-            const timeInClip = video.currentTime - (currentClip ? currentClip.start : 0);
-            const transType = e.transitions[e.selectedClipIndex - 1] || 'none';
-            const transDuration = 1.0;
+        const currentClip = e.clips[e.selectedClipIndex];
+        const timeInClip = video.currentTime - (currentClip ? currentClip.start : 0);
+        const transType = e.transitions[e.selectedClipIndex - 1] || 'none';
+        const transDuration = 1.0;
 
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.save();
+
+        // 🎨 أ) رسم خلفية الشاشة (صورة مخصصة أو مموهة أو أسود)
+        if (e.bgCustomImage) {
             ctx.save();
+            ctx.globalAlpha = e.bgImageOpacity;
+            const scale = e.bgImageScale || 1.0;
+            const imgW = canvas.width * scale;
+            const imgH = canvas.height * scale;
+            const imgX = (canvas.width - imgW) / 2;
+            const imgY = (canvas.height - imgH) / 2;
+            ctx.drawImage(e.bgCustomImage, imgX, imgY, imgW, imgH);
+            ctx.restore();
+        } else if (e.aspectBgStyle === "blur") {
+            ctx.save();
+            ctx.filter += ' blur(25px) brightness(0.4)';
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            ctx.restore();
+        } else {
+            ctx.fillStyle = "#0a0f0d";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
 
-            // 🎨 أ) رسم خلفية الشاشة (صورة مخصصة أو مموهة أو أسود)
-            if (e.bgCustomImage) {
-                ctx.save();
-                ctx.globalAlpha = e.bgImageOpacity;
-                const scale = e.bgImageScale || 1.0;
-                const imgW = canvas.width * scale;
-                const imgH = canvas.height * scale;
-                const imgX = (canvas.width - imgW) / 2;
-                const imgY = (canvas.height - imgH) / 2;
-                ctx.drawImage(e.bgCustomImage, imgX, imgY, imgW, imgH);
-                ctx.restore();
-            } else if (e.aspectBgStyle === "blur") {
-                ctx.save();
-                ctx.filter += ' blur(25px) brightness(0.4)';
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                ctx.restore();
-            } else {
-                ctx.fillStyle = "#0a0f0d";
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // 🎭 ب) تطبيق قناع الشكل على الفيديو (Video Masking)
+        const mask = e.videoMaskShape || 'none';
+        if (mask !== 'none') {
+            ctx.beginPath();
+            if (mask === 'rounded') {
+                const rx = 0, ry = 0, rw = canvas.width, rh = canvas.height, radius = 40;
+                ctx.roundRect(rx + 15, ry + 15, rw - 30, rh - 30, radius);
+            } else if (mask === 'circle') {
+                ctx.ellipse(canvas.width / 2, canvas.height / 2, canvas.width * 0.42, canvas.height * 0.42, 0, 0, 2 * Math.PI);
+            } else if (mask === 'arch') {
+                const w = canvas.width, h = canvas.height;
+                ctx.moveTo(w * 0.1, h);
+                ctx.lineTo(w * 0.1, h * 0.35);
+                ctx.quadraticCurveTo(w * 0.1, h * 0.05, w * 0.5, h * 0.05);
+                ctx.quadraticCurveTo(w * 0.9, h * 0.05, w * 0.9, h * 0.35);
+                ctx.lineTo(w * 0.9, h);
+                ctx.closePath();
             }
+            ctx.clip();
+        }
 
-            // 🎭 ب) تطبيق قناع الشكل على الفيديو (Video Masking)
-            const mask = e.videoMaskShape || 'none';
-            if (mask !== 'none') {
-                ctx.beginPath();
-                if (mask === 'rounded') {
-                    const rx = 0, ry = 0, rw = canvas.width, rh = canvas.height, radius = 40;
-                    ctx.roundRect(rx + 15, ry + 15, rw - 30, rh - 30, radius);
-                } else if (mask === 'circle') {
-                    ctx.ellipse(canvas.width / 2, canvas.height / 2, canvas.width * 0.42, canvas.height * 0.42, 0, 0, 2 * Math.PI);
-                } else if (mask === 'arch') {
-                    const w = canvas.width, h = canvas.height;
-                    ctx.moveTo(w * 0.1, h);
-                    ctx.lineTo(w * 0.1, h * 0.35);
-                    ctx.quadraticCurveTo(w * 0.1, h * 0.05, w * 0.5, h * 0.05);
-                    ctx.quadraticCurveTo(w * 0.9, h * 0.05, w * 0.9, h * 0.35);
-                    ctx.lineTo(w * 0.9, h);
-                    ctx.closePath();
-                }
-                ctx.clip();
+        // --- جـ) تطبيق منطق الانتقالات البصرية ---
+        if (timeInClip < transDuration && transType !== 'none') {
+            const progress = timeInClip / transDuration;
+            if (transType === 'fade') {
+                ctx.globalAlpha = progress;
+            } else if (transType === 'slide') {
+                ctx.translate((1 - progress) * canvas.width, 0);
+            } else if (transType === 'zoom') {
+                const scale = 0.5 + (progress * 0.5);
+                ctx.translate(canvas.width/2, canvas.height/2);
+                ctx.scale(scale, scale);
+                ctx.translate(-canvas.width/2, -canvas.height/2);
+            } else if (transType === 'rotate') {
+                ctx.translate(canvas.width/2, canvas.height/2);
+                ctx.rotate(progress * 2 * Math.PI);
+                ctx.translate(-canvas.width/2, -canvas.height/2);
             }
+        }
 
-            // --- جـ) تطبيق منطق الانتقالات البصرية ---
-            if (timeInClip < transDuration && transType !== 'none') {
-                const progress = timeInClip / transDuration;
-                if (transType === 'fade') {
-                    ctx.globalAlpha = progress;
-                } else if (transType === 'slide') {
-                    ctx.translate((1 - progress) * canvas.width, 0);
-                } else if (transType === 'zoom') {
-                    const scale = 0.5 + (progress * 0.5);
-                    ctx.translate(canvas.width/2, canvas.height/2);
-                    ctx.scale(scale, scale);
-                    ctx.translate(-canvas.width/2, -canvas.height/2);
-                } else if (transType === 'rotate') {
-                    ctx.translate(canvas.width/2, canvas.height/2);
-                    ctx.rotate(progress * 2 * Math.PI);
-                    ctx.translate(-canvas.width/2, -canvas.height/2);
-                }
-            }
-
-            // د) رسم محتوى الفيديو
+        // د) رسم محتوى الفيديو الرئيسي (مع فحص حالة ظهور طبقة الفيديو)
+        const isVideoVisible = e.layerSettings && e.layerSettings.video ? e.layerSettings.video.visible : true;
+        
+        if (isVideoVisible) {
             if (e.enableMirrorFlip) {
                 ctx.translate(canvas.width, 0);
                 ctx.scale(-1, 1);
@@ -1377,42 +1471,8 @@ window.startCanvasRenderLoop = function() {
                 ctx.rotate((e.rotationAngle * Math.PI) / 180);
                 ctx.translate(-canvas.width / 2, -canvas.height / 2);
             }
-            
 
-// 📺 1. رسم طبقة الـ Picture-in-Picture (PiP)
-            if (e.pipOverlayImage) {
-                ctx.save();
-                ctx.globalAlpha = e.pipOpacity || 0.9;
-                const pRatio = e.pipOverlayImage.height / e.pipOverlayImage.width;
-                ctx.drawImage(e.pipOverlayImage, e.pipX, e.pipY, e.pipSize, e.pipSize * pRatio);
-                ctx.restore();
-            }
-
-            // 🕌 2. رسم كافة الملصقات والرموز المضافة
-            if (e.stickersList && e.stickersList.length > 0) {
-                e.stickersList.forEach(stk => {
-                    ctx.save();
-                    ctx.globalAlpha = stk.opacity || 1.0;
-                    if (stk.type === 'text') {
-                        ctx.font = `${stk.size || 48}px 'Amiri', serif`;
-                        ctx.fillStyle = "#d4af37";
-                        ctx.textAlign = "center";
-                        ctx.fillText(stk.content, stk.x, stk.y);
-                    } else if (stk.type === 'image' && stk.imgElement) {
-                        const imgH = stk.size * (stk.imgElement.height / stk.imgElement.width);
-                        ctx.drawImage(stk.imgElement, stk.x, stk.y, stk.size, imgH);
-                    }
-                    ctx.restore();
-                });
-            }
-
-
-
-
-
-
-            
-          // 🎨 تطبيق فلاتر الألوان والـ Advanced Color Grading
+            // 🎨 تطبيق فلاتر الألوان والـ Advanced Color Grading
             let filterStr = "";
             if (e.colorFilter === 'warm-gold') filterStr += 'sepia(0.35) contrast(1.1) brightness(1.05)';
             else if (e.colorFilter === 'cinematic') filterStr += 'contrast(1.25) saturate(1.15) brightness(0.95)';
@@ -1430,13 +1490,6 @@ window.startCanvasRenderLoop = function() {
                 ctx.filter = filterStr.trim();
             }
 
-
-
-
-
-
-
-            
             if (e.aspectRatio === "9:16") {
                 const scale = Math.min(canvas.width / video.videoWidth, canvas.height / video.videoHeight);
                 const drawW = video.videoWidth * scale;
@@ -1445,85 +1498,120 @@ window.startCanvasRenderLoop = function() {
             } else {
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             }
-
-            ctx.restore(); // نهاية رسم الفيديو
-
-            // 3. العناصر الثابتة (اللوجو، النص، إلخ) - تُرسم دائماً
-            if (e.enableVignette) {
-                const grad = ctx.createRadialGradient(canvas.width/2, canvas.height/2, canvas.width*0.2, canvas.width/2, canvas.height/2, canvas.width*0.65);
-                grad.addColorStop(0, 'rgba(0,0,0,0)'); grad.addColorStop(1, 'rgba(0,0,0,0.7)');
-                ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);
-            }
-
-            if (e.enableIslamicFrame) {
-                const pad = canvas.width * 0.03;
-                ctx.strokeStyle = "#d4af37"; ctx.lineWidth = 12;
-                ctx.strokeRect(pad, pad, canvas.width - (pad*2), canvas.height - (pad*2));
-            }
-
-            // 🏷️ رسم شريط اسم الشيخ والدرس بالسحب الحر
-            if (e.speakerName || e.lessonTitle) {
-                const bWidth = canvas.width * 0.55;
-                const bHeight = 75;
-                const bx = e.bannerX || 40;
-                const by = e.bannerY || (canvas.height - 120);
-
-                const bGrad = ctx.createLinearGradient(bx, by, bx + bWidth, by);
-                bGrad.addColorStop(0, 'rgba(15, 25, 20, 0.92)');
-                bGrad.addColorStop(1, 'rgba(15, 25, 20, 0.1)');
-
-                ctx.fillStyle = bGrad;
-                ctx.fillRect(bx, by, bWidth, bHeight);
-
-                ctx.fillStyle = "#d4af37";
-                ctx.fillRect(bx, by, 6, bHeight);
-
-                ctx.textAlign = "right";
-                if (e.speakerName) {
-                    ctx.font = `bold ${canvas.width * 0.03}px 'Amiri', serif`;
-                    ctx.fillStyle = "#d4af37";
-                    ctx.fillText(e.speakerName, bx + bWidth - 15, by + 30);
-                }
-                if (e.lessonTitle) {
-                    ctx.font = `${canvas.width * 0.02}px 'Cairo', sans-serif`;
-                    ctx.fillStyle = "#ffffff";
-                    ctx.fillText(e.lessonTitle, bx + bWidth - 15, by + 58);
-                }
-            }
-
-            // رسم النص واللوجو
-            if (e.overlayText) {
-                ctx.fillStyle = e.textBgColor;
-                ctx.font = `bold ${e.textSize * (canvas.width / 800)}px ${e.textFont}`;
-                ctx.textAlign = "center";
-                ctx.fillText(e.overlayText, e.textX, e.textY);
-            }
-
-
-
-
-
-            
-            if (e.logoImage) {
-                // 🔑 تطبيق حسابات الحركة من الـ Keyframes لو موجودة
-                let currentLogoSize = e.logoSize;
-                if (e.keyframes && e.keyframes['logoScale'] && e.keyframes['logoScale'].length > 0) {
-                    currentLogoSize = AthrKeyframeEngine.getValueAtTime(e.keyframes['logoScale'], video.currentTime, e.logoSize);
-                }
-
-                ctx.drawImage(e.logoImage, e.logoX, e.logoY, currentLogoSize, currentLogoSize * (e.logoImage.height / e.logoImage.width));
-            }
-
-
-
-
-
-
-
-
-
-            
         }
+
+        ctx.restore(); // نهاية رسم الفيديو
+
+        // 📺 1. رسم طبقة الـ Picture-in-Picture (مع فحص زر الإظهار 👁️)
+        const isPipVisible = e.layerSettings && e.layerSettings.pip ? e.layerSettings.pip.visible : true;
+        if (e.pipOverlayImage && isPipVisible) {
+            ctx.save();
+            ctx.globalAlpha = e.pipOpacity || 0.9;
+            const pRatio = e.pipOverlayImage.height / e.pipOverlayImage.width;
+            ctx.drawImage(e.pipOverlayImage, e.pipX, e.pipY, e.pipSize, e.pipSize * pRatio);
+            ctx.restore();
+        }
+
+        // 🕌 2. رسم كافة الملصقات والرموز المضافة (مع فحص زر الإظهار 👁️)
+        const isStickersVisible = e.layerSettings && e.layerSettings.stickers ? e.layerSettings.stickers.visible : true;
+        if (e.stickersList && e.stickersList.length > 0 && isStickersVisible) {
+            e.stickersList.forEach(stk => {
+                ctx.save();
+                ctx.globalAlpha = stk.opacity || 1.0;
+                if (stk.type === 'text') {
+                    ctx.font = `${stk.size || 55}px 'Amiri', serif`;
+                    ctx.fillStyle = "#d4af37";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText(stk.content, stk.x, stk.y);
+                } else if (stk.type === 'image' && stk.imgElement) {
+                    const imgH = stk.size * (stk.imgElement.height / stk.imgElement.width);
+                    ctx.drawImage(stk.imgElement, stk.x, stk.y, stk.size, imgH);
+                }
+                ctx.restore();
+            });
+        }
+
+        // 3. العناصر الثابتة (الإطار والـ Vignette)
+        if (e.enableVignette) {
+            const grad = ctx.createRadialGradient(canvas.width/2, canvas.height/2, canvas.width*0.2, canvas.width/2, canvas.height/2, canvas.width*0.65);
+            grad.addColorStop(0, 'rgba(0,0,0,0)'); grad.addColorStop(1, 'rgba(0,0,0,0.7)');
+            ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        if (e.enableIslamicFrame) {
+            const pad = canvas.width * 0.03;
+            ctx.strokeStyle = "#d4af37"; ctx.lineWidth = 12;
+            ctx.strokeRect(pad, pad, canvas.width - (pad*2), canvas.height - (pad*2));
+        }
+
+        // 🏷️ رسم شريط اسم الشيخ والدرس (مع فحص زر الإظهار 👁️)
+        const isBannerVisible = e.layerSettings && e.layerSettings.banner ? e.layerSettings.banner.visible : true;
+        if ((e.speakerName || e.lessonTitle) && isBannerVisible) {
+            const bWidth = canvas.width * 0.55;
+            const bHeight = 75;
+            const bx = e.bannerX || 40;
+            const by = e.bannerY || (canvas.height - 120);
+
+            const bGrad = ctx.createLinearGradient(bx, by, bx + bWidth, by);
+            bGrad.addColorStop(0, 'rgba(15, 25, 20, 0.92)');
+            bGrad.addColorStop(1, 'rgba(15, 25, 20, 0.1)');
+
+            ctx.fillStyle = bGrad;
+            ctx.fillRect(bx, by, bWidth, bHeight);
+
+            ctx.fillStyle = "#d4af37";
+            ctx.fillRect(bx, by, 6, bHeight);
+
+            ctx.textAlign = "right";
+            if (e.speakerName) {
+                ctx.font = `bold ${canvas.width * 0.03}px 'Amiri', serif`;
+                ctx.fillStyle = "#d4af37";
+                ctx.fillText(e.speakerName, bx + bWidth - 15, by + 30);
+            }
+            if (e.lessonTitle) {
+                ctx.font = `${canvas.width * 0.02}px 'Cairo', sans-serif`;
+                ctx.fillStyle = "#ffffff";
+                ctx.fillText(e.lessonTitle, bx + bWidth - 15, by + 58);
+            }
+        }
+
+        // ✍️ رسم النص الرئيسي (مع فحص زر الإظهار 👁️)
+        const isTextVisible = e.layerSettings && e.layerSettings.overlayText ? e.layerSettings.overlayText.visible : true;
+        if (e.overlayText && isTextVisible) {
+            ctx.fillStyle = e.textBgColor;
+            ctx.font = `bold ${e.textSize * (canvas.width / 800)}px ${e.textFont}`;
+            ctx.textAlign = "center";
+            ctx.fillText(e.overlayText, e.textX, e.textY);
+        }
+
+        // 🖼️ رسم اللوجو (مع فحص زر الإظهار 👁️)
+        const isLogoVisible = e.layerSettings && e.layerSettings.logo ? e.layerSettings.logo.visible : true;
+        if (e.logoImage && isLogoVisible) {
+            let currentLogoSize = e.logoSize;
+            if (e.keyframes && e.keyframes['logoScale'] && e.keyframes['logoScale'].length > 0) {
+                currentLogoSize = AthrKeyframeEngine.getValueAtTime(e.keyframes['logoScale'], video.currentTime, e.logoSize);
+            }
+            ctx.drawImage(e.logoImage, e.logoX, e.logoY, currentLogoSize, currentLogoSize * (e.logoImage.height / e.logoImage.width));
+        }
+
+        // 📐 المحاذاة الذكية (Smart Guides)
+        if (e.isDragging && e.renderCanvas) {
+            const centerX = canvas.width / 2;
+            ctx.save();
+            ctx.strokeStyle = "#d4af37";
+            ctx.lineWidth = 2;
+            ctx.setLineDash([6, 6]);
+
+            if (Math.abs(e.textX - centerX) < 10 || Math.abs(e.logoX - centerX) < 10 || Math.abs(e.bannerX - centerX) < 10) {
+                ctx.beginPath();
+                ctx.moveTo(centerX, 0);
+                ctx.lineTo(centerX, canvas.height);
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+
         e.animFrameId = requestAnimationFrame(drawFrame);
     }
 
@@ -1902,3 +1990,190 @@ window.clearAllStickersAndPip = function() {
 };
 
 
+// ⚡ 1. دالة تطبيق القوالب الجاهزة (Athr Templates)
+window.applyAthrTemplate = function(type) {
+    const e = window.studioEngine;
+
+    if (type === 'dawah') {
+        e.textFont = "'Amiri', serif";
+        e.textColor = "#d4af37";
+        e.colorFilter = 'warm-gold';
+        e.enableIslamicFrame = true;
+        e.enableVignette = true;
+        document.getElementById('studioColorFilter').value = 'warm-gold';
+        document.getElementById('islamicFrameCheck').checked = true;
+        document.getElementById('vignetteCheck').checked = true;
+        document.getElementById('studioStatusLog').textContent = "📜 تم تطبيق القالب الدعوي الفاخر بنجاح!";
+    } else if (type === 'reels') {
+        e.aspectRatio = "9:16";
+        e.aspectBgStyle = "blur";
+        e.textSize = 45;
+        document.getElementById('studioAspectRatio').value = "9:16";
+        document.getElementById('aspectBgStyleSelect').value = "blur";
+        window.updateStudioLayoutConfig();
+        document.getElementById('studioStatusLog').textContent = "📱 تم تحويل المشهد لقالب ريلز طولي (9:16) مع خلفية مموهة!";
+    } else if (type === 'youtube') {
+        e.aspectRatio = "16:9";
+        e.aspectBgStyle = "dark";
+        document.getElementById('studioAspectRatio').value = "16:9";
+        window.updateStudioLayoutConfig();
+        document.getElementById('studioStatusLog').textContent = "📺 تم تطبيق قالب يوتيوب العريض (16:9)!";
+    }
+};
+
+// ⌨️ 2. اختصارات الكيبورد الاحترافية (Keyboard Shortcuts)
+document.addEventListener('keydown', (evt) => {
+    // التجميع مع المفاتيح المساعدة
+    if (evt.code === 'Space' && evt.target.tagName !== 'INPUT' && evt.target.tagName !== 'TEXTAREA') {
+        evt.preventDefault();
+        const v = window.studioEngine.videoElement;
+        if (v) v.paused ? v.play() : v.pause();
+    }
+    
+    if (evt.key === 'Delete' || evt.key === 'Backspace') {
+        if (evt.target.tagName !== 'INPUT' && evt.target.tagName !== 'TEXTAREA') {
+            evt.preventDefault();
+            window.deleteSelectedClip();
+        }
+    }
+
+    if (evt.ctrlKey && evt.key.toLowerCase() === 's') {
+        evt.preventDefault();
+        window.studioEngine.exportAthrProject();
+    }
+});
+
+
+
+
+
+// ↩️ 1. حفظ لقطة من الحالة للتراجع
+window.saveStudioState = function() {
+    const e = window.studioEngine;
+    const snapshot = {
+        clips: JSON.parse(JSON.stringify(e.clips)),
+        selectedClipIndex: e.selectedClipIndex,
+        overlayText: e.overlayText,
+        textColor: e.textColor,
+        textSize: e.textSize,
+        speakerName: e.speakerName,
+        lessonTitle: e.lessonTitle,
+        colorFilter: e.colorFilter,
+        colorAdjustments: JSON.parse(JSON.stringify(e.colorAdjustments || {}))
+    };
+    e.projectState.pushHistory(snapshot);
+};
+
+// ↩️ 2. تنفيذ التراجع (Undo)
+window.undoStudioState = function() {
+    const e = window.studioEngine;
+    const prevState = e.projectState.undo();
+    if (prevState) {
+        e.clips = prevState.clips;
+        e.selectedClipIndex = prevState.selectedClipIndex;
+        e.overlayText = prevState.overlayText;
+        e.textColor = prevState.textColor;
+        e.textSize = prevState.textSize;
+        e.speakerName = prevState.speakerName;
+        e.lessonTitle = prevState.lessonTitle;
+        e.colorFilter = prevState.colorFilter;
+        e.colorAdjustments = prevState.colorAdjustments;
+
+        window.renderTimelineUI();
+        document.getElementById('studioStatusLog').textContent = "↩️ تم التراجع عن الخطوة الأخيرة!";
+    } else {
+        document.getElementById('studioStatusLog').textContent = "⚠️ لا توجد خطوات إضافية للتراجع عنها.";
+    }
+};
+
+// ↪️ 3. تنفيذ الإعادة (Redo)
+window.redoStudioState = function() {
+    const e = window.studioEngine;
+    const nextState = e.projectState.redo();
+    if (nextState) {
+        e.clips = nextState.clips;
+        e.selectedClipIndex = nextState.selectedClipIndex;
+        e.overlayText = nextState.overlayText;
+        e.textColor = nextState.textColor;
+        e.textSize = nextState.textSize;
+        e.speakerName = nextState.speakerName;
+        e.lessonTitle = nextState.lessonTitle;
+        e.colorFilter = nextState.colorFilter;
+        e.colorAdjustments = nextState.colorAdjustments;
+
+        window.renderTimelineUI();
+        document.getElementById('studioStatusLog').textContent = "↪️ تم إعادة الخطوة!";
+    } else {
+        document.getElementById('studioStatusLog').textContent = "⚠️ لا توجد خطوات لإعادتها.";
+    }
+};
+
+// 🥞 1. دالة تحديث ورسم قائمة الطبقات (Layers UI)
+window.renderLayersUI = function() {
+    const container = document.getElementById('layersListContainer');
+    if (!container) return;
+
+    const e = window.studioEngine;
+    const layers = [
+        { key: 'video', name: '🎥 طبقة الفيديو الرئيسي' },
+        { key: 'overlayText', name: '✍️ طبقة النصوص والآيات' },
+        { key: 'logo', name: '🖼️ طبقة الشعار والواترمارك' },
+        { key: 'banner', name: '🏷️ طبقة اسم الشيخ والدرس' },
+        { key: 'pip', name: '📺 طبقة الصورة العائمة (PiP)' },
+        { key: 'stickers', name: '🕌 طبقة الملصقات والرموز' }
+    ];
+
+    container.innerHTML = layers.map(l => {
+        const set = e.layerSettings[l.key] || { visible: true, locked: false };
+        return `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:var(--card); padding:8px 12px; border-radius:8px; border:1px solid var(--border);">
+                <span style="color:var(--text); font-weight:bold;">${l.name}</span>
+                <div style="display:flex; gap:8px;">
+                    <button onclick="window.toggleLayerVisibility('${l.key}')" style="background:none; border:none; cursor:pointer; font-size:16px;" title="إظهار/إخفاء">${set.visible ? '👁️' : '🙈'}</button>
+                    <button onclick="window.toggleLayerLock('${l.key}')" style="background:none; border:none; cursor:pointer; font-size:16px;" title="قفل/فتح السحب">${set.locked ? '🔒' : '🔓'}</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+};
+
+window.toggleLayerVisibility = function(key) {
+    const e = window.studioEngine;
+    if (e.layerSettings[key]) {
+        e.layerSettings[key].visible = !e.layerSettings[key].visible;
+        window.renderLayersUI();
+    }
+};
+
+window.toggleLayerLock = function(key) {
+    const e = window.studioEngine;
+    if (e.layerSettings[key]) {
+        e.layerSettings[key].locked = !e.layerSettings[key].locked;
+        window.renderLayersUI();
+    }
+};
+
+// ✂️ 2. دالة قص أطراف الكليب بالمقابض (Trim)
+window.updateClipTrim = function() {
+    const e = window.studioEngine;
+    const clip = e.clips[e.selectedClipIndex];
+    const startVal = parseFloat(document.getElementById('trimStartSlider')?.value);
+    const endVal = parseFloat(document.getElementById('trimEndSlider')?.value);
+
+    if (clip && !isNaN(startVal) && !isNaN(endVal)) {
+        clip.start = startVal;
+        clip.end = endVal;
+        document.getElementById('trimStartVal').textContent = `${startVal.toFixed(1)}s`;
+        document.getElementById('trimEndVal').textContent = `${endVal.toFixed(1)}s`;
+        window.renderTimelineUI();
+    }
+};
+
+// تشغيل رسم الطبقات فور فتح تبويبها
+const originalSwitchStudioTab = window.switchStudioTab;
+window.switchStudioTab = function(tabId) {
+    originalSwitchStudioTab(tabId);
+    if (tabId === 'layersTab') {
+        window.renderLayersUI();
+    }
+};
