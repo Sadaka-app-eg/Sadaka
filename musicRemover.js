@@ -1914,20 +1914,21 @@ window.exportStudioFilteredVideo = async function() {
         console.log("🔴 بدأ التسجيل (MediaRecorder State):", recorder.state);
 
         const checkInterval = setInterval(() => {
-            const processedSecs = Math.max(0, video.currentTime - startTime);
-            const percent = Math.min(100, Math.floor((processedSecs / totalDuration) * 100));
-            
-            log.textContent = `⏳ جاري تسجيل الفيديو: ${percent}% (${processedSecs.toFixed(1)}s / ${totalDuration.toFixed(1)}s)`;
+        // حماية تمنع العداد من تجاوز الـ 100% أو العداد العكسي للصفر
+        const processedSecs = Math.min(totalDuration, Math.max(0, video.currentTime - startTime));
+        const percent = Math.min(100, Math.floor((processedSecs / totalDuration) * 100));
+        
+        log.textContent = `⏳ جاري تسجيل الفيديو: ${percent}% (${processedSecs.toFixed(1)}s / ${totalDuration.toFixed(1)}s)`;
 
-            if (video.currentTime >= endTime || video.ended || video.paused) {
-                console.log("⏹ وصل الفيديو لنهاية المقطع المطلوب. جاري إيقاف التسجيل...");
-                clearInterval(checkInterval);
-                if (recorder.state === "recording") {
-                    recorder.stop();
-                    video.pause();
-                }
+        // الشرط الحاسم: لو وصل لنهاية المقطع أو الـ 100% أو الفيديو وقف
+        if (processedSecs >= totalDuration - 0.1 || video.currentTime >= endTime || video.ended || video.paused) {
+            clearInterval(checkInterval);
+            if (recorder.state === "recording") {
+                video.pause();
+                recorder.stop(); // هنا هيقف وينزل الملف فورا بدون ما يعيد من الأول
             }
-        }, 200);
+        }
+    }, 100);
 
     } catch (err) {
         console.error("❌ استثناء خطير أثناء التصدير:", err);
