@@ -3092,7 +3092,10 @@ function showPage(id, el) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   
   localStorage.setItem('last_opened_tab', id);
-  if(document.getElementById(id)) document.getElementById(id).classList.add('active');
+if(document.getElementById(id)) {
+    document.getElementById(id).classList.add('active');
+    document.getElementById(id).style.display = 'block'; // 👈 إظهار الصفحة المحددة فوراً
+}
   
   // تفعيل كلاس التنشيط على العنصر المختار جوه المنيو
   if (el) {
