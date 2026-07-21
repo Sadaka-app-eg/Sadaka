@@ -321,15 +321,15 @@ window.renderStudioUI = function() {
         <strong style="color: var(--gold); font-size: 14px; display: block; margin-bottom: 8px;">🕌 مكتبة الملصقات والرموز السريعة:</strong>
         <p style="color: var(--text2); margin-bottom: 10px; font-size: 11px;">اضغط على أي رمز لإضافته كطبقة عائمة على الفيديو (يمكنك سحبه بيدك على الشاشة):</p>
         
-        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px;">
-            <button onclick="window.addTextSticker('﷽')" style="background:var(--card); color:var(--gold); border:1px solid var(--gold); padding:8px 12px; border-radius:8px; font-family:'Amiri',serif; font-size:16px; cursor:pointer;">﷽</button>
-            <button onclick="window.addTextSticker('﴿ ۞ ﴾')" style="background:var(--card); color:var(--gold); border:1px solid var(--gold); padding:8px 12px; border-radius:8px; font-family:'Amiri',serif; font-size:16px; cursor:pointer;">﴿ ۞ ﴾</button>
-            <button onclick="window.addTextSticker('ﷺ')" style="background:var(--card); color:var(--gold); border:1px solid var(--gold); padding:8px 12px; border-radius:8px; font-family:'Amiri',serif; font-size:16px; cursor:pointer;">ﷺ</button>
-            <button onclick="window.addTextSticker('ﷻ')" style="background:var(--card); color:var(--gold); border:1px solid var(--gold); padding:8px 12px; border-radius:8px; font-family:'Amiri',serif; font-size:16px; cursor:pointer;">ﷻ</button>
-            <button onclick="window.addTextSticker('🕌')" style="background:var(--card); border:1px solid var(--border); padding:8px 12px; border-radius:8px; font-size:18px; cursor:pointer;">🕌</button>
-            <button onclick="window.addTextSticker('🌙')" style="background:var(--card); border:1px solid var(--border); padding:8px 12px; border-radius:8px; font-size:18px; cursor:pointer;">🌙</button>
-            <button onclick="window.addTextSticker('📖')" style="background:var(--card); border:1px solid var(--border); padding:8px 12px; border-radius:8px; font-size:18px; cursor:pointer;">📖</button>
-            <button onclick="window.addTextSticker('✨')" style="background:var(--card); border:1px solid var(--border); padding:8px 12px; border-radius:8px; font-size:18px; cursor:pointer;">✨</button>
+       <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px;">
+            <button onclick="window.addQuickSticker('﷽', this)" style="background:var(--card); color:var(--gold); border:1px solid var(--gold); padding:8px 12px; border-radius:8px; font-family:'Amiri',serif; font-size:16px; cursor:pointer;">﷽</button>
+            <button onclick="window.addQuickSticker('﴿ ۞ ﴾', this)" style="background:var(--card); color:var(--gold); border:1px solid var(--gold); padding:8px 12px; border-radius:8px; font-family:'Amiri',serif; font-size:16px; cursor:pointer;">﴿ ۞ ﴾</button>
+            <button onclick="window.addQuickSticker('ﷺ', this)" style="background:var(--card); color:var(--gold); border:1px solid var(--gold); padding:8px 12px; border-radius:8px; font-family:'Amiri',serif; font-size:16px; cursor:pointer;">ﷺ</button>
+            <button onclick="window.addQuickSticker('ﷻ', this)" style="background:var(--card); color:var(--gold); border:1px solid var(--gold); padding:8px 12px; border-radius:8px; font-family:'Amiri',serif; font-size:16px; cursor:pointer;">ﷻ</button>
+            <button onclick="window.addQuickSticker('🕌', this)" style="background:var(--card); border:1px solid var(--border); padding:8px 12px; border-radius:8px; font-size:18px; cursor:pointer;">🕌</button>
+            <button onclick="window.addQuickSticker('🌙', this)" style="background:var(--card); border:1px solid var(--border); padding:8px 12px; border-radius:8px; font-size:18px; cursor:pointer;">🌙</button>
+            <button onclick="window.addQuickSticker('📖', this)" style="background:var(--card); border:1px solid var(--border); padding:8px 12px; border-radius:8px; font-size:18px; cursor:pointer;">📖</button>
+            <button onclick="window.addQuickSticker('✨', this)" style="background:var(--card); border:1px solid var(--border); padding:8px 12px; border-radius:8px; font-size:18px; cursor:pointer;">✨</button>
         </div>
 
         <div style="margin-bottom: 15px;">
@@ -1019,7 +1019,20 @@ window.setupCanvasDragAndDrop = function() {
         }
 
 
-
+// فحص سحب الملصقات
+        if (engine.stickersList && engine.stickersList.length > 0) {
+            for (let i = engine.stickersList.length - 1; i >= 0; i--) {
+                const stk = engine.stickersList[i];
+                if (Math.abs(coords.x - stk.x) < 50 && Math.abs(coords.y - stk.y) < 50) {
+                    engine.isDragging = true;
+                    engine.dragTarget = 'sticker';
+                    engine.dragStickerIndex = i;
+                    engine.dragOffsetX = coords.x - stk.x;
+                    engine.dragOffsetY = coords.y - stk.y;
+                    return;
+                }
+            }
+        }
 
         
         if (engine.enableBlurBox) {
@@ -1047,7 +1060,7 @@ window.setupCanvasDragAndDrop = function() {
 
         const coords = getCanvasCoords(e);
 
-        if (engine.dragTarget === 'logo') {
+     if (engine.dragTarget === 'logo') {
             engine.logoX = coords.x - engine.dragOffsetX;
             engine.logoY = coords.y - engine.dragOffsetY;
         } else if (engine.dragTarget === 'text') {
@@ -1059,13 +1072,17 @@ window.setupCanvasDragAndDrop = function() {
         } else if (engine.dragTarget === 'banner') {
             engine.bannerX = coords.x - engine.dragOffsetX;
             engine.bannerY = coords.y - engine.dragOffsetY;
-        }
-    };
-
-if (engine.dragTarget === 'pip') {
+        } else if (engine.dragTarget === 'pip') {
             engine.pipX = coords.x - engine.dragOffsetX;
             engine.pipY = coords.y - engine.dragOffsetY;
+        } else if (engine.dragTarget === 'sticker' && engine.dragStickerIndex !== undefined) {
+            const stk = engine.stickersList[engine.dragStickerIndex];
+            if (stk) {
+                stk.x = coords.x - engine.dragOffsetX;
+                stk.y = coords.y - engine.dragOffsetY;
+            }
         }
+    };
 
     
     const stopDrag = () => {
@@ -1752,33 +1769,48 @@ window.exportStudioPureAudio = function() {
 };
 
 window.exportStudioFilteredVideo = function() {
-    const video = window.studioEngine.videoElement;
-    const canvas = window.studioEngine.renderCanvas;
+    const e = window.studioEngine;
+    const video = e.videoElement;
+    const canvas = e.renderCanvas;
     const log = document.getElementById('studioStatusLog');
-    if (!video || !canvas) return;
+    
+    if (!video || !canvas) {
+        alert("يرجى اختيار فيديو أولاً!");
+        return;
+    }
 
-    log.textContent = "⏳ جاري تسجيل الفيديو بالكامل... يرجى الانتظار وعدم إغلاق الصفحة";
+    log.textContent = "⏳ جاري بدء تسجيل الفيديو بالكامل... يرجى الانتظار ولا تغلق الصفحة";
 
-    // 1. تجهيز تيار الصوت المصفى
-    const dest = window.studioEngine.audioCtx ? window.studioEngine.audioCtx.createMediaStreamDestination() : null;
-    if (dest && window.studioEngine.gainNode) {
-        window.studioEngine.gainNode.connect(dest);
-        if (window.studioEngine.ambientGainNode) {
-            window.studioEngine.ambientGainNode.connect(dest);
+    // 1. حساب وقت البداية والنهاية الكلية لجميع الكليبات
+    let totalStartTime = 0;
+    let totalEndTime = video.duration;
+
+    if (e.clips && e.clips.length > 0) {
+        totalStartTime = e.clips[0].start;
+        totalEndTime = e.clips[e.clips.length - 1].end;
+    }
+
+    // 2. إعداد تيار الصوت المصفى
+    const dest = e.audioCtx ? e.audioCtx.createMediaStreamDestination() : null;
+    if (dest && e.gainNode) {
+        e.gainNode.connect(dest);
+        if (e.ambientGainNode) {
+            e.ambientGainNode.connect(dest);
         }
     }
 
-    // 2. دمج الصورة من الكانفاس مع الصوت
+    // 3. دمج تيار الفيديو والصوت
     const fps = parseInt(document.getElementById('exportFPS')?.value || 30);
     const canvasStream = canvas.captureStream(fps);
     const tracks = [...canvasStream.getVideoTracks()];
+
     if (dest && dest.stream.getAudioTracks().length > 0) {
         tracks.push(...dest.stream.getAudioTracks());
     }
 
     const combinedStream = new MediaStream(tracks);
 
-    // 3. اختيار الترميز المدعوم
+    // 4. تحديد صيغة التسجيل المدعومة بالمتصفح
     let options = { mimeType: 'video/webm;codecs=vp8,opus' };
     if (!MediaRecorder.isTypeSupported(options.mimeType)) {
         options = { mimeType: 'video/webm' };
@@ -1787,8 +1819,10 @@ window.exportStudioFilteredVideo = function() {
     const recorder = new MediaRecorder(combinedStream, options);
     const chunks = [];
 
-    recorder.ondataavailable = e => {
-        if (e.data && e.data.size > 0) chunks.push(e.data);
+    recorder.ondataavailable = event => {
+        if (event.data && event.data.size > 0) {
+            chunks.push(event.data);
+        }
     };
 
     recorder.onstop = () => {
@@ -1797,37 +1831,43 @@ window.exportStudioFilteredVideo = function() {
         
         const a = document.createElement('a');
         a.href = downloadUrl;
-        a.download = `فيديو_أثر_${Date.now()}.webm`;
+        a.download = `فيديو_أثر_الكامل_${Date.now()}.webm`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
 
-        log.textContent = "🎉 تم تصدير الفيديو كاملاً بنجاح!";
+        log.textContent = "🎉 تم تصدير الفيديو بالكامل بنجاح!";
     };
 
-    // 4. ضبط الفيديو للبداية والتشغيل المضمون
-    const currentClip = window.studioEngine.clips[window.studioEngine.selectedClipIndex];
-    const startTime = currentClip ? currentClip.start : 0;
-    const endTime = currentClip ? currentClip.end : video.duration;
+    // 5. ضبط الفيديو على البداية وبدء التسجيل المستمر
+    e.selectedClipIndex = 0;
+    video.currentTime = totalStartTime;
 
-    video.currentTime = startTime;
-
-    // لبدء التسجيل فقط بعد تأكد تشغيل الفيديو
-    video.onseeked = () => {
+    // استخدام محفز التحديث لضمان عدم توقف التسجيل
+    const onSeekCompleted = () => {
+        video.removeEventListener('seeked', onSeekCompleted);
         video.play();
-        recorder.start(500); // تجميع البيانات كل نص ثانية
+        recorder.start(1000); // تجميع البيانات كل ثانية
+
+        // مراجعة الوقت المتبقي لحين الوصول للنهاية الكلية
+        const checkExportLoop = setInterval(() => {
+            const currentProgress = ((video.currentTime - totalStartTime) / (totalEndTime - totalStartTime)) * 100;
+            log.textContent = `⏳ جاري التصدير... (${Math.min(100, Math.max(0, currentProgress)).toFixed(0)}%)`;
+
+            if (video.currentTime >= totalEndTime || video.ended || video.paused) {
+                // لو أتم الفيديو الوقت المطلوب
+                if (video.currentTime >= totalEndTime - 0.3 || video.ended) {
+                    clearInterval(checkExportLoop);
+                    video.pause();
+                    if (recorder.state === "recording") {
+                        recorder.stop();
+                    }
+                }
+            }
+        }, 300);
     };
 
-    // إيقاف التسجيل فقط لما الفيديو يوصل لنهاية الكليب أو المقطع
-    const timeCheck = setInterval(() => {
-        if (video.currentTime >= endTime || video.ended) {
-            clearInterval(timeCheck);
-            video.pause();
-            if (recorder.state === "recording") {
-                recorder.stop();
-            }
-        }
-    }, 200);
+    video.addEventListener('seeked', onSeekCompleted);
 };
 
 // 🔊 التحكم الحظي في مستوى صوت المؤثر
@@ -1967,21 +2007,44 @@ window.clearAllKeyframes = function() {
 
 
 // 🕌 إضافة ملصق نصي/إيموجي
-window.addTextSticker = function(textSymbol) {
+// 🕌 إضافة ملصق نصي/إيموجي
+// 🕌 إضافة / حذف الملصق السريع بنظام (Toggle) مع إمكانية السحب والتحريك
+window.addQuickSticker = function(symbolText, btnEl) {
     const e = window.studioEngine;
-    const canvas = e.renderCanvas || { width: 1280, height: 720 };
-    
-    e.stickersList.push({
-        id: Date.now(),
-        type: 'text',
-        content: textSymbol,
-        x: canvas.width / 2,
-        y: canvas.height / 2,
-        size: 48,
-        opacity: 1.0
-    });
-    
-    document.getElementById('studioStatusLog').textContent = `✅ تم إضافة الملصق (${textSymbol})! يمكنك سحبه بيدك على الشاشة.`;
+    if (!e.stickersList) e.stickersList = [];
+
+    // 1. الفحص: هل الملصق مضاف حالياً؟
+    const existingIndex = e.stickersList.findIndex(stk => stk.content === symbolText);
+
+    if (existingIndex !== -1) {
+        // 🗑️ لو موجود، احذفه (التراجع)
+        e.stickersList.splice(existingIndex, 1);
+        if (btnEl) {
+            btnEl.style.background = 'var(--card)';
+            btnEl.style.borderColor = 'var(--border)';
+        }
+        document.getElementById('studioStatusLog').textContent = `🗑️ تم إزالة الملصق (${symbolText})`;
+    } else {
+        // ➕ لو مش موجود، ضيفه في منتصف الكانفاس
+        const canvas = e.renderCanvas || { width: 1280, height: 720 };
+        const newSticker = {
+            id: Date.now(),
+            type: 'text',
+            content: symbolText,
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            size: 55,
+            opacity: 1.0
+        };
+
+        e.stickersList.push(newSticker);
+
+        if (btnEl) {
+            btnEl.style.background = 'rgba(212, 175, 55, 0.35)';
+            btnEl.style.borderColor = 'var(--gold)';
+        }
+        document.getElementById('studioStatusLog').textContent = `✨ تم إضافة الملصق! يمكنك سحبه وتحريكه بيدك على الشاشة.`;
+    }
 };
 
 // 🖼️ رفع ملصق صورة مخصص
