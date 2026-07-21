@@ -3074,6 +3074,7 @@ function toggleMenu() {
 
 // دالة التنقل بين الصفحات مع دعم ملء الشاشة الكاملة والعودة للرئيسية
 function showPage(id, el) {
+ document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
     // إغلاق المنيو الجانبي وإخفاء طبقة التعتيم تماماً لفك تجميد الشاشة
   const menu = document.getElementById('tabsMenu');
   const overlay = document.getElementById('menuOverlay');
@@ -3177,7 +3178,6 @@ if(id === 'heartMirrorPage' && typeof window.initHeartMirrorPage === 'function')
  
   updateStats();
 
-document.querySelectorAll('.page, .tab-content').forEach(p => p.style.display = 'none');
  
 }
 
