@@ -235,6 +235,10 @@ window.studioEngine = {
     ambientAudioEl: null
 };
 
+
+
+
+
 // 🎨 1. بناء واجهة الاستوديو ومسرح التايم لاين البصري
 window.renderStudioUI = function() {
     const container = document.getElementById('studioContainer');
@@ -939,6 +943,18 @@ window.handleStudioFileUpload = function(event) {
     const finalizeClip = (dur) => {
         if (!dur || isNaN(dur) || !isFinite(dur)) return;
         window.studioEngine.clips = [{ id: 1, start: 0, end: dur }];
+
+// 👈 ضيف السطرين دول هنا
+    window.studioEngine.renderCanvas.width = video.videoWidth || 1280;
+    window.studioEngine.renderCanvas.height = video.videoHeight || 720;
+    
+    // تشغيل حلقة الرسم المستمرة
+    if (typeof window.startRenderLoop === 'function') {
+        window.startRenderLoop();
+    }
+
+
+        
         window.studioEngine.selectedClipIndex = 0;
         window.renderTimelineUI();
         window.updateStudioLayoutConfig();
@@ -2407,5 +2423,115 @@ window.setCaptionToVideoEnd = function() {
     const startInput = document.getElementById('captionStartInput');
     if (startInput && !startInput.value) {
         startInput.value = v.currentTime.toFixed(1);
+    }
+};
+
+
+
+// 🔄 حلقة الرسم والتحديث المستمر للوقت والكانفاس
+window.startRenderLoop = function () {
+    const engine = window.studioEngine;
+    if (!engine.videoElement || !engine.renderCanvas) return;
+
+    // إلغاء أي حلقة سابقة لتفادي التكرار
+    if (engine.animFrameId) {
+        cancelAnimationFrame(engine.animFrameId);
+    }
+
+    function renderFrame() {
+        if (engine.videoElement && !engine.videoElement.paused && !engine.videoElement.ended) {
+            // 1. إعادة رسم الكانفاس بجميع طبقاته
+            window.drawStudioCanvas();
+            
+            // 2. تحديث التايم لاين بواجهة المستخدم
+            if (typeof window.updatePlayheadPosition === 'function') {
+                window.updatePlayheadPosition(engine.videoElement.currentTime);
+            }
+        }
+        engine.animFrameId = requestAnimationFrame(renderFrame);
+    }
+
+    renderFrame();
+};
+
+
+// 🎨 رسم جميع مكونات الكانفاس بأسلوب الطبقات المتعددة
+window.drawStudioCanvas = function () {
+    const engine = window.studioEngine;
+    const canvas = engine.renderCanvas || document.getElementById('studioCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    engine.renderCtx = ctx;
+
+    const vid = engine.videoElement;
+    if (!vid) return;
+
+    // 1. مسح الكانفاس
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // 2. رسم خلفية الفيديو الأساسي (إذا كانت الطبقة مفعلة)
+    if (engine.layerSettings.video.visible) {
+        ctx.save();
+        // تطبيق الفلاتر والألوان إن وجدت
+        const adj = engine.colorAdjustments;
+        ctx.filter = `brightness(${100 + Number(adj.exposure)}%) contrast(${100 + Number(adj.contrast)}%) saturate(${100 + Number(adj.saturation)}%) hue-rotate(${adj.hue}deg)`;
+        
+        ctx.drawImage(vid, 0, 0, canvas.width, canvas.height);
+        ctx.restore();
+    }
+
+    const currentTime = vid.currentTime;
+
+    // 3. رسم صورة الـ Picture-in-Picture (PiP) إن وجدت
+    if (engine.layerSettings.pip.visible && engine.pipOverlayImage) {
+        ctx.save();
+        ctx.globalAlpha = engine.pipOpacity;
+        ctx.drawImage(engine.pipOverlayImage, engine.pipX, engine.pipY, engine.pipSize, engine.pipSize);
+        ctx.restore();
+    }
+
+    // 4. رسم النصوص الموقوتة (الآيات القرآنية / الكابشنز)
+    if (engine.layerSettings.overlayText.visible && engine.timedCaptions.length > 0) {
+        const activeCaption = engine.timedCaptions.find(c => currentTime >= c.start && currentTime <= c.end);
+        if (activeCaption) {
+            ctx.save();
+            ctx.font = `${engine.textSize}px ${engine.textFont}`;
+            ctx.fillStyle = engine.textColor;
+            ctx.textAlign = "center";
+            
+            // خلفية النص
+            ctx.fillStyle = engine.textBgColor;
+            const textWidth = ctx.measureText(activeCaption.text).width;
+            ctx.fillRect(engine.textX - (textWidth / 2) - 10, engine.textY - engine.textSize, textWidth + 20, engine.textSize + 15);
+
+            // رسم النص
+            ctx.fillStyle = engine.textColor;
+            ctx.fillText(activeCaption.text, engine.textX, engine.textY);
+            ctx.restore();
+        }
+    }
+
+    // 5. رسم الملصقات والرموز السريعة (Stickers)
+    if (engine.layerSettings.stickers.visible && engine.stickersList.length > 0) {
+        engine.stickersList.forEach(sticker => {
+            ctx.save();
+            ctx.globalAlpha = sticker.opacity || 1.0;
+            if (sticker.img) {
+                ctx.drawImage(sticker.img, sticker.x, sticker.y, sticker.size, sticker.size);
+            } else if (sticker.text) {
+                ctx.font = `${sticker.size || 30}px 'Amiri', serif`;
+                ctx.fillStyle = "#d4af37";
+                ctx.fillText(sticker.text, sticker.x, sticker.y);
+            }
+            ctx.restore();
+        });
+    }
+
+    // 6. رسم الشعار (Logo)
+    if (engine.layerSettings.logo.visible && engine.logoImage) {
+        ctx.save();
+        ctx.globalAlpha = engine.logoOpacity;
+        ctx.drawImage(engine.logoImage, engine.logoX, engine.logoY, engine.logoSize, engine.logoSize);
+        ctx.restore();
     }
 };
