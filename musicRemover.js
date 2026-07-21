@@ -302,6 +302,7 @@ window.renderStudioUI = function() {
                 📊 المساحة التقديرية المتوقعة: <span id="estVideoMB" style="color: #4caf50; font-size: 15px;">--</span> MB (فيديو) | <span id="estAudioMB" style="color: #005485; font-size: 15px;">--</span> MB (صوت صافي)
             </div>
 
+
             <!-- 📑 أزرار التابات -->
             <div style="display: flex; gap: 6px; margin-bottom: 15px; border-bottom: 2px solid var(--border); padding-bottom: 10px; overflow-x: auto;">
                 <button onclick="window.switchStudioTab('audioTab')" id="tabBtn_audioTab" class="studio-tab-btn active-tab" style="padding: 8px 14px; border-radius: 8px; background: var(--gold); color: #111; font-weight: bold; border: none; cursor: pointer; font-size: 12px;">🎙️ الصوت والمؤثرات</button>
@@ -315,7 +316,48 @@ window.renderStudioUI = function() {
             
             </div>
 
+<!-- ⚙️ إعدادات التصدير والجودة والـ FPS -->
+<div style="background: var(--bg2); padding: 15px; border-radius: 12px; border: 1px solid var(--gold); margin-bottom: 15px;">
+    <strong style="color: var(--gold); font-size: 14px; display: block; margin-bottom: 10px;">⚙️ إعدادات الجودة والتصدير السريع:</strong>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 12px;">
+        <!-- اختيار الجودة / الأبعاد -->
+        <div>
+            <label style="display:block; color:var(--text2); font-size:11px; margin-bottom:4px;">🎯 جودة الدقة (Resolution):</label>
+            <select id="exportQualitySelect" onchange="window.updateExportEstimates()" style="width:100%; padding:6px; border-radius:6px; background:var(--card); color:var(--text); border:1px solid var(--border); font-size:12px;">
+                <option value="1080">Full HD (1080p) - جودة عالية</option>
+                <option value="720" selected>HD (720p) - متوازنة (موصى بها)</option>
+                <option value="480">SD (480p) - جودة منخفضة (حجم صغير)</option>
+            </select>
+        </div>
 
+        <!-- اختيار الـ FPS -->
+        <div>
+            <label style="display:block; color:var(--text2); font-size:11px; margin-bottom:4px;">🎞️ معدل الفريمات (FPS):</label>
+            <select id="exportFpsSelect" onchange="window.updateExportEstimates()" style="width:100%; padding:6px; border-radius:6px; background:var(--card); color:var(--text); border:1px solid var(--border); font-size:12px;">
+                <option value="60">60 FPS (سلاسة فائقة - حجم أكبر)</option>
+                <option value="30" selected>30 FPS (قياسي - متوازن)</option>
+                <option value="24">24 FPS (سينمائي - توفير مساحة)</option>
+            </select>
+        </div>
+
+        <!-- اختيار المعدل البت / الضغط (Bitrate) -->
+        <div>
+            <label style="display:block; color:var(--text2); font-size:11px; margin-bottom:4px;">🗜️ ضغط الحجم (Bitrate):</label>
+            <select id="exportBitrateSelect" onchange="window.updateExportEstimates()" style="width:100%; padding:6px; border-radius:6px; background:var(--card); color:var(--text); border:1px solid var(--border); font-size:12px;">
+                <option value="5000000">عالي (5 Mbps)</option>
+                <option value="2500000" selected>متوسط (2.5 Mbps)</option>
+                <option value="1000000">منخفض جداً (1 Mbps) - لتصغير الحجم</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- 📊 شريط الحجم التقديري المطور -->
+    <div style="background: #000; padding: 10px; border-radius: 8px; border: 1px solid var(--border); text-align: center; font-size: 13px;">
+        📊 الحجم التقديري المتوقع عند التصدير: 
+        <span id="finalEstSizeMB" style="color: var(--gold); font-weight: bold; font-size: 15px;">-- MB</span>
+    </div>
+</div>
 
 <!-- 🎨 6. تبويب الملصقات والـ Picture-in-Picture -->
 <div id="tabContent_stickersTab" class="studio-tab-content" style="display: none;">
@@ -2534,4 +2576,88 @@ window.drawStudioCanvas = function () {
         ctx.drawImage(engine.logoImage, engine.logoX, engine.logoY, engine.logoSize, engine.logoSize);
         ctx.restore();
     }
+};
+
+
+// =========================================================================
+// 🚀 دالة التصدير السريع وإعدادات الـ FPS والجودة
+// =========================================================================
+
+// 🧮 1. دالة حساب الحجم التقديري بناءً على الـ Bitrate والـ FPS
+window.updateExportEstimates = function () {
+    const engine = window.studioEngine;
+    const vid = engine.videoElement;
+
+    if (!vid || !vid.duration || isNaN(vid.duration)) {
+        const estDisplay = document.getElementById('finalEstSizeMB');
+        if (estDisplay) estDisplay.textContent = "-- MB";
+        return;
+    }
+
+    const durationInSeconds = vid.duration;
+    const bitrate = parseInt(document.getElementById('exportBitrateSelect')?.value || "2500000");
+    const fps = parseInt(document.getElementById('exportFpsSelect')?.value || "30");
+
+    const fpsFactor = fps === 60 ? 1.25 : (fps === 24 ? 0.85 : 1.0);
+    const estimatedBits = bitrate * durationInSeconds * fpsFactor;
+    const estimatedMB = (estimatedBits / (8 * 1024 * 1024)).toFixed(1);
+
+    const estDisplay = document.getElementById('finalEstSizeMB');
+    if (estDisplay) {
+        estDisplay.textContent = `~ ${estimatedMB} MB (${fps} FPS)`;
+    }
+};
+
+// 🎬 2. دالة التصدير النهائي المباشرة (exportFinalVideo)
+window.exportFinalVideo = function () {
+    const engine = window.studioEngine;
+    const canvas = engine.renderCanvas;
+    const vid = engine.videoElement;
+
+    if (!vid) {
+        alert("يرجى اختيار فيديو أولاً!");
+        return;
+    }
+
+    // قراءة إعدادات المستخدم
+    const fps = parseInt(document.getElementById('exportFpsSelect')?.value || "30");
+    const bitrate = parseInt(document.getElementById('exportBitrateSelect')?.value || "2500000");
+
+    // بدء تسجيل الـ Canvas بريمات محددة
+    const stream = canvas.captureStream(fps); 
+    
+    // إضافة الصوت للتسجيل لو متاح
+    if (engine.audioCtx && engine.gainNode) {
+        const dest = engine.audioCtx.createMediaStreamDestination();
+        engine.gainNode.connect(dest);
+        const audioTrack = dest.stream.getAudioTracks()[0];
+        if (audioTrack) stream.addTrack(audioTrack);
+    }
+
+    const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'video/webm;codecs=vp9',
+        videoBitsPerSecond: bitrate
+    });
+
+    const chunks = [];
+    mediaRecorder.ondataavailable = e => chunks.push(e.data);
+    
+    mediaRecorder.onstop = () => {
+        const blob = new Blob(chunks, { type: 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `أثر_${Date.now()}.webm`;
+        a.click();
+        alert("✅ تم تصدير الفيديو بنجاح بأسرع وقت ممكن!");
+    };
+
+    // تشغيل الفيديو وتسجيله
+    vid.currentTime = 0;
+    vid.play();
+    mediaRecorder.start();
+
+    vid.onended = () => {
+        mediaRecorder.stop();
+    };
 };
