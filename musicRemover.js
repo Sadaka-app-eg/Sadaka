@@ -555,7 +555,10 @@ window.renderStudioUI = function() {
 <div style="display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;">
     <input type="text" id="captionTextInput" placeholder="اكتب الآية هنا (مثلاً: ﴿إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ﴾)" style="flex: 2; padding: 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--card); color: var(--text); font-family: 'Amiri', serif;" />
     <input type="number" id="captionStartInput" placeholder="من (ثانية)" step="0.1" style="width: 80px; padding: 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--card); color: var(--text);" />
+    <div style="display: flex; align-items: center; gap: 4px;">
     <input type="number" id="captionEndInput" placeholder="إلى (ثانية)" step="0.1" style="width: 80px; padding: 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--card); color: var(--text);" />
+    <button onclick="window.setCaptionToVideoEnd()" style="background: var(--card); color: var(--gold); border: 1px solid var(--gold); padding: 8px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold;" title="تحديد حتى نهاية الفيديو تلقائيًا">🎬 للنهاية</button>
+</div>
     <button onclick="window.addTimedCaption()" style="background: var(--gold); color: #111; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; cursor: pointer;">➕ إضافة الآية</button>
 </div>
 
@@ -2295,5 +2298,26 @@ window.handleCustomFontUpload = async function(event) {
         document.getElementById('studioStatusLog').textContent = "✅ تم تحميل خطك الخاص وتطبيقه بنجاح!";
     } catch (err) {
         alert("⚠️ تعذر تحميل ملف الخط، يرجى التأكد من بصيغته (.ttf أو .otf)");
+    }
+};
+
+
+// 🎬 1. زرار الضغط المباشر لتحديد الوقت حتى نهاية الفيديو
+window.setCaptionToVideoEnd = function() {
+    const v = window.studioEngine.videoElement;
+    if (!v) {
+        alert("يرجى اختيار فيديو أولاً!");
+        return;
+    }
+    // وضع نهاية الكليب الحالي أو نهاية الفيديو ككل
+    const currentClip = window.studioEngine.clips[window.studioEngine.selectedClipIndex];
+    const endTime = currentClip ? currentClip.end : v.duration;
+    
+    document.getElementById('captionEndInput').value = endTime.toFixed(1);
+    
+    // لو خانة البداية فاضية، نحط الوقت الحالي للفيديو تلقائيًا!
+    const startInput = document.getElementById('captionStartInput');
+    if (startInput && !startInput.value) {
+        startInput.value = v.currentTime.toFixed(1);
     }
 };
