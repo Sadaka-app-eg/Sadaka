@@ -512,12 +512,17 @@ window.renderStudioUI = function() {
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; font-size: 12px; margin-bottom: 15px;">
                         <div>
                             <label style="display:block; color:var(--text2); margin-bottom:4px;">نوع الخط العربي:</label>
-                            <select id="studioFontFamily" onchange="window.updateStudioTextConfig()" style="width:100%; padding:6px; border-radius:6px; background:var(--card); color:var(--text); border:1px solid var(--border);">
-                                <option value="'Amiri', serif">خط أميري (مصحفي)</option>
-                                <option value="'Cairo', sans-serif">خط القاهرة (حديث)</option>
-                                <option value="'Tajawal', sans-serif">خط تجوال (ناعم)</option>
-                                <option value="'Reem Kufi', sans-serif">خط كوفي (عريق)</option>
-                            </select>
+                            <select id="studioFontFamily" onchange="window.updateStudioTextConfig()" style="width:100%; padding:6px; border-radius:6px; background:var(--card); color:var(--text); border:1px solid var(--border); margin-bottom: 6px;">
+    <option value="'Amiri', serif">خط أميري (مصحفي)</option>
+    <option value="'Cairo', sans-serif">خط القاهرة (حديث)</option>
+    <option value="'Tajawal', sans-serif">خط تجوال (ناعم)</option>
+    <option value="'Reem Kufi', sans-serif">خط كوفي (عريق)</option>
+    <option value="'Aref Ruqaa', serif">خط رقعة (عربي)</option>
+    <option value="'Almarai', sans-serif">خط المراعي (أنيق)</option>
+    <option value="'Noto Naskh Arabic', serif">خط النسخ (واضح)</option>
+</select>
+<label style="display:block; color:var(--gold); font-size:11px; margin-bottom:2px;">📂 أو ارفع خط خاص من جهازك (.ttf/.otf):</label>
+<input type="file" accept=".ttf,.otf,.woff,.woff2" onchange="window.handleCustomFontUpload(event)" style="font-size:10px; color:var(--text); width:100%;" />
                         </div>
                         <div>
                             <label style="display:block; color:var(--text2); margin-bottom:4px;">حجم الخط:</label>
@@ -2263,4 +2268,32 @@ window.removeTimedCaption = function(id) {
     const e = window.studioEngine;
     e.timedCaptions = e.timedCaptions.filter(c => c.id !== id);
     window.renderTimedCaptionsUI();
+};
+
+
+// 🔤 رفع وتحميل خط مخصص من الجهاز (.ttf / .otf)
+window.handleCustomFontUpload = async function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    try {
+        const fontName = 'CustomFont_' + Date.now();
+        const arrayBuffer = await file.arrayBuffer();
+        const font = new FontFace(fontName, arrayBuffer);
+        await font.load();
+        document.fonts.add(font);
+
+        // إضافة الخط المرفوع للقائمة واختياره تلقائياً
+        const select = document.getElementById('studioFontFamily');
+        const option = document.createElement('option');
+        option.value = fontName;
+        option.textContent = `✨ خطك المخصص (${file.name.split('.')[0]})`;
+        option.selected = true;
+        select.appendChild(option);
+
+        window.studioEngine.textFont = fontName;
+        document.getElementById('studioStatusLog').textContent = "✅ تم تحميل خطك الخاص وتطبيقه بنجاح!";
+    } catch (err) {
+        alert("⚠️ تعذر تحميل ملف الخط، يرجى التأكد من بصيغته (.ttf أو .otf)");
+    }
 };
