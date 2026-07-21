@@ -917,6 +917,7 @@ window.setTransition = function(clipIdx, type) {
 
 // 📂 معالجة رفع الفيديو
 // 📂 معالجة رفع الفيديو
+// 📂 معالجة رفع الفيديو بضمان قراءة المدة الحقيقية (Reliable Duration Handling)
 window.handleStudioFileUpload = function(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -934,14 +935,44 @@ window.handleStudioFileUpload = function(event) {
 
     document.getElementById('studioWorkArea').style.display = 'block';
 
-    video.onloadeddata = () => {
-        window.studioEngine.clips = [{ id: 1, start: 0, end: video.duration }];
+    // 🎯 دالة إنهاء إعداد الكليب بعد التأكد من صحة الـ Duration
+    const finalizeClip = (dur) => {
+        if (!dur || isNaN(dur) || !isFinite(dur)) return;
+        window.studioEngine.clips = [{ id: 1, start: 0, end: dur }];
         window.studioEngine.selectedClipIndex = 0;
         window.renderTimelineUI();
         window.updateStudioLayoutConfig();
         window.updateEstimatedSize();
-        // 🚀 بدء محرك الرسم فوراً حتى أثناء إيقاف الفيديو لرؤية الملصقات والنصوص لحظياً
-        window.startCanvasRenderLoop();
+        window.drawSingleStudioFrame();
+    };
+
+    video.onloadeddata = () => {
+        // أ) لو المدة صحيحة وموجودة فوراً
+        if (isFinite(video.duration) && video.duration > 0) {
+            finalizeClip(video.duration);
+            return;
+        }
+
+        // ب) لو المدة لسه مش جاهزة، ننتظر حدث durationchange
+        const onDurationChange = () => {
+            if (isFinite(video.duration) && video.duration > 0) {
+                video.removeEventListener('durationchange', onDurationChange);
+                finalizeClip(video.duration);
+            }
+        };
+        video.addEventListener('durationchange', onDurationChange);
+
+        // جـ) حيلة احتياطية لبعض صيغ WebM/MKV التي ترجع Infinity
+        if (!isFinite(video.duration)) {
+            video.currentTime = 1e10; // القفز لأخر الفيديو لإجبار المتصفح على حساب مدته
+            video.ontimeupdate = () => {
+                video.ontimeupdate = null;
+                video.currentTime = 0;
+                if (isFinite(video.duration) && video.duration > 0) {
+                    finalizeClip(video.duration);
+                }
+            };
+        }
     };
 
     video.onplay = () => {
@@ -949,6 +980,7 @@ window.handleStudioFileUpload = function(event) {
         if (window.studioEngine.ambientAudioEl) {
             window.studioEngine.ambientAudioEl.play();
         }
+        window.startCanvasRenderLoop();
         window.drawAudioWaveform();
     };
 
@@ -1421,17 +1453,17 @@ window.startCanvasRenderLoop = function() {
         // 1. التحكم بحدود الكليب (التايم لاين) فقط أثناء التشغيل
         if (!video.paused && !video.ended) {
             const currentClip = e.clips[e.selectedClipIndex];
-            if (currentClip && video.currentTime >= currentClip.end) {
-                if (e.selectedClipIndex < e.clips.length - 1) {
-                    e.selectedClipIndex++;
-                    video.currentTime = e.clips[e.selectedClipIndex].start;
-                    window.renderTimelineUI();
-                } else {
-                    video.currentTime = e.clips[0].start;
-                    e.selectedClipIndex = 0;
-                    window.renderTimelineUI();
-                }
-            }
+           if (currentClip && video.currentTime >= (currentClip.end - 0.05)) {
+    if (e.selectedClipIndex < e.clips.length - 1) {
+        e.selectedClipIndex++;
+        video.currentTime = e.clips[e.selectedClipIndex].start;
+        window.renderTimelineUI();
+    } else {
+        video.currentTime = e.clips[0].start;
+        e.selectedClipIndex = 0;
+        window.renderTimelineUI();
+    }
+}
         }
 
         const currentClip = e.clips[e.selectedClipIndex];
@@ -1768,106 +1800,103 @@ window.exportStudioPureAudio = function() {
     }, 500);
 };
 
-window.exportStudioFilteredVideo = function() {
-    const e = window.studioEngine;
-    const video = e.videoElement;
-    const canvas = e.renderCanvas;
+window.exportStudioFilteredVideo = async function() {
+    const video = window.studioEngine.videoElement;
+    const canvas = window.studioEngine.renderCanvas;
     const log = document.getElementById('studioStatusLog');
-    
-    if (!video || !canvas) {
-        alert("يرجى اختيار فيديو أولاً!");
+
+    if (!video || !canvas || !video.src) {
+        alert("⚠️ يرجى رفع مقطع فيديو أولاً قبل بدء التصدير!");
         return;
     }
 
-    log.textContent = "⏳ جاري بدء تسجيل الفيديو بالكامل... يرجى الانتظار ولا تغلق الصفحة";
+    log.textContent = "⏳ جاري تسجِيل وتصدير الفيديو بالكامل... يرجى الانتظار دون إغلاق الصفحة";
 
-    // 1. حساب وقت البداية والنهاية الكلية لجميع الكليبات
-    let totalStartTime = 0;
-    let totalEndTime = video.duration;
+    try {
+        // 1. تشغيل الفيديو مباشرة أثناء سياق ضغطة المستخدم (Synchronous User Activation)
+        const currentClip = window.studioEngine.clips[window.studioEngine.selectedClipIndex];
+        const startTime = currentClip ? currentClip.start : 0;
+        const endTime = currentClip ? currentClip.end : video.duration;
 
-    if (e.clips && e.clips.length > 0) {
-        totalStartTime = e.clips[0].start;
-        totalEndTime = e.clips[e.clips.length - 1].end;
-    }
+        video.currentTime = startTime;
+        await video.play(); // تشغيل فوري لتفادي حظر الـ Autoplay
 
-    // 2. إعداد تيار الصوت المصفى
-    const dest = e.audioCtx ? e.audioCtx.createMediaStreamDestination() : null;
-    if (dest && e.gainNode) {
-        e.gainNode.connect(dest);
-        if (e.ambientGainNode) {
-            e.ambientGainNode.connect(dest);
+        // 2. تجهيز الصوت المصفى
+        const dest = window.studioEngine.audioCtx ? window.studioEngine.audioCtx.createMediaStreamDestination() : null;
+        if (dest && window.studioEngine.gainNode) {
+            window.studioEngine.gainNode.connect(dest);
+            if (window.studioEngine.ambientGainNode) {
+                window.studioEngine.ambientGainNode.connect(dest);
+            }
         }
-    }
 
-    // 3. دمج تيار الفيديو والصوت
-    const fps = parseInt(document.getElementById('exportFPS')?.value || 30);
-    const canvasStream = canvas.captureStream(fps);
-    const tracks = [...canvasStream.getVideoTracks()];
+        const fps = parseInt(document.getElementById('exportFPS')?.value || 30);
+        const canvasStream = canvas.captureStream(fps);
+        const combinedTracks = [...canvasStream.getVideoTracks()];
 
-    if (dest && dest.stream.getAudioTracks().length > 0) {
-        tracks.push(...dest.stream.getAudioTracks());
-    }
-
-    const combinedStream = new MediaStream(tracks);
-
-    // 4. تحديد صيغة التسجيل المدعومة بالمتصفح
-    let options = { mimeType: 'video/webm;codecs=vp8,opus' };
-    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-        options = { mimeType: 'video/webm' };
-    }
-
-    const recorder = new MediaRecorder(combinedStream, options);
-    const chunks = [];
-
-    recorder.ondataavailable = event => {
-        if (event.data && event.data.size > 0) {
-            chunks.push(event.data);
+        if (dest && dest.stream.getAudioTracks().length > 0) {
+            combinedTracks.push(...dest.stream.getAudioTracks());
         }
-    };
 
-    recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: 'video/webm' });
-        const downloadUrl = URL.createObjectURL(blob);
-        
-        const a = document.createElement('a');
-        a.href = downloadUrl;
-        a.download = `فيديو_أثر_الكامل_${Date.now()}.webm`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        const combinedStream = new MediaStream(combinedTracks);
 
-        log.textContent = "🎉 تم تصدير الفيديو بالكامل بنجاح!";
-    };
+        // 3. دعم الفولباك التلقائي لـ MP4/WebM لجميع الشاشات
+        let options = { mimeType: 'video/webm;codecs=vp8,opus' };
+        if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+            if (MediaRecorder.isTypeSupported('video/mp4')) {
+                options = { mimeType: 'video/mp4' };
+            } else if (MediaRecorder.isTypeSupported('video/webm')) {
+                options = { mimeType: 'video/webm' };
+            } else {
+                options = {};
+            }
+        }
 
-    // 5. ضبط الفيديو على البداية وبدء التسجيل المستمر
-    e.selectedClipIndex = 0;
-    video.currentTime = totalStartTime;
+        const recorder = new MediaRecorder(combinedStream, options);
+        const chunks = [];
 
-    // استخدام محفز التحديث لضمان عدم توقف التسجيل
-    const onSeekCompleted = () => {
-        video.removeEventListener('seeked', onSeekCompleted);
-        video.play();
-        recorder.start(1000); // تجميع البيانات كل ثانية
+        recorder.ondataavailable = e => {
+            if (e.data && e.data.size > 0) chunks.push(e.data);
+        };
 
-        // مراجعة الوقت المتبقي لحين الوصول للنهاية الكلية
-        const checkExportLoop = setInterval(() => {
-            const currentProgress = ((video.currentTime - totalStartTime) / (totalEndTime - totalStartTime)) * 100;
-            log.textContent = `⏳ جاري التصدير... (${Math.min(100, Math.max(0, currentProgress)).toFixed(0)}%)`;
+        recorder.onstop = () => {
+            const mimeType = recorder.mimeType || 'video/webm';
+            const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
+            const blob = new Blob(chunks, { type: mimeType });
+            const downloadUrl = URL.createObjectURL(blob);
 
-            if (video.currentTime >= totalEndTime || video.ended || video.paused) {
-                // لو أتم الفيديو الوقت المطلوب
-                if (video.currentTime >= totalEndTime - 0.3 || video.ended) {
-                    clearInterval(checkExportLoop);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = downloadUrl;
+            a.download = `فيديو_أثر_${Date.now()}.${ext}`;
+            document.body.appendChild(a);
+            a.click();
+
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(downloadUrl);
+            }, 1000);
+
+            log.textContent = "🎉 تم تصدير الفيديو وتنزيله بنجاح!";
+        };
+
+        recorder.start(200);
+
+        // 4. مراقبة انتهاء المقطع
+        const timeCheck = setInterval(() => {
+            if (video.currentTime >= endTime || video.ended) {
+                clearInterval(timeCheck);
+                if (recorder.state === "recording") {
+                    recorder.stop();
                     video.pause();
-                    if (recorder.state === "recording") {
-                        recorder.stop();
-                    }
                 }
             }
-        }, 300);
-    };
+        }, 200);
 
-    video.addEventListener('seeked', onSeekCompleted);
+    } catch (err) {
+        console.error("خطأ التصدير:", err);
+        log.textContent = "❌ حدث خطأ أثناء التصدير، حاول مرة أخرى.";
+    }
 };
 
 // 🔊 التحكم الحظي في مستوى صوت المؤثر
