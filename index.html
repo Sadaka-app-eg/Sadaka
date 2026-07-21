@@ -2064,7 +2064,7 @@ body.hide-controls #quran {
 </div>
 
 <!-- 🚀 تبويب مزيد من تطبيقاتنا -->
-<div id="tabContent_moreAppsTab" class="tab-content" style="display: none; padding: 20px;">
+<div id="moreAppsTab" class="page tab-content" style="display: none; padding: 20px;">
     <div style="max-width: 600px; margin: 0 auto; text-align: center;">
         
         <h2 style="color: var(--gold); font-family: 'Amiri', serif; margin-bottom: 20px;">📱 منظومة تطبيقات أثر الرقمية</h2>
@@ -2095,7 +2095,6 @@ body.hide-controls #quran {
 
     </div>
 </div>
-
  
 <!-- OVERLAY DIMMER -->
 <div class="overlay-dimmer" id="overlayDimmer" onclick="closeActionMenu()"></div>
@@ -3197,6 +3196,9 @@ if(id === 'heartMirrorPage' && typeof window.initHeartMirrorPage === 'function')
   }
  if (id === 'lecturesPage' && typeof renderLectures === 'function') {
         renderLectures();
+    }
+ if(id === 'moreAppsTab') {
+        // صفحة مزيد من تطبيقاتنا جاهزة وتعمل بنجاح
     }
   updateStats();
 }
