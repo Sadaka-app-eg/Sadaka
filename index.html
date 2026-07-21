@@ -940,7 +940,7 @@ body.hide-controls #quran {
   <div class="tab" onclick="showPage('shareAppPage', this)">💝 ساهم في تطوير التطبيق</div>
 <div class="tab" onclick="showPage('heartMirrorPage',this)">🪞 مرآة القلب</div>
 <div class="tab" onclick="showPage('downloadsManagerPage',this)">📥 إدارة التنزيلات</div>
-<div class="tab" onclick="showPage('studioPage',this)">🎬 استوديو تنقية الفيديوهات والمقاطع</div>
+<div class="tab" onclick="showPage('moreAppsTab', this)">🚀 مزيد من تطبيقاتنا</div> 
  
 </div>
 
@@ -2062,6 +2062,40 @@ body.hide-controls #quran {
   
   <div id="studioContainer"></div>
 </div>
+
+<!-- 🚀 تبويب مزيد من تطبيقاتنا -->
+<div id="tabContent_moreAppsTab" class="tab-content" style="display: none; padding: 20px;">
+    <div style="max-width: 600px; margin: 0 auto; text-align: center;">
+        
+        <h2 style="color: var(--gold); font-family: 'Amiri', serif; margin-bottom: 20px;">📱 منظومة تطبيقات أثر الرقمية</h2>
+        
+        <!-- كارت استوديو أثر -->
+        <div style="background: var(--card); border: 2px solid var(--gold); border-radius: 16px; padding: 25px; box-shadow: 0 8px 25px rgba(0,0,0,0.3); position: relative; overflow: hidden; text-align: right; margin-bottom: 20px;">
+            <span style="position: absolute; top: 12px; left: 12px; background: var(--gold); color: #111; font-size: 10px; font-weight: bold; padding: 4px 10px; border-radius: 20px;">إصدار النخبة 2.0 🎬</span>
+            
+            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                <span style="font-size: 40px; background: rgba(212,175,55,0.1); padding: 10px; border-radius: 12px;">🎬</span>
+                <div>
+                    <h3 style="margin: 0; color: var(--gold); font-size: 20px;">اسْتُودْيُو أثَرٍ السينمائي المتقدم</h3>
+                    <p style="margin: 5px 0 0 0; color: var(--text2); font-size: 12px;">أقوى محرر ريلز ومقاطع دعوية متكامل لإنتاج المحتوى الهادف</p>
+                </div>
+            </div>
+
+            <ul style="color: var(--text); font-size: 13px; line-height: 1.8; margin-bottom: 20px; padding-right: 20px;">
+                <li>✨ واجهة سينمائية متطورة ومصممة خصيصاً للشاشة الكاملة.</li>
+                <li>📖 نظام ذكي لدمج ورسم آيات القرآن الموقوتة بدقة بالثواني.</li>
+                <li>🎙️ هندسة صوتية متكاملة لفلترة وترميم الصوت والصدى أوفلاين.</li>
+                <li>🤖 تقنيات ذكاء اصطناعي حديثة ومتطورة لخدمة صانعي المحتوى.</li>
+            </ul>
+
+            <a href="studio.html" target="_blank" style="display: block; text-align: center; background: var(--gold); color: #111; font-weight: bold; padding: 14px; border-radius: 10px; text-decoration: none; font-size: 15px; box-shadow: 0 4px 15px rgba(212,175,55,0.3);">
+                🚀 إطلاق وتشغيل استوديو أثر في شاشة كاملة
+            </a>
+        </div>
+
+    </div>
+</div>
+
  
 <!-- OVERLAY DIMMER -->
 <div class="overlay-dimmer" id="overlayDimmer" onclick="closeActionMenu()"></div>
@@ -2240,11 +2274,11 @@ const azkarData = {
       source:'رواه أبو داود وصححه الألباني'
     },
     {
-      title:'اللهم إني أسألك العفو والعافية',
-      text:'اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَفْوَ وَالْعَافِيَةَ فِي الدُّنْيَا وَالْآخِرَةِ، اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَفْوَ وَالْعَافِيَةَ فِي دِينِي وَدُنْيَايَ وَأَهْلِي وَمَالِي',
+      title:'طلب العفو والعافية',
+      text:'اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَفْوَ وَالْعَافِيَةَ فِي الدُّنْيَا وَالْآخِرَةِ، اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَفْوَ وَالْعَافِيَةَ فِي دِينِي وَدُنْيَايَ وَأَهْلِي وَمَالِي، اللَّهُمَّ استُرْ عَوْرَاتِي وَآمِنْ رَوْعَاتِي، اللَّهُمَّ احْفَظْنِي من بين يديَّ ومن خلفي وعن يميني وعن شمالي ومن فوقي، وأعوذُ بعظمتِك أن أُغتالَ من تحتي',
       count:1,
-      hadith:'ما سُئل الله شيئًا أحب إليه من المسألة بالعافية',
-      source:'رواه أبو داود وابن ماجه وصححه الألباني'
+      hadith:'لم يكن رسول الله ﷺ يدع هؤلاء الدعوات حين يصبح وحين يمسي',
+      source:'رواه أبو داود والنسائي وصححه الألباني'
     },
     {
       title:'اللهم أنت ربي لا إله إلا أنت',
@@ -2547,9 +2581,9 @@ const azkarData = {
       hadith:'من قال ذلك غُفرت خطاياه وإن كانت مثل زبد البحر',
       source:'رواه مسلم'
     },
-    {
+ {
       title:'آية الكرسي',
-      text:'اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ... (الآية الكاملة)',
+      text:'اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ ۚ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ ۚ لَّهُ مَا فِي السَّمَاوَاتِ وَمَا فِي الْأَرْضِ ۗ مَن ذَا الَّذِي يَشْفَعُ عِندَهُ إِلَّا بِإِذْنِهِ ۚ يَعْلَمُ مَا بَيْنَ أَيْدِيهِمْ وَمَا خَلْفَهُمْ ۖ وَلَا يُحِيطُونَ بِشَيْءٍ مِّنْ عِلْمِهِ إِلَّا بِمَا شَاءَ ۚ وَسِعَ كُرْسِيُّهُ السَّمَاوَاتِ وَالْأَرْضَ ۖ وَلَا يَئُودُهُ حِفْظُهُمَا ۚ وَهُوَ الْعَلِيُّ الْعَظِيمُ',
       count:1,
       hadith:'من قرأها في دبر كل صلاة مكتوبة لم يمنعه من دخول الجنة إلا أن يموت',
       source:'رواه النسائي وصححه الألباني'
