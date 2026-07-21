@@ -3200,7 +3200,12 @@ if(id === 'heartMirrorPage' && typeof window.initHeartMirrorPage === 'function')
  if(id === 'moreAppsTab') {
         // صفحة مزيد من تطبيقاتنا جاهزة وتعمل بنجاح
     }
+
+ 
   updateStats();
+
+document.querySelectorAll('.page, .tab-content').forEach(p => p.style.display = 'none');
+ 
 }
 
   
