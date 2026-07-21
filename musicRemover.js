@@ -2608,7 +2608,10 @@ window.updateExportEstimates = function () {
     }
 };
 
-// 🎬 2. دالة التصدير النهائي المباشرة (exportFinalVideo)
+// =========================================================================
+// 🚀 دالة التصدير السريع + إصلاح شريط الوقت والمدّة (Metadata Duration Fix)
+// =========================================================================
+
 window.exportFinalVideo = function () {
     const engine = window.studioEngine;
     const canvas = engine.renderCanvas;
@@ -2619,14 +2622,15 @@ window.exportFinalVideo = function () {
         return;
     }
 
-    // قراءة إعدادات المستخدم
+    vid.loop = false;
+
     const fps = parseInt(document.getElementById('exportFpsSelect')?.value || "30");
     const bitrate = parseInt(document.getElementById('exportBitrateSelect')?.value || "2500000");
 
-    // بدء تسجيل الـ Canvas بريمات محددة
+    vid.muted = false;
+
     const stream = canvas.captureStream(fps); 
     
-    // إضافة الصوت للتسجيل لو متاح
     if (engine.audioCtx && engine.gainNode) {
         const dest = engine.audioCtx.createMediaStreamDestination();
         engine.gainNode.connect(dest);
@@ -2634,30 +2638,83 @@ window.exportFinalVideo = function () {
         if (audioTrack) stream.addTrack(audioTrack);
     }
 
-    const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'video/webm;codecs=vp9',
-        videoBitsPerSecond: bitrate
-    });
+    const options = { videoBitsPerSecond: bitrate };
+    if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) {
+        options.mimeType = 'video/webm;codecs=vp9';
+    } else if (MediaRecorder.isTypeSupported('video/webm')) {
+        options.mimeType = 'video/webm';
+    }
 
+    const mediaRecorder = new MediaRecorder(stream, options);
     const chunks = [];
-    mediaRecorder.ondataavailable = e => chunks.push(e.data);
+
+    // ⏱️ تسجيل وقت البداية لإصلاح Duration بالضبط
+    const startTime = Date.now();
+
+    mediaRecorder.ondataavailable = e => {
+        if (e.data && e.data.size > 0) chunks.push(e.data);
+    };
     
+    const progressContainer = document.getElementById('estimatedSizeDisplay');
+
+    // سرعة تشغيل أسرع للتصدير
+    const speedMultiplier = 2.0; 
+    vid.playbackRate = speedMultiplier;
+
+    const progressInterval = setInterval(() => {
+        if (!vid.duration) return;
+        const percent = Math.min(100, Math.floor((vid.currentTime / vid.duration) * 100));
+        const currentTimeSec = vid.currentTime.toFixed(1);
+        const totalTimeSec = vid.duration.toFixed(1);
+
+        if (progressContainer) {
+            progressContainer.innerHTML = `⏳ جاري تسجيل الفيديو الفائق: <strong style="color:var(--gold);">${percent}%</strong> (${currentTimeSec}s / ${totalTimeSec}s)`;
+        }
+    }, 150);
+
+    // عند الانتهاء النهائي للتصدير
     mediaRecorder.onstop = () => {
-        const blob = new Blob(chunks, { type: 'video/webm' });
+        clearInterval(progressInterval);
+        vid.playbackRate = 1.0;
+
+        // 🎯 حساب الوقت الفعلي الحقيقي بالفيمثانية للملف الأصلي
+        const durationInMillis = (vid.duration || (Date.now() - startTime) / 1000) * 1000;
+        const rawBlob = new Blob(chunks, { type: options.mimeType || 'video/webm' });
+
+        // 🔧 إصلاح Duration باستخدام المكتبة قبل التحميل
+        if (typeof ysFixWebmDuration === 'function') {
+            ysFixWebmDuration(rawBlob, durationInMillis, function(fixedBlob) {
+                downloadBlob(fixedBlob, options.mimeType);
+            });
+        } else {
+            // في حالة عدم توفر المكتبة يتم التحميل المباشر
+            downloadBlob(rawBlob, options.mimeType);
+        }
+    };
+
+    function downloadBlob(blob, mimeType) {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `أثر_${Date.now()}.webm`;
+        a.download = `فيديو_معدل_${Date.now()}.webm`;
         a.click();
-        alert("✅ تم تصدير الفيديو بنجاح بأسرع وقت ممكن!");
-    };
 
-    // تشغيل الفيديو وتسجيله
+        if (progressContainer) {
+            progressContainer.innerHTML = `✅ تم التصدير والتنزيل بنجاح 100%!`;
+        }
+    }
+
     vid.currentTime = 0;
-    vid.play();
-    mediaRecorder.start();
+    
+    vid.play().then(() => {
+        mediaRecorder.start();
+    }).catch(err => {
+        alert("حدث خطأ أثناء بدء التشغيل للتصدير: " + err.message);
+    });
 
     vid.onended = () => {
-        mediaRecorder.stop();
+        if (mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+        }
     };
 };
