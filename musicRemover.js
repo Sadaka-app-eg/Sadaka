@@ -90,7 +90,8 @@ window.studioEngine = {
     analyserNode: null,
     isOriginal: false,
     originalFileSize: 0,
-
+// 📖 مصفوفة آيات القرآن والنصوص الموقوتة
+    timedCaptions: [], // [{ id, text, start, end }]
     // 🆕 خصائص الدفعة الثالثة (Stickers & PiP Overlay)
     stickersList: [], // [{ id, text, img, x, y, size, opacity }]
     pipOverlayImage: null,
@@ -539,6 +540,26 @@ window.renderStudioUI = function() {
                             <input type="range" id="logoSizeSlider" min="40" max="250" value="100" oninput="window.updateLogoSize(this.value)" style="width:100%; accent-color:var(--gold);">
                         </div>
                     </div>
+
+
+
+<hr style="border:none; border-top:1px solid var(--border); margin: 15px 0;" />
+
+<!-- 📖 قسم إضافة آيات القرآن الموقوتة -->
+<strong style="color: var(--gold); font-size: 14px; display: block; margin-bottom: 8px;">📖 إضافة آيات قرآنية موقوتة (لأقاطع الريلز):</strong>
+<div style="display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;">
+    <input type="text" id="captionTextInput" placeholder="اكتب الآية هنا (مثلاً: ﴿إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ﴾)" style="flex: 2; padding: 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--card); color: var(--text); font-family: 'Amiri', serif;" />
+    <input type="number" id="captionStartInput" placeholder="من (ثانية)" step="0.1" style="width: 80px; padding: 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--card); color: var(--text);" />
+    <input type="number" id="captionEndInput" placeholder="إلى (ثانية)" step="0.1" style="width: 80px; padding: 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--card); color: var(--text);" />
+    <button onclick="window.addTimedCaption()" style="background: var(--gold); color: #111; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; cursor: pointer;">➕ إضافة الآية</button>
+</div>
+
+<!-- قائمة الآيات المضافة -->
+<div id="timedCaptionsList" style="max-height: 150px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;"></div>
+
+
+
+                    
                 </div>
             </div>
 
@@ -1576,13 +1597,30 @@ window.startCanvasRenderLoop = function() {
             }
         }
 
-        // ✍️ رسم النص الرئيسي (مع فحص زر الإظهار 👁️)
+      // ✍️ 1. رسم النص الرئيسي الثابت (إن وجد)
         const isTextVisible = e.layerSettings && e.layerSettings.overlayText ? e.layerSettings.overlayText.visible : true;
         if (e.overlayText && isTextVisible) {
             ctx.fillStyle = e.textBgColor;
             ctx.font = `bold ${e.textSize * (canvas.width / 800)}px ${e.textFont}`;
             ctx.textAlign = "center";
             ctx.fillText(e.overlayText, e.textX, e.textY);
+        }
+
+        // 📖 2. رسم آية القرآن الموقوتة بحسب الثانية الحالية للفيديو
+        if (e.timedCaptions && e.timedCaptions.length > 0 && isTextVisible) {
+            const currentTime = video.currentTime;
+            const currentCaption = e.timedCaptions.find(c => currentTime >= c.start && currentTime <= c.end);
+            
+            if (currentCaption) {
+                ctx.save();
+                ctx.fillStyle = e.textColor || "#ffffff";
+                ctx.font = `bold ${e.textSize * (canvas.width / 700)}px ${e.textFont}`;
+                ctx.textAlign = "center";
+                ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
+                ctx.shadowBlur = 10;
+                ctx.fillText(currentCaption.text, e.textX, e.textY);
+                ctx.restore();
+            }
         }
 
         // 🖼️ رسم اللوجو (مع فحص زر الإظهار 👁️)
@@ -1617,6 +1655,9 @@ window.startCanvasRenderLoop = function() {
 
     if (e.animFrameId) cancelAnimationFrame(e.animFrameId);
     drawFrame();
+
+
+    
 };
 
 window.updateEstimatedSize = function() {
@@ -2176,4 +2217,50 @@ window.switchStudioTab = function(tabId) {
     if (tabId === 'layersTab') {
         window.renderLayersUI();
     }
+};
+// 📖 إضافة آية قرآنية موقوتة
+window.addTimedCaption = function() {
+    const e = window.studioEngine;
+    const text = document.getElementById('captionTextInput')?.value;
+    const start = parseFloat(document.getElementById('captionStartInput')?.value);
+    const end = parseFloat(document.getElementById('captionEndInput')?.value);
+
+    if (!text || isNaN(start) || isNaN(end)) {
+        alert("يرجى كتابة النص وتحديد بداية ونهاية الوقت بالثواني!");
+        return;
+    }
+
+    e.timedCaptions.push({
+        id: Date.now(),
+        text: text,
+        start: start,
+        end: end
+    });
+
+    // ترتيب الآيات زمنيّاً
+    e.timedCaptions.sort((a, b) => a.start - b.start);
+
+    document.getElementById('captionTextInput').value = '';
+    window.renderTimedCaptionsUI();
+    document.getElementById('studioStatusLog').textContent = "📖 تم إضافة الآية الموقوتة بنجاح!";
+};
+
+// 📋 عرض قائمة الآيات المضافة وإمكانية حذفها
+window.renderTimedCaptionsUI = function() {
+    const container = document.getElementById('timedCaptionsList');
+    if (!container) return;
+
+    const e = window.studioEngine;
+    container.innerHTML = e.timedCaptions.map((c, idx) => `
+        <div style="display:flex; justify-content:space-between; align-items:center; background:var(--card); padding:6px 10px; border-radius:6px; border:1px solid var(--border); font-size:11px;">
+            <span style="color:var(--gold); font-family:'Amiri', serif;">${c.text} <b style="color:var(--text2);">(${c.start}s - ${c.end}s)</b></span>
+            <button onclick="window.removeTimedCaption(${c.id})" style="background:#ff4d4d; color:#fff; border:none; border-radius:4px; padding:2px 6px; cursor:pointer;">🗑️</button>
+        </div>
+    `).join('');
+};
+
+window.removeTimedCaption = function(id) {
+    const e = window.studioEngine;
+    e.timedCaptions = e.timedCaptions.filter(c => c.id !== id);
+    window.renderTimedCaptionsUI();
 };
