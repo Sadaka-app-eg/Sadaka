@@ -3517,10 +3517,11 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
 
         sliderHtml += `<div style="display: flex; ${lineJustify} align-items: center; width: 100%; overflow: hidden;">`;
         
-        pagesDict[pageNum][lineNum].forEach(w => {
+pagesDict[pageNum][lineNum].forEach(w => {
           const ayahIndex = currentAyahsData.findIndex(a => a.numberInSurah === parseInt(w.ayahNum));
           
-          sliderHtml += `<span class="qcf-word ayah-span" id="ayah_${ayahIndex}"
+          // 🌟 السحر هنا: إضافة كلاس يربط كل كلمات الآية الواحدة بـ ayah-group_INDEX
+          sliderHtml += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}"
             style="font-family: 'QCF_V2_P${pageNum}'; font-size: ${fontSize}; line-height: 1; display: inline-flex; align-items: center; user-select: none;"
             ontouchstart="startPress(event, ${ayahIndex})"
             ontouchmove="cancelPress(event)"
@@ -3592,7 +3593,7 @@ function startPress(e, index) {
   startY = e.clientY || (e.touches && e.touches[0].clientY) || 0;
   pressTimer = setTimeout(() => {
     if(!isScrolling) {
-      if(navigator.vibrate) navigator.vibrate(40);
+      if(navigator.vibrate) navigator.vibrate(45); // 🔔 إضافة اهتزاز الموبايل للتأكيد
       openActionMenu(index);
     }
   }, 600);
