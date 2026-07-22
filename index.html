@@ -3768,7 +3768,7 @@ window.handleAyahClick = function(idx) {
 
 // دالة تظليل وتلوين الآية بالكامل (كل كلماتها)
 function highlightAyah(ayahIndex, className = 'selected') {
-  document.querySelectorAll(`.ayah-group_${ayahIndex}`).forEach(el => {
+  document.querySelectorAll(`[id='ayah_${ayahIndex}']`).forEach(el => {
     el.classList.add(className);
   });
 }
