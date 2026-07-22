@@ -3401,147 +3401,148 @@ function filterSurahs(q) {
 // ===========================
  // تعديل السطر الأول للدالة ليصبح هكذا
 
-async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {  currentSurah = surahs.find(s => s.n === n);
+// تحميل الخط العثماني بصفحاته بدقة عالية
+async function loadQcfPageFont(pageNum) {
+  const fontName = `QCF_V2_P${pageNum}`;
+  const fontUrl = `https://verses.quran.foundation/fonts/quran/hafs/v2/woff2/p${pageNum}.woff2`;
+  try {
+    const font = new FontFace(fontName, `url(${fontUrl})`);
+    await font.load();
+    document.fonts.add(font);
+    await document.fonts.ready;
+    return true;
+  } catch (e) {
+    console.error("خطأ تحميل الخط العثماني:", e);
+    return false;
+  }
+}
+
+
+ 
+// تحميل الخط العثماني بصفحاته بدقة عالية
+async function loadQcfPageFont(pageNum) {
+  const fontName = `QCF_V2_P${pageNum}`;
+  const fontUrl = `https://verses.quran.foundation/fonts/quran/hafs/v2/woff2/p${pageNum}.woff2`;
+  try {
+    const font = new FontFace(fontName, `url(${fontUrl})`);
+    await font.load();
+    document.fonts.add(font);
+    await document.fonts.ready;
+    return true;
+  } catch (e) {
+    console.error("خطأ تحميل الخط العثماني:", e);
+    return false;
+  }
+}
+
+async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
+  currentSurah = surahs.find(s => s.n === n);
   localStorage.setItem('last_active_surah', n);
   localStorage.setItem('surah_screen_open', '1');
+  
   const screen = document.getElementById('surahScreen');
- 
   screen.classList.add('open');
   document.getElementById('surahScreenTitle').textContent = 'سورة ' + currentSurah.name;
   document.getElementById('favSurahBtn').textContent = favorites.includes('s'+n) ? '⭐' : '🤍';
   
-  document.getElementById('mushafSlider').innerHTML = '<div style="width:100%;text-align:center;padding:50px;color:#8b6914;font-family:Amiri,serif;font-size:18px;">⏳ جاري تحميل السورة بالرواية المختارة...</div>';
-  
-  // إظهار الوقف لو موجود
-  const bm = JSON.parse(localStorage.getItem('quran_bookmark') || 'null');
-  if(bm && bm.surah === n) {
-    setTimeout(() => {
-      const el = document.getElementById('ayah_' + bm.index);
-      if(el) {
-        const mark = document.createElement('span');
-        mark.className = 'bookmark-mark';
-        mark.textContent = ' 🔖';
-        mark.style.color = '#ffd700';
-        el.appendChild(mark);
-        el.scrollIntoView({behavior:'smooth', block:'center'});
-      }
-    }, 500);
-  }
-  
-  document.getElementById('pageDots').innerHTML = '';
+  const slider = document.getElementById('mushafSlider');
+  slider.innerHTML = '<div style="width:100%;text-align:center;padding:50px;color:var(--gold);font-family:Amiri,serif;font-size:18px;">⏳ جاري جلب الرسم العثماني بالخط المصحفي الشريف...</div>';
+
   stopAudio();
   selectedAyahsQueue = [];
   document.getElementById('clearSelBtn').style.display = 'none';
-  
   document.getElementById('audioStatus').textContent = `اضغط تشغيل • اضغط مطولاً للخيارات`;
+
   try {
-    const textEdition = "quran-uthmani";
-    const secureUrl = `https://api.alquran.cloud/v1/surah/${n}/editions/${textEdition},ar.muyassar`;    const r = await fetch(secureUrl);
-    const d = await r.json();
+    // جلب كلمات ورسم السورة بـ QCF Code V2
+    const res = await fetch(`https://api.quran.com/api/v4/verses/by_chapter/${n}?words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number`);
+    const json = await res.json();
 
-    currentAyahsData = d.data[0].ayahs.map((a, i) => ({
-      text: a.text,
-      numberInSurah: a.numberInSurah,
-      globalNumber: a.number,
-      page: a.page,
-      tafseer: d.data[1].ayahs[i].text
-    }));
+    if (!json.verses || json.verses.length === 0) throw new Error("لا توجد بيانات");
 
+    // تجميع البيانات حسب الصفحة والسطر
     const pagesDict = {};
-    currentAyahsData.forEach((a, i) => {
-      if(!pagesDict[a.page]) pagesDict[a.page] = [];
-      pagesDict[a.page].push({...a, originalIndex: i});
+    currentAyahsData = [];
+
+    json.verses.forEach((verse) => {
+      const pageNum = verse.page_number;
+      if (!pagesDict[pageNum]) pagesDict[pageNum] = {};
+
+      currentAyahsData.push({
+        text: verse.words.map(w => w.text_uthmani).join(" "),
+        numberInSurah: parseInt(verse.verse_key.split(':')[1]),
+        globalNumber: verse.id,
+        page: pageNum,
+        tafseer: `تفسير سورة ${currentSurah.name} الآية ${verse.verse_key.split(':')[1]}`
+      });
+
+      verse.words.forEach((word) => {
+        const lineNum = word.line_number;
+        if (!pagesDict[pageNum][lineNum]) pagesDict[pageNum][lineNum] = [];
+        pagesDict[pageNum][lineNum].push({
+          id: word.id,
+          code: word.code_v2,
+          ayahKey: verse.verse_key,
+          ayahNum: verse.verse_key.split(':')[1],
+          text: word.text_uthmani
+        });
+      });
     });
 
-    const pageNums = Object.keys(pagesDict);
-   window.currentSurahPages = pageNums.map(Number);
+    const pageNums = Object.keys(pagesDict).map(Number);
+    window.currentSurahPages = pageNums;
+
+    // تحميل خطوط صفحات هذه السورة
+    await Promise.all(pageNums.map(p => loadQcfPageFont(p)));
+
     let sliderHtml = '';
-
     pageNums.forEach((pageNum, pageIndex) => {
-      sliderHtml += `<div class="mushaf-page" id="mpage_${pageNum}" style="flex:0 0 100vw; width:100vw; padding:20px 24px 40px; overflow-y:auto; font-size:25px; line-height:2.4; word-spacing:4px; text-align:justify; text-justify:inter-word;">`;
-
+      sliderHtml += `<div class="mushaf-page" id="mpage_${pageNum}" style="flex:0 0 100vw; width:100vw; padding:15px; overflow-y:auto; display:flex; flex-direction:column; justify-content:space-between; background:var(--mushaf-bg);">`;
+      
+      // الهيدر والبسملة للبداية
       if (pageIndex === 0) {
-        sliderHtml += `<div class="surah-name-header">سورة ${currentSurah.name}</div>`;
+        sliderHtml += `<div class="surah-name-header">سُورَةُ ${currentSurah.name}</div>`;
         if (n !== 1 && n !== 9) {
           sliderHtml += `<div class="bismillah">بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</div>`;
         }
       }
 
-      sliderHtml += pagesDict[pageNum].map(a => {
-        let txt = a.text;
-        if (n !== 1 && n !== 9 && a.numberInSurah === 1) {
-          txt = txt.replace(/^بِسْمِ[\s\S]+?رَّحِيمِ\s*/, '');
-          txt = txt.replace(/^بِسْمِ[\s\S]+?الرَّحِيمِ\s*/, '');
-        }
-            return `<span class="ayah-span" id="ayah_${a.originalIndex}"
-  ontouchstart="startPress(event, ${a.originalIndex})"
-  ontouchmove="cancelPress(event)"
-  ontouchend="cancelPress(event); if(!isScrolling && window.isPickingEndAyah){ handleAyahClick(${a.originalIndex}); }"
-  style="display:inline; padding: 2px 0;">
-  ${txt}<span class="ayah-sign" style="color:#8b6914; margin:0 6px; font-size:22px; white-space:nowrap;"> ﴿${toAr(a.numberInSurah)}﴾ </span></span> `;
-      }).join('');
+      sliderHtml += `<div style="display:flex; flex-direction:column; justify-content:space-between; height:100%; gap:4px;">`;
+      
+      const lines = Object.keys(pagesDict[pageNum]).map(Number).sort((a,b)=>a-b);
+      lines.forEach(lineNum => {
+        sliderHtml += `<div style="display:flex; justify-content:space-between; align-items:center; width:100%;">`;
+        pagesDict[pageNum][lineNum].forEach(w => {
+          const ayahIndex = currentAyahsData.findIndex(a => a.numberInSurah === parseInt(w.ayahNum));
+          sliderHtml += `<span class="qcf-word ayah-span" id="ayah_${ayahIndex}"
+            style="font-family:'QCF_V2_P${pageNum}'; font-size:clamp(20px, 5vw, 30px); line-height:1;"
+            ontouchstart="startPress(event, ${ayahIndex})"
+            ontouchmove="cancelPress(event)"
+            ontouchend="cancelPress(event); if(!isScrolling && window.isPickingEndAyah){ handleAyahClick(${ayahIndex}); }">
+            ${w.code}
+          </span>`;
+        });
+        sliderHtml += `</div>`;
+      });
 
+      sliderHtml += `</div>`;
       sliderHtml += `<div class="page-footer">صفحة ${toAr(pageNum)}</div></div>`;
     });
 
     document.getElementById('mushafSlider').innerHTML = sliderHtml;
 
-    // تشغيل نظام الـ Dots الطبيعي بتاعك
-        
-    
-          // نظام شريط أرقام الصفحات التفاعلي للنص العثماني
+    // إعادة رسم أرقام الصفحات السفلى
     if (pageNums.length > 0) {
       const dotsHtml = pageNums.map((pageNum, i) =>
         `<div class="page-dot ${i===0?'active':''}" id="dot_${i}" onclick="window.scrollToMushafIndex(${i})">${toAr(pageNum)}</div>`
       ).join('');
       document.getElementById('pageDots').innerHTML = dotsHtml;
-
-      const slider = document.getElementById('mushafSlider');
-      slider.onscroll = () => {
-        const idx = Math.round(slider.scrollLeft / window.innerWidth);
-        localStorage.setItem('last_page_index', idx);
-        
-        pageNums.forEach((_, j) => {
-          const d = document.getElementById('dot_' + j);
-          if (d) {
-            if (j === idx) {
-              d.classList.add('active');
-              d.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-            } else {
-              d.classList.remove('active');
-            }
-          }
-        });
-      };
-    }
-
-
-    if (targetPageNumber !== null) {
-  setTimeout(() => {
-    const pageEl = document.getElementById('mpage_' + targetPageNumber);
-    if (pageEl) pageEl.scrollIntoView({ behavior: 'auto' });
-  }, 150);
-} else if (targetAyahNum !== null) {     setTimeout(() => {
-        const targetIdx = currentAyahsData.findIndex(a => a.numberInSurah === targetAyahNum);
-        if (targetIdx !== -1) {
-          const el = document.getElementById('ayah_' + targetIdx);
-          if (el) {
-            const ayahPage = currentAyahsData[targetIdx].page;
-            const pageEl = document.getElementById('mpage_' + ayahPage);
-            if (pageEl) pageEl.scrollIntoView({ behavior: 'auto' });
-            
-            el.style.background = 'rgba(255,215,0,0.3)';
-            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            setTimeout(() => { el.style.background = ''; }, 2500);
-          }
-        }
-      }, 600);
     }
 
   } catch(e) {
     console.error(e);
     document.getElementById('mushafSlider').innerHTML =
-      '<div style="width:100%;text-align:center;padding:50px;color:#8b6914;font-family:Amiri,serif;font-size:18px;">تحتاج اتصال بالإنترنت لمزامنة الرواية 🌐</div>';
+      '<div style="width:100%;text-align:center;padding:50px;color:#8b6914;font-family:Amiri,serif;font-size:18px;">تحتاج اتصال بالإنترنت لمزامنة الرسم العثماني 🌐</div>';
   }
 }
  
