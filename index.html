@@ -259,6 +259,7 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
 .mushaf-slider{display:flex;flex-direction:row;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;height:100%;scrollbar-width:none;}
 .mushaf-slider::-webkit-scrollbar{display:none;}
 .mushaf-page{
+  position: relative;
   flex:0 0 100vw;width:100vw;scroll-snap-align:center;
   padding:12px 14px 30px;overflow-y:auto;
   background:var(--mushaf-bg);color:var(--mushaf-text);
@@ -1113,11 +1114,9 @@ body.hide-controls #quran {
     <div class="surah-header" style="position: relative;">
   <button class="back-btn" onclick="closeSurah()">→</button>
   
-  <div style="flex: 1; display: flex; align-items: center; justify-content: space-between; padding: 0 10px;">
-    <button class="icon-btn" onclick="window.navSurah(-1)" style="font-size: 16px; border-radius: 8px; width: 30px; height: 30px;">▶</button>
-    <h2 id="surahScreenTitle" style="margin: 0; font-size: 16px; text-align: center;">السورة</h2>
-    <button class="icon-btn" onclick="window.navSurah(1)" style="font-size: 16px; border-radius: 8px; width: 30px; height: 30px;">◀</button>
-  </div>
+  <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 0 10px;">
+  <h2 id="surahScreenTitle" style="margin: 0; font-size: 16px; text-align: center;">السورة</h2>
+</div>
 
 
   <button class="icon-btn" onclick="toggleFavSurah()" id="favSurahBtn">🤍</button>
@@ -3534,7 +3533,7 @@ pagesDict[pageNum][lineNum].forEach(w => {
     });
 
     document.getElementById('mushafSlider').innerHTML = sliderHtml;
-
+attachMushafEdgeSwipe();
     // رسم شريط أرقام الصفحات السفلى (Dots)
     if (pageNums.length > 0) {
       const dotsHtml = pageNums.map((pageNum, i) =>
@@ -3714,7 +3713,7 @@ function actionSelect() {
   
   // تنظيف أي تحديد قديم وتظليل آية البداية فوراً
   selectedAyahsQueue = [idx];
-  document.querySelectorAll('.ayah-span').forEach(el => el.classList.remove('selected'));
+  clearHighlightBars('selected');
  highlightAyah(idx, 'selected');
  
   // تحديث شريط الحالة تحت ليوجه المستخدم بوضوح وبخط بارز
@@ -3933,8 +3932,8 @@ function playNextInQueue() {
   
   // تحديث تمييز الآية النشطة في الـ UI
   document.querySelectorAll('.ayah-span').forEach(el => el.classList.remove('playing'));
-  const spans = document.querySelectorAll(`.ayah-group_${idx}`);
-spans.forEach(el => el.classList.add('playing'));
+ highlightAyah(idx, 'playing');
+const spans = document.querySelectorAll(`.ayah-group_${idx}`);
 if (spans[0]) spans[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
  
 
@@ -4928,6 +4927,7 @@ if (targetPageNumber !== null) {
 
     // حقن العناصر مباشرة في الـ DOM
     slider.innerHTML = imgElements.join('');
+   attachMushafEdgeSwipe();
     // بناء نظام شريط أرقام الصفحات التفاعلي لوضع المصحف
     if (pages.length > 0) {
       const dotsHtml = pages.map((pageNum, i) =>
@@ -7426,20 +7426,108 @@ async function downloadBatchWithProgress(urls, ringContainerId, cacheName = 'ath
   setTimeout(() => ring.remove(), 1500);
 }
 
-// دالة تظليل وتلوين الآية بالكامل (كل كلماتها)
-function highlightAyah(ayahIndex, className = 'selected') {
-  // تلوين كل الكلمات التي تحمل نفس كلاس الآية
-  document.querySelectorAll(`.ayah-group_${ayahIndex}`).forEach(el => {
-    el.classList.add(className);
-  });
+function clearHighlightBars(type) {
+  document.querySelectorAll('.ayah-highlight-bar-' + type).forEach(el => el.remove());
 }
 
-// دالة مسح التحديد عن جميع الآيات
 function clearAllHighlights() {
-  document.querySelectorAll('.ayah-span').forEach(el => {
-    el.classList.remove('selected', 'playing');
-  });
+  clearHighlightBars('selected');
+  clearHighlightBars('playing');
+  document.querySelectorAll('.qcf-word, .ayah-span').forEach(el => el.classList.remove('selected', 'playing'));
 }
+
+function highlightAyah(ayahIndex, type = 'selected') {
+  const words = document.querySelectorAll(`.ayah-group_${ayahIndex}`);
+  if (words.length === 0) return;
+
+  clearHighlightBars(type); // نشيل أي شريط قديم من نفس النوع الأول
+
+  const color = type === 'playing' ? 'rgba(255,215,0,0.35)' : 'rgba(76,175,80,0.25)';
+
+  // نجمع الكلمات حسب السطر اللي هي فيه (كل سطر له شريط مستقل)
+  const lineGroups = new Map();
+  words.forEach(w => {
+    const line = w.parentElement;
+    if (!lineGroups.has(line)) lineGroups.set(line, []);
+    lineGroups.get(line).push(w);
+  });
+
+  lineGroups.forEach(wordsInLine => {
+    const container = wordsInLine[0].closest('.mushaf-page') || wordsInLine[0].closest('.qcf-page');
+    if (!container) return;
+
+    const contRect = container.getBoundingClientRect();
+    const rects = wordsInLine.map(w => w.getBoundingClientRect());
+
+    const left = Math.min(...rects.map(r => r.left)) - contRect.left;
+    const right = Math.max(...rects.map(r => r.right)) - contRect.left;
+    const top = Math.min(...rects.map(r => r.top)) - contRect.top;
+    const height = Math.max(...rects.map(r => r.height));
+
+    const bar = document.createElement('div');
+    bar.className = 'ayah-highlight-bar-' + type;
+    bar.style.cssText = `
+      position:absolute;
+      left:${left - 3}px;
+      top:${top}px;
+      width:${right - left + 6}px;
+      height:${height}px;
+      background:${color};
+      border-radius:6px;
+      pointer-events:none;
+      z-index:1;
+    `;
+    if (getComputedStyle(container).position === 'static') container.style.position = 'relative';
+    container.appendChild(bar);
+  });
+}
+
+let mushafSwipeStartX = 0;
+let mushafSwipeLocked = false;
+
+function getMushafPageIndex(slider) {
+  const total = slider.children.length;
+  if (total === 0) return 0;
+  const rawIndex = Math.round(Math.abs(slider.scrollLeft) / window.innerWidth);
+  return Math.max(0, Math.min(total - 1, rawIndex));
+}
+
+function attachMushafEdgeSwipe() {
+  const slider = document.getElementById('mushafSlider');
+  if (!slider) return;
+
+  // تنظيف أي مستمع قديم قبل ما نضيف واحد جديد (عشان مايتكررش عند فتح سورة جديدة)
+  const newSlider = slider.cloneNode(false);
+  while (slider.firstChild) newSlider.appendChild(slider.firstChild);
+  slider.parentNode.replaceChild(newSlider, slider);
+
+  newSlider.addEventListener('touchstart', (e) => {
+    mushafSwipeStartX = e.touches[0].clientX;
+  }, { passive: true });
+
+  newSlider.addEventListener('touchend', (e) => {
+    if (mushafSwipeLocked) return;
+    const endX = e.changedTouches[0].clientX;
+    const deltaX = endX - mushafSwipeStartX;
+    if (Math.abs(deltaX) < 55) return; // مش سحبة قوية كفاية
+
+    const total = newSlider.children.length;
+    const idx = getMushafPageIndex(newSlider);
+
+    if (deltaX < 0 && idx >= total - 1) {
+      // آخر صفحة في السورة + لسه بيسحب لقدام => السورة التالية
+      mushafSwipeLocked = true;
+      window.navSurah(1);
+      setTimeout(() => { mushafSwipeLocked = false; }, 600);
+    } else if (deltaX > 0 && idx <= 0) {
+      // أول صفحة في السورة + بيسحب للخلف => السورة السابقة
+      mushafSwipeLocked = true;
+      window.navSurah(-1);
+      setTimeout(() => { mushafSwipeLocked = false; }, 600);
+    }
+  }, { passive: true });
+}
+
  
 </script>
  <script src="asma2.js"></script>
