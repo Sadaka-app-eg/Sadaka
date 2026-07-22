@@ -3514,7 +3514,7 @@ pagesDict[pageNum][lineNum].forEach(w => {
           
           // 🌟 السحر هنا: إضافة كلاس يربط كل كلمات الآية الواحدة بـ ayah-group_INDEX
           sliderHtml += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}"
-            style="font-family: 'QCF_V2_P${pageNum}'; font-size: ${fontSize}; line-height: 1; display: inline-flex; align-items: center; user-select: none;"
+            style="font-family: 'QCF_V2_P${pageNum}'; font-size: ${fontSize}; line-height:2; display: inline-flex; align-items: center; user-select: none;"
             ontouchstart="startPress(event, ${ayahIndex})"
             ontouchmove="cancelPress(event)"
             ontouchend="cancelPress(event); if(!isScrolling && window.isPickingEndAyah){ handleAyahClick(${ayahIndex}); }">
@@ -7425,7 +7425,20 @@ async function downloadBatchWithProgress(urls, ringContainerId, cacheName = 'ath
   setTimeout(() => ring.remove(), 1500);
 }
 
+// دالة تظليل وتلوين الآية بالكامل (كل كلماتها)
+function highlightAyah(ayahIndex, className = 'selected') {
+  // تلوين كل الكلمات التي تحمل نفس كلاس الآية
+  document.querySelectorAll(`.ayah-group_${ayahIndex}`).forEach(el => {
+    el.classList.add(className);
+  });
+}
 
+// دالة مسح التحديد عن جميع الآيات
+function clearAllHighlights() {
+  document.querySelectorAll('.ayah-span').forEach(el => {
+    el.classList.remove('selected', 'playing');
+  });
+}
  
 </script>
  <script src="asma2.js"></script>
