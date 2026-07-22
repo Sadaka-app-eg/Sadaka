@@ -2155,6 +2155,8 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration failed:', err));
 }
 
+const juzOrdinalWords = ['الأول','الثاني','الثالث','الرابع','الخامس','السادس','السابع','الثامن','التاسع','العاشر','الحادي عشر','الثاني عشر','الثالث عشر','الرابع عشر','الخامس عشر','السادس عشر','السابع عشر','الثامن عشر','التاسع عشر','العشرون','الحادي والعشرون','الثاني والعشرون','الثالث والعشرون','الرابع والعشرون','الخامس والعشرون','السادس والعشرون','السابع والعشرون','الثامن والعشرون','التاسع والعشرون','الثلاثون'];
+
 
 const surahs = [
   {n:1,name:'الفاتحة',ayat:7,type:'مكية'},{n:2,name:'البقرة',ayat:286,type:'مدنية'},
@@ -3449,8 +3451,8 @@ let json = JSON.parse(localStorage.getItem(cacheKey) || 'null');
 if (!json) {
   // تظهر كلمة التحميل فقط لو مش موجودة في الكاش وهيجيبها من النت
   slider.innerHTML = '<div style="width:100%;text-align:center;padding:50px;color:var(--gold);font-family:Amiri,serif;font-size:18px;">⚡ جاري التحميل لأول مرة...</div>';
-  const res = await fetch(`https://api.quran.com/api/v4/verses/by_chapter/${n}?per_page=300&words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number`);
-  json = await res.json();
+const res = await fetch(`https://api.quran.com/api/v4/verses/by_chapter/${n}?per_page=300&words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number,hizb_number,rub_el_hizb_number`);
+ json = await res.json();
   if (json && json.verses) {
     localStorage.setItem(cacheKey, JSON.stringify(json));
   }
@@ -3466,12 +3468,20 @@ if (!json) {
 
     if (!json.verses || json.verses.length === 0) throw new Error("لا توجد بيانات");
 
-    const pagesDict = {};
-    currentAyahsData = [];
+   const pagesDict = {};
+const pageMetaDict = {};
+currentAyahsData = [];
 
-    json.verses.forEach((verse) => {
-      const pageNum = verse.page_number;
-      if (!pagesDict[pageNum]) pagesDict[pageNum] = {};
+json.verses.forEach((verse) => {
+  const pageNum = verse.page_number;
+  if (!pagesDict[pageNum]) pagesDict[pageNum] = {};
+  if (!pageMetaDict[pageNum]) {
+    pageMetaDict[pageNum] = {
+      juz: verse.juz_number,
+      hizb: verse.hizb_number,
+      rub: verse.rub_el_hizb_number
+    };
+  }
 
       const [vSurah, vAyah] = verse.verse_key.split(':').map(Number);
 
@@ -3499,18 +3509,33 @@ if (!json) {
     const pageNums = Object.keys(pagesDict).map(Number).sort((a,b) => a-b);
     window.currentSurahPages = pageNums;
 
-    // تحميل خطوط الصفحات توازياً بسرعة
-    await Promise.all(pageNums.map(p => loadQcfPageFont(p)));
+   // ✅ هينزل الخطوط في الخلفية بدون ما يجمد الشاشة أو يعمل شاشة بيضاء:
+pageNums.forEach((p) => loadQcfPageFont(p));
 
     let sliderHtml = '';
 
-    pageNums.forEach((pageNum, pageIndex) => {
+   pageNums.forEach((pageNum, pageIndex) => {
       const isSpecialPage = pageNum === 1 || pageNum === 2;
       const containerStyle = isSpecialPage
         ? 'display:flex;flex-direction:column;justify-content:center;margin-top:auto;margin-bottom:auto;gap:12px;'
         : 'display:flex;flex-direction:column;justify-content:space-between;height:100%;gap:2px;';
 
+      const meta = pageMetaDict[pageNum] || {};
+      const juzLabel = meta.juz ? `الجزء ${juzOrdinalWords[meta.juz - 1] || toAr(meta.juz)}` : '';
+      let hizbLabel = '';
+      if (meta.hizb) {
+        const quarterInHizb = meta.rub ? (((meta.rub - 1) % 4) + 1) : null;
+        const quarterNames = ['', '', ' (ربع)', ' (نصف)', ' (ثلاثة أرباع)'];
+        hizbLabel = `، الحزب ${toAr(meta.hizb)}${quarterInHizb ? quarterNames[quarterInHizb] : ''}`;
+      }
+
       sliderHtml += `<div class="mushaf-page" id="mpage_${pageNum}" style="flex:0 0 100vw;width:100vw;height:100%;padding:12px 14px 25px;overflow-y:auto;display:flex;flex-direction:column;justify-content:space-between;background:var(--mushaf-bg);box-sizing:border-box;">`;
+
+      sliderHtml += `<div style="display:flex;justify-content:space-between;align-items:center;width:100%;padding:0 2px 10px;font-family:'Amiri',serif;font-size:12px;color:#8b6914;border-bottom:1px solid rgba(200,169,110,0.25);margin-bottom:8px;flex-shrink:0;">
+        <div>${juzLabel}${hizbLabel}</div>
+        <div style="font-weight:700;font-size:14px;">${currentSurah.name}</div>
+      </div>`;
+
       sliderHtml += `<div style="${containerStyle}">`;
 
       if (pageIndex === 0) {
@@ -3541,8 +3566,17 @@ if (!json) {
         sliderHtml += `</div>`;
       });
 
-      sliderHtml += `</div>`;
-      sliderHtml += `<div class="page-footer" style="text-align:center;font-weight:bold;margin-top:8px;">صفحة ${toAr(pageNum)}</div></div>`;
+     sliderHtml += `</div>`;
+
+      const isOdd = pageNum % 2 !== 0;
+      sliderHtml += `<div style="display:flex;justify-content:${isOdd ? 'flex-start' : 'flex-end'};padding:0 6px;margin-top:10px;flex-shrink:0;">
+        <div style="position:relative;width:46px;height:46px;display:flex;align-items:center;justify-content:center;">
+          <svg viewBox="0 0 100 100" style="position:absolute;top:0;left:0;width:100%;height:100%;">
+            <path d="M50 2 L61 35 L96 35 L67 55 L78 90 L50 68 L22 90 L33 55 L4 35 L39 35 Z" fill="none" stroke="#8b6914" stroke-width="3" opacity="0.7"/>
+          </svg>
+          <span style="position:relative;font-family:'Amiri',serif;font-size:13px;font-weight:700;color:#5a3e00;">${toAr(pageNum)}</span>
+        </div>
+      </div></div>`;
     });
 
     document.getElementById('mushafSlider').innerHTML = sliderHtml;
