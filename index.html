@@ -3434,7 +3434,6 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
   document.getElementById('bookmarkJumpBtn').style.display = (bm && bm.surah === n) ? 'flex' : 'none';
 
   const slider = document.getElementById('mushafSlider');
-  slider.innerHTML = '<div style="width:100%;text-align:center;padding:50px;color:var(--gold);font-family:Amiri,serif;font-size:18px;">⚡ جاري التحميل...</div>';
 
   stopAudio();
   selectedAyahsQueue = [];
@@ -3442,9 +3441,22 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
   document.getElementById('audioStatus').textContent = `اضغط تشغيل • اضغط مطولاً للخيارات`;
 
   try {
-    // ⚡ جلب كل آيات السورة بطلب واحد فقط وسريع جداً
-    const res = await fetch(`https://api.quran.com/api/v4/verses/by_chapter/${n}?per_page=300&words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number`);
-    const json = await res.json();
+    // 1️⃣ حكاية الكاش (الحوار الأول): يفحص لو السورة متخزنة في الجهاز
+    const cacheKey = `surah_data_qcf_v2_${n}`;
+    let json = JSON.parse(localStorage.getItem(cacheKey) || 'null');
+
+    if (!json) {
+      // لو مش متخزنة، يجيب رسالة تحميل ويحملها من النت
+      slider.innerHTML = '<div style="width:100%;text-align:center;padding:50px;color:var(--gold);font-family:Amiri,serif;font-size:18px;">⚡ جاري التحميل لأول مرة...</div>';
+      const res = await fetch(`https://api.quran.com/api/v4/verses/by_chapter/${n}?per_page=300&words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number`);
+      json = await res.json();
+      if (json && json.verses) {
+        localStorage.setItem(cacheKey, JSON.stringify(json));
+      }
+    } else {
+      // لو متخزنة، يفتح فوراً وبدون أي شاشة بيضاء أو رسالة تحميل!
+      slider.innerHTML = '';
+    }
 
     if (!json.verses || json.verses.length === 0) throw new Error("لا توجد بيانات");
 
@@ -3481,79 +3493,100 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
     const pageNums = Object.keys(pagesDict).map(Number).sort((a,b) => a-b);
     window.currentSurahPages = pageNums;
 
-  // ✅ هينزل الخطوط في الخلفية بدون ما يجمد الشاشة أو يعمل شاشة بيضاء:
-let sliderHtml = '';
+    let sliderHtml = '';
 
-pageNums.forEach((pageNum, pageIndex) => {
-  const isSpecialPage = pageNum === 1 || pageNum === 2;
-  const containerStyle = isSpecialPage
-    ? 'display:flex;flex-direction:column;justify-content:center;margin-top:auto;margin-bottom:auto;gap:12px;'
-    : 'display:flex;flex-direction:column;justify-content:space-between;height:100%;gap:2px;';
+    pageNums.forEach((pageNum, pageIndex) => {
+      const isSpecialPage = pageNum === 1 || pageNum === 2;
+      const containerStyle = isSpecialPage
+        ? 'display:flex;flex-direction:column;justify-content:center;margin-top:auto;margin-bottom:auto;gap:12px;'
+        : 'display:flex;flex-direction:column;justify-content:space-between;height:100%;gap:2px;';
 
-  sliderHtml += `<div class="mushaf-page" id="mpage_${pageNum}" style="flex:0 0 100vw;width:100vw;height:100%;padding:12px 14px 25px;overflow-y:auto;display:flex;flex-direction:column;justify-content:space-between;background:var(--mushaf-bg);box-sizing:border-box;">`;
-  sliderHtml += `<div style="${containerStyle}">`;
+      sliderHtml += `<div class="mushaf-page" id="mpage_${pageNum}" style="flex:0 0 100vw;width:100vw;height:100%;padding:12px 14px 25px;overflow-y:auto;display:flex;flex-direction:column;justify-content:space-between;background:var(--mushaf-bg);box-sizing:border-box;">`;
+      sliderHtml += `<div style="${containerStyle}">`;
 
-  if (pageIndex === 0) {
-    sliderHtml += `<div class="surah-name-header">سُورَةُ ${currentSurah.name}</div>`;
-    if (n !== 1 && n !== 9) {
-      sliderHtml += `<div class="bismillah">بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</div>`;
-    }
-  }
+      if (pageIndex === 0) {
+        sliderHtml += `<div class="surah-name-header">سُورَةُ ${currentSurah.name}</div>`;
+        if (n !== 1 && n !== 9) {
+          sliderHtml += `<div class="bismillah">بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</div>`;
+        }
+      }
 
-  const lines = Object.keys(pagesDict[pageNum]).map(Number).sort((a, b) => a - b);
-  lines.forEach(lineNum => {
-    const lineJustify = isSpecialPage ? 'justify-content:center;gap:8px;' : 'justify-content:space-between;';
-    const fontSize = isSpecialPage ? 'clamp(20px, 5.5vw, 30px)' : 'clamp(18px, 4.3vw, 27px)';
+      const lines = Object.keys(pagesDict[pageNum]).map(Number).sort((a, b) => a - b);
+      lines.forEach(lineNum => {
+        const lineJustify = isSpecialPage ? 'justify-content:center;gap:8px;' : 'justify-content:space-between;';
+        const fontSize = isSpecialPage ? 'clamp(20px, 5.5vw, 30px)' : 'clamp(18px, 4.3vw, 27px)';
 
-    sliderHtml += `<div style="display:flex;${lineJustify}align-items:center;width:100%;overflow:hidden;">`;
+        sliderHtml += `<div style="display:flex;${lineJustify}align-items:center;width:100%;overflow:hidden;">`;
 
-    pagesDict[pageNum][lineNum].forEach(w => {
-      const ayahIndex = currentAyahsData.findIndex(a => a.numberInSurah === w.vAyah);
-      sliderHtml += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}"
-        style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:2; display:inline-flex; align-items:center; user-select:none;"
-        ontouchstart="startPress(event, ${ayahIndex})"
-        ontouchmove="cancelPress(event)"
-        ontouchend="cancelPress(event); if(!isScrolling && window.isPickingEndAyah){ handleAyahClick(${ayahIndex}); }">
-        ${w.code}
-      </span>`;
+        pagesDict[pageNum][lineNum].forEach(w => {
+          const ayahIndex = currentAyahsData.findIndex(a => a.numberInSurah === w.vAyah);
+          sliderHtml += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}"
+            style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:2; display:inline-flex; align-items:center; user-select:none;"
+            ontouchstart="startPress(event, ${ayahIndex})"
+            ontouchmove="cancelPress(event)"
+            ontouchend="cancelPress(event); if(!isScrolling && window.isPickingEndAyah){ handleAyahClick(${ayahIndex}); }">
+            ${w.code}
+          </span>`;
+        });
+
+        sliderHtml += `</div>`;
+      });
+
+      sliderHtml += `</div>`;
+      sliderHtml += `<div class="page-footer" style="text-align:center;font-weight:bold;margin-top:8px;">صفحة ${toAr(pageNum)}</div></div>`;
     });
 
-    sliderHtml += `</div>`;
-  });
+    slider.innerHTML = sliderHtml;
 
-  sliderHtml += `</div>`;
-  sliderHtml += `<div class="page-footer" style="text-align:center;font-weight:bold;margin-top:8px;">صفحة ${toAr(pageNum)}</div></div>`;
-});
+    // 2️⃣ حكاية التوجيه (الحوار الثاني): بيحدد هيفتح أول صفحة ولا آخر صفحة فوراً وبخفة
+    requestAnimationFrame(() => {
+      if (targetPageNumber === 'last') {
+        window.scrollToMushafIndex(pageNums.length - 1);
+      } else if (targetPageNumber) {
+        const targetIdx = pageNums.indexOf(targetPageNumber);
+        if (targetIdx !== -1) window.scrollToMushafIndex(targetIdx);
+      } else {
+        window.scrollToMushafIndex(0);
+      }
 
-// ⚡ ضخ العناصر فوراً في الـ DOM
-const slider = document.getElementById('mushafSlider');
-slider.innerHTML = sliderHtml;
-
-// ⚡ التوجيه اللحظي ومعالجة السكرول والخلفيات صامتاً
-requestAnimationFrame(() => {
-  if (targetPageNumber === 'last') {
-    window.scrollToMushafIndex(pageNums.length - 1);
-  } else if (targetPageNumber) {
-    const targetIdx = pageNums.indexOf(targetPageNumber);
-    if (targetIdx !== -1) window.scrollToMushafIndex(targetIdx);
-  } else {
-    window.scrollToMushafIndex(0);
-  }
-
-  // تحميل الخطوط والخدمات في الخلفية بدون تجميد
-  pageNums.forEach(p => loadQcfPageFont(p));
-  attachMushafEdgeSwipe();
-  scrollToTargetAyahIfNeeded(targetAyahNum);
-  renderBookmarkHighlight();
-  setupMushafJumpSlider(pageNums);
-});
+      pageNums.forEach(p => loadQcfPageFont(p));
+      attachMushafEdgeSwipe();
+      scrollToTargetAyahIfNeeded(targetAyahNum);
+      renderBookmarkHighlight();
+      setupMushafJumpSlider(pageNums);
+    });
 
   } catch(e) {
     console.error("خطأ جلب بيانات السورة:", e);
-    document.getElementById('mushafSlider').innerHTML =
-      '<div style="width:100%;text-align:center;padding:50px;color:#8b6914;font-family:Amiri,serif;font-size:18px;">تحتاج اتصال بالإنترنت لمزامنة الرسم العثماني 🌐</div>';
+    slider.innerHTML = '<div style="width:100%;text-align:center;padding:50px;color:#8b6914;font-family:Amiri,serif;font-size:18px;">تحتاج اتصال بالإنترنت لمزامنة الرسم العثماني 🌐</div>';
   }
 }
+
+
+function prefetchFullQuranData() {
+  setTimeout(async () => {
+    for (let i = 1; i <= 114; i++) {
+      const cacheKey = `surah_data_qcf_v2_${i}`;
+      if (!localStorage.getItem(cacheKey)) {
+        try {
+          const res = await fetch(`https://api.quran.com/api/v4/verses/by_chapter/${i}?per_page=300&words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number`);
+          const data = await res.json();
+          if (data && data.verses) {
+            localStorage.setItem(cacheKey, JSON.stringify(data));
+          }
+        } catch(e) {}
+        await new Promise(r => setTimeout(r, 100)); // توقف بسيط عشان الجهاز ميهنجش
+      }
+    }
+    console.log("✅ تم تخزين داتا المصحف الـ 114 سورة بالكامل على الهاتف!");
+  }, 3000);
+}
+
+// تشغيلها بعد فتح التطبيق بـ 3 ثوانٍ
+document.addEventListener('DOMContentLoaded', prefetchFullQuranData);
+
+
+ 
  
     function scrollToTargetAyahIfNeeded(targetAyahNum) {
   if (!targetAyahNum) return;
@@ -3577,11 +3610,10 @@ function closeSurah() {
 window.navSurah = function(direction) {
   if (!currentSurah) return;
   const nextNum = currentSurah.n + direction;
-  if (nextNum < 1 || nextNum > 114) {
-    document.getElementById('audioStatus').textContent = nextNum < 1 ? '📖 هذه أول سورة في المصحف' : '📖 هذه آخر سورة في المصحف';
-    return;
-  }
-  openSurah(nextNum);
+  if (nextNum < 1 || nextNum > 114) return;
+  
+  // لو راجع لسورة سابقة (direction = -1)، ارفع حقل 'last'
+  openSurah(nextNum, null, direction === -1 ? 'last' : 1);
 };
 
 function toggleFavSurah() {
@@ -3655,56 +3687,83 @@ function closeActionMenu() {
   document.getElementById('actionSheet').classList.remove('show');
 }
 
-function actionTafseer() {
+async function actionTafseer() {
   closeActionMenu();
   const a = currentAyahsData[activeAyahIndex];
-  document.getElementById('modalTitle').textContent = `📝 تفسير الآية ${toAr(a.numberInSurah)} — سورة ${currentSurah.name}`;
   
-  // تنظيف البسملة من الآية الأولى بروقان في التفسير
+  // تنظيف البسملة من أول آية
   let cleanText = a.text;
   if (currentSurah.n !== 1 && currentSurah.n !== 9 && a.numberInSurah === 1) {
-    cleanText = cleanText.replace(/^بِسْمِ[\s\S]+?رَّحِيمِ\s*/, '');
-    cleanText = cleanText.replace(/^بِسْمِ[\s\S]+?الرَّحِيمِ\s*/, '');
+    cleanText = cleanText.replace(/^بِسْمِ[\s\S]+?رَّحِيمِ\s*/, '');
+    cleanText = cleanText.replace(/^بِسْمِ[\s\S]+?الرَّحِيمِ\s*/, '');
   }
-  
+
+  document.getElementById('modalTitle').textContent = `📖 التفسير الميسر — سورة ${currentSurah.name} (آية ${toAr(a.numberInSurah)})`;
   document.getElementById('modalAyahText').textContent = cleanText;
-  document.getElementById('modalText').textContent = a.tafseer;
+  document.getElementById('modalText').textContent = '⏳ جاري جلب التفسير الميسر...';
   document.getElementById('modalSource').textContent = '📚 المصدر: التفسير الميسر (مجمع الملك فهد)';
+
   const modal = document.getElementById('tafseerModal');
-  modal.style.zIndex = '1000003';
+  modal.style.zIndex = '1000005'; // رفع الطبقة لظهور النافذة فوراً فوق المصحف
   modal.classList.add('show');
+
+  try {
+    // ⚡ جلب التفسير الميسر المعتمد برقم السورة والآية
+    const ayahKey = `${currentSurah.n}:${a.numberInSurah}`;
+    const res = await fetch(`https://api.quran.com/api/v4/tafsirs/ar-tafsir-muyassar/by_ayah/${ayahKey}`);
+    const data = await res.json();
+
+    if (data && data.tafsir && data.tafsir.text) {
+      // تنظيف أي وسوم HTML إضافية لو وجدت
+      const cleanTafseer = data.tafsir.text.replace(/<[^>]*>?/gm, '');
+      document.getElementById('modalText').textContent = cleanTafseer;
+      a.tafseer = cleanTafseer; // حفظه في الكاش المحلي للآية
+    } else {
+      document.getElementById('modalText').textContent = 'تعذر جلب التفسير، تأكد من الاتصال بالإنترنت.';
+    }
+  } catch (err) {
+    console.error('خطأ جلب التفسير:', err);
+    document.getElementById('modalText').textContent = 'تحتاج اتصال بالإنترنت لعرض التفسير الميسر 🌐';
+  }
 }
-window.navTafseer = function(direction) {
-  // التأكد إن فيه آية مفتوحة حالياً جوه مصفوفة السورة
+window.navTafseer = async function(direction) {
   if (activeAyahIndex === null || !currentAyahsData.length) return;
   
   let nextIndex = activeAyahIndex + direction;
   
-  // التحقق من حدود السورة (متطلعش برة أول أو آخر آية)
-  if (nextIndex < 0) {
-    alert("📢 هذه هي الآية الأولى في السورة!");
-    return;
-  }
-  if (nextIndex >= currentAyahsData.length) {
-    alert("📢 هذه هي الآية الأخيرة في السورة!");
-    return;
-  }
+  if (nextIndex < 0) { alert("📢 هذه هي الآية الأولى في السورة!"); return; }
+  if (nextIndex >= currentAyahsData.length) { alert("📢 هذه هي الآية الأخيرة في السورة!"); return; }
   
-  // تحديث المؤشر النشط وعرض التفسير الجديد فوراً
   activeAyahIndex = nextIndex;
-  
   const a = currentAyahsData[activeAyahIndex];
-  document.getElementById('modalTitle').textContent = `📝 تفسير الآية ${toAr(a.numberInSurah)} — سورة ${currentSurah.name}`;
-  
-  // تنظيف البسملة لو نقلنا ووصلنا للآية الأولى
+
   let cleanText = a.text;
   if (currentSurah.n !== 1 && currentSurah.n !== 9 && a.numberInSurah === 1) {
-    cleanText = cleanText.replace(/^بِسْمِ[\s\S]+?رَّحِيمِ\s*/, '');
-    cleanText = cleanText.replace(/^بِسْمِ[\s\S]+?الرَّحِيمِ\s*/, '');
+    cleanText = cleanText.replace(/^بِسْمِ[\s\S]+?رَّحِيمِ\s*/, '');
+    cleanText = cleanText.replace(/^بِسْمِ[\s\S]+?الرَّحِيمِ\s*/, '');
   }
-  
+
+  document.getElementById('modalTitle').textContent = `📖 التفسير الميسر — سورة ${currentSurah.name} (آية ${toAr(a.numberInSurah)})`;
   document.getElementById('modalAyahText').textContent = cleanText;
-  document.getElementById('modalText').textContent = a.tafseer;
+
+  // فحص هل التفسير موجود كاش ولا نجيبه؟
+  if (a.tafseer && !a.tafseer.startsWith('تفسير سورة')) {
+    document.getElementById('modalText').textContent = a.tafseer;
+  } else {
+    document.getElementById('modalText').textContent = '⏳ جاري جلب التفسير...';
+    try {
+      const ayahKey = `${currentSurah.n}:${a.numberInSurah}`;
+      const res = await fetch(`https://api.quran.com/api/v4/tafsirs/ar-tafsir-muyassar/by_ayah/${ayahKey}`);
+      const data = await res.json();
+      if (data && data.tafsir && data.tafsir.text) {
+        const cleanTafseer = data.tafsir.text.replace(/<[^>]*>?/gm, '');
+        document.getElementById('modalText').textContent = cleanTafseer;
+        a.tafseer = cleanTafseer;
+      }
+    } catch (e) {
+      document.getElementById('modalText').textContent = 'تحتاج اتصال بالإنترنت لعرض التفسير 🌐';
+    }
+  }
 };
 
   
@@ -3744,17 +3803,20 @@ window.ayahRepeatCount = 1; // الافتراضي تعمل مرة واحدة
 window.currentAyahRepeatProgress = 1;
 
 window.handleAyahClick = function(idx) {
-  if (!window.isPickingEndAyah) return; // أمان إضافي
+  if (!window.isPickingEndAyah) return;
 
   const start = Math.min(window.firstSelectedAyahIndex, idx);
   const end = Math.max(window.firstSelectedAyahIndex, idx);
 
   selectedAyahsQueue = [];
-  document.querySelectorAll('.ayah-span').forEach(el => el.classList.remove('selected'));
+  
+  // مسح أي تظليل تحديد قديم مرة واحدة فقط في البداية
+  clearHighlightBars('selected');
 
+  // تظليل كل الآيات في النطاق المحدد
   for (let i = start; i <= end; i++) {
     selectedAyahsQueue.push(i);
-    highlightAyah(i, 'selected');
+    highlightAyah(i, 'selected', false); // تمرير false لمنع مسح الآيات السابقة
   }
 
   selectedAyahsQueue.sort((a, b) => a - b);
@@ -3763,12 +3825,12 @@ window.handleAyahClick = function(idx) {
   window.firstSelectedAyahIndex = null;
 
   setTimeout(() => {
-    let repeatInput = prompt("🔂 تريد تكرار الآية كم مرة؟ (1 للتكرار مرة واحدة):", "1");
+    let repeatInput = prompt("🔂 تريد تكرار الآيات كم مرة؟ (1 للتكرار مرة واحدة):", "1");
     window.ayahRepeatCount = parseInt(repeatInput) || 1;
     window.currentAyahRepeatProgress = 1;
     updateAudioStatus();
   }, 200);
-};    
+};  
        
     
     
@@ -3808,10 +3870,13 @@ function closeModals() {
   document.getElementById('tafseerModal').classList.remove('show');
   document.getElementById('mushafSearchModal').classList.remove('show');
 }
- function openMushafSearch() {
+function openMushafSearch() {
   document.getElementById('searchSurahInput').value = currentSurah ? currentSurah.name : '';
   document.getElementById('searchAyahInput').value = '';
-  document.getElementById('mushafSearchModal').classList.add('show');
+  
+  const modal = document.getElementById('mushafSearchModal');
+  modal.style.zIndex = '1000005'; // 👈 رفع طبقة نافذة البحث لظهورها فوق شاشة المصحف
+  modal.classList.add('show');
 }
 
 function submitMushafSearch() {
@@ -4788,40 +4853,41 @@ window.openNearestMosque = function() {
   // يجب تعريف المتغير خارج الدالة ليحتفظ بقيمته بين الاستدعاءات
 let searchTimeout; 
 async function globalSearch(q) {
-  // 1. إيقاف فوري لأي بحث قديم شغال في الخلفية لمنع التداخل تماماً
   clearTimeout(searchTimeout);
 
-  // 2. لو المستخدم مسح الكلام أو كتب أقل من 3 حروف، نرجع كل حاجة لأصلها فوراً
-  if (!q || q.trim().length < 3) {
+  if (!q || q.trim().length < 2) {
     document.getElementById('surahList').style.display = 'grid';
     const resultsDiv = document.getElementById('ayahSearchResults');
     resultsDiv.style.display = 'none';
     resultsDiv.innerHTML = '';
-    if (typeof filterSurahs === 'function') filterSurahs('');
+    filterSurahs('');
     return;
   }
 
   const resultsDiv = document.getElementById('ayahSearchResults');
 
-  // الـ Timeout بيبدأ هنا بعد التأكد إن فيه كلمة حقيقية مكتوبة
   searchTimeout = setTimeout(async () => {
     try {
       resultsDiv.style.display = 'block';
       document.getElementById('surahList').style.display = 'none';
-      resultsDiv.innerHTML = '<div style="color:var(--gold);padding:10px;font-size:13px;font-family:Amiri,serif;">⏳ جاري جمع السور والآيات...</div>';
+      resultsDiv.innerHTML = '<div style="color:var(--gold);padding:10px;font-size:13px;font-family:Amiri,serif;text-align:center;">⏳ جاري البحث في المصحف الشريف...</div>';
 
-      const matchedSurahs = surahs.filter(s => s.name.includes(q.trim()));
+      const query = q.trim();
+      // 1) البحث عن السور المطابقة بالاسم
+      const matchedSurahs = surahs.filter(s => s.name.includes(query));
 
-      const secureUrl = `https://api.alquran.cloud/v1/search/${encodeURIComponent(q.trim())}/all/quran-simple-clean`;
+      // 2) البحث عن الآيات المطابقة للكلمة عبر الـ API
+      const secureUrl = `https://api.alquran.cloud/v1/search/${encodeURIComponent(query)}/all/quran-simple-clean`;
       const response = await fetch(secureUrl);
       const data = await response.json();
 
       let html = '';
 
+      // 📌 القسم الأول: السور (تظهر فوق دائماً لو موجودة)
       if (matchedSurahs.length > 0) {
-        html += `<div style="color:var(--gold);font-size:14px;margin-bottom:10px;font-family:Amiri,serif;font-weight:bold;">📖 السور المطابقة للبحث:</div>`;
+        html += `<div style="color:var(--gold);font-size:15px;margin-bottom:10px;font-family:Amiri,serif;font-weight:bold;border-bottom:1px solid var(--border);padding-bottom:5px;">📖 السور المطابقة (${toAr(matchedSurahs.length)}):</div>`;
         html += matchedSurahs.map(s => `
-          <div class="surah-item" onclick="openSurah(${s.n})" style="margin-bottom:12px; background: rgba(212,175,55,0.05); border: 1px solid var(--gold);">
+          <div class="surah-item" onclick="openSurah(${s.n})" style="margin-bottom:8px; background: rgba(212,175,55,0.08); border: 1px solid var(--gold);">
             <div class="surah-num">${s.n}</div>
             <div class="surah-info">
               <div class="surah-name" style="color:var(--gold);">${s.name}</div>
@@ -4832,29 +4898,29 @@ async function globalSearch(q) {
         `).join('');
       }
 
+      // 📌 القسم الثاني: الآيات (تظهر تحت السور)
       if (data.code === 200 && data.data && data.data.matches && data.data.matches.length > 0) {
-        const sorted = data.data.matches.sort((a, b) => a.number - b.number);
-        const matches = sorted.slice(0, 200);
+        const matches = data.data.matches.slice(0, 150); // أول 150 آية لسرعة الأداء
 
-        html += `<div style="color:var(--gold);font-size:14px;margin-top:20px;margin-bottom:10px;font-family:Amiri,serif;font-weight:bold;">✨ الآيات التي وردت فيها الكلمة (${toAr(data.data.matches.length)}):</div>`;
+        html += `<div style="color:var(--green);font-size:15px;margin-top:20px;margin-bottom:10px;font-family:Amiri,serif;font-weight:bold;border-bottom:1px solid var(--border);padding-bottom:5px;">✨ الآيات التي وردت فيها كلمة (${query}) — [${toAr(data.data.matches.length)} آية]:</div>`;
         
         html += matches.map(m => `
-          <div class="surah-item" onclick="openSurah(${m.surah.number},${m.numberInSurah})" style="border-right:3px solid var(--green);margin-bottom:8px;display:block;padding:14px;cursor:pointer;">
+          <div class="surah-item" onclick="openSurah(${m.surah.number}, ${m.numberInSurah})" style="border-right:4px solid var(--green);margin-bottom:10px;display:block;padding:12px 14px;cursor:pointer;">
             <div style="font-size:17px;line-height:2;color:var(--text);font-family:'Amiri Quran',serif;text-align:justify;">${m.text}</div>
-            <div style="color:var(--gold);margin-top:6px;font-size:12px;font-family:Amiri,serif;">سورة ${m.surah.name.replace(/^سُورَةُ\s*/, '').trim()} — الآية ${toAr(m.numberInSurah)}</div>
+            <div style="color:var(--gold);margin-top:6px;font-size:12px;font-family:Amiri,serif;text-align:left;">سورة ${m.surah.name.replace(/^سُورَةُ\s*/, '').trim()} — الآية ${toAr(m.numberInSurah)} 🟢</div>
           </div>`).join('');
       }
 
       if (matchedSurahs.length === 0 && (!data.data || !data.data.matches || data.data.matches.length === 0)) {
-        html = '<div style="color:var(--text2);padding:10px;font-size:12px;font-family:Amiri,serif;">لم نعثر على نتائج دقيقة 🕊️</div>';
+        html = '<div style="color:var(--text2);padding:20px;font-size:14px;font-family:Amiri,serif;text-align:center;">لم نعثر على سورة أو آية تحتوي على هذه الكلمة 🕊️</div>';
       }
 
       resultsDiv.innerHTML = html;
     } catch (e) {
       console.error("Search Fail:", e);
-      resultsDiv.innerHTML = '<div style="color:var(--text2);padding:10px;font-size:12px;font-family:Amiri,serif;">تحتاج اتصال بالإنترنت 🌐</div>';
+      resultsDiv.innerHTML = '<div style="color:var(--text2);padding:10px;font-size:12px;font-family:Amiri,serif;text-align:center;">تحتاج اتصال بالإنترنت لبحث الآيات لأول مرة 🌐</div>';
     }
-  }, 600);
+  }, 400);
 }
 
 
@@ -4932,23 +4998,22 @@ async function loadPageWordsOverlay(imgElement, pageNum) {
                       
 window.scrollToMushafIndex = function(index) {
   const slider = document.getElementById('mushafSlider');
-  if (!slider) return;
-  
-  // حيلة برمجية بسيطة لكسر تجميد المتصفح عند الصفحة الأولى
-  slider.scrollLeft = slider.scrollLeft === 0 ? (window.getComputedStyle(slider).direction === 'rtl' ? -1 : 1) : slider.scrollLeft;
+  if (!slider || !slider.children[index]) return;
 
+  // 1️⃣ إيقاف الـ Snap مؤقتاً لفك قفل الشاشة الأولى تماماً
+  slider.style.scrollSnapType = 'none';
+
+  // 2️⃣ التوجيه الفوري والسلس للصفحة المطلوبة
+  slider.children[index].scrollIntoView({
+    behavior: 'smooth',
+    inline: 'start',
+    block: 'nearest'
+  });
+
+  // 3️⃣ إعادة تفعيل الـ Snap بنعومة بعد وصول الصفحة
   setTimeout(() => {
-    const isRTL = window.getComputedStyle(slider).direction === 'rtl';
-    if (isRTL) {
-      slider.scrollLeft = - (index * window.innerWidth);
-      // حل بديل للمتصفحات القديمة
-      if (slider.scrollLeft === 0 && index > 0) {
-        slider.scrollLeft = slider.scrollWidth - slider.clientWidth - (index * window.innerWidth);
-      }
-    } else {
-      slider.scrollLeft = index * window.innerWidth;
-    }
-  }, 10);
+    slider.style.scrollSnapType = 'x mandatory';
+  }, 350);
 };
 
 
@@ -7385,18 +7450,17 @@ function clearAllHighlights() {
   document.querySelectorAll('.qcf-word, .ayah-span').forEach(el => el.classList.remove('selected', 'playing'));
 }
 
-function highlightAyah(ayahIndex, type = 'selected') {
+function highlightAyah(ayahIndex, type = 'selected', clearOld = true) {
   const words = document.querySelectorAll(`.ayah-group_${ayahIndex}`);
   if (words.length === 0) return;
 
-  clearHighlightBars(type); // نشيل أي شريط قديم من نفس النوع الأول
+  if (clearOld) clearHighlightBars(type); // لا يمسح التحديد القديم إلا إذا طلبنا ذلك
 
- const color = type === 'playing' ? 'rgba(255,215,0,0.35)'
-            : type === 'bookmark' ? 'rgba(212,175,55,0.30)'
-            : type === 'flash' ? 'rgba(111,191,115,0.4)'
-            : 'rgba(76,175,80,0.25)';
+  const color = type === 'playing' ? 'rgba(255,215,0,0.35)'
+              : type === 'bookmark' ? 'rgba(212,175,55,0.30)'
+              : type === 'flash' ? 'rgba(111,191,115,0.4)'
+              : 'rgba(76,175,80,0.35)';
 
-  // نجمع الكلمات حسب السطر اللي هي فيه (كل سطر له شريط مستقل)
   const lineGroups = new Map();
   words.forEach(w => {
     const line = w.parentElement;
