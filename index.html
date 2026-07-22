@@ -1298,7 +1298,7 @@ body.hide-controls #quran {
 
 <!-- KHATMA -->
         <!-- 🧠 حط كود قسم خطة الحفظ والمراجعة الجديد هنا بالظبط تحت قفلة الكارت القديم -->
-    <!-- KHATMA PAGE -->
+    <!-- KHATMA PAGE -->
 <div class="page" id="khatma">
   
   <!-- 1. واجهة إعداد الختمة (تظهر في البداية فقط) -->
@@ -3181,11 +3181,11 @@ if(id === 'heartMirrorPage' && typeof window.initHeartMirrorPage === 'function')
         // صفحة مزيد من تطبيقاتنا جاهزة وتعمل بنجاح
     }
 if (id === 'quran') {
-    // عرض قائمة السور الـ 114 كاملة فوراً
-    if (typeof renderSurahs === 'function') {
-      renderSurahs(surahs);
-    }
+  const lastPage = localStorage.getItem('last_page') || 1;
+  if (typeof window.renderNewQcfMushaf === 'function') {
+    window.renderNewQcfMushaf(Number(lastPage));
   }
+}
  
   updateStats();
 
@@ -3407,31 +3407,28 @@ function filterSurahs(q) {
  // تعديل السطر الأول للدالة ليصبح هكذا
 
 // تحميل الخط العثماني بصفحاته بدقة عالية بدون تاكل
+// تحميل الخط العثماني بدقة فائقة وانتظار اكتماله لمنع طيران الهمزات
 async function loadQcfPageFont(pageNum) {
   const fontName = `QCF_V2_P${pageNum}`;
   const fontUrl = `https://verses.quran.foundation/fonts/quran/hafs/v2/woff2/p${pageNum}.woff2`;
   
-  try {
-    // التحقق لو الخط متحمل قبل كده
-    if (document.fonts.check(`12px "${fontName}"`)) return true;
+  // لو الخط متحمل قبل كده متجيبوش تاني
+  if (document.fonts.check(`12px "${fontName}"`)) return true;
 
+  try {
     const font = new FontFace(fontName, `url(${fontUrl})`);
     const loadedFont = await font.load();
     document.fonts.add(loadedFont);
-    await document.fonts.ready; // 🔒 دي اللي بتمنع أي تشابك أو حروف غريبة وتخلي الخط يثبت صح
+    await document.fonts.ready; // التأكيد القاطع على جاهزية المحرك لجميع الأحرف والهمزات
     return true;
   } catch (e) {
-    console.error(`خطأ تحميل الخط للرسم العثماني صفحة ${pageNum}:`, e);
+    console.error(`خطأ تحميل خط الصفحة ${pageNum}:`, e);
     return false;
   }
 }
 
 async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
-  // التأكد من تحويل رقم السورة لرقم صحيح
-  n = parseInt(n) || 1;
   currentSurah = surahs.find(s => s.n === n);
-  if (!currentSurah) return;
-
   localStorage.setItem('last_active_surah', n);
   localStorage.setItem('surah_screen_open', '1');
   
@@ -3449,7 +3446,7 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
   document.getElementById('audioStatus').textContent = `اضغط تشغيل • اضغط مطولاً للخيارات`;
 
   try {
-    // جلب آيات السورة المطلوبة بدقة من الـ API (الفاتحة = 7 آيات، البقرة = 286 آية ... إلخ)
+    // جلب جميع آيات السورة بـ QCF Code V2
     const res = await fetch(`https://api.quran.com/api/v4/verses/by_chapter/${n}?per_page=300&words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number`);
     const json = await res.json();
 
@@ -3470,12 +3467,12 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
         tafseer: `تفسير سورة ${currentSurah.name} الآية ${verse.verse_key.split(':')[1]}`
       });
 
-verse.words.forEach((word) => {
+      verse.words.forEach((word) => {
         const lineNum = word.line_number;
         if (!pagesDict[pageNum][lineNum]) pagesDict[pageNum][lineNum] = [];
         pagesDict[pageNum][lineNum].push({
           id: word.id,
-          code: mushafMode === 'nass' ? word.text_uthmani : word.code_v2, // 👈 التعديل هنا بكل ببساطة
+          code: word.code_v2,
           ayahKey: verse.verse_key,
           ayahNum: verse.verse_key.split(':')[1],
           text: word.text_uthmani
@@ -3483,10 +3480,10 @@ verse.words.forEach((word) => {
       });
     });
 
-    const pageNums = Object.keys(pagesDict).map(Number).sort((a,b)=>a-b);
+    const pageNums = Object.keys(pagesDict).map(Number);
     window.currentSurahPages = pageNums;
 
-    // 🔒 تحميل جميع خطوط صفحات السورة أولاً ثم الرسم لتفادي طيران الهمزات
+    // تحميل خطوط الصفحات الخاصة بالسورة
     await Promise.all(pageNums.map(p => loadQcfPageFont(p)));
 
     let sliderHtml = '';
@@ -3495,7 +3492,7 @@ verse.words.forEach((word) => {
 
       sliderHtml += `<div class="mushaf-page" id="mpage_${pageNum}" style="flex: 0 0 100vw; width: 100vw; height: 100%; padding: 12px 14px 25px; overflow-y: auto; display: flex; flex-direction: column; justify-content: space-between; background: var(--mushaf-bg); box-sizing: border-box;">`;
       
-      // رأس السورة والبسملة
+      // الهيدر والبسملة في بداية السورة
       if (pageIndex === 0) {
         sliderHtml += `<div class="surah-name-header">سُورَةُ ${currentSurah.name}</div>`;
         if (n !== 1 && n !== 9) {
@@ -3503,6 +3500,7 @@ verse.words.forEach((word) => {
         }
       }
 
+      // حاوية أسطر المصحف الـ 15 (تصليح الـ CSS الخاص بالتوزيع)
       const containerStyle = isSpecialPage 
         ? 'display: flex; flex-direction: column; justify-content: center; margin-top: auto; margin-bottom: auto; gap: 12px;' 
         : 'display: flex; flex-direction: column; justify-content: space-between; height: 100%; gap: 2px;';
@@ -3516,11 +3514,10 @@ verse.words.forEach((word) => {
 
         sliderHtml += `<div style="display: flex; ${lineJustify} align-items: center; width: 100%; overflow: hidden;">`;
         
-pagesDict[pageNum][lineNum].forEach(w => {
+        pagesDict[pageNum][lineNum].forEach(w => {
           const ayahIndex = currentAyahsData.findIndex(a => a.numberInSurah === parseInt(w.ayahNum));
           
-          // 🌟 السحر هنا: إضافة كلاس يربط كل كلمات الآية الواحدة بـ ayah-group_INDEX
-          sliderHtml += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}"
+          sliderHtml += `<span class="qcf-word ayah-span" id="ayah_${ayahIndex}"
             style="font-family: 'QCF_V2_P${pageNum}'; font-size: ${fontSize}; line-height: 1; display: inline-flex; align-items: center; user-select: none;"
             ontouchstart="startPress(event, ${ayahIndex})"
             ontouchmove="cancelPress(event)"
@@ -3533,12 +3530,14 @@ pagesDict[pageNum][lineNum].forEach(w => {
       });
 
       sliderHtml += `</div>`;
+
+      // رقم الصفحة أسفل الشاشة
       sliderHtml += `<div class="page-footer" style="text-align: center; font-weight: bold; margin-top: 8px;">صفحة ${toAr(pageNum)}</div></div>`;
     });
 
     document.getElementById('mushafSlider').innerHTML = sliderHtml;
 
-    // أرقام الصفحات السفلى
+    // رسم شريط أرقام الصفحات السفلى (Dots)
     if (pageNums.length > 0) {
       const dotsHtml = pageNums.map((pageNum, i) =>
         `<div class="page-dot ${i === 0 ? 'active' : ''}" id="dot_${i}" onclick="window.scrollToMushafIndex(${i})">${toAr(pageNum)}</div>`
@@ -3552,6 +3551,7 @@ pagesDict[pageNum][lineNum].forEach(w => {
       '<div style="width:100%;text-align:center;padding:50px;color:#8b6914;font-family:Amiri,serif;font-size:18px;">تحتاج اتصال بالإنترنت لمزامنة الرسم العثماني 🌐</div>';
   }
 }
+ 
     
       
 
@@ -3592,7 +3592,7 @@ function startPress(e, index) {
   startY = e.clientY || (e.touches && e.touches[0].clientY) || 0;
   pressTimer = setTimeout(() => {
     if(!isScrolling) {
-      if(navigator.vibrate) navigator.vibrate(45); // 🔔 إضافة اهتزاز الموبايل للتأكيد
+      if(navigator.vibrate) navigator.vibrate(40);
       openActionMenu(index);
     }
   }, 600);
@@ -3745,7 +3745,7 @@ window.handleAyahClick = function(idx) {
 
   for (let i = start; i <= end; i++) {
     selectedAyahsQueue.push(i);
-   highlightAyah(i, 'selected');
+    document.getElementById(`ayah_${i}`)?.classList.add('selected');
   }
 
   selectedAyahsQueue.sort((a, b) => a - b);
@@ -3761,28 +3761,7 @@ window.handleAyahClick = function(idx) {
   }, 200);
 };    
        
- 
-
-// 🎯 حط الكود الجديد هنا (بداية من السطر 3765):
-
-// دالة تظليل وتلوين الآية بالكامل (كل كلماتها)
-function highlightAyah(ayahIndex, className = 'selected') {
-  // بنجيب أول عنصر للآية ومنه بنعلم على كل الكلمات لحد الآية اللي بعدها أو نهاية السطر
-  const elements = document.querySelectorAll(`[id^="ayah_"]`);
-  elements.forEach(el => {
-    const idNum = parseInt(el.id.replace('ayah_', ''));
-    if (idNum === ayahIndex) {
-      el.classList.add(className);
-    }
-  });
-}
-// دالة مسح التحديد عن جميع الآيات
-function clearAllHighlights() {
-  document.querySelectorAll('.ayah-span').forEach(el => {
-    el.classList.remove('selected', 'playing');
-  });
-}
-
+    
     
   
   
@@ -3921,7 +3900,7 @@ function toggleAudio() {
             navigator.mediaSession.metadata = new MediaMetadata({
               title: `سورة ${currentSurah.name} كاملة 📖`, // اسم السورة منور فوق
               artist: 'أثر',
-              album: ' ', // مسافة مخفية لحجب الروابط
+              album: ' ', // مسافة مخفية لحجب الروابط
               artwork: [
                 { src: fullIconUrl, sizes: '192x192', type: 'image/png' },
                 { src: fullIconUrl, sizes: '512x512', type: 'image/png' }
@@ -4005,7 +3984,7 @@ function playNextInQueue() {
         navigator.mediaSession.metadata = new MediaMetadata({
           title: `سورة ${currentSurah.name} — الآية ${toAr(a.numberInSurah)} 📖`,
           artist: 'أثر',
-          album: ' ', // مسافة مخفية لحجب الروابط
+          album: ' ', // مسافة مخفية لحجب الروابط
           artwork: [
             { src: fullIconUrl, sizes: '192x192', type: 'image/png' },
             { src: fullIconUrl, sizes: '512x512', type: 'image/png' }
@@ -4998,7 +4977,7 @@ if (targetPageNumber !== null) {
     slider.innerHTML = '<div style="text-align:center;padding:50px;color:#8b6914;font-family:Amiri,serif;">تحتاج اتصال بالإنترنت 🌐</div>';
   }
 }
-                                    
+                                    
                       
 window.scrollToMushafIndex = function(index) {
   const slider = document.getElementById('mushafSlider');
@@ -7474,8 +7453,6 @@ async function downloadBatchWithProgress(urls, ringContainerId, cacheName = 'ath
 <script src="heartMirror.js"></script>
 <script src="downloadsManager.js"></script>
 <script src="quranView.js"></script>
-
- 
  <!-- مكتبة موزيلا الرسمية لقراءة ملفات الـ PDF داخلياً -->
 
  
@@ -7678,5 +7655,5 @@ window.triggerHeaderGoogleLogin = function() {
 <script>
     document.getElementById('currentYear').textContent = new Date().getFullYear();
 </script>
-</body>
+</body>	
     </html>
