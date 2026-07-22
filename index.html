@@ -3434,7 +3434,6 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
   document.getElementById('bookmarkJumpBtn').style.display = (bm && bm.surah === n) ? 'flex' : 'none';
 
   const slider = document.getElementById('mushafSlider');
-  slider.innerHTML = '<div style="width:100%;text-align:center;padding:50px;color:var(--gold);font-family:Amiri,serif;font-size:18px;">⚡ جاري التحميل...</div>';
 
   stopAudio();
   selectedAyahsQueue = [];
@@ -3442,11 +3441,20 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
   document.getElementById('audioStatus').textContent = `اضغط تشغيل • اضغط مطولاً للخيارات`;
 
   try {
-    // ⚡ جلب كل آيات السورة بطلب واحد فقط وسريع جداً
-    const res = await fetch(`https://api.quran.com/api/v4/verses/by_chapter/${n}?per_page=300&words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number`);
-    const json = await res.json();
+    const cacheKey = `surah_data_qcf_v2_${n}`;
+    let json = JSON.parse(localStorage.getItem(cacheKey) || 'null');
 
-    if (!json.verses || json.verses.length === 0) throw new Error("لا توجد بيانات");
+    // ⚡ السحر هنا: لو الداتا مش متخزنة أوفلاين فقط يُظهر التحميل، ولو متخزنة لا يغير الـ HTML ويبدأ فوراً!
+    if (!json) {
+      slider.innerHTML = '<div style="width:100%;text-align:center;padding:50px;color:var(--gold);font-family:Amiri,serif;font-size:18px;">⚡ جاري جلب السورة لأول مرة...</div>';
+      const res = await fetch(`https://api.quran.com/api/v4/verses/by_chapter/${n}?per_page=300&words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number`);
+      json = await res.json();
+      if (json && json.verses) {
+        localStorage.setItem(cacheKey, JSON.stringify(json));
+      }
+    }
+
+    if (!json || !json.verses || json.verses.length === 0) throw new Error("لا توجد بيانات");
 
     const pagesDict = {};
     currentAyahsData = [];
@@ -3480,9 +3488,6 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
 
     const pageNums = Object.keys(pagesDict).map(Number).sort((a,b) => a-b);
     window.currentSurahPages = pageNums;
-
-    // تحميل خطوط الصفحات توازياً بسرعة
-    await Promise.all(pageNums.map(p => loadQcfPageFont(p)));
 
     let sliderHtml = '';
 
@@ -3527,17 +3532,31 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
       sliderHtml += `<div class="page-footer" style="text-align:center;font-weight:bold;margin-top:8px;">صفحة ${toAr(pageNum)}</div></div>`;
     });
 
-    document.getElementById('mushafSlider').innerHTML = sliderHtml;
+    // ضخ العناصر نصياً في الـ DOM في لحظتها
+    slider.innerHTML = sliderHtml;
 
-    attachMushafEdgeSwipe();
-    scrollToTargetAyahIfNeeded(targetAyahNum);
-    renderBookmarkHighlight();
-    setupMushafJumpSlider(pageNums);
+    // 🚀 التوجيه الدقيق والسريع بدون تأخير زائف
+    requestAnimationFrame(() => {
+      if (targetPageNumber === 'last') {
+        window.scrollToMushafIndex(pageNums.length - 1);
+      } else if (targetPageNumber) {
+        const targetIdx = pageNums.indexOf(targetPageNumber);
+        if (targetIdx !== -1) window.scrollToMushafIndex(targetIdx);
+      } else {
+        window.scrollToMushafIndex(0);
+      }
+
+      // تحميل الخطوط والخدمات في الخلفية بدون حجب الواجهة
+      pageNums.forEach(p => loadQcfPageFont(p));
+      attachMushafEdgeSwipe();
+      scrollToTargetAyahIfNeeded(targetAyahNum);
+      renderBookmarkHighlight();
+      setupMushafJumpSlider(pageNums);
+    });
 
   } catch(e) {
     console.error("خطأ جلب بيانات السورة:", e);
-    document.getElementById('mushafSlider').innerHTML =
-      '<div style="width:100%;text-align:center;padding:50px;color:#8b6914;font-family:Amiri,serif;font-size:18px;">تحتاج اتصال بالإنترنت لمزامنة الرسم العثماني 🌐</div>';
+    slider.innerHTML = '<div style="width:100%;text-align:center;padding:50px;color:#8b6914;font-family:Amiri,serif;font-size:18px;">تحتاج اتصال بالإنترنت لمزامنة الرسم العثماني 🌐</div>';
   }
 }
  
@@ -3565,7 +3584,7 @@ window.navSurah = function(direction) {
   const nextNum = currentSurah.n + direction;
   if (nextNum < 1 || nextNum > 114) return;
   
-  // لو راجع لسورة سابقة (direction = -1)، ارفع حقل 'last'
+  // 👈 عند الرجوع للسورة السابقة (direction === -1) يمرر الحقل 'last' لفتح الصفحة الأخيرة فوراً
   openSurah(nextNum, null, direction === -1 ? 'last' : 1);
 };
 
@@ -4974,20 +4993,18 @@ window.scrollToMushafIndex = function(index) {
   const slider = document.getElementById('mushafSlider');
   if (!slider || !slider.children[index]) return;
 
-  // 1️⃣ إيقاف الـ Snap مؤقتاً لفك قفل الشاشة الأولى تماماً
+  // فك قفل الـ snap لضمان حركة سلسة ولحظية
   slider.style.scrollSnapType = 'none';
 
-  // 2️⃣ التوجيه الفوري والسلس للصفحة المطلوبة
   slider.children[index].scrollIntoView({
-    behavior: 'smooth',
+    behavior: 'auto', // خفيف وسريع جداً بدون lag
     inline: 'start',
     block: 'nearest'
   });
 
-  // 3️⃣ إعادة تفعيل الـ Snap بنعومة بعد وصول الصفحة
   setTimeout(() => {
     slider.style.scrollSnapType = 'x mandatory';
-  }, 350);
+  }, 100);
 };
 
 
