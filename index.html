@@ -3563,11 +3563,10 @@ function closeSurah() {
 window.navSurah = function(direction) {
   if (!currentSurah) return;
   const nextNum = currentSurah.n + direction;
-  if (nextNum < 1 || nextNum > 114) {
-    document.getElementById('audioStatus').textContent = nextNum < 1 ? '📖 هذه أول سورة في المصحف' : '📖 هذه آخر سورة في المصحف';
-    return;
-  }
-  openSurah(nextNum);
+  if (nextNum < 1 || nextNum > 114) return;
+  
+  // لو راجع لسورة سابقة (direction = -1)، ارفع حقل 'last'
+  openSurah(nextNum, null, direction === -1 ? 'last' : 1);
 };
 
 function toggleFavSurah() {
@@ -3579,6 +3578,28 @@ function toggleFavSurah() {
   document.getElementById('favSurahBtn').textContent = favorites.includes(key) ? '⭐' : '🤍';
 }
 
+
+ function prefetchFullQuranData() {
+  setTimeout(async () => {
+    for (let i = 1; i <= 114; i++) {
+      const cacheKey = `surah_data_qcf_v2_${i}`;
+      if (!localStorage.getItem(cacheKey)) {
+        try {
+          const res = await fetch(`https://api.quran.com/api/v4/verses/by_chapter/${i}?per_page=300&words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number`);
+          const data = await res.json();
+          if (data && data.verses) {
+            localStorage.setItem(cacheKey, JSON.stringify(data));
+          }
+        } catch(e) {}
+        await new Promise(r => setTimeout(r, 100)); // توقف بسيط عشان الجهاز ميهنجش
+      }
+    }
+    console.log("✅ تم تخزين داتا المصحف الـ 114 سورة بالكامل على الهاتف!");
+  }, 3000);
+}
+
+// تشغيلها بعد فتح التطبيق بـ 3 ثوانٍ
+document.addEventListener('DOMContentLoaded', prefetchFullQuranData);
 // ===========================
 // Long Press
 // ===========================
@@ -3641,24 +3662,44 @@ function closeActionMenu() {
   document.getElementById('actionSheet').classList.remove('show');
 }
 
-function actionTafseer() {
+async function actionTafseer() {
   closeActionMenu();
   const a = currentAyahsData[activeAyahIndex];
-  document.getElementById('modalTitle').textContent = `📝 تفسير الآية ${toAr(a.numberInSurah)} — سورة ${currentSurah.name}`;
   
-  // تنظيف البسملة من الآية الأولى بروقان في التفسير
+  // تنظيف البسملة من أول آية
   let cleanText = a.text;
   if (currentSurah.n !== 1 && currentSurah.n !== 9 && a.numberInSurah === 1) {
-    cleanText = cleanText.replace(/^بِسْمِ[\s\S]+?رَّحِيمِ\s*/, '');
-    cleanText = cleanText.replace(/^بِسْمِ[\s\S]+?الرَّحِيمِ\s*/, '');
+    cleanText = cleanText.replace(/^بِسْمِ[\s\S]+?رَّحِيمِ\s*/, '');
+    cleanText = cleanText.replace(/^بِسْمِ[\s\S]+?الرَّحِيمِ\s*/, '');
   }
-  
+
+  document.getElementById('modalTitle').textContent = `📖 التفسير الميسر — سورة ${currentSurah.name} (آية ${toAr(a.numberInSurah)})`;
   document.getElementById('modalAyahText').textContent = cleanText;
-  document.getElementById('modalText').textContent = a.tafseer;
+  document.getElementById('modalText').textContent = '⏳ جاري جلب التفسير الميسر...';
   document.getElementById('modalSource').textContent = '📚 المصدر: التفسير الميسر (مجمع الملك فهد)';
+
   const modal = document.getElementById('tafseerModal');
-  modal.style.zIndex = '1000003';
+  modal.style.zIndex = '1000005'; // رفع الطبقة لظهور النافذة فوراً فوق المصحف
   modal.classList.add('show');
+
+  try {
+    // ⚡ جلب التفسير الميسر المعتمد برقم السورة والآية
+    const ayahKey = `${currentSurah.n}:${a.numberInSurah}`;
+    const res = await fetch(`https://api.quran.com/api/v4/tafsirs/ar-tafsir-muyassar/by_ayah/${ayahKey}`);
+    const data = await res.json();
+
+    if (data && data.tafsir && data.tafsir.text) {
+      // تنظيف أي وسوم HTML إضافية لو وجدت
+      const cleanTafseer = data.tafsir.text.replace(/<[^>]*>?/gm, '');
+      document.getElementById('modalText').textContent = cleanTafseer;
+      a.tafseer = cleanTafseer; // حفظه في الكاش المحلي للآية
+    } else {
+      document.getElementById('modalText').textContent = 'تعذر جلب التفسير، تأكد من الاتصال بالإنترنت.';
+    }
+  } catch (err) {
+    console.error('خطأ جلب التفسير:', err);
+    document.getElementById('modalText').textContent = 'تحتاج اتصال بالإنترنت لعرض التفسير الميسر 🌐';
+  }
 }
 window.navTafseer = function(direction) {
   // التأكد إن فيه آية مفتوحة حالياً جوه مصفوفة السورة
@@ -3728,19 +3769,21 @@ function actionSelect() {
 // متغيرات عالمية جديدة للتحكم في التكرار
 window.ayahRepeatCount = 1; // الافتراضي تعمل مرة واحدة
 window.currentAyahRepeatProgress = 1;
-
 window.handleAyahClick = function(idx) {
-  if (!window.isPickingEndAyah) return; // أمان إضافي
+  if (!window.isPickingEndAyah) return;
 
   const start = Math.min(window.firstSelectedAyahIndex, idx);
   const end = Math.max(window.firstSelectedAyahIndex, idx);
 
   selectedAyahsQueue = [];
-  document.querySelectorAll('.ayah-span').forEach(el => el.classList.remove('selected'));
+  
+  // مسح أي تظليل تحديد قديم مرة واحدة فقط في البداية
+  clearHighlightBars('selected');
 
+  // تظليل كل الآيات في النطاق المحدد
   for (let i = start; i <= end; i++) {
     selectedAyahsQueue.push(i);
-    highlightAyah(i, 'selected');
+    highlightAyah(i, 'selected', false); // تمرير false لمنع مسح الآيات السابقة
   }
 
   selectedAyahsQueue.sort((a, b) => a - b);
@@ -3749,12 +3792,12 @@ window.handleAyahClick = function(idx) {
   window.firstSelectedAyahIndex = null;
 
   setTimeout(() => {
-    let repeatInput = prompt("🔂 تريد تكرار الآية كم مرة؟ (1 للتكرار مرة واحدة):", "1");
+    let repeatInput = prompt("🔂 تريد تكرار الآيات كم مرة؟ (1 للتكرار مرة واحدة):", "1");
     window.ayahRepeatCount = parseInt(repeatInput) || 1;
     window.currentAyahRepeatProgress = 1;
     updateAudioStatus();
   }, 200);
-};    
+};  
        
     
     
@@ -3794,10 +3837,13 @@ function closeModals() {
   document.getElementById('tafseerModal').classList.remove('show');
   document.getElementById('mushafSearchModal').classList.remove('show');
 }
- function openMushafSearch() {
+function openMushafSearch() {
   document.getElementById('searchSurahInput').value = currentSurah ? currentSurah.name : '';
   document.getElementById('searchAyahInput').value = '';
-  document.getElementById('mushafSearchModal').classList.add('show');
+  
+  const modal = document.getElementById('mushafSearchModal');
+  modal.style.zIndex = '1000005'; // 👈 رفع طبقة نافذة البحث لظهورها فوق شاشة المصحف
+  modal.classList.add('show');
 }
 
 function submitMushafSearch() {
@@ -7371,18 +7417,17 @@ function clearAllHighlights() {
   document.querySelectorAll('.qcf-word, .ayah-span').forEach(el => el.classList.remove('selected', 'playing'));
 }
 
-function highlightAyah(ayahIndex, type = 'selected') {
+function highlightAyah(ayahIndex, type = 'selected', clearOld = true) {
   const words = document.querySelectorAll(`.ayah-group_${ayahIndex}`);
   if (words.length === 0) return;
 
-  clearHighlightBars(type); // نشيل أي شريط قديم من نفس النوع الأول
+  if (clearOld) clearHighlightBars(type); // لا يمسح التحديد القديم إلا إذا طلبنا ذلك
 
- const color = type === 'playing' ? 'rgba(255,215,0,0.35)'
-            : type === 'bookmark' ? 'rgba(212,175,55,0.30)'
-            : type === 'flash' ? 'rgba(111,191,115,0.4)'
-            : 'rgba(76,175,80,0.25)';
+  const color = type === 'playing' ? 'rgba(255,215,0,0.35)'
+              : type === 'bookmark' ? 'rgba(212,175,55,0.30)'
+              : type === 'flash' ? 'rgba(111,191,115,0.4)'
+              : 'rgba(76,175,80,0.35)';
 
-  // نجمع الكلمات حسب السطر اللي هي فيه (كل سطر له شريط مستقل)
   const lineGroups = new Map();
   words.forEach(w => {
     const line = w.parentElement;
