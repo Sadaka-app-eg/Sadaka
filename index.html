@@ -116,10 +116,22 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
 .audio-status{font-size:11px;color:var(--text2);margin-top:2px;}
 .clear-sel-btn{background:transparent;border:1px solid rgba(255,100,100,0.4);color:#ff6b6b;padding:5px 10px;border-radius:8px;cursor:pointer;font-size:11px;white-space:nowrap;}
 .controls-hidden .surah-header,
-.controls-hidden .audio-bar {
+.controls-hidden .audio-bar,
+.controls-hidden .page-dots {
   display: none;
 }
 
+.bookmark-ribbon {
+  position: absolute;
+  width: 22px;
+  height: 30px;
+  background: linear-gradient(180deg, #f0c14b, #b8862f);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%);
+  z-index: 6;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+}
+  
 .toggle-controls-btn {
   position: fixed;
   bottom: 80px;
@@ -1109,8 +1121,7 @@ body.hide-controls #quran {
 
 <!-- SURAH SCREEN -->
  <div class="surah-screen" id="surahScreen">
- <button class="toggle-controls-btn" onclick="toggleControls()">☰</button>
- <button class="bookmark-jump-btn" onclick="jumpToBookmark()" title="اذهب لعلامة الوقف">🔖</button>
+ 
     <div class="surah-header" style="position: relative;">
   <button class="back-btn" onclick="closeSurah()">→</button>
   
@@ -1118,16 +1129,13 @@ body.hide-controls #quran {
   <h2 id="surahScreenTitle" style="margin: 0; font-size: 16px; text-align: center;">السورة</h2>
 </div>
 
-
+<button class="icon-btn" id="bookmarkJumpBtn" onclick="jumpToBookmark()" style="display:none;">🔖</button>
   <button class="icon-btn" onclick="toggleFavSurah()" id="favSurahBtn">🤍</button>
   <button class="icon-btn" id="nightModeBtn" onclick="toggleMushafNight()">🌙</button>
 </div>
 
   
-   <div class="mode-toggle-row">
-  <button class="mode-btn active" id="modeNass" onclick="switchMode('nass')">📝 نص عثماني</button>
-  <button class="mode-btn" id="modeQcf" onclick="switchMode('qcf')">📖 مصحف</button>
-   </div>
+  
   <div class="audio-bar">
    <div class="seekbar-container" style="width: 100%; display: flex; flex-direction: column; gap: 4px; padding: 4px 14px; background: var(--bg2); border-bottom: 1px solid var(--border);">
   <div style="display: flex; justify-content: space-between; align-items: center; direction: ltr; font-size: 11px; color: var(--text2); font-family: monospace;">
@@ -2963,41 +2971,8 @@ let currentPageDots = [];
 let mushafMode = 'nass'; // 'nass' أو 'qcf'
 let qcfFontsLoaded = {};
 
-window.switchMode = function(mode) {
-  
 
-    mushafMode = mode;
-  localStorage.setItem('last_mode', mode); // حفظ المود (عثماني أم مصحف)
-  document.getElementById('modeNass').classList.toggle('active', mode === 'nass');
-  document.getElementById('modeQcf').classList.toggle('active', mode === 'qcf');
-  
-  if (!currentSurah) return;
-  stopAudio();
-  
-  // لقط الصفحة الحالية قبل التحويل لمنع البداية من الأول
-  const slider = document.getElementById('mushafSlider');
-  const idx = Math.round(slider.scrollLeft / window.innerWidth);
 
-let targetPageNumber = null;
-if (mode === 'qcf' && window.currentSurahPages) {
-  targetPageNumber = window.currentSurahPages[idx];
-} else if (mode === 'nass' && window.currentQcfPages) {
-  targetPageNumber = window.currentQcfPages[idx];
-}
-
-if (mode === 'qcf') {
-  renderQcfPages(0, targetPageNumber);
-} else {    // إذا رجع للنص العثماني، نفتح السورة ونمرر رقم الآية أو نتركه يحمل طبيعي
-    openSurah(currentSurah.n, null, targetPageNumber);
-  setTimeout(() => {
-    document.getElementById('modeNass').classList.add('active');
-    document.getElementById('modeQcf').classList.remove('active');
-  }, 100);
- }
-};
-
- 
-        
  
 function changeReciter() {
   const newReciter = document.getElementById('reciterSelect').value;
@@ -3430,12 +3405,17 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
 
   const screen = document.getElementById('surahScreen');
   screen.classList.add('open');
+ screen.classList.add('controls-hidden');
   screen.classList.add('controls-hidden');
   document.getElementById('surahScreenTitle').textContent = 'سورة ' + currentSurah.name;
   document.getElementById('favSurahBtn').textContent = favorites.includes('s'+n) ? '⭐' : '🤍';
-  const bmCheck = JSON.parse(localStorage.getItem('quran_bookmark') || 'null');
-  document.getElementById('bookmarkJumpBtn').style.display = (bmCheck && bmCheck.surah === n) ? 'flex' : 'none';
 
+
+ 
+const bm = JSON.parse(localStorage.getItem('quran_bookmark') || 'null');
+ 
+document.getElementById('bookmarkJumpBtn').style.display = (bm && bm.surah === n) ? 'flex' : 'none';
+ 
   const slider = document.getElementById('mushafSlider');
   slider.innerHTML = '<div style="width:100%;text-align:center;padding:50px;color:var(--gold);font-family:Amiri,serif;font-size:18px;">⏳ جاري جلب الرسم العثماني بالخط المصحفي الشريف...</div>';
 
@@ -3536,6 +3516,7 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
     }
 
     document.getElementById('mushafSlider').innerHTML = sliderHtml;
+
     attachMushafEdgeSwipe();
     renderBookmarkRibbon();
 
@@ -3561,18 +3542,12 @@ function closeSurah() {
   localStorage.setItem('surah_screen_open', '0'); // ← ضيف السطر ده
   stopAudio();
 }
-  window.navSurah = function(direction) {
+window.navSurah = function(direction) {
   if (!currentSurah) return;
   let nextNum = currentSurah.n + direction;
-  if (nextNum < 1) nextNum = 114; // يلف لآخر سورة لو رجع من الفاتحة
-  if (nextNum > 114) nextNum = 1; // يلف للفاتحة لو تخطى الناس
-  
-  if (mushafMode === 'qcf') {
-    openSurah(nextNum);
-    setTimeout(() => { renderQcfPages(0); }, 300);
-  } else {
-    openSurah(nextNum);
-  }
+  if (nextNum < 1) nextNum = 114;
+  if (nextNum > 114) nextNum = 1;
+  openSurah(nextNum);
 };
 
 function toggleFavSurah() {
@@ -4212,7 +4187,7 @@ function renderFav() {
 }
 
  
- function actionBookmark() {
+function actionBookmark() {
   closeActionMenu();
   const ayah = currentAyahsData[activeAyahIndex];
   const bookmark = {
@@ -4223,20 +4198,10 @@ function renderFav() {
   };
   localStorage.setItem('quran_bookmark', JSON.stringify(bookmark));
   updateHomeBookmarkCard();
-  // إزالة أي علامة قديمة
-  document.querySelectorAll('.bookmark-mark').forEach(el => el.remove());
-  
-  // إضافة علامة على الآية
-const spans = document.querySelectorAll(`.ayah-group_${activeAyahIndex}`);
-const lastSpan = spans[spans.length - 1];
-if (lastSpan) {
-  const mark = document.createElement('span');
-  mark.className = 'bookmark-mark';
-  mark.textContent = ' 🔖';
-  mark.style.color = '#ffd700';
-  lastSpan.appendChild(mark);
+  renderBookmarkRibbon();
+  const btn = document.getElementById('bookmarkJumpBtn');
+  if (btn) btn.style.display = 'flex';
 }
-   }
  let mushafNight = false;
 function toggleMushafNight() {
   mushafNight = !mushafNight;
@@ -4288,15 +4253,15 @@ function toggleMushafNight() {
   }
  
  
- function jumpToBookmark() {
+function jumpToBookmark() {
   const bm = JSON.parse(localStorage.getItem('quran_bookmark') || 'null');
   if(!bm || bm.surah !== currentSurah.n) {
     document.getElementById('audioStatus').textContent = 'مفيش علامة وقف في السورة دي';
     return;
   }
   const el = document.querySelector(`.ayah-group_${bm.index}`);
-if(el) el.scrollIntoView({behavior:'smooth', block:'center'});
- }
+  if(el) el.scrollIntoView({behavior:'smooth', block:'center'});
+}
   function goToHomeBookmark() {
   const bm = JSON.parse(localStorage.getItem('quran_bookmark') || 'null');
   if (!bm) {
@@ -4886,98 +4851,6 @@ async function loadPageWordsOverlay(imgElement, pageNum) {
   }
 }
 
-// الدالة الرئيسية لعرض الصفحات
-        // الدالة الرئيسية لعرض الصفحات (النسخة المضمونة 100%)
-async function renderQcfPages(targetPageIndex = 0, targetPageNumber = null) {  const slider = document.getElementById('mushafSlider');
-  slider.innerHTML = '<div style="width:100%;text-align:center;padding:50px;color:#8b6914;font-family:Amiri,serif;font-size:18px;">⏳ جاري تحميل صفحات المصحف الشريف...</div>';
-  
-  try {
-    const r = await fetch(`https://api.alquran.cloud/v1/surah/${currentSurah.n}`);
-    const d = await r.json();
-    const pages = [...new Set(d.data.ayahs.map(a => a.page))];
-    window.currentQcfPages = pages;
-if (targetPageNumber !== null) {
-  const foundIdx = pages.indexOf(targetPageNumber);
-  if (foundIdx !== -1) targetPageIndex = foundIdx;
-}
-    let quranCache = null;
-    if ('caches' in window) {
-      quranCache = await caches.open('mushaf-images-v1');
-    }
-
-    const imgElements = await Promise.all(pages.map(async (p, i) => {
-      const imageUrl = `https://cdn.myquran.com/img/page/${p}.png`;
-      let finalSrc = imageUrl;
-
-      if (quranCache) {
-        const cachedResponse = await quranCache.match(imageUrl);
-        if (cachedResponse) {
-          finalSrc = imageUrl; 
-        }
-      }
-
-      return `
-      <div class="mushaf-page" id="qcf_page_container_${i}" style="flex: 0 0 100vw; width: 100vw; height: calc(100vh - 105px); background: var(--bg); display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 0; margin: 0; border: none;">
-        <div onclick="document.body.classList.toggle('hide-controls')" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: auto; z-index: 5;"></div>
-        
-        <img id="qcf_image_${p}" class="qcf-img" src="${finalSrc}" 
-             style="width: 100%; height: 100%; object-fit: fill; display: block; position: relative; z-index: 6; padding: 0; margin: 0; transition: filter 0.3s;" 
-             onload="loadPageWordsOverlay(this, ${p})">
-        
-        <!-- الأوفرلاي الخاص بالكلمات -->
-        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10;"></div>
-      </div>`;
-    }));
-
-    // حقن العناصر مباشرة في الـ DOM
-    slider.innerHTML = imgElements.join('');
-   attachMushafEdgeSwipe();
-    // بناء نظام شريط أرقام الصفحات التفاعلي لوضع المصحف
-    if (pages.length > 0) {
-      const dotsHtml = pages.map((pageNum, i) =>
-        `<div class="page-dot ${i===targetPageIndex?'active':''}" id="dot_${i}" onclick="window.scrollToMushafIndex(${i})">${toAr(pageNum)}</div>`
-      ).join('');
-      document.getElementById('pageDots').innerHTML = dotsHtml;
-
-      slider.onscroll = () => {
-        const idx = Math.round(slider.scrollLeft / window.innerWidth);
-        pages.forEach((_, j) => {
-          const d = document.getElementById('dot_' + j);
-          if (d) {
-            if (j === idx) {
-              d.classList.add('active');
-              d.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-            } else {
-              d.classList.remove('active');
-            }
-          }
-        });
-      };
-    }
-
-    // 🔥 الأمان التام: ندمج التأخير البسيط مع التوجيه الذكي الذي يدعم اتجاه الـ RTL
-    setTimeout(() => {
-      const targetPage = document.getElementById(`qcf_page_container_${targetPageIndex}`);
-      if (targetPage) {
-        // فحص ذكي: هل المتصفح يقرأ السكرول العكسي؟ لضمان العمل على الموبايل والكمبيوتر
-        const isRTL = window.getComputedStyle(slider).direction === 'rtl';
-        if (isRTL) {
-          // جرب الطرق الثلاثة الشهيرة للمتصفحات في الـ RTL لتضمن التنقل فوراً
-          slider.scrollLeft = -targetPage.offsetLeft; 
-          if(slider.scrollLeft === 0) {
-            slider.scrollLeft = slider.scrollWidth - slider.clientWidth - targetPage.offsetLeft;
-          }
-        } else {
-          slider.scrollLeft = targetPage.offsetLeft;
-        }
-      }
-    }, 150); // مهلة 150ms كافية جداً للمتصفح ليعطي أبعاد حقيقية للـ Pages
-
-  } catch(e) {
-    console.error("خطأ جلب صفحات المصحف:", e);
-    slider.innerHTML = '<div style="text-align:center;padding:50px;color:#8b6914;font-family:Amiri,serif;">تحتاج اتصال بالإنترنت 🌐</div>';
-  }
-}
                                     
                       
 window.scrollToMushafIndex = function(index) {
@@ -5267,14 +5140,9 @@ countZekr = function(cat, i, max) {
 function restoreLastState() {
   const wasOpen = localStorage.getItem('surah_screen_open') === '1';
   const lastSurah = localStorage.getItem('last_active_surah');
-  const lastMode = localStorage.getItem('last_mode') || 'nass';
-
   if (wasOpen && lastSurah) {
     setTimeout(async () => {
       await openSurah(parseInt(lastSurah));
-      if (lastMode === 'qcf') {
-        setTimeout(() => switchMode('qcf'), 500);
-      }
     }, 1000);
   }
 }
@@ -7518,18 +7386,58 @@ function attachMushafEdgeSwipe() {
     const total = newSlider.children.length;
     const idx = getMushafPageIndex(newSlider);
 
-    if (deltaX < 0 && idx >= total - 1) {
-      // آخر صفحة في السورة + لسه بيسحب لقدام => السورة التالية
-      mushafSwipeLocked = true;
-      window.navSurah(1);
-      setTimeout(() => { mushafSwipeLocked = false; }, 600);
-    } else if (deltaX > 0 && idx <= 0) {
-      // أول صفحة في السورة + بيسحب للخلف => السورة السابقة
-      mushafSwipeLocked = true;
-      window.navSurah(-1);
-      setTimeout(() => { mushafSwipeLocked = false; }, 600);
-    }
+if (deltaX > 0 && idx >= total - 1) {
+  // آخر صفحة في السورة + سحب من الشمال لليمين (اتجاه القراءة للأمام) => السورة التالية
+  mushafSwipeLocked = true;
+  window.navSurah(1);
+  setTimeout(() => { mushafSwipeLocked = false; }, 600);
+} else if (deltaX < 0 && idx <= 0) {
+  // أول صفحة في السورة + سحب من اليمين للشمال (رجوع) => السورة السابقة
+  mushafSwipeLocked = true;
+  window.navSurah(-1);
+  setTimeout(() => { mushafSwipeLocked = false; }, 600);
+}
   }, { passive: true });
+}
+
+// تفعيل الدوس على الشاشة لإظهار/إخفاء عناصر التحكم
+let mushafTapToggleBound = false;
+function setupMushafTapToggle() {
+  if (mushafTapToggleBound) return;
+  mushafTapToggleBound = true;
+  const wrap = document.querySelector('.mushaf-pages-wrap');
+  if (!wrap) return;
+  wrap.addEventListener('click', () => {
+    if (window.isPickingEndAyah) return;
+    toggleControls();
+  });
+}
+document.addEventListener('DOMContentLoaded', setupMushafTapToggle);
+
+// رسم شريط البوكمارك الحقيقي فوق الآية المحفوظة
+function renderBookmarkRibbon() {
+  document.querySelectorAll('.bookmark-ribbon').forEach(el => el.remove());
+  const bm = JSON.parse(localStorage.getItem('quran_bookmark') || 'null');
+  if (!bm || !currentSurah || bm.surah !== currentSurah.n) return;
+
+  const words = document.querySelectorAll(`.ayah-group_${bm.index}`);
+  if (words.length === 0) return;
+
+  const lastWord = words[words.length - 1];
+  const container = lastWord.closest('.mushaf-page');
+  if (!container) return;
+  if (getComputedStyle(container).position === 'static') container.style.position = 'relative';
+
+  const contRect = container.getBoundingClientRect();
+  const lineRect = lastWord.parentElement.getBoundingClientRect();
+
+  const ribbon = document.createElement('div');
+  ribbon.className = 'bookmark-ribbon';
+  ribbon.title = 'علامة وقفك هنا';
+  ribbon.style.top = (lineRect.top - contRect.top - 4) + 'px';
+  ribbon.style.right = '6px';
+  ribbon.onclick = () => jumpToBookmark();
+  container.appendChild(ribbon);
 }
 
  
