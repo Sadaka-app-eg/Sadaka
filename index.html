@@ -3470,12 +3470,12 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
         tafseer: `تفسير سورة ${currentSurah.name} الآية ${verse.verse_key.split(':')[1]}`
       });
 
-      verse.words.forEach((word) => {
+verse.words.forEach((word) => {
         const lineNum = word.line_number;
         if (!pagesDict[pageNum][lineNum]) pagesDict[pageNum][lineNum] = [];
         pagesDict[pageNum][lineNum].push({
           id: word.id,
-          code: word.code_v2,
+          code: mushafMode === 'nass' ? word.text_uthmani : word.code_v2, // 👈 التعديل هنا بكل ببساطة
           ayahKey: verse.verse_key,
           ayahNum: verse.verse_key.split(':')[1],
           text: word.text_uthmani
