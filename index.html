@@ -3181,9 +3181,9 @@ if(id === 'heartMirrorPage' && typeof window.initHeartMirrorPage === 'function')
         // صفحة مزيد من تطبيقاتنا جاهزة وتعمل بنجاح
     }
 if (id === 'quran') {
-    const lastPage = localStorage.getItem('last_page') || 1;
-    if (typeof window.renderNewQcfMushaf === 'function') {
-      window.renderNewQcfMushaf(Number(lastPage));
+    // عرض قائمة السور الـ 114 كاملة فوراً
+    if (typeof renderSurahs === 'function') {
+      renderSurahs(surahs);
     }
   }
  
@@ -3407,23 +3407,32 @@ function filterSurahs(q) {
  // تعديل السطر الأول للدالة ليصبح هكذا
 
 // تحميل الخط العثماني بصفحاته بدقة عالية بدون تاكل
+// تحميل الخط العثماني بدقة فائقة وانتظار اكتماله لمنع طيران الهمزات
 async function loadQcfPageFont(pageNum) {
   const fontName = `QCF_V2_P${pageNum}`;
   const fontUrl = `https://verses.quran.foundation/fonts/quran/hafs/v2/woff2/p${pageNum}.woff2`;
+  
+  // لو الخط متحمل قبل كده متجيبوش تاني
+  if (document.fonts.check(`12px "${fontName}"`)) return true;
+
   try {
     const font = new FontFace(fontName, `url(${fontUrl})`);
-    await font.load();
-    document.fonts.add(font);
-    await document.fonts.ready;
+    const loadedFont = await font.load();
+    document.fonts.add(loadedFont);
+    await document.fonts.ready; // التأكيد القاطع على جاهزية المحرك لجميع الأحرف والهمزات
     return true;
   } catch (e) {
-    console.error("خطأ تحميل الخط العثماني:", e);
+    console.error(`خطأ تحميل خط الصفحة ${pageNum}:`, e);
     return false;
   }
 }
 
 async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
+  // التأكد من تحويل رقم السورة لرقم صحيح
+  n = parseInt(n) || 1;
   currentSurah = surahs.find(s => s.n === n);
+  if (!currentSurah) return;
+
   localStorage.setItem('last_active_surah', n);
   localStorage.setItem('surah_screen_open', '1');
   
@@ -3441,7 +3450,7 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
   document.getElementById('audioStatus').textContent = `اضغط تشغيل • اضغط مطولاً للخيارات`;
 
   try {
-    // جلب جميع آيات السورة بـ QCF Code V2
+    // جلب آيات السورة المطلوبة بدقة من الـ API (الفاتحة = 7 آيات، البقرة = 286 آية ... إلخ)
     const res = await fetch(`https://api.quran.com/api/v4/verses/by_chapter/${n}?per_page=300&words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number`);
     const json = await res.json();
 
@@ -3475,10 +3484,10 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
       });
     });
 
-    const pageNums = Object.keys(pagesDict).map(Number);
+    const pageNums = Object.keys(pagesDict).map(Number).sort((a,b)=>a-b);
     window.currentSurahPages = pageNums;
 
-    // تحميل خطوط الصفحات الخاصة بالسورة
+    // 🔒 تحميل جميع خطوط صفحات السورة أولاً ثم الرسم لتفادي طيران الهمزات
     await Promise.all(pageNums.map(p => loadQcfPageFont(p)));
 
     let sliderHtml = '';
@@ -3487,7 +3496,7 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
 
       sliderHtml += `<div class="mushaf-page" id="mpage_${pageNum}" style="flex: 0 0 100vw; width: 100vw; height: 100%; padding: 12px 14px 25px; overflow-y: auto; display: flex; flex-direction: column; justify-content: space-between; background: var(--mushaf-bg); box-sizing: border-box;">`;
       
-      // الهيدر والبسملة في بداية السورة
+      // رأس السورة والبسملة
       if (pageIndex === 0) {
         sliderHtml += `<div class="surah-name-header">سُورَةُ ${currentSurah.name}</div>`;
         if (n !== 1 && n !== 9) {
@@ -3495,7 +3504,6 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
         }
       }
 
-      // حاوية أسطر المصحف الـ 15 (تصليح الـ CSS الخاص بالتوزيع)
       const containerStyle = isSpecialPage 
         ? 'display: flex; flex-direction: column; justify-content: center; margin-top: auto; margin-bottom: auto; gap: 12px;' 
         : 'display: flex; flex-direction: column; justify-content: space-between; height: 100%; gap: 2px;';
@@ -3525,14 +3533,12 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
       });
 
       sliderHtml += `</div>`;
-
-      // رقم الصفحة أسفل الشاشة
       sliderHtml += `<div class="page-footer" style="text-align: center; font-weight: bold; margin-top: 8px;">صفحة ${toAr(pageNum)}</div></div>`;
     });
 
     document.getElementById('mushafSlider').innerHTML = sliderHtml;
 
-    // رسم شريط أرقام الصفحات السفلى (Dots)
+    // أرقام الصفحات السفلى
     if (pageNums.length > 0) {
       const dotsHtml = pageNums.map((pageNum, i) =>
         `<div class="page-dot ${i === 0 ? 'active' : ''}" id="dot_${i}" onclick="window.scrollToMushafIndex(${i})">${toAr(pageNum)}</div>`
