@@ -3746,7 +3746,7 @@ window.handleAyahClick = function(idx) {
 
   for (let i = start; i <= end; i++) {
     selectedAyahsQueue.push(i);
-    document.getElementById(`ayah_${i}`)?.classList.add('selected');
+   highlightAyah(i, 'selected');
   }
 
   selectedAyahsQueue.sort((a, b) => a - b);
@@ -3762,7 +3762,24 @@ window.handleAyahClick = function(idx) {
   }, 200);
 };    
        
-    
+    }; // قفلة handleAyahClick عند السطر 3763
+
+// 🎯 حط الكود الجديد هنا (بداية من السطر 3765):
+
+// دالة تظليل وتلوين الآية بالكامل (كل كلماتها)
+function highlightAyah(ayahIndex, className = 'selected') {
+  document.querySelectorAll(`.ayah-group_${ayahIndex}`).forEach(el => {
+    el.classList.add(className);
+  });
+}
+
+// دالة مسح التحديد عن جميع الآيات
+function clearAllHighlights() {
+  document.querySelectorAll('.ayah-span').forEach(el => {
+    el.classList.remove('selected', 'playing');
+  });
+}
+
     
   
   
