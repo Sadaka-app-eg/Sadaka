@@ -32,6 +32,16 @@ window.rareRecitations = [
   { name: "محمد عباده: تلاوة خاشعة 27 🎙️", url: "audio/obada_27.mp3", desc: "", tag: "محمد عباده" },
 
 
+  { name: "أنشودة 1 🎵", url: "audio_2/onshoda_1.mp3", desc: "", tag: "أناشيد" },
+  { name: "أنشودة 2 🎵", url: "audio_2/onshoda_2.mp3", desc: "", tag: "أناشيد" },
+  { name: "أنشودة 3 🎵", url: "audio_2/onshoda_3.mp3", desc: "", tag: "أناشيد" },
+  { name: "أنشودة 4 🎵", url: "audio_2/onshoda_4.mp3", desc: "", tag: "أناشيد" },
+  { name: "أنشودة 5 🎵", url: "audio_2/onshoda_5.mp3", desc: "", tag: "أناشيد" },
+  { name: "أنشودة 6 🎵", url: "audio_2/onshoda_6.mp3", desc: "", tag: "أناشيد" },
+  { name: "أنشودة 7 🎵", url: "audio_2/onshoda_7.mp3", desc: "", tag: "أناشيد" },
+  { name: "أنشودة 8 🎵", url: "audio_2/onshoda_8.mp3", desc: "", tag: "أناشيد" },
+
+
   
   { name: "ناصر القطامي: آيات قصيرة بصوت عذب 🎙️", url: "audio_2/katami_1.mp3", desc: "", tag: "ناصر القطامي" },
   { name: "ناصر القطامي: أجمل تلاوة \"راحة نفسية\" 🎙️", url: "audio_2/katami_2.mp3", desc: "", tag: "ناصر القطامي" },
