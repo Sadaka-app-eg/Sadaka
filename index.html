@@ -282,13 +282,12 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
   .mushaf-slider{display:flex;flex-direction:row;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;height:100%;scrollbar-width:none;}
 .mushaf-slider::-webkit-scrollbar{display:none;}
 .mushaf-page{
-  position: relative;
   flex:0 0 100vw;width:100vw;scroll-snap-align:center;
- padding:150px 14px 90px;overflow-y:auto;
+  padding:12px 14px 30px;overflow-y:auto;
   background:var(--mushaf-bg);color:var(--mushaf-text);
   font-family:'KFGQPC Uthmanic Script HAFS', 'Amiri Quran', serif; /* 👈 عدل الخط هنا */
   font-size:22px;
-  line-height:3; /* 👈 زود دي عشان الهمزات متتأكلش والمسافة تظبط */
+  line-height:2.8; /* 👈 زود دي عشان الهمزات متتأكلش والمسافة تظبط */
   text-align:justify;text-justify:inter-word;
   border-right:4px solid var(--mushaf-border);
   word-spacing:2px;
@@ -3434,6 +3433,7 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
   document.getElementById('bookmarkJumpBtn').style.display = (bm && bm.surah === n) ? 'flex' : 'none';
 
   const slider = document.getElementById('mushafSlider');
+  slider.innerHTML = '<div style="width:100%;text-align:center;padding:50px;color:var(--gold);font-family:Amiri,serif;font-size:18px;">⚡ جاري التحميل...</div>';
 
   stopAudio();
   selectedAyahsQueue = [];
@@ -3441,20 +3441,11 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
   document.getElementById('audioStatus').textContent = `اضغط تشغيل • اضغط مطولاً للخيارات`;
 
   try {
-    const cacheKey = `surah_data_qcf_v2_${n}`;
-    let json = JSON.parse(localStorage.getItem(cacheKey) || 'null');
+    // ⚡ جلب كل آيات السورة بطلب واحد فقط وسريع جداً
+    const res = await fetch(`https://api.quran.com/api/v4/verses/by_chapter/${n}?per_page=300&words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number`);
+    const json = await res.json();
 
-    // ⚡ السحر هنا: لو الداتا مش متخزنة أوفلاين فقط يُظهر التحميل، ولو متخزنة لا يغير الـ HTML ويبدأ فوراً!
-    if (!json) {
-      slider.innerHTML = '<div style="width:100%;text-align:center;padding:50px;color:var(--gold);font-family:Amiri,serif;font-size:18px;">⚡ جاري جلب السورة لأول مرة...</div>';
-      const res = await fetch(`https://api.quran.com/api/v4/verses/by_chapter/${n}?per_page=300&words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number`);
-      json = await res.json();
-      if (json && json.verses) {
-        localStorage.setItem(cacheKey, JSON.stringify(json));
-      }
-    }
-
-    if (!json || !json.verses || json.verses.length === 0) throw new Error("لا توجد بيانات");
+    if (!json.verses || json.verses.length === 0) throw new Error("لا توجد بيانات");
 
     const pagesDict = {};
     currentAyahsData = [];
@@ -3488,6 +3479,9 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
 
     const pageNums = Object.keys(pagesDict).map(Number).sort((a,b) => a-b);
     window.currentSurahPages = pageNums;
+
+    // تحميل خطوط الصفحات توازياً بسرعة
+    await Promise.all(pageNums.map(p => loadQcfPageFont(p)));
 
     let sliderHtml = '';
 
@@ -3532,31 +3526,17 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
       sliderHtml += `<div class="page-footer" style="text-align:center;font-weight:bold;margin-top:8px;">صفحة ${toAr(pageNum)}</div></div>`;
     });
 
-    // ضخ العناصر نصياً في الـ DOM في لحظتها
-    slider.innerHTML = sliderHtml;
+    document.getElementById('mushafSlider').innerHTML = sliderHtml;
 
-    // 🚀 التوجيه الدقيق والسريع بدون تأخير زائف
-    requestAnimationFrame(() => {
-      if (targetPageNumber === 'last') {
-        window.scrollToMushafIndex(pageNums.length - 1);
-      } else if (targetPageNumber) {
-        const targetIdx = pageNums.indexOf(targetPageNumber);
-        if (targetIdx !== -1) window.scrollToMushafIndex(targetIdx);
-      } else {
-        window.scrollToMushafIndex(0);
-      }
-
-      // تحميل الخطوط والخدمات في الخلفية بدون حجب الواجهة
-      pageNums.forEach(p => loadQcfPageFont(p));
-      attachMushafEdgeSwipe();
-      scrollToTargetAyahIfNeeded(targetAyahNum);
-      renderBookmarkHighlight();
-      setupMushafJumpSlider(pageNums);
-    });
+    attachMushafEdgeSwipe();
+    scrollToTargetAyahIfNeeded(targetAyahNum);
+    renderBookmarkHighlight();
+    setupMushafJumpSlider(pageNums);
 
   } catch(e) {
     console.error("خطأ جلب بيانات السورة:", e);
-    slider.innerHTML = '<div style="width:100%;text-align:center;padding:50px;color:#8b6914;font-family:Amiri,serif;font-size:18px;">تحتاج اتصال بالإنترنت لمزامنة الرسم العثماني 🌐</div>';
+    document.getElementById('mushafSlider').innerHTML =
+      '<div style="width:100%;text-align:center;padding:50px;color:#8b6914;font-family:Amiri,serif;font-size:18px;">تحتاج اتصال بالإنترنت لمزامنة الرسم العثماني 🌐</div>';
   }
 }
  
@@ -3582,10 +3562,11 @@ function closeSurah() {
 window.navSurah = function(direction) {
   if (!currentSurah) return;
   const nextNum = currentSurah.n + direction;
-  if (nextNum < 1 || nextNum > 114) return;
-  
-  // 👈 عند الرجوع للسورة السابقة (direction === -1) يمرر الحقل 'last' لفتح الصفحة الأخيرة فوراً
-  openSurah(nextNum, null, direction === -1 ? 'last' : 1);
+  if (nextNum < 1 || nextNum > 114) {
+    document.getElementById('audioStatus').textContent = nextNum < 1 ? '📖 هذه أول سورة في المصحف' : '📖 هذه آخر سورة في المصحف';
+    return;
+  }
+  openSurah(nextNum);
 };
 
 function toggleFavSurah() {
@@ -3597,28 +3578,6 @@ function toggleFavSurah() {
   document.getElementById('favSurahBtn').textContent = favorites.includes(key) ? '⭐' : '🤍';
 }
 
-
- function prefetchFullQuranData() {
-  setTimeout(async () => {
-    for (let i = 1; i <= 114; i++) {
-      const cacheKey = `surah_data_qcf_v2_${i}`;
-      if (!localStorage.getItem(cacheKey)) {
-        try {
-          const res = await fetch(`https://api.quran.com/api/v4/verses/by_chapter/${i}?per_page=300&words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number`);
-          const data = await res.json();
-          if (data && data.verses) {
-            localStorage.setItem(cacheKey, JSON.stringify(data));
-          }
-        } catch(e) {}
-        await new Promise(r => setTimeout(r, 100)); // توقف بسيط عشان الجهاز ميهنجش
-      }
-    }
-    console.log("✅ تم تخزين داتا المصحف الـ 114 سورة بالكامل على الهاتف!");
-  }, 3000);
-}
-
-// تشغيلها بعد فتح التطبيق بـ 3 ثوانٍ
-document.addEventListener('DOMContentLoaded', prefetchFullQuranData);
 // ===========================
 // Long Press
 // ===========================
@@ -3795,6 +3754,7 @@ function actionSelect() {
 // متغيرات عالمية جديدة للتحكم في التكرار
 window.ayahRepeatCount = 1; // الافتراضي تعمل مرة واحدة
 window.currentAyahRepeatProgress = 1;
+
 window.handleAyahClick = function(idx) {
   if (!window.isPickingEndAyah) return;
 
@@ -3823,7 +3783,7 @@ window.handleAyahClick = function(idx) {
     window.currentAyahRepeatProgress = 1;
     updateAudioStatus();
   }, 200);
-};  
+};    
        
     
     
@@ -4991,20 +4951,23 @@ async function loadPageWordsOverlay(imgElement, pageNum) {
                       
 window.scrollToMushafIndex = function(index) {
   const slider = document.getElementById('mushafSlider');
-  if (!slider || !slider.children[index]) return;
-
-  // فك قفل الـ snap لضمان حركة سلسة ولحظية
-  slider.style.scrollSnapType = 'none';
-
-  slider.children[index].scrollIntoView({
-    behavior: 'auto', // خفيف وسريع جداً بدون lag
-    inline: 'start',
-    block: 'nearest'
-  });
+  if (!slider) return;
+  
+  // حيلة برمجية بسيطة لكسر تجميد المتصفح عند الصفحة الأولى
+  slider.scrollLeft = slider.scrollLeft === 0 ? (window.getComputedStyle(slider).direction === 'rtl' ? -1 : 1) : slider.scrollLeft;
 
   setTimeout(() => {
-    slider.style.scrollSnapType = 'x mandatory';
-  }, 100);
+    const isRTL = window.getComputedStyle(slider).direction === 'rtl';
+    if (isRTL) {
+      slider.scrollLeft = - (index * window.innerWidth);
+      // حل بديل للمتصفحات القديمة
+      if (slider.scrollLeft === 0 && index > 0) {
+        slider.scrollLeft = slider.scrollWidth - slider.clientWidth - (index * window.innerWidth);
+      }
+    } else {
+      slider.scrollLeft = index * window.innerWidth;
+    }
+  }, 10);
 };
 
 
@@ -6622,7 +6585,29 @@ function updateSettingsAccountBox() {
 // ===========================
 // نظام المهام اليومية (9/9)
 // ===========================
+function prefetchFullQuranData() {
+  setTimeout(async () => {
+    for (let i = 1; i <= 114; i++) {
+      const cacheKey = `surah_data_qcf_v2_${i}`;
+      if (!localStorage.getItem(cacheKey)) {
+        try {
+          const res = await fetch(`https://api.quran.com/api/v4/verses/by_chapter/${i}?per_page=300&words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number`);
+          const data = await res.json();
+          if (data && data.verses) {
+            localStorage.setItem(cacheKey, JSON.stringify(data));
+          }
+        } catch(e) {}
+        await new Promise(r => setTimeout(r, 100)); // توقف بسيط عشان الجهاز ميهنجش
+      }
+    }
+    console.log("✅ تم تخزين داتا المصحف الـ 114 سورة بالكامل على الهاتف!");
+  }, 3000);
+}
 
+// تشغيلها بعد فتح التطبيق بـ 3 ثوانٍ
+document.addEventListener('DOMContentLoaded', prefetchFullQuranData);
+
+ 
 function getDailyTasksState() {
   const today = new Date().toLocaleDateString('en-CA'); // تاريخ اليوم
   let state = JSON.parse(localStorage.getItem('daily_tasks_state') || '{}');
