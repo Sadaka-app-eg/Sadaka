@@ -7621,5 +7621,25 @@ window.triggerHeaderGoogleLogin = function() {
   history.replaceState({ athrState: 'home' }, '', '');
 })();
 </script>
+
+<!-- 📌 شريط الحقوق والمصمم السفلي -->
+<footer style="
+    text-align: center; 
+    padding: 20px 10px 30px; 
+    font-size: 13px; 
+    color: var(--text2, #9aa79c); 
+    border-top: 1px solid var(--border, rgba(212, 175, 55, 0.1));
+    margin-top: 40px;
+    direction: ltr;
+    font-family: sans-serif;
+">
+    <span>© <span id="currentYear">2026</span> <b>Athr App</b>. Designed & Developed by <b>Ahmed Mohamed</b></span>
+</footer>
+
+<script>
+    // تحديث السنة تلقائياً فوراً وبدون تدخل منك في المستقبل
+    document.getElementById('currentYear').textContent = new Date().getFullYear();
+</script>
+ 
 </body>
     </html>
