@@ -3715,9 +3715,8 @@ function actionSelect() {
   // تنظيف أي تحديد قديم وتظليل آية البداية فوراً
   selectedAyahsQueue = [idx];
   document.querySelectorAll('.ayah-span').forEach(el => el.classList.remove('selected'));
-  const span = document.getElementById(`ayah_${idx}`);
-  if (span) span.classList.add('selected');
-  
+ highlightAyah(idx, 'selected');
+ 
   // تحديث شريط الحالة تحت ليوجه المستخدم بوضوح وبخط بارز
   const statusEl = document.getElementById('audioStatus');
   if (statusEl) {
@@ -3743,7 +3742,7 @@ window.handleAyahClick = function(idx) {
 
   for (let i = start; i <= end; i++) {
     selectedAyahsQueue.push(i);
-    document.getElementById(`ayah_${i}`)?.classList.add('selected');
+    highlightAyah(i, 'selected');
   }
 
   selectedAyahsQueue.sort((a, b) => a - b);
@@ -3934,11 +3933,10 @@ function playNextInQueue() {
   
   // تحديث تمييز الآية النشطة في الـ UI
   document.querySelectorAll('.ayah-span').forEach(el => el.classList.remove('playing'));
-  const span = document.getElementById(`ayah_${idx}`);
-  if (span) { 
-    span.classList.add('playing'); 
-    span.scrollIntoView({ behavior: 'smooth', block: 'center' }); 
-  }
+  const spans = document.querySelectorAll(`.ayah-group_${idx}`);
+spans.forEach(el => el.classList.add('playing'));
+if (spans[0]) spans[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+ 
 
   const surahNum = String(currentSurah.n).padStart(3, '0');
   const ayahNum = String(a.numberInSurah).padStart(3, '0');
@@ -4226,14 +4224,15 @@ function renderFav() {
   document.querySelectorAll('.bookmark-mark').forEach(el => el.remove());
   
   // إضافة علامة على الآية
-  const span = document.getElementById('ayah_' + activeAyahIndex);
-  if(span) {
-    const mark = document.createElement('span');
-    mark.className = 'bookmark-mark';
-    mark.textContent = ' 🔖';
-    mark.style.color = '#ffd700';
-    span.appendChild(mark);
-  }
+const spans = document.querySelectorAll(`.ayah-group_${activeAyahIndex}`);
+const lastSpan = spans[spans.length - 1];
+if (lastSpan) {
+  const mark = document.createElement('span');
+  mark.className = 'bookmark-mark';
+  mark.textContent = ' 🔖';
+  mark.style.color = '#ffd700';
+  lastSpan.appendChild(mark);
+}
    }
  let mushafNight = false;
 function toggleMushafNight() {
@@ -4292,8 +4291,8 @@ function toggleMushafNight() {
     document.getElementById('audioStatus').textContent = 'مفيش علامة وقف في السورة دي';
     return;
   }
-  const el = document.getElementById('ayah_' + bm.index);
-  if(el) el.scrollIntoView({behavior:'smooth', block:'center'});
+  const el = document.querySelector(`.ayah-group_${bm.index}`);
+if(el) el.scrollIntoView({behavior:'smooth', block:'center'});
  }
   function goToHomeBookmark() {
   const bm = JSON.parse(localStorage.getItem('quran_bookmark') || 'null');
