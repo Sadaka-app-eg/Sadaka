@@ -1396,7 +1396,7 @@ body.hide-controls #quran {
  <button onclick="window.filterRare('أحمد كاسب')" class="sheikh-btn" style="background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 8px 16px; border-radius: 20px; font-family: 'Amiri', serif; cursor: pointer;">أحمد كاسب</button>
   <button onclick="window.filterRare('أحمد عبدالرازق نصر')" class="sheikh-btn" style="background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 8px 16px; border-radius: 20px; font-family: 'Amiri', serif; cursor: pointer;">أحمد عبدالرازق </button>
  <button onclick="window.filterRare('أحمد بن طالب')" class="sheikh-btn" style="background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 8px 16px; border-radius: 20px; font-family: 'Amiri', serif; cursor: pointer;">أحمد بن طالب</button>
-
+<button onclick="window.filterRare('ناصر القطامي')" class="sheikh-btn" style="background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 8px 16px; border-radius: 20px; font-family: 'Amiri', serif; cursor: pointer;">ناصر القطامي</button>
  <button onclick="window.filterRare('أدعية خاشعة')" class="sheikh-btn" style="background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 8px 16px; border-radius: 20px; font-family: 'Amiri', serif; cursor: pointer;">أدعية خاشعة 🤲</button>
 
 </div>
@@ -7622,9 +7622,12 @@ window.triggerHeaderGoogleLogin = function() {
 })();
 </script>
 
-<!-- 📌 شريط الحقوق والمصمم السفلي -->
+<!-- 📌 شريط الحقوق والمصمم السفلي مع اللوجو -->
 <footer style="
-    text-align: center; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     padding: 20px 10px 30px; 
     font-size: 13px; 
     color: var(--text2, #9aa79c); 
@@ -7633,13 +7636,14 @@ window.triggerHeaderGoogleLogin = function() {
     direction: ltr;
     font-family: sans-serif;
 ">
+    <!-- 🖼️ أيقونة التطبيق الصغيرة -->
+    <img src="./icon.png" alt="Athr Logo" style="width: 20px; height: 20px; border-radius: 50%; object-fit: cover;">
+    
     <span>© <span id="currentYear">2026</span> <b>Athr App</b>. Designed & Developed by <b>Ahmed Mohamed</b></span>
 </footer>
 
 <script>
-    // تحديث السنة تلقائياً فوراً وبدون تدخل منك في المستقبل
     document.getElementById('currentYear').textContent = new Date().getFullYear();
 </script>
- 
 </body>
     </html>
