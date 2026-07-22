@@ -3407,22 +3407,21 @@ function filterSurahs(q) {
  // تعديل السطر الأول للدالة ليصبح هكذا
 
 // تحميل الخط العثماني بصفحاته بدقة عالية بدون تاكل
-// تحميل الخط العثماني بدقة فائقة وانتظار اكتماله لمنع طيران الهمزات
 async function loadQcfPageFont(pageNum) {
   const fontName = `QCF_V2_P${pageNum}`;
   const fontUrl = `https://verses.quran.foundation/fonts/quran/hafs/v2/woff2/p${pageNum}.woff2`;
   
-  // لو الخط متحمل قبل كده متجيبوش تاني
-  if (document.fonts.check(`12px "${fontName}"`)) return true;
-
   try {
+    // التحقق لو الخط متحمل قبل كده
+    if (document.fonts.check(`12px "${fontName}"`)) return true;
+
     const font = new FontFace(fontName, `url(${fontUrl})`);
     const loadedFont = await font.load();
     document.fonts.add(loadedFont);
-    await document.fonts.ready; // التأكيد القاطع على جاهزية المحرك لجميع الأحرف والهمزات
+    await document.fonts.ready; // 🔒 دي اللي بتمنع أي تشابك أو حروف غريبة وتخلي الخط يثبت صح
     return true;
   } catch (e) {
-    console.error(`خطأ تحميل خط الصفحة ${pageNum}:`, e);
+    console.error(`خطأ تحميل الخط للرسم العثماني صفحة ${pageNum}:`, e);
     return false;
   }
 }
