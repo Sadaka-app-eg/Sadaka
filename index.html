@@ -3513,7 +3513,7 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
           const ayahIndex = currentAyahsData.findIndex(a => a.numberInSurah === parseInt(w.ayahNum));
           
           sliderHtml += `<span class="qcf-word ayah-span" id="ayah_${ayahIndex}"
-            style="font-family: 'QCF_V2_P${pageNum}'; font-size: ${fontSize}; line-height: 1; display: inline-flex; align-items: center; user-select: none;"
+            style="font-family: 'QCF_V2_P${pageNum}'; font-size: ${fontSize}; line-height: 3; display: inline-flex; align-items: center; user-select: none;"
             ontouchstart="startPress(event, ${ayahIndex})"
             ontouchmove="cancelPress(event)"
             ontouchend="cancelPress(event); if(!isScrolling && window.isPickingEndAyah){ handleAyahClick(${ayahIndex}); }">
