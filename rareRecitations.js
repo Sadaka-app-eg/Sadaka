@@ -30,6 +30,7 @@ window.rareRecitations = [
   { name: "محمد عباده:  أَلَمْ تَرَ كَيْفَ ضَرَبَ اللَّهُ مَثَلًا كَلِمَةً طَيِّبَةً كَشَجَرَةٍ طَيِّبَةٍ...(سورة إبراهيم) 🎙️", url: "audio/obada_26.mp3", desc: "", tag: "محمد عباده" },
 
   // أناشيد إسلامية (8 أناشيد)
+ 
   { name: "يا دعاة رب السماء..", url: "audio_2/onshoda_1.mp3", desc: "", tag: "أناشيد" },
   { name: "لا يزال الخير حيا لا يزاال..", url: "audio_2/onshoda_2.mp3", desc: "", tag: "أناشيد" },
   { name: "فرش التراب يضمني..", url: "audio_2/onshoda_3.mp3", desc: "", tag: "أناشيد" },
@@ -38,6 +39,33 @@ window.rareRecitations = [
   { name: "ذكر وموعظة ونور...", url: "audio_2/onshoda_6.mp3", desc: "", tag: "أناشيد" },
   { name: "خذ دمانا نحن للدين الفداء,قم فإن الله لا يرضى بأن تحيى ذليلا..", url: "audio_2/onshoda_7.mp3", desc: "", tag: "أناشيد" },
   { name: "سبع طوال أنزلت من ربنا ورتلت...", url: "audio_2/onshoda_8.mp3", desc: "", tag: "أناشيد" },
+  { name: "أتدري من يزيل الهم..", url: "audio_2/onshoda_9.mp3", desc: "", tag: "أناشيد" },
+  { name: "هزني الشوق..", url: "audio_2/onshoda_10.mp3", desc: "", tag: "أناشيد" },
+  { name: "بتقوى الإله نجا من نجا..", url: "audio_2/onshoda_11.mp3", desc: "", tag: "أناشيد" },
+  { name: "أنا العبد السقيم من الخطايا ..", url: "audio_2/onshoda_12.mp3", desc: "", tag: "أناشيد" },
+  { name: "إلى ربي والله يعلم..", url: "audio_2/onshoda_13.mp3", desc: "", tag: "أناشيد" },
+  { name: "إلى الله نمضي..", url: "audio_2/onshoda_14.mp3", desc: "", tag: "أناشيد" },
+  { name: "الله يناديك سحيرا...", url: "audio_2/onshoda_15.mp3", desc: "", tag: "أناشيد" },
+  { name: "فكيف السبيل إلى أن أتوب..", url: "audio_2/onshoda_16.mp3", desc: "", tag: "أناشيد" },
+  { name: "أشتكي لله مني...", url: "audio_2/onshoda_17.mp3", desc: "", tag: "أناشيد" },
+  { name: "ذكرينا يا بقايا الأمس فينا..", url: "audio_2/onshoda_18.mp3", desc: "", tag: "أناشيد" },
+  { name: "تمسك بحلمك يا حالم..", url: "audio_2/onshoda_19.mp3", desc: "", tag: "أناشيد" },
+  { name: "سلام سلام كمسك الختام..", url: "audio_2/onshoda_20.mp3", desc: "", tag: "أناشيد" },
+  { name: "خفي اللطف..", url: "audio_2/onshoda_21.mp3", desc: "", tag: "أناشيد" },
+  { name: "طال ليلي...", url: "audio_2/onshoda_22.mp3", desc: "", tag: "أناشيد" },
+  { name: "طوبى لجيل ....", url: "audio_2/onshoda_23.mp3", desc: "", tag: "أناشيد" },
+  { name: "عليك بالتأني ...", url: "audio_2/onshoda_24.mp3", desc: "", tag: "أناشيد" },
+  { name: "رفعت إلى رب الأنام...", url: "audio_2/onshoda_25.mp3", desc: "", tag: "أناشيد" },
+  { name: "في حبّ ....", url: "audio_2/onshoda_26.mp3", desc: "", tag: "أناشيد" },
+  { name: "كشوق الليالي ...", url: "audio_2/onshoda_27.mp3", desc: "", tag: "أناشيد" },
+  { name: "كنوز_نشيد العشرة المبشرون بالجنة", url: "audio_2/onshoda_28.mp3", desc: "", tag: "أناشيد" },
+  { name: "لا لا تحسب أن الدين بعيد عن حب وحياة...", url: "audio_2/onshoda_29.mp3", desc: "", tag: "أناشيد" },
+  { name: "لأجلك أحيا...", url: "audio_2/onshoda_30.mp3", desc: "", tag: "أناشيد" },
+  { name: "هزتني ...", url: "audio_2/onshoda_31.mp3", desc: "", tag: "أناشيد" },
+  { name: "يا ذاكر الأصحاب كن متأدبا ...", url: "audio_2/onshoda_32.mp3", desc: "", tag: "أناشيد" },
+  { name: "هموم الحياة جبال ثقال ...", url: "audio_2/onshoda_33.mp3", desc: "", tag: "أناشيد" },
+  { name: "عد يابن ءادم ....", url: "audio_2/onshoda_34.mp3", desc: "", tag: "أناشيد" },
+
 
   // تلاوات الشيخ ناصر القطامي (8 تلاوات)
   { name: "ناصر القطامي: آيات قصيرة بصوت عذب 🎙️", url: "audio_2/katami_1.mp3", desc: "", tag: "ناصر القطامي" },
