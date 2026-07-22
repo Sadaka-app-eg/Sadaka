@@ -3768,11 +3768,15 @@ window.handleAyahClick = function(idx) {
 
 // دالة تظليل وتلوين الآية بالكامل (كل كلماتها)
 function highlightAyah(ayahIndex, className = 'selected') {
-  document.querySelectorAll(`[id='ayah_${ayahIndex}']`).forEach(el => {
-    el.classList.add(className);
+  // بنجيب أول عنصر للآية ومنه بنعلم على كل الكلمات لحد الآية اللي بعدها أو نهاية السطر
+  const elements = document.querySelectorAll(`[id^="ayah_"]`);
+  elements.forEach(el => {
+    const idNum = parseInt(el.id.replace('ayah_', ''));
+    if (idNum === ayahIndex) {
+      el.classList.add(className);
+    }
   });
 }
-
 // دالة مسح التحديد عن جميع الآيات
 function clearAllHighlights() {
   document.querySelectorAll('.ayah-span').forEach(el => {
