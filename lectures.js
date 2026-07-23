@@ -341,7 +341,35 @@ window.athrQuizzesModels = {
         ]
     ]
 };
-
+// =========================================================================
+// 👳‍♂️ بيانات الشيوخ والعلماء الملقين للدورات العلمية
+// =========================================================================
+window.sheikhsInfoData = {
+    "أصول العقيدة": {
+        sheikh: "الدكتور محمود عبد الرازق الرضواني",
+        title: "دورة أصول العقيدة الإسلامية الشاملة",
+        icon: "🕌",
+        desc: "شرح متكامل ومبسط لأصول العقيدة والتوحيد والإيمان، وتفصيل مباحث الأسماء والصفات والدلائل الشرعية."
+    },
+    "الفقه الميسر": {
+        sheikh: "فضيلة الشيخ الدكتور محمد العريفي",
+        title: "برنامج ودورة الفقه الميسر المرئية",
+        icon: "🎥",
+        desc: "شرح مرئي كامل لأحكام العبادات والمعاملات والطهارة والصلاة بأسلوب ميسر وشيق بالصوت والصورة."
+    },
+    "السيرة النبوية": {
+        sheikh: "الشيخ أحمد عامر",
+        title: "سلسلة السيرة النبوية العطرة (كاملاً)",
+        icon: "🕋",
+        desc: "رحلة إيمانية مفصلة في أحداث وحياة النبي ﷺ من المولد الشريف والدعوة والجهاد حتى الوفاة."
+    },
+    "دورة التجويد": {
+        sheikh: "فضيلة الشيخ علاء حامد",
+        title: "الدورة العملية والمبسطة لإتقان تجويد القرآن",
+        icon: "📿",
+        desc: "شرح أصول وأحكام التجويد والترتيل بأسلوب الشيخ علاء حامد الشيق والسهل للوصول لمرتبة الإتقان في تلاوة كتاب الله."
+    }
+};
 
 
 window.currentLectureFilter = 'all';
@@ -409,6 +437,27 @@ function ensureGlobalAudioEngine() {
 function renderLectures() {
     const listEl = document.getElementById('lecturesList');
     if (!listEl) return;
+
+    // 1. بناء المربع الذهبي لاسم الشيخ والدورة
+    let sheikhBannerHtml = "";
+    const info = window.sheikhsInfoData ? window.sheikhsInfoData[window.currentLectureFilter] : null;
+
+    if (info) {
+        sheikhBannerHtml = `
+        <div style="background: linear-gradient(135deg, rgba(212,175,55,0.15) 0%, rgba(20,30,22,0.85) 100%); border: 1px solid var(--gold); border-right: 5px solid var(--gold); border-radius: 14px; padding: 16px; margin-bottom: 18px; direction: rtl; text-align: right; box-shadow: 0 6px 20px rgba(0,0,0,0.3);">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 24px;">${info.icon}</span>
+                    <strong style="color: var(--gold); font-family: 'Amiri', serif; font-size: 17px;">${info.title}</strong>
+                </div>
+                <span style="background: var(--gold); color: #111; font-size: 10px; font-weight: bold; padding: 3px 10px; border-radius: 12px; font-family: sans-serif;">دورة معتمدة</span>
+            </div>
+            <div style="color: #fff; font-size: 14px; font-weight: bold; font-family: 'Amiri', serif; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                <span style="color: var(--gold);">👳 الملقي والشارح:</span> ${info.sheikh}
+            </div>
+            <p style="color: var(--text2, #ccc); font-size: 12px; margin: 0; line-height: 1.6; font-family: sans-serif;">${info.desc}</p>
+        </div>`;
+    }
 
     let batchButtonHtml = "";
     if (window.currentLectureFilter === 'السيرة النبوية') {
@@ -482,7 +531,8 @@ function renderLectures() {
         </div>`;
     }
 
-    listEl.innerHTML = batchButtonHtml + cardsHtml + quizBoxHtml;
+    // يتم رندر البانر الذهبي في البداية قبل الأزرار وقائمة الدروس
+    listEl.innerHTML = sheikhBannerHtml + batchButtonHtml + cardsHtml + quizBoxHtml;
     setTimeout(markDownloadedLectures, 150);
 }
 
