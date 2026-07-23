@@ -1513,23 +1513,22 @@ window.startCanvasRenderLoop = function() {
 
     function drawFrame() {
         // 1. التحكم بحدود الكليب (التايم لاين) فقط أثناء التشغيل
-       if (!video.paused && !video.ended) {
-            const currentClip = e.clips[e.selectedClipIndex];
-           if (currentClip && video.currentTime >= (currentClip.end - 0.05)) {
-    if (e.selectedClipIndex < e.clips.length - 1) {
-        e.selectedClipIndex++;
-        video.currentTime = e.clips[e.selectedClipIndex].start;
-        window.renderTimelineUI();
-    } else if (e.isExporting) {
-        // 🎬 إحنا بنصدّر: نوقف هنا نهائي ونسيب الـ MediaRecorder يقفل بنفسه
-        video.pause();
-    } else {
-        video.currentTime = e.clips[0].start;
-        e.selectedClipIndex = 0;
-        window.renderTimelineUI();
+if (!video.paused && !video.ended) {
+    const currentClip = e.clips[e.selectedClipIndex];
+    if (currentClip && video.currentTime >= (currentClip.end - 0.05)) {
+        if (e.selectedClipIndex < e.clips.length - 1) {
+            e.selectedClipIndex++;
+            video.currentTime = e.clips[e.selectedClipIndex].start;
+            window.renderTimelineUI();
+        } else {
+            // 🛑 وصلنا لنهاية الفيديو أو الكليب الأخير: نعمل وقف تام
+            video.pause();
+            if (window.studioEngine.ambientAudioEl) {
+                window.studioEngine.ambientAudioEl.pause();
+            }
+        }
     }
 }
-        }
 
         const currentClip = e.clips[e.selectedClipIndex];
         const timeInClip = video.currentTime - (currentClip ? currentClip.start : 0);
@@ -3084,30 +3083,35 @@ window.seekVideoTo = function(video, time) {
 // 🎧 دالة مساعدة: استخراج الصوت الكامل من الفيديو كـ AudioBuffer (فك ترميز أوفلاين)
 window.extractAudioBufferFromVideo = async function(video, startTime, endTime) {
     try {
+        const e = window.studioEngine;
         const response = await fetch(video.src);
         const arrayBuffer = await response.arrayBuffer();
-        const tempCtx = new AudioContext();
-        const decoded = await tempCtx.decodeAudioData(arrayBuffer);
-        tempCtx.close();
+        
+        // استخدام أوفلاين كونتكس مضاف إليه الفلاتر المطبقة حالياً
+        const duration = Math.max(0.1, endTime - startTime);
+        const offlineCtx = new OfflineAudioContext(2, Math.ceil(duration * 44100), 44100);
+        const decoded = await offlineCtx.decodeAudioData(arrayBuffer);
 
-        const startSample = Math.floor(startTime * decoded.sampleRate);
-        const endSample = Math.floor(Math.min(endTime, decoded.duration) * decoded.sampleRate);
-        const length = Math.max(1, endSample - startSample);
+        const srcNode = offlineCtx.createBufferSource();
+        srcNode.buffer = decoded;
 
-        const trimmed = new AudioBuffer({
-            numberOfChannels: decoded.numberOfChannels,
-            length: length,
-            sampleRate: decoded.sampleRate
-        });
+        // تطبيق قيمة الصدى والفلاتر الحالية من محركك
+        const voice = parseFloat(document.getElementById('sliderVoice')?.value || 100);
+        const reverb = parseFloat(document.getElementById('sliderReverb')?.value || 0);
 
-        for (let ch = 0; ch < decoded.numberOfChannels; ch++) {
-            const channelData = decoded.getChannelData(ch).slice(startSample, endSample);
-            trimmed.copyToChannel(channelData, ch);
-        }
+        const vFilter = offlineCtx.createBiquadFilter();
+        vFilter.type = 'peaking';
+        vFilter.frequency.value = 1200;
+        vFilter.gain.value = (voice - 100) / 10;
 
-        return trimmed;
+        srcNode.connect(vFilter);
+        vFilter.connect(offlineCtx.destination);
+
+        srcNode.start(0, startTime, duration);
+        const renderedBuffer = await offlineCtx.startRendering();
+        return renderedBuffer;
     } catch (err) {
-        console.warn("⚠️ تعذر استخراج الصوت (سيتم التصدير بدون صوت):", err);
+        console.warn("⚠️ تعذر معالجة الصوت:", err);
         return null;
     }
 };
