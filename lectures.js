@@ -41,7 +41,61 @@ window.lecturesData = [
     { title: "سلسلة السيرة النبوية - الدرس الثاني والعشرون - فتح مكة", src: "https://archive.org/download/seerah_ahmed_amer_athr/seerah_22.mp3", category: "السيرة النبوية" },
     { title: "سلسلة السيرة النبوية - الدرس الثالث والعشرون - غزوة حنين وحصار الطائف", src: "https://archive.org/download/seerah_ahmed_amer_athr/seerah_23.mp3", category: "السيرة النبوية" },
     { title: "سلسلة السيرة النبوية - الدرس الرابع والعشرون - غزوة تبوك", src: "https://archive.org/download/seerah_ahmed_amer_athr/seerah_24.mp3", category: "السيرة النبوية" },
-    { title: "سلسلة السيرة النبوية - الدرس الخامس والعشرون والأخير - وفاة النبي ﷺ", src: "https://archive.org/download/seerah_ahmed_amer_athr/seerah_25.mp3", category: "السيرة النبوية" }
+    { title: "سلسلة السيرة النبوية - الدرس الخامس والعشرون والأخير - وفاة النبي ﷺ", src: "https://archive.org/download/seerah_ahmed_amer_athr/seerah_25.mp3", category: "السيرة النبوية" },
+
+
+// 🎥 دورة الفقه الميسر - الشيخ محمد العريفي (49 فيديو كاملة من أرشيف)
+    { title: "برنامج الفقه الميسر - الحلقة 01", src: "https://archive.org/download/xboxgamer-242/alfiqh-1.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 02", src: "https://archive.org/download/xboxgamer-242/alfiqh-2.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 03", src: "https://archive.org/download/xboxgamer-242/alfiqh-3.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 04", src: "https://archive.org/download/xboxgamer-242/alfiqh-4.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 05", src: "https://archive.org/download/xboxgamer-242/alfiqh-5.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 06", src: "https://archive.org/download/xboxgamer-242/alfiqh-6.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 07", src: "https://archive.org/download/xboxgamer-242/alfiqh-7.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 08", src: "https://archive.org/download/xboxgamer-242/alfiqh-8.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 09", src: "https://archive.org/download/xboxgamer-242/alfiqh-9.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 10", src: "https://archive.org/download/xboxgamer-242/alfiqh-10.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 11", src: "https://archive.org/download/xboxgamer-242/alfiqh-11.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 12", src: "https://archive.org/download/xboxgamer-242/alfiqh-12.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 13", src: "https://archive.org/download/xboxgamer-242/alfiqh-13.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 14", src: "https://archive.org/download/xboxgamer-242/alfiqh-14.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 15", src: "https://archive.org/download/xboxgamer-242/alfiqh-15.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 16", src: "https://archive.org/download/xboxgamer-242/alfiqh-16.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 17", src: "https://archive.org/download/xboxgamer-242/alfiqh-17.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 18", src: "https://archive.org/download/xboxgamer-242/alfiqh-18.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 19", src: "https://archive.org/download/xboxgamer-242/alfiqh-19.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 20", src: "https://archive.org/download/xboxgamer-242/alfiqh-20.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 21", src: "https://archive.org/download/xboxgamer-242/alfiqh-21.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 22", src: "https://archive.org/download/xboxgamer-242/alfiqh-22.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 23", src: "https://archive.org/download/xboxgamer-242/alfiqh-23.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 24", src: "https://archive.org/download/xboxgamer-242/alfiqh-24.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 25", src: "https://archive.org/download/xboxgamer-242/alfiqh-25.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 26", src: "https://archive.org/download/xboxgamer-242/alfiqh-26.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 27", src: "https://archive.org/download/xboxgamer-242/alfiqh-27.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 28", src: "https://archive.org/download/xboxgamer-242/alfiqh-28.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 29", src: "https://archive.org/download/xboxgamer-242/alfiqh-29.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 30", src: "https://archive.org/download/xboxgamer-242/alfiqh-30.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 31", src: "https://archive.org/download/xboxgamer-242/alfiqh-31.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 32", src: "https://archive.org/download/xboxgamer-242/alfiqh-32.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 33", src: "https://archive.org/download/xboxgamer-242/alfiqh-33.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 34", src: "https://archive.org/download/xboxgamer-242/alfiqh-34.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 35", src: "https://archive.org/download/xboxgamer-242/alfiqh-35.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 36", src: "https://archive.org/download/xboxgamer-242/alfiqh-36.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 37", src: "https://archive.org/download/xboxgamer-242/alfiqh-37.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 38", src: "https://archive.org/download/xboxgamer-242/alfiqh-38.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 39", src: "https://archive.org/download/xboxgamer-242/alfiqh-39.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 40", src: "https://archive.org/download/xboxgamer-242/alfiqh-40.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 41", src: "https://archive.org/download/xboxgamer-242/alfiqh-41.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 42", src: "https://archive.org/download/xboxgamer-242/alfiqh-42.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 43", src: "https://archive.org/download/xboxgamer-242/alfiqh-43.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 44", src: "https://archive.org/download/xboxgamer-242/alfiqh-44.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 45", src: "https://archive.org/download/xboxgamer-242/alfiqh-45.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 46", src: "https://archive.org/download/xboxgamer-242/alfiqh-46.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 47", src: "https://archive.org/download/xboxgamer-242/alfiqh-47.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 48", src: "https://archive.org/download/xboxgamer-242/alfiqh-48.mp4", category: "الفقه الميسر", type: "video" },
+    { title: "برنامج الفقه الميسر - الحلقة 49 والأخيرة", src: "https://archive.org/download/xboxgamer-242/alfiqh-49.mp4", category: "الفقه الميسر", type: "video" }
+
+    
 ];
 
 window.currentLectureFilter = 'all';
@@ -260,6 +314,7 @@ function renderLectures() {
     const cardsHtml = filtered.map((lecture) => {
         const realIndex = window.lecturesData.indexOf(lecture);
         const isPinned = pinnedList.includes(lecture.title);
+        const isVideo = lecture.type === 'video';
         const isThisPlaying = window.currentPlayingGlobalId === realIndex && window.currentPlayingLectureAudio && !window.currentPlayingLectureAudio.paused;
 
         return `
@@ -267,12 +322,20 @@ function renderLectures() {
           <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
             <div style="display:flex; align-items:center; gap:8px; flex:1;">
               <button onclick="window.togglePinLecture('${lecture.title}')" style="background:transparent; border:none; color:${isPinned ? 'var(--gold)' : 'var(--text2)'}; font-size:16px; cursor:pointer; padding:0; margin-left:4px;">${isPinned ? '📌' : '📍'}</button>
-              <span style="font-family:'Amiri',serif; font-size:15px; color:var(--text); line-height:1.6;">${lecture.title}</span>
-              <span id="lectureSize_${realIndex}" style="font-size:10px; color:var(--text2); display:block; margin-top:2px;"></span>
+              <span style="font-family:'Amiri',serif; font-size:15px; color:var(--text); line-height:1.6;">${isVideo ? '🎥 ' : ''}${lecture.title}</span>
             </div>
-            <button class="play-btn" id="lectureBtn_${realIndex}" onclick="window.toggleLectureAudio(${realIndex})" style="background:var(--gold); color:#111; border:none; width:34px; height:34px; border-radius:50%; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;">${isThisPlaying ? '⏸' : '▶'}</button>
-            <div id="lectureDlRing_${realIndex}" onclick="window.startLectureDownloadRing(${realIndex})" style="width:34px; height:34px; flex-shrink:0; display:flex; align-items:center; justify-content:center; cursor:pointer; background:var(--bg2); color:var(--gold); border:1px solid var(--border); border-radius:50%;">⬇️</div> 
+            
+            ${isVideo ? `
+                <button onclick="window.openAthrVideoModal('${lecture.title}', '${lecture.src}')" style="background:var(--gold); color:#111; border:none; padding:6px 14px; border-radius:20px; font-weight:bold; font-size:12px; cursor:pointer; display:flex; align-items:center; gap:4px; flex-shrink:0;">
+                    🎬 مشاهدة الفيديو
+                </button>
+            ` : `
+                <button class="play-btn" id="lectureBtn_${realIndex}" onclick="window.toggleLectureAudio(${realIndex})" style="background:var(--gold); color:#111; border:none; width:34px; height:34px; border-radius:50%; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;">${isThisPlaying ? '⏸' : '▶'}</button>
+                <div id="lectureDlRing_${realIndex}" onclick="window.startLectureDownloadRing(${realIndex})" style="width:34px; height:34px; flex-shrink:0; display:flex; align-items:center; justify-content:center; cursor:pointer; background:var(--bg2); color:var(--gold); border:1px solid var(--border); border-radius:50%;">⬇️</div> 
+            `}
           </div>
+
+          ${!isVideo ? `
           <div style="margin-top:10px; width:100%;">
             <input type="range" id="lectureSeek_${realIndex}" value="0" min="0" max="100" step="0.1" oninput="window.seekLectureAudio(${realIndex}, this.value)" style="width:100%; accent-color:var(--gold); cursor:pointer; height:4px; background:rgba(255,255,255,0.2); outline:none; border-radius:2px;">
             <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text2); direction:ltr; margin-top:4px; font-family:monospace;">
@@ -281,15 +344,16 @@ function renderLectures() {
             </div>
           </div>
           <div id="lectureDlStatus_${realIndex}" style="font-size:10px; color:var(--gold); margin-top:4px; text-align:center; font-family:sans-serif;"></div>
+          ` : ''}
         </div>`;
     }).join('');
 
     let quizBoxHtml = "";
-    if (window.currentLectureFilter === 'السيرة النبوية' || window.currentLectureFilter === 'دورة التجويد') {
+    if (['السيرة النبوية', 'دورة التجويد', 'الفقه الميسر'].includes(window.currentLectureFilter)) {
         quizBoxHtml = `
         <div class="comm-card" id="athrQuizSection" style="background:var(--card); border:1px dashed var(--gold); border-radius:16px; padding:18px; margin-top:20px; direction:rtl; text-align:right;">
             <h4 style="color:var(--gold); font-family:'Amiri',serif; font-size:17px; margin-bottom:6px; display:flex; align-items:center; gap:8px;">🧠 اختبار التحدي الأكبر لـ ${window.currentLectureFilter}</h4>
-            <p style="color:var(--text2); font-size:12px; margin-bottom:15px; line-height:1.5;">النظام يضم 45 سؤالاً موزعة على 3 اختبارات. عند الضغط، سيتم سحب اختبار عشوائي معقد ومختلف تماماً في كل مرة. قفّل النتيجة بـ 14 أو 15 درجة واكسب شهادة توثيق ملكية فخمة باسمك ورسمك الحقيقي!</p>
+            <p style="color:var(--text2); font-size:12px; margin-bottom:15px; line-height:1.5;">اختبار تفاعلي عشوائي شامل لتقييم فهمك واستحقاقك لشهادة منصة أثر الملكية!</p>
             <button onclick="window.startAthrRandomQuiz('${window.currentLectureFilter}')" style="background:var(--gold); color:#111; border:none; padding:10px 20px; border-radius:8px; font-weight:bold; font-family:'Amiri',serif; font-size:14px; cursor:pointer; width:100%;">🚀 سحب اختبار عشوائي وبدء التحدي</button>
         </div>`;
     }
@@ -727,4 +791,48 @@ window.shareAthrCertificateImage = function() {
             }
         }, 'image/png');
     });
+};
+
+// =========================================================================
+// 🎬 مشغل الفيديو المنبثق المطور (Video Modal Player)
+// =========================================================================
+window.openAthrVideoModal = function(title, src) {
+    // إيقاف الصوت الشغال لو فيه حاجة شغالة في الخلفية
+    if (window.currentPlayingLectureAudio) {
+        window.currentPlayingLectureAudio.pause();
+        if (window.currentPlayingLectureBtn) window.currentPlayingLectureBtn.textContent = '▶';
+    }
+
+    let modal = document.getElementById('athrVideoPlayerModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'athrVideoPlayerModal';
+        modal.style.cssText = "position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.92); z-index:9999999; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:15px; direction:rtl;";
+        document.body.appendChild(modal);
+    }
+
+    modal.innerHTML = `
+    <div style="width:100%; max-width:850px; background:var(--card, #111); border:1px solid var(--gold, #d4af37); border-radius:16px; overflow:hidden; box-shadow:0 20px 50px rgba(0,0,0,0.8); display:flex; flex-direction:column;">
+        <div style="padding:15px; background:var(--bg2, #1a1a1a); display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border, #333);">
+            <strong style="color:var(--gold, #d4af37); font-family:'Amiri',serif; font-size:16px;">🎥 ${title}</strong>
+            <button onclick="window.closeAthrVideoModal()" style="background:rgba(255,77,77,0.2); color:#ff4d4d; border:1px solid #ff4d4d; border-radius:50%; width:32px; height:34px; cursor:pointer; font-weight:bold;">✕</button>
+        </div>
+        <div style="position:relative; width:100%; padding-top:56.25%; background:#000;">
+            <video id="athrActiveVideoElement" controls autoplay style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;">
+                <source src="${src}" type="video/mp4">
+                متصفحك لا يدعم تشغيل الفيديو المباشر.
+            </video>
+        </div>
+    </div>`;
+
+    modal.style.display = 'flex';
+};
+
+window.closeAthrVideoModal = function() {
+    const modal = document.getElementById('athrVideoPlayerModal');
+    if (modal) {
+        const video = document.getElementById('athrActiveVideoElement');
+        if (video) video.pause();
+        modal.style.display = 'none';
+    }
 };
