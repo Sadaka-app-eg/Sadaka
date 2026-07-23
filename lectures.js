@@ -596,9 +596,41 @@ window.lecturesData = [
     { title: "سيره أم المؤمنين عائشه رضي الله عنها - 17", src: "https://archive.org/download/Qisas_Sahaba/17-.mp3", category: "سير الصحابة", type: "audio" }, // أرشيف رقم 17
     { title: "سيره معاذ بن جبل رضي الله عنه - 18", src: "https://archive.org/download/Qisas_Sahaba/18-.mp3", category: "سير الصحابة", type: "audio" }, // أرشيف رقم 18
     { title: "سيره بلال بن رباح رضي الله عنه - 19", src: "https://archive.org/download/Qisas_Sahaba/19-.mp3", category: "سير الصحابة", type: "audio" }, // أرشيف رقم 19
-    { title: "سيره سلمان الفارسي رضي الله عنه - 20", src: "https://archive.org/download/Qisas_Sahaba/20-.mp3", category: "سير الصحابة", type: "audio" }  // أرشيف رقم 20
+    { title: "سيره سلمان الفارسي رضي الله عنه - 20", src: "https://archive.org/download/Qisas_Sahaba/20-.mp3", category: "سير الصحابة", type: "audio" },  // أرشيف رقم 20
 
+// =========================================================================
+// 🎥 سلسلة روائع التابعين - الشيخ محمود المصري (29 حلقة فيديو mp4 كاملة)
+// =========================================================================
 
+    { title: "سلسلة روائع التابعين - الحلقة 01", src: "https://archive.org/download/Al.Tab3een/Al1.mp4", category: "روائع التابعين", type: "video" },
+    { title: "سلسلة روائع التابعين - الحلقة 02", src: "https://archive.org/download/Al.Tab3een/Al2.mp4", category: "روائع التابعين", type: "video" },
+    { title: "سلسلة روائع التابعين - الحلقة 03", src: "https://archive.org/download/Al.Tab3een/Al3.mp4", category: "روائع التابعين", type: "video" },
+    { title: "سلسلة روائع التابعين - الحلقة 04", src: "https://archive.org/download/Al.Tab3een/Al4.mp4", category: "روائع التابعين", type: "video" },
+    { title: "سلسلة روائع التابعين - الحلقة 05", src: "https://archive.org/download/Al.Tab3een/Al5.mp4", category: "روائع التابعين", type: "video" },
+    { title: "سلسلة روائع التابعين - الحلقة 06", src: "https://archive.org/download/Al.Tab3een/Al6.mp4", category: "روائع التابعين", type: "video" },
+    { title: "سلسلة روائع التابعين - الحلقة 07", src: "https://archive.org/download/Al.Tab3een/Al7.mp4", category: "روائع التابعين", type: "video" },
+    { title: "سلسلة روائع التابعين - الحلقة 08", src: "https://archive.org/download/Al.Tab3een/Al8.mp4", category: "روائع التابعين", type: "video" },
+    { title: "سلسلة روائع التابعين - الحلقة 09", src: "https://archive.org/download/Al.Tab3een/Al9.mp4", category: "روائع التابعين", type: "video" },
+    { title: "سلسلة روائع التابعين - الحلقة 10", src: "https://archive.org/download/Al.Tab3een/Al10.mp4", category: "روائع التابعين", type: "video" },
+    { title: "سلسلة روائع التابعين - الحلقة 11", src: "https://archive.org/download/Al.Tab3een/Al11.mp4", category: "روائع التابعين", type: "video" },
+    { title: "سلسلة روائع التابعين - الحلقة 12", src: "https://archive.org/download/Al.Tab3een/Al12.mp4", category: "روائع التابعين", type: "video" },
+    { title: "سلسلة روائع التابعين - الحلقة 13", src: "https://archive.org/download/Al.Tab3een/Al13.mp4", category: "روائع التابعين", type: "video" },
+    { title: "سلسلة روائع التابعين - الحلقة 14", src: "https://archive.org/download/Al.Tab3een/Al14.mp4", category: "روائع التابعين", type: "video" },
+    { title: "سلسلة روائع التابعين - الحلقة 15", src: "https://archive.org/download/Al.Tab3een/Al15.mp4", category: "روائع التابعين", type: "video" },
+    { title: "سلسلة روائع التابعين - الحلقة 16", src: "https://archive.org/download/Al.Tab3een/Al16.mp4", category: "روائع التابعين", type: "video" },
+    { title: "سلسلة روائع التابعين - الحلقة 17", src: "https://archive.org/download/Al.Tab3een/Al17.mp4", category: "روائع التابعين", type: "video" },
+    { title: "سلسلة روائع التابعين - الحلقة 18", src: "https://archive.org/download/Al.Tab3een/Al18.mp4", category: "روائع التابعين", type: "video" },
+    { title: "سلسلة روائع التابعين - الحلقة 19", src: "https://archive.org/download/Al.Tab3een/Al19.mp4", category: "روائع التابعين", type: "video" },
+    { title: "سلسلة روائع التابعين - الحلقة 20", src: "https://archive.org/download/Al.Tab3een/Al20.mp4", category: "روائع التابعين", type: "video" },
+    { title: "سلسلة روائع التابعين - الحلقة 21", src: "https://archive.org/download/Al.Tab3een/Al21.mp4", category: "روائع التابعين", type: "video" },
+    { title: "سلسلة روائع التابعين - الحلقة 22", src: "https://archive.org/download/Al.Tab3een/Al22.mp4", category: "روائع التابعين", type: "video" },
+    { title: "سلسلة روائع التابعين - الحلقة 23", src: "https://archive.org/download/Al.Tab3een/Al23.mp4", category: "روائع التابعين", type: "video" },
+    { title: "سلسلة روائع التابعين - الحلقة 24", src: "https://archive.org/download/Al.Tab3een/Al24.mp4", category: "روائع التابعين", type: "video" },
+    { title: "سلسلة روائع التابعين - الحلقة 25", src: "https://archive.org/download/Al.Tab3een/Al25.mp4", category: "روائع التابعين", type: "video" },
+    { title: "سلسلة روائع التابعين - الحلقة 26", src: "https://archive.org/download/Al.Tab3een/Al26.mp4", category: "روائع التابعين", type: "video" },
+    { title: "سلسلة روائع التابعين - الحلقة 27", src: "https://archive.org/download/Al.Tab3een/Al27.mp4", category: "روائع التابعين", type: "video" },
+    { title: "سلسلة روائع التابعين - الحلقة 28", src: "https://archive.org/download/Al.Tab3een/Al28.mp4", category: "روائع التابعين", type: "video" },
+    { title: "سلسلة روائع التابعين - الحلقة 29 والأخيرة", src: "https://archive.org/download/Al.Tab3een/Al29.mp4", category: "روائع التابعين", type: "video" },
 
 
     
@@ -900,6 +932,12 @@ window.sheikhsInfoData = {
         title: "سلسلة سير الصحابة والمبشرين بالجنة (كاملة)",
         icon: "⚔️",
         desc: "سلسلة إيمانية وتاريخية جامعة تسلط الضوء على فضل الصحابة الكرام وسير الخلفاء الراشدين، أمهات المؤمنين، والمبشرين بالجنة بأسلوب الشارع الميسر والشيّق."
+    },
+    "روائع التابعين": {
+        sheikh: "فضيلة الشيخ محمود المصري",
+        title: "سلسلة روائع التابعين المرئية (كاملة)",
+        icon: "📺",
+        desc: "سلسلة إيمانية وتربوية مرئية تعتني بسير أعلام التابعين وخيار هذه الأمة بعد الصحابة الكرام، وتسليط الضوء على زهدهم وعبادتهم وعلمهم."
     }
 };
 
