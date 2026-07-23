@@ -585,19 +585,31 @@ window.shareRareAudio = async function(name, url, btnElement) {
 
         let blob = null;
 
+        // 1) محاولة الجلب من الكاش الأوفلاين لو الملف كان محمّل قبل كده
         if ('caches' in window) {
             try {
                 const cache = await caches.open('athr-audio-cache-v1');
                 const matchedResponse = await cache.match(safeUrl);
-                if (matchedResponse) {
+                if (matchedResponse && matchedResponse.ok) {
                     blob = await matchedResponse.blob();
                 }
-            } catch (e) {}
+            } catch (e) {
+                console.log('كاش غير متاح:', e);
+            }
         }
 
+        // 2) لو مش موجود في الكاش، نجيبه من السيرفر مباشرة
         if (!blob) {
             const response = await fetch(safeUrl);
+            if (!response.ok) {
+                throw new Error(`الملف غير موجود على السيرفر (${response.status})`);
+            }
             blob = await response.blob();
+        }
+
+        // فحص إضافي: تأكد إن الـ blob مش فاضي
+        if (!blob || blob.size === 0) {
+            throw new Error('الملف فارغ أو تالف');
         }
 
         const audioFile = new File([blob], `${cleanName}.mp3`, { type: 'audio/mp3' });
@@ -608,14 +620,35 @@ window.shareRareAudio = async function(name, url, btnElement) {
                 text: `تلاوة خاشعة: ${cleanName} 🎙️ - تطبيق أثر`,
                 files: [audioFile]
             });
-        } else {
+        } else if (navigator.share) {
+            // Fallback: مشاركة اللينك المباشر بدل الملف
             const fullAudioUrl = new URL(safeUrl, window.location.href).href;
             await navigator.share({ title: cleanName, text: cleanName, url: fullAudioUrl });
+        } else {
+            // مفيش دعم مشاركة خالص، ننسخ اللينك
+            const fullAudioUrl = new URL(safeUrl, window.location.href).href;
+            await navigator.clipboard.writeText(fullAudioUrl);
+            alert('تم نسخ رابط التلاوة، يمكنك لصقه ومشاركته الآن ✓');
         }
 
     } catch (err) {
-        if (err.name !== 'AbortError') {
-            alert('⚠️ تعذر تجهيز ملف الصوت للمشاركة، تأكد من اتصال الإنترنت.');
+        console.error('خطأ في مشاركة التلاوة:', err.message, safeUrl);
+        
+        if (err.name === 'AbortError') {
+            // المستخدم لغى المشاركة بنفسه، مش خطأ فعلي
+        } else {
+            // Fallback أخير: نحاول نشارك اللينك بس لو فشل تجهيز الملف
+            try {
+                const fullAudioUrl = new URL(safeUrl, window.location.href).href;
+                if (navigator.share) {
+                    await navigator.share({ title: cleanName, text: cleanName, url: fullAudioUrl });
+                } else {
+                    await navigator.clipboard.writeText(fullAudioUrl);
+                    alert('تم نسخ رابط التلاوة بدل الملف الصوتي ✓');
+                }
+            } catch (fallbackErr) {
+                alert(`⚠️ تعذر تجهيز ملف الصوت لهذه التلاوة (${err.message}). تأكد من اتصال الإنترنت أو أن الملف موجود.`);
+            }
         }
     } finally {
         if (btn) btn.innerHTML = originalHTML;
