@@ -573,6 +573,7 @@ async function markAlreadyDownloadedRareButtons() {
 document.addEventListener('DOMContentLoaded', () => { renderRareRecitations(); });
 
 // 📲 دالة مشاركة التلاوة كمقطع صوتي حقيقي مباشر (MP3 Direct File)
+// 📲 دالة مشاركة التلاوة كمقطع صوتي حقيقي مباشر (مصلحة 100% لتوافق أندرويد وواتساب)
 window.shareRareAudio = async function(name, url, btnElement) {
     let safeUrl = url === "audio/nasr_6.mp3" ? "audio/nast_6.mp3" : url;
     const cleanName = name.replace('🎙️', '').trim();
@@ -585,7 +586,7 @@ window.shareRareAudio = async function(name, url, btnElement) {
 
         let blob = null;
 
-        // 1) محاولة الجلب من الكاش الأوفلاين لو الملف كان محمّل قبل كده
+        // 1) محاولة الجلب من الكاش الأوفلاين أولاً
         if ('caches' in window) {
             try {
                 const cache = await caches.open('athr-audio-cache-v1');
@@ -598,7 +599,7 @@ window.shareRareAudio = async function(name, url, btnElement) {
             }
         }
 
-        // 2) لو مش موجود في الكاش، نجيبه من السيرفر مباشرة
+        // 2) الجلب المباشر لو مش في الكاش
         if (!blob) {
             const response = await fetch(safeUrl);
             if (!response.ok) {
@@ -607,13 +608,15 @@ window.shareRareAudio = async function(name, url, btnElement) {
             blob = await response.blob();
         }
 
-        // فحص إضافي: تأكد إن الـ blob مش فاضي
         if (!blob || blob.size === 0) {
             throw new Error('الملف فارغ أو تالف');
         }
 
-        const audioFile = new File([blob], `${cleanName}.mp3`, { type: 'audio/mp3' });
+        // 🔑 الحل السحري: اسم ملف إنجليزي آمن خفيف + MIME Type متوافق 100%
+        const safeFileName = `audio_${Date.now()}.mp3`;
+        const audioFile = new File([blob], safeFileName, { type: 'audio/mpeg' });
 
+        // 📲 فحص إمكانية مشاركة الملفات
         if (navigator.canShare && navigator.canShare({ files: [audioFile] })) {
             await navigator.share({
                 title: cleanName,
@@ -621,11 +624,9 @@ window.shareRareAudio = async function(name, url, btnElement) {
                 files: [audioFile]
             });
         } else if (navigator.share) {
-            // Fallback: مشاركة اللينك المباشر بدل الملف
             const fullAudioUrl = new URL(safeUrl, window.location.href).href;
             await navigator.share({ title: cleanName, text: cleanName, url: fullAudioUrl });
         } else {
-            // مفيش دعم مشاركة خالص، ننسخ اللينك
             const fullAudioUrl = new URL(safeUrl, window.location.href).href;
             await navigator.clipboard.writeText(fullAudioUrl);
             alert('تم نسخ رابط التلاوة، يمكنك لصقه ومشاركته الآن ✓');
@@ -635,9 +636,8 @@ window.shareRareAudio = async function(name, url, btnElement) {
         console.error('خطأ في مشاركة التلاوة:', err.message, safeUrl);
         
         if (err.name === 'AbortError') {
-            // المستخدم لغى المشاركة بنفسه، مش خطأ فعلي
+            // إلغاء المستخدم للمشاركة بيده
         } else {
-            // Fallback أخير: نحاول نشارك اللينك بس لو فشل تجهيز الملف
             try {
                 const fullAudioUrl = new URL(safeUrl, window.location.href).href;
                 if (navigator.share) {
