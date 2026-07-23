@@ -1053,33 +1053,33 @@ function renderLectures() {
     const listEl = document.getElementById('lecturesList');
     if (!listEl) return;
 
-    // 1. بناء المربع الذهبي لاسم الشيخ والدورة
+    // 1. المربع الذهبي لاسم الشيخ والدورة (ملموم ومحسّن)
     let sheikhBannerHtml = "";
     const info = window.sheikhsInfoData ? window.sheikhsInfoData[window.currentLectureFilter] : null;
 
     if (info) {
         sheikhBannerHtml = `
-        <div style="background: linear-gradient(135deg, rgba(212,175,55,0.15) 0%, rgba(20,30,22,0.85) 100%); border: 1px solid var(--gold); border-right: 5px solid var(--gold); border-radius: 14px; padding: 16px; margin-bottom: 15px; direction: rtl; text-align: right; box-shadow: 0 6px 20px rgba(0,0,0,0.3);">
+        <div style="background: linear-gradient(135deg, rgba(212,175,55,0.15) 0%, rgba(15,25,18,0.92) 100%); border: 1px solid rgba(212,175,55,0.35); border-right: 5px solid var(--gold, #d4af37); border-radius: 14px; padding: 12px 14px; margin-bottom: 12px; direction: rtl; text-align: right; box-shadow: 0 4px 15px rgba(0,0,0,0.4); backdrop-filter: blur(8px);">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
                 <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="font-size: 24px;">${info.icon}</span>
-                    <strong style="color: var(--gold); font-family: 'Amiri', serif; font-size: 17px;">${info.title}</strong>
+                    <span style="font-size: 20px;">${info.icon}</span>
+                    <strong style="color: var(--gold, #d4af37); font-family: 'Amiri', serif; font-size: 16px;">${info.title}</strong>
                 </div>
-                <span style="background: var(--gold); color: #111; font-size: 10px; font-weight: bold; padding: 3px 10px; border-radius: 12px;">دورة معتمدة</span>
+                <span style="background: linear-gradient(135deg, #d4af37, #aa820a); color: #111; font-size: 10px; font-weight: bold; padding: 3px 10px; border-radius: 12px;">دورة معتمدة</span>
             </div>
-            <div style="color: #fff; font-size: 14px; font-weight: bold; font-family: 'Amiri', serif; margin-bottom: 6px;">
-                <span style="color: var(--gold);">👳 الملقي والشارح:</span> ${info.sheikh}
+            <div style="color: #fff; font-size: 13px; font-weight: bold; font-family: 'Amiri', serif; margin-bottom: 4px;">
+                <span style="color: var(--gold, #d4af37);">👳 الملقي والشارح:</span> ${info.sheikh}
             </div>
-            <p style="color: var(--text2, #ccc); font-size: 12px; margin: 0; line-height: 1.6;">${info.desc}</p>
+            <p style="color: rgba(255,255,255,0.75); font-size: 11.5px; margin: 0; line-height: 1.5; font-family: sans-serif;">${info.desc}</p>
         </div>`;
     }
 
-    // 2. شريط البحث السريع والذكي (فقط لقسم التفسير والدورات الضخمة)
+    // 2. شريط البحث السريع
     let searchBarHtml = "";
     if (window.currentLectureFilter === 'تفسير القرآن الكريم' || window.currentLectureFilter === 'all') {
         searchBarHtml = `
-        <div style="margin-bottom: 15px; direction: rtl;">
-            <input type="text" id="lectureSearchInput" oninput="window.filterLecturesBySearch(this.value)" placeholder="🔍 ابحث باسم السورة أو الدرس (مثلاً: البقرة، يوسف، الكهف)..." style="width: 100%; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--gold); background: var(--card); color: var(--text); font-family: 'Amiri', serif; font-size: 14px; box-sizing: border-box; box-shadow: 0 4px 10px rgba(0,0,0,0.2);" />
+        <div style="margin-bottom: 12px; direction: rtl;">
+            <input type="text" id="lectureSearchInput" oninput="window.filterLecturesBySearch(this.value)" placeholder="🔍 ابحث باسم السورة أو الدرس..." style="width: 100%; padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(212,175,55,0.3); background: rgba(15,20,16,0.85); color: #fff; font-family: 'Amiri', serif; font-size: 14px; box-sizing: border-box;" />
         </div>`;
     }
 
@@ -1087,7 +1087,6 @@ function renderLectures() {
         ? [...window.lecturesData]
         : window.lecturesData.filter(l => l.category === window.currentLectureFilter);
 
-    // تطبيق فلتر الكلمة المكتوبة في البحث إن وجدت
     if (window.lectureSearchQuery && window.lectureSearchInputText) {
         const q = window.lectureSearchInputText.trim().toLowerCase();
         if (q !== "") {
@@ -1102,6 +1101,7 @@ function renderLectures() {
         return bPinned - aPinned;
     });
 
+    // 3. بناء كروت الدروس المصغرة والأنيقة
     const cardsHtml = filtered.map((lecture) => {
         const realIndex = window.lecturesData.indexOf(lecture);
         const isPinned = pinnedList.includes(lecture.title);
@@ -1109,30 +1109,32 @@ function renderLectures() {
         const isThisPlaying = window.currentPlayingGlobalId === realIndex && window.currentPlayingLectureAudio && !window.currentPlayingLectureAudio.paused;
 
         return `
-        <div style="background: var(--card); border-radius: 16px; padding: 14px; border: 1px solid var(--border); direction: rtl; margin-bottom:12px; display:flex; flex-direction:column; gap:10px;">
-          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
-            <div style="display:flex; align-items:center; gap:8px; flex:1;">
-              <button onclick="window.togglePinLecture('${lecture.title}')" style="background:transparent; border:none; color:${isPinned ? 'var(--gold)' : 'var(--text2)'}; font-size:16px; cursor:pointer; padding:0; margin-left:4px;">${isPinned ? '📌' : '📍'}</button>
-              <span style="font-family:'Amiri',serif; font-size:15px; color:var(--text); line-height:1.6;">${isVideo ? '🎥 ' : ''}${lecture.title}</span>
+        <div class="athr-lecture-card ${isThisPlaying ? 'playing' : ''}" style="background: linear-gradient(145deg, rgba(25, 35, 28, 0.85) 0%, rgba(12, 18, 14, 0.95) 100%); border: 1px solid ${isThisPlaying ? 'var(--gold, #d4af37)' : 'rgba(212, 175, 55, 0.2)'}; border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; direction: rtl; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.35);">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+            <div style="display:flex; align-items:center; gap:8px; flex:1; min-width:0;">
+              <button onclick="window.togglePinLecture('${lecture.title}')" style="background:transparent; border:none; color:${isPinned ? 'var(--gold, #d4af37)' : 'rgba(255,255,255,0.3)'}; font-size:15px; cursor:pointer; padding:0; flex-shrink:0;">${isPinned ? '📌' : '📍'}</button>
+              <span style="font-family:'Amiri',serif; font-size:14px; color:#fff; line-height:1.4; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${isVideo ? '🎥 ' : ''}${lecture.title}</span>
             </div>
             
             ${isVideo ? `
                 <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-                    <button onclick="window.openAthrVideoModal('${lecture.title}', '${lecture.src}')" style="background:var(--gold); color:#111; border:none; padding:6px 12px; border-radius:20px; font-weight:bold; font-size:12px; cursor:pointer;">🎬 مشاهدة</button>
-                    <div id="lectureDlRing_${realIndex}" onclick="window.startLectureDownloadRing(${realIndex})" style="width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; background:var(--bg2); color:var(--gold); border:1px solid var(--border); border-radius:50%; font-size:12px;">⬇️</div>
+                    <button onclick="window.openAthrVideoModal('${lecture.title}', '${lecture.src}')" style="background: linear-gradient(135deg, #d4af37, #b8860b); color:#111; border:none; padding:5px 12px; border-radius:18px; font-weight:bold; font-size:11.5px; cursor:pointer;">🎬 مشاهدة</button>
+                    <div id="lectureDlRing_${realIndex}" class="athr-icon-btn" onclick="window.startLectureDownloadRing(${realIndex})" style="width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:1px solid rgba(212,175,55,0.3); background:rgba(212,175,55,0.1); color:var(--gold, #d4af37); font-size:12px;">⬇️</div>
                 </div>
             ` : `
-                <button class="play-btn" id="lectureBtn_${realIndex}" onclick="window.toggleLectureAudio(${realIndex})" style="background:var(--gold); color:#111; border:none; width:34px; height:34px; border-radius:50%; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;">${isThisPlaying ? '⏸' : '▶'}</button>
-                <div id="lectureDlRing_${realIndex}" onclick="window.startLectureDownloadRing(${realIndex})" style="width:34px; height:34px; flex-shrink:0; display:flex; align-items:center; justify-content:center; cursor:pointer; background:var(--bg2); color:var(--gold); border:1px solid var(--border); border-radius:50%;">⬇️</div> 
+                <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                    <button class="athr-icon-btn primary" id="lectureBtn_${realIndex}" onclick="window.toggleLectureAudio(${realIndex})" style="width:32px; height:32px; border-radius:50%; border:none; background:linear-gradient(135deg, #e6c667, #d4af37); color:#111; font-weight:bold; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center;">${isThisPlaying ? '⏸' : '▶'}</button>
+                    <div id="lectureDlRing_${realIndex}" class="athr-icon-btn" onclick="window.startLectureDownloadRing(${realIndex})" style="width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:1px solid rgba(212,175,55,0.3); background:rgba(212,175,55,0.1); color:var(--gold, #d4af37); font-size:12px;">⬇️</div> 
+                </div>
             `}
           </div>
 
-          <div id="lectureDlStatus_${realIndex}" style="font-size:10px; color:var(--gold); margin-top:2px; text-align:center;"></div>
+          <div id="lectureDlStatus_${realIndex}" style="font-size:10px; color:var(--gold, #d4af37); text-align:center;"></div>
 
           ${!isVideo ? `
-          <div style="margin-top:6px; width:100%;">
-            <input type="range" id="lectureSeek_${realIndex}" value="0" min="0" max="100" step="0.1" oninput="window.seekLectureAudio(${realIndex}, this.value)" style="width:100%; accent-color:var(--gold); cursor:pointer; height:4px; background:rgba(255,255,255,0.2); outline:none; border-radius:2px;">
-            <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text2); direction:ltr; margin-top:4px; font-family:monospace;">
+          <div style="width:100%; display:flex; flex-direction:column; gap:2px;">
+            <input type="range" class="athr-seek-slider" id="lectureSeek_${realIndex}" value="0" min="0" max="100" step="0.1" oninput="window.seekLectureAudio(${realIndex}, this.value)" style="width:100%; accent-color:var(--gold, #d4af37); cursor:pointer; height:3px; background:rgba(255,255,255,0.15); border-radius:2px; outline:none;">
+            <div style="display:flex; justify-content:space-between; font-size:10px; color:rgba(255,255,255,0.5); direction:ltr; font-family:monospace;">
               <span id="lectureCurTime_${realIndex}">0:00</span>
               <span id="lectureTotalTime_${realIndex}">--:--</span>
             </div>
