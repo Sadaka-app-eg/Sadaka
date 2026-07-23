@@ -7653,12 +7653,7 @@ function stopMainAutoScroll() {
   }
 }
 
-function stopMainAutoScroll() {
-  isMainAutoScrolling = false;
-  clearInterval(mainScrollInterval);
-  const playBtn = document.getElementById('mainAutoScrollPlayBtn');
-  if (playBtn) playBtn.textContent = '▶';
-}
+
 
 window.updateMainScrollSpeed = function(val) {
   mainScrollSpeed = Number(val);
