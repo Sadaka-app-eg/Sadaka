@@ -753,9 +753,9 @@ window.renderStudioUI = function() {
                 <button onclick="window.exportStudioPureAudio()" style="background: #005485; color: #fff; border: none; padding: 12px; border-radius: 10px; font-weight: bold; font-family: 'Amiri', serif; font-size: 14px; cursor: pointer;">
                     🎵 استخراج الصوت المنقى (MP3)
                 </button>
-                <button onclick="window.exportStudioFilteredVideo()" style="background: #4caf50; color: #fff; border: none; padding: 12px; border-radius: 10px; font-weight: bold; font-family: 'Amiri', serif; font-size: 14px; cursor: pointer;">
-                    🎬 تصدير الفيديو المعدل بالكامل
-                </button>
+               <button onclick="window.exportStudioOffline()" style="background: #4caf50; color: #fff; border: none; padding: 12px; border-radius: 10px; font-weight: bold; font-family: 'Amiri', serif; font-size: 14px; cursor: pointer;">
+    🎬 تصدير الفيديو المعدل بالكامل
+</button>
             </div>
 
             <div id="studioStatusLog" style="text-align: center; color: var(--gold); font-size: 13px; font-weight: bold; margin-top: 15px; font-family: sans-serif;"></div>
@@ -1936,20 +1936,30 @@ window.studioEngine.isExporting = true;
                 return;
             }
 
-            const finalMime = recorder.mimeType || mimeType || 'video/webm';
-            const ext = finalMime.includes('mp4') ? 'mp4' : 'webm';
-            const blob = new Blob(chunks, { type: finalMime });
-            console.log(`📦 حجم الـ Blob النهائي: ${(blob.size / (1024*1024)).toFixed(2)} MB`);
+const finalMime = recorder.mimeType || mimeType || 'video/webm';
+const ext = finalMime.includes('mp4') ? 'mp4' : 'webm';
+const rawBlob = new Blob(chunks, { type: finalMime });
+console.log(`📦 حجم الـ Blob النهائي: ${(rawBlob.size / (1024*1024)).toFixed(2)} MB`);
 
-            const downloadUrl = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = downloadUrl;
-            a.download = `فيديو_أثر_${Date.now()}.${ext}`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+const durationMs = totalDuration * 1000;
 
-            log.textContent = "🎉 تم تصدير الفيديو وتنزيله بنجاح!";
+const doDownload = (finalBlob) => {
+    const downloadUrl = URL.createObjectURL(finalBlob);
+    const a = document.createElement('a');
+    a.href = downloadUrl;
+    a.download = `فيديو_أثر_${Date.now()}.${ext}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    log.textContent = "🎉 تم تصدير الفيديو وتنزيله بنجاح!";
+};
+
+if (ext === 'webm' && typeof fixWebmDuration === 'function') {
+    fixWebmDuration(rawBlob, durationMs, doDownload);
+} else {
+    doDownload(rawBlob);
+}
+            
         };
 
         // 4. ضبط الفيديو والبدء
@@ -2757,4 +2767,215 @@ window.exportFinalVideo = function () {
             mediaRecorder.stop();
         }
     };
+};
+// =========================================================================
+// 🚀 التصدير الأوفلاين السريع (WebCodecs) - بدون انتظار مدة الفيديو
+// =========================================================================
+window.exportStudioOffline = async function() {
+    const engine = window.studioEngine;
+    const video = engine.videoElement;
+    const canvas = engine.renderCanvas;
+    const log = document.getElementById('studioStatusLog');
+
+    if (!video || !canvas || !video.src) {
+        alert("⚠️ يرجى رفع مقطع فيديو أولاً!");
+        return;
+    }
+
+    if (typeof VideoEncoder === 'undefined' || typeof Mp4Muxer === 'undefined') {
+        alert("⚠️ متصفحك الحالي لا يدعم ميزة الترميز السريع. جرب Chrome (أندرويد أو ديسكتوب).");
+        return;
+    }
+
+    if (!document.getElementById('athrExportSpinnerStyle')) {
+        const style = document.createElement('style');
+        style.id = 'athrExportSpinnerStyle';
+        style.textContent = `
+        @keyframes athrSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .athr-export-spinner {
+            width: 38px; height: 38px;
+            border: 4px solid rgba(212,175,55,0.2);
+            border-top-color: var(--gold);
+            border-radius: 50%;
+            animation: athrSpin 1s linear infinite;
+            margin: 0 auto 10px auto;
+        }`;
+        document.head.appendChild(style);
+    }
+
+    const currentClip = engine.clips[engine.selectedClipIndex];
+    const startTime = currentClip ? currentClip.start : 0;
+    const endTime = currentClip ? currentClip.end : video.duration;
+    const totalDuration = endTime - startTime;
+
+    const fps = parseInt(document.getElementById('exportFpsSelect')?.value || document.getElementById('exportFPS')?.value || 30);
+    const bitrate = parseInt(document.getElementById('exportBitrateSelect')?.value || document.getElementById('exportBitrate')?.value || 2500000);
+
+    const width = canvas.width;
+    const height = canvas.height;
+    const frameDurationUs = 1_000_000 / fps;
+
+    log.innerHTML = `
+        <div class="athr-export-spinner"></div>
+        <div style="color:var(--gold); font-family:'Amiri', serif; font-size:15px; font-weight:bold;">
+            جاري ترميز الفيديو بسرعة فائقة... ✨
+        </div>
+        <div id="offlineExportProgress" style="color:var(--text2); font-size:12px; margin-top:6px;">0%</div>
+    `;
+
+    engine.isExporting = true;
+    const wasPaused = video.paused;
+    video.pause();
+
+    try {
+        const muxer = new Mp4Muxer.Muxer({
+            target: new Mp4Muxer.ArrayBufferTarget(),
+            video: { codec: 'avc', width, height },
+            audio: { codec: 'aac', numberOfChannels: 2, sampleRate: 44100 },
+            fastStart: 'in-memory'
+        });
+
+        const videoEncoder = new VideoEncoder({
+            output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
+            error: (e) => console.error("خطأ ترميز الفيديو:", e)
+        });
+        videoEncoder.configure({
+            codec: 'avc1.420028',
+            width, height, bitrate, framerate: fps
+        });
+
+        // استخراج وترميز الصوت أولاً (كامل الكليب المحدد)
+        const audioBuffer = await window.extractAudioBufferFromVideo(video, startTime, endTime);
+        if (audioBuffer) {
+            const audioEncoder = new AudioEncoder({
+                output: (chunk, meta) => muxer.addAudioChunk(chunk, meta),
+                error: (e) => console.error("خطأ ترميز الصوت:", e)
+            });
+            audioEncoder.configure({
+                codec: 'mp4a.40.2',
+                sampleRate: 44100,
+                numberOfChannels: 2,
+                bitrate: 128000
+            });
+            await window.encodeAudioBufferToEncoder(audioBuffer, audioEncoder);
+            await audioEncoder.flush();
+        }
+
+        // رسم وترميز الفريمات فريم فريم بالـ seek (بدون تشغيل حقيقي)
+        const totalFrames = Math.ceil(totalDuration * fps);
+        for (let i = 0; i < totalFrames; i++) {
+            const t = startTime + (i / fps);
+            if (t > endTime) break;
+
+            await window.seekVideoTo(video, t);
+            window.drawStudioCanvas();
+
+            const frame = new VideoFrame(canvas, {
+                timestamp: Math.round(i * frameDurationUs),
+                duration: Math.round(frameDurationUs)
+            });
+            videoEncoder.encode(frame, { keyFrame: i % (fps * 2) === 0 });
+            frame.close();
+
+            const percent = Math.round((i / totalFrames) * 100);
+            const progEl = document.getElementById('offlineExportProgress');
+            if (progEl) progEl.textContent = `${percent}%`;
+        }
+
+        await videoEncoder.flush();
+        muxer.finalize();
+
+        const { buffer } = muxer.target;
+        const blob = new Blob([buffer], { type: 'video/mp4' });
+        const downloadUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = `فيديو_أثر_${Date.now()}.mp4`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        log.textContent = "🎉 تم تصدير الفيديو بسرعة فائقة بنجاح!";
+    } catch (err) {
+        console.error("❌ خطأ في التصدير الأوفلاين:", err);
+        log.textContent = "❌ حدث خطأ أثناء التصدير، راجع الكونسول لمعرفة التفاصيل.";
+    } finally {
+        engine.isExporting = false;
+        if (!wasPaused) video.play();
+    }
+};
+
+// ⏩ دالة مساعدة: seek دقيق وانتظار اكتمال الفريم فعليًا
+window.seekVideoTo = function(video, time) {
+    return new Promise((resolve) => {
+        const onSeeked = () => {
+            video.removeEventListener('seeked', onSeeked);
+            resolve();
+        };
+        video.addEventListener('seeked', onSeeked);
+        video.currentTime = time;
+    });
+};
+
+// 🎧 دالة مساعدة: استخراج الصوت الكامل من الفيديو كـ AudioBuffer (فك ترميز أوفلاين)
+window.extractAudioBufferFromVideo = async function(video, startTime, endTime) {
+    try {
+        const response = await fetch(video.src);
+        const arrayBuffer = await response.arrayBuffer();
+        const tempCtx = new AudioContext();
+        const decoded = await tempCtx.decodeAudioData(arrayBuffer);
+        tempCtx.close();
+
+        const startSample = Math.floor(startTime * decoded.sampleRate);
+        const endSample = Math.floor(Math.min(endTime, decoded.duration) * decoded.sampleRate);
+        const length = Math.max(1, endSample - startSample);
+
+        const trimmed = new AudioBuffer({
+            numberOfChannels: decoded.numberOfChannels,
+            length: length,
+            sampleRate: decoded.sampleRate
+        });
+
+        for (let ch = 0; ch < decoded.numberOfChannels; ch++) {
+            const channelData = decoded.getChannelData(ch).slice(startSample, endSample);
+            trimmed.copyToChannel(channelData, ch);
+        }
+
+        return trimmed;
+    } catch (err) {
+        console.warn("⚠️ تعذر استخراج الصوت (سيتم التصدير بدون صوت):", err);
+        return null;
+    }
+};
+
+// 🎚️ دالة مساعدة: ترميز AudioBuffer إلى AudioEncoder على شكل AudioData chunks
+window.encodeAudioBufferToEncoder = async function(audioBuffer, encoder) {
+    const numberOfChannels = 2;
+    const sampleRate = audioBuffer.sampleRate;
+    const chunkSize = 1024;
+    const totalSamples = audioBuffer.length;
+
+    const ch0 = audioBuffer.getChannelData(0);
+    const ch1 = audioBuffer.numberOfChannels > 1 ? audioBuffer.getChannelData(1) : ch0;
+
+    for (let offset = 0; offset < totalSamples; offset += chunkSize) {
+        const len = Math.min(chunkSize, totalSamples - offset);
+        const interleaved = new Float32Array(len * numberOfChannels);
+        for (let i = 0; i < len; i++) {
+            interleaved[i * 2] = ch0[offset + i];
+            interleaved[i * 2 + 1] = ch1[offset + i];
+        }
+
+        const audioData = new AudioData({
+            format: 'f32',
+            sampleRate: sampleRate,
+            numberOfFrames: len,
+            numberOfChannels: numberOfChannels,
+            timestamp: Math.round((offset / sampleRate) * 1_000_000),
+            data: interleaved
+        });
+
+        encoder.encode(audioData);
+        audioData.close();
+    }
 };
