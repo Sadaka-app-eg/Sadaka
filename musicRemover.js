@@ -1028,14 +1028,23 @@ window.handleStudioFileUpload = function(event) {
     };
 
     // 🎵 عند تشغيل الفيديو: تشغيل المؤثر الصوتي
-    video.onplay = () => {
-        window.initStudioAudioEngine();
-        if (window.studioEngine.ambientAudioEl) {
-            window.studioEngine.ambientAudioEl.play();
-        }
-        window.startCanvasRenderLoop();
-        if (typeof window.drawAudioWaveform === 'function') window.drawAudioWaveform();
-    };
+video.onplay = () => {
+    const e = window.studioEngine;
+    const curClip = e.clips[e.selectedClipIndex];
+    const endT = curClip ? curClip.end : video.duration;
+    
+    // 👈 السطر ده: لو واقف عند النهاية أو قريبه منها، يرجع للبداية فوراً قبل التشغيل
+    if (video.currentTime >= endT - 0.1 || video.ended) {
+        video.currentTime = curClip ? curClip.start : 0;
+    }
+
+    window.initStudioAudioEngine();
+    if (e.ambientAudioEl) {
+        e.ambientAudioEl.play();
+    }
+    window.startCanvasRenderLoop();
+    if (typeof window.drawAudioWaveform === 'function') window.drawAudioWaveform();
+};
 
     // 🛑 عند إيقاف الفيديو: إيقاف المؤثر الصوتي فوراً
     video.onpause = () => {
