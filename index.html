@@ -1170,9 +1170,7 @@ body.hide-controls #quran {
       </div>
       <button class="icon-btn" onclick="window.downloadCurrentSurahAudio()" title="تحميل للاستماع أوفلاين" style="width:36px;height:36px;font-size:15px;flex-shrink:0;">⬇️</button>
       
-      <!-- ⏬ زرار التمرير التلقائي الجديد المضاف هنا -->
-      <button class="icon-btn" onclick="window.toggleMainAutoScrollControls()" title="تمرير تلقائي" style="width:36px;height:36px;font-size:16px;flex-shrink:0;background:rgba(212,175,55,0.2);border-color:var(--gold);color:var(--gold);">⏬</button>
-      
+          
       <button class="clear-sel-btn" id="clearSelBtn" onclick="clearSelection()" style="display:none">✕ إلغاء</button>
       <audio id="audioPlayer"></audio>
     </div>
@@ -1182,18 +1180,25 @@ body.hide-controls #quran {
     <div class="mushaf-slider" id="mushafSlider"></div>
   </div>
 
-  <!-- 🎛️ شريط التحكم بالسرعة للتمرير التلقائي (يظهر عند الضغط على ⏬) -->
-  <div id="mainAutoScrollControlBar" style="display:none; position:absolute; bottom:60px; left:10px; right:10px; z-index:500; align-items:center; gap:10px; background:rgba(18, 30, 20, 0.95); border:1px solid var(--gold); padding:8px 14px; border-radius:15px; backdrop-filter:blur(8px);">
+<!-- ⏬ شريط التحكم بالسرعة للتمرير التلقائي (بيظهر فوق الفوتر السفلي مباشرة) -->
+  <div id="mainAutoScrollControlBar" style="display:none; position:absolute; bottom:70px; left:14px; right:14px; z-index:999; align-items:center; gap:10px; background:rgba(18, 30, 20, 0.95); border:1px solid var(--gold); padding:8px 14px; border-radius:15px; backdrop-filter:blur(10px); box-shadow:0 4px 20px rgba(0,0,0,0.5);">
     <button id="mainAutoScrollPlayBtn" onclick="window.toggleMainAutoScrollPlay()" style="background:var(--gold); color:#111; border:none; width:34px; height:34px; border-radius:50%; cursor:pointer; font-size:15px; font-weight:bold; display:flex; align-items:center; justify-content:center; flex-shrink:0;">⏸</button>
+    <span style="font-size:12px; color:var(--text2); font-family:'Amiri',serif;">السرعة:</span>
     <input type="range" min="5" max="90" value="30" id="mainAutoScrollSpeedSlider" oninput="window.updateMainScrollSpeed(this.value)" style="flex:1; accent-color:var(--gold); cursor:pointer;">
-    <span style="color:var(--gold); font-size:12px; font-weight:bold; min-width:25px; text-align:center;" id="mainScrollSpeedLabel">٣٠</span>
-    <button onclick="window.toggleMainAutoScrollControls()" style="background:transparent; border:none; color:#ff6b6b; font-size:16px; cursor:pointer; padding:0 5px;">✕</button>
+    <span style="color:var(--gold); font-size:13px; font-weight:bold; min-width:25px; text-align:center; font-family:'Amiri',serif;" id="mainScrollSpeedLabel">٣٠</span>
+    <button onclick="window.toggleMainAutoScrollControls()" style="background:transparent; border:none; color:#ff6b6b; font-size:18px; cursor:pointer; padding:0 5px;">✕</button>
   </div>
 
+  <!-- 🕌 الفوتر السفلي المطور (فيه زرار التمرير ⏬ جنب شريط الصفحات تحت) -->
   <div class="mushaf-jump-bar" id="mushafJumpBar">
-    <input type="range" id="mushafJumpSlider" min="0" max="0" value="0" step="1">
+    <div style="display: flex; align-items: center; gap: 10px; width: 100%;">
+      <!-- زرار التمرير التلقائي السفلي -->
+      <button class="icon-btn" onclick="window.toggleMainAutoScrollControls()" title="تمرير تلقائي" style="width:36px; height:36px; font-size:16px; flex-shrink:0; background:rgba(212,175,55,0.2); border-color:var(--gold); color:var(--gold);">⏬</button>
+      
+      <!-- شريط التنقل بين الصفحات -->
+      <input type="range" id="mushafJumpSlider" min="0" max="0" value="0" step="1" style="flex:1;">
+    </div>
   </div>
-</div>
 
  
 <!-- AZKAR -->
@@ -7555,11 +7560,12 @@ function renderBookmarkHighlight() {
   highlightAyah(bm.index, 'bookmark');
 }
 // =========================================================================
-// 🔄 محرك التمرير التلقائي المباشر للمصحف (Main Auto-Scroll Engine)
+// 🔄 محرك التمرير التلقائي الرأسي المباشر (Vertical Auto-Scroll Engine)
 // =========================================================================
 let mainScrollInterval = null;
 let isMainAutoScrolling = false;
 let mainScrollSpeed = 30;
+let pageHoldCounter = 0; // لانتظار الشاشة لو الصفحة كاملة الظهور
 
 window.toggleMainAutoScrollControls = function() {
   const bar = document.getElementById('mainAutoScrollControlBar');
@@ -7582,14 +7588,8 @@ window.toggleMainAutoScrollPlay = function() {
 };
 
 function startMainAutoScroll() {
-  // العثور على الصفحة المعروضة حالياً داخل السليدر
   const slider = document.getElementById('mushafSlider');
   if (!slider) return;
-
-  // تحديد الصفحة النشطة التي يتم التمرير بداخلها
-  const activePageIndex = Math.round(Math.abs(slider.scrollLeft) / window.innerWidth);
-  const activePage = slider.children[activePageIndex];
-  if (!activePage) return;
 
   isMainAutoScrolling = true;
   const playBtn = document.getElementById('mainAutoScrollPlayBtn');
@@ -7598,23 +7598,44 @@ function startMainAutoScroll() {
   clearInterval(mainScrollInterval);
 
   mainScrollInterval = setInterval(() => {
-    activePage.scrollTop += 1;
+    // 1️⃣ معرفة الصفحة الظاهرة حالياً على الشاشة
+    const activePageIndex = Math.round(Math.abs(slider.scrollLeft) / window.innerWidth);
+    const activePage = slider.children[activePageIndex];
 
-    // عند الوصول لنهاية الصفحة الحالية، الانتقال للصفحة التالية تلقائياً
-    if (activePage.scrollTop + activePage.clientHeight >= activePage.scrollHeight - 2) {
-      if (activePageIndex < slider.children.length - 1) {
-        window.scrollToMushafIndex(activePageIndex + 1);
-        // إعادة ضبط السكرول العلوي للصفحة الجديدة
-        setTimeout(() => {
-          if (slider.children[activePageIndex + 1]) {
-            slider.children[activePageIndex + 1].scrollTop = 0;
-          }
-        }, 300);
-      } else {
-        stopMainAutoScroll(); // إيقاف عند نهاية السورة
+    if (!activePage) return;
+
+    // 2️⃣ هل الصفحة فيها سكرول رأسي ينزل لتحت؟
+    const maxScroll = activePage.scrollHeight - activePage.clientHeight;
+
+    if (maxScroll > 5 && activePage.scrollTop < maxScroll - 2) {
+      // تنزل لتحت سطر سطر بنعومة
+      activePage.scrollTop += 1;
+      pageHoldCounter = 0;
+    } else {
+      // 3️⃣ لو وصل لآخر الصفحة تحت (أو كانت الصفحة طالعة كاملة ومش محتاجة سكرول)
+      pageHoldCounter++;
+      
+      // ننتظر برهة زمنية بسيطة تتناسب مع السرعة المحددة قبل التقليب للصفحة التالية
+      const holdThreshold = Math.max(15, Math.floor((100 - mainScrollSpeed) * 1.5));
+      
+      if (pageHoldCounter >= holdThreshold) {
+        pageHoldCounter = 0;
+        if (activePageIndex < slider.children.length - 1) {
+          // نقل للصفحة التالية
+          window.scrollToMushafIndex(activePageIndex + 1);
+          
+          // تصفير سكرول الصفحة الجديدة لتستعد للنزول من أعلى
+          setTimeout(() => {
+            if (slider.children[activePageIndex + 1]) {
+              slider.children[activePageIndex + 1].scrollTop = 0;
+            }
+          }, 200);
+        } else {
+          stopMainAutoScroll(); // إيقاف عند نهاية السورة
+        }
       }
     }
-  }, Math.max(10, 100 - mainScrollSpeed));
+  }, Math.max(12, 110 - mainScrollSpeed));
 }
 
 function stopMainAutoScroll() {
@@ -7633,7 +7654,7 @@ window.updateMainScrollSpeed = function(val) {
   }
 };
 
-// إيقاف التمرير عند إغلاق السورة أو التغيير
+// إيقاف التمرير عند إغلاق السورة
 const originalCloseSurah = window.closeSurah;
 window.closeSurah = function() {
   stopMainAutoScroll();
