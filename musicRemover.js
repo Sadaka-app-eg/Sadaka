@@ -3096,14 +3096,6 @@ window.seekVideoTo = function(video, time) {
 // 🎧 دالة مساعدة: استخراج الصوت الكامل من الفيديو كـ AudioBuffer (فك ترميز أوفلاين)
 window.extractAudioBufferFromVideo = async function(video, startTime, endTime) {
     try {
-        const e = window.studioEngine;
-        
-        // 🧪 [تشخيص] طباعة قيم السلايدرات والمؤثرات الحالية
-        console.log("🔊 [Audio Export Debug] بدء استخراج الصوت مع التاثيرات التالية:");
-        console.log("   - Voice Amplification:", document.getElementById('sliderVoice')?.value);
-        console.log("   - Reverb Gain:", document.getElementById('sliderReverb')?.value);
-        console.log("   - Ambient Audio Active:", e.ambientAudioEl ? true : false);
-
         const response = await fetch(video.src);
         const arrayBuffer = await response.arrayBuffer();
         
@@ -3114,22 +3106,58 @@ window.extractAudioBufferFromVideo = async function(video, startTime, endTime) {
         const srcNode = offlineCtx.createBufferSource();
         srcNode.buffer = decoded;
 
+        // 🎛️ قراءة قيم كافة السلايدرات الحالية من الواجهة
         const voice = parseFloat(document.getElementById('sliderVoice')?.value || 100);
+        const treble = parseFloat(document.getElementById('sliderTreble')?.value || 0);
+        const bass = parseFloat(document.getElementById('sliderBass')?.value || 0);
+        const reverb = parseFloat(document.getElementById('sliderReverb')?.value || 0);
+
+        // 1. فلتر تضخيم الصوت البشري
         const vFilter = offlineCtx.createBiquadFilter();
         vFilter.type = 'peaking';
         vFilter.frequency.value = 1200;
         vFilter.gain.value = (voice - 100) / 10;
 
+        // 2. فلتر الترددات الحادة
+        const tFilter = offlineCtx.createBiquadFilter();
+        tFilter.type = 'highshelf';
+        tFilter.frequency.value = 3200;
+        tFilter.gain.value = -(treble / 2.5);
+
+        // 3. فلتر البيس والإيقاعات
+        const bFilter = offlineCtx.createBiquadFilter();
+        bFilter.type = 'lowshelf';
+        bFilter.frequency.value = 250;
+        bFilter.gain.value = -(bass / 2.5);
+
+        // 4. شبكة صدى المساجد (Reverb Delay & Feedback) 🕌
+        const reverbDelay = offlineCtx.createDelay();
+        reverbDelay.delayTime.value = 0.08;
+        const reverbFeedback = offlineCtx.createGain();
+        reverbFeedback.gain.value = 0.3;
+        const reverbGain = offlineCtx.createGain();
+        reverbGain.gain.value = (reverb / 100) * 0.6;
+
+        // توصيل دوائر الصدى
+        reverbDelay.connect(reverbFeedback);
+        reverbFeedback.connect(reverbDelay);
+        reverbDelay.connect(reverbGain);
+
+        // 🔗 توصيل السلسلة كاملة
         srcNode.connect(vFilter);
-        vFilter.connect(offlineCtx.destination);
+        vFilter.connect(tFilter);
+        tFilter.connect(bFilter);
+
+        // تفريع الصوت للصدى والمخرج الرئيسي
+        bFilter.connect(reverbDelay);
+        bFilter.connect(offlineCtx.destination);
+        reverbGain.connect(offlineCtx.destination);
 
         srcNode.start(0, startTime, duration);
         const renderedBuffer = await offlineCtx.startRendering();
-        
-        console.log("✅ [Audio Export Debug] اكتمل الـ Offline Context بنجاح:", renderedBuffer);
         return renderedBuffer;
     } catch (err) {
-        console.error("❌ [Audio Export Debug] فشل معالجة الصوت أوفلاين:", err);
+        console.warn("⚠️ تعذر معالجة الصوت أوفلاين:", err);
         return null;
     }
 };
