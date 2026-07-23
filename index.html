@@ -300,7 +300,20 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
   box-sizing: border-box;
 }
 
-  
+  .mushaf-slider.vscroll-mode {
+  flex-direction: column !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  scroll-snap-type: none !important;
+}
+.mushaf-slider.vscroll-mode .mushaf-page {
+  flex: 0 0 auto !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 100vh;
+  justify-content: flex-start !important;
+  overflow-y: visible !important;
+}
   
   .mushaf-page:first-child{border-right:none;}
 .surah-name-header{
@@ -7601,6 +7614,7 @@ function startMainAutoScroll() {
   const slider = document.getElementById('mushafSlider');
   if (!slider) return;
 
+  slider.classList.add('vscroll-mode');
   isMainAutoScrolling = true;
   const playBtn = document.getElementById('mainAutoScrollPlayBtn');
   if (playBtn) playBtn.textContent = '⏸';
@@ -7608,44 +7622,35 @@ function startMainAutoScroll() {
   clearInterval(mainScrollInterval);
 
   mainScrollInterval = setInterval(() => {
-    // 1️⃣ معرفة الصفحة النشطة المعروضة حالياً
-    const activePageIndex = Math.round(Math.abs(slider.scrollLeft) / window.innerWidth);
-    const activePage = slider.children[activePageIndex];
-
-    if (!activePage) return;
-
-    // 2️⃣ حساب المتبقي للنزول العمودي جوه الصفحة نفسها
-    const maxScroll = activePage.scrollHeight - activePage.clientHeight;
-
-    // لو الصفحة فيها مساحة نزول لتحت ولسه ما وصلتش لآخرها
-    if (maxScroll > 10 && activePage.scrollTop < maxScroll - 2) {
-      activePage.scrollTop += 1; // 👈 ينزل عمودياً سطر سطر بنعومة
-      pageHoldCounter = 0;
-    } else {
-      // 3️⃣ لو وصل لآخر الصفحة عمودياً تحت (أو كانت الصفحة كاملة الظهور)
-      pageHoldCounter++;
-      
-      // انتظار بسيط ومريح لينهي القارئ آخر سطر قبل الانتقال للصفحة التالية
-      const holdThreshold = Math.max(20, Math.floor((100 - mainScrollSpeed) * 1.8));
-      
-      if (pageHoldCounter >= holdThreshold) {
-        pageHoldCounter = 0;
-        if (activePageIndex < slider.children.length - 1) {
-          // الانتقال الأفقي للصفحة التالية
-          window.scrollToMushafIndex(activePageIndex + 1);
-          
-          // تصفير سكرول الصفحة الجديدة لتستعد للنزول العمودي من الأعلى
-          setTimeout(() => {
-            if (slider.children[activePageIndex + 1]) {
-              slider.children[activePageIndex + 1].scrollTop = 0;
-            }
-          }, 300);
-        } else {
-          stopMainAutoScroll(); // إيقاف عند نهاية السورة
-        }
-      }
+    const maxScroll = slider.scrollHeight - slider.clientHeight;
+    if (slider.scrollTop >= maxScroll - 2) {
+      stopMainAutoScroll();
+      return;
     }
-  }, Math.max(15, 110 - mainScrollSpeed));
+    slider.scrollTop += 1;
+  }, Math.max(10, 110 - mainScrollSpeed));
+}
+
+function stopMainAutoScroll() {
+  isMainAutoScrolling = false;
+  clearInterval(mainScrollInterval);
+  const playBtn = document.getElementById('mainAutoScrollPlayBtn');
+  if (playBtn) playBtn.textContent = '▶';
+
+  const slider = document.getElementById('mushafSlider');
+  if (slider) {
+    slider.classList.remove('vscroll-mode');
+    // نرجّع المستخدم لنفس الصفحة اللي كان واقف عندها أفقيًا
+    const pages = Array.from(slider.children);
+    let closestIndex = 0;
+    let minDist = Infinity;
+    pages.forEach((p, i) => {
+      const dist = Math.abs(p.offsetTop - slider.scrollTop);
+      if (dist < minDist) { minDist = dist; closestIndex = i; }
+    });
+    slider.scrollTop = 0;
+    setTimeout(() => window.scrollToMushafIndex(closestIndex), 50);
+  }
 }
 
 function stopMainAutoScroll() {
