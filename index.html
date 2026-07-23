@@ -282,17 +282,27 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
   .mushaf-slider{display:flex;flex-direction:row;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;height:100%;scrollbar-width:none;}
 .mushaf-slider::-webkit-scrollbar{display:none;}
 .mushaf-page{
-  flex:0 0 100vw;width:100vw;scroll-snap-align:center;
-  padding:12px 14px 30px;overflow-y:auto;
-  background:var(--mushaf-bg);color:var(--mushaf-text);
-  font-family:'KFGQPC Uthmanic Script HAFS', 'Amiri Quran', serif; /* 👈 عدل الخط هنا */
+  flex:0 0 100vw;
+  width:100vw;
+  scroll-snap-align:center;
+  padding: 80px 14px 140px !important; /* 👈 زيادة المسافة من فوق وتحت لعمل مساحة سكرول رأسي ممتاز */
+  overflow-y: auto !important; /* 👈 تفعيل النزول العمودي داخل الصفحة */
+  -webkit-overflow-scrolling: touch;
+  background:var(--mushaf-bg);
+  color:var(--mushaf-text);
+  font-family:'KFGQPC Uthmanic Script HAFS', 'Amiri Quran', serif;
   font-size:22px;
-  line-height:2.8; /* 👈 زود دي عشان الهمزات متتأكلش والمسافة تظبط */
-  text-align:justify;text-justify:inter-word;
+  line-height:2.8;
+  text-align:justify;
+  text-justify:inter-word;
   border-right:4px solid var(--mushaf-border);
   word-spacing:2px;
+  box-sizing: border-box;
 }
-.mushaf-page:first-child{border-right:none;}
+
+  
+  
+  .mushaf-page:first-child{border-right:none;}
 .surah-name-header{
   text-align:center;font-size:20px;font-weight:700;
   color:#5a3e00;margin:0 0 8px;padding:8px 20px;
@@ -7598,44 +7608,44 @@ function startMainAutoScroll() {
   clearInterval(mainScrollInterval);
 
   mainScrollInterval = setInterval(() => {
-    // 1️⃣ معرفة الصفحة الظاهرة حالياً على الشاشة
+    // 1️⃣ معرفة الصفحة النشطة المعروضة حالياً
     const activePageIndex = Math.round(Math.abs(slider.scrollLeft) / window.innerWidth);
     const activePage = slider.children[activePageIndex];
 
     if (!activePage) return;
 
-    // 2️⃣ هل الصفحة فيها سكرول رأسي ينزل لتحت؟
+    // 2️⃣ حساب المتبقي للنزول العمودي جوه الصفحة نفسها
     const maxScroll = activePage.scrollHeight - activePage.clientHeight;
 
-    if (maxScroll > 5 && activePage.scrollTop < maxScroll - 2) {
-      // تنزل لتحت سطر سطر بنعومة
-      activePage.scrollTop += 1;
+    // لو الصفحة فيها مساحة نزول لتحت ولسه ما وصلتش لآخرها
+    if (maxScroll > 10 && activePage.scrollTop < maxScroll - 2) {
+      activePage.scrollTop += 1; // 👈 ينزل عمودياً سطر سطر بنعومة
       pageHoldCounter = 0;
     } else {
-      // 3️⃣ لو وصل لآخر الصفحة تحت (أو كانت الصفحة طالعة كاملة ومش محتاجة سكرول)
+      // 3️⃣ لو وصل لآخر الصفحة عمودياً تحت (أو كانت الصفحة كاملة الظهور)
       pageHoldCounter++;
       
-      // ننتظر برهة زمنية بسيطة تتناسب مع السرعة المحددة قبل التقليب للصفحة التالية
-      const holdThreshold = Math.max(15, Math.floor((100 - mainScrollSpeed) * 1.5));
+      // انتظار بسيط ومريح لينهي القارئ آخر سطر قبل الانتقال للصفحة التالية
+      const holdThreshold = Math.max(20, Math.floor((100 - mainScrollSpeed) * 1.8));
       
       if (pageHoldCounter >= holdThreshold) {
         pageHoldCounter = 0;
         if (activePageIndex < slider.children.length - 1) {
-          // نقل للصفحة التالية
+          // الانتقال الأفقي للصفحة التالية
           window.scrollToMushafIndex(activePageIndex + 1);
           
-          // تصفير سكرول الصفحة الجديدة لتستعد للنزول من أعلى
+          // تصفير سكرول الصفحة الجديدة لتستعد للنزول العمودي من الأعلى
           setTimeout(() => {
             if (slider.children[activePageIndex + 1]) {
               slider.children[activePageIndex + 1].scrollTop = 0;
             }
-          }, 200);
+          }, 300);
         } else {
           stopMainAutoScroll(); // إيقاف عند نهاية السورة
         }
       }
     }
-  }, Math.max(12, 110 - mainScrollSpeed));
+  }, Math.max(15, 110 - mainScrollSpeed));
 }
 
 function stopMainAutoScroll() {
