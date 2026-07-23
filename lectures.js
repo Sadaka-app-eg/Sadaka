@@ -573,7 +573,30 @@ window.lecturesData = [
 
 
 
+// =========================================================================
+// 📜 سلسلة سير الصحابة رضي الله عنهم (20 درساً كاملة)
+// =========================================================================
 
+    { title: "فضل الصحابه - 01", src: "https://archive.org/download/Qisas_Sahaba/01-.mp3", category: "سير الصحابة", type: "audio" }, // أرشيف رقم 1
+    { title: "سيره الخليفه الراشد أبو بكر الصديق رضي الله عنه الجزء الأول - 02", src: "https://archive.org/download/Qisas_Sahaba/02-.mp3", category: "سير الصحابة", type: "audio" }, // أرشيف رقم 2
+    { title: "سيره الخليفه الراشد أبو بكر الصديق رضي الله عنه الجزء الثاني - 03", src: "https://archive.org/download/Qisas_Sahaba/03-.mp3", category: "سير الصحابة", type: "audio" }, // أرشيف رقم 3
+    { title: "سيره الخليفه الراشد عمر بن الخطاب رضي الله عنه الجزء الأول - 04", src: "https://archive.org/download/Qisas_Sahaba/04-.mp3", category: "سير الصحابة", type: "audio" }, // أرشيف رقم 4
+    { title: "سيره الخليفه الراشد عمر بن الخطاب رضي الله عنه الجزء الثاني - 05", src: "https://archive.org/download/Qisas_Sahaba/05-.mp3", category: "سير الصحابة", type: "audio" }, // أرشيف رقم 5
+    { title: "سيره الخليفه الراشد عثمان بن عفان رضي الله عنه - 06", src: "https://archive.org/download/Qisas_Sahaba/06-.mp3", category: "سير الصحابة", type: "audio" }, // أرشيف رقم 6
+    { title: "سيره الخليفه الراشد علي بن أبي طالب رضي الله عنه - 07", src: "https://archive.org/download/Qisas_Sahaba/07-.mp3", category: "سير الصحابة", type: "audio" }, // أرشيف رقم 7
+    { title: "سيره أم المؤمنين خديجة بنت خويلد رضي الله عنها - 08", src: "https://archive.org/download/Qisas_Sahaba/08-.mp3", category: "سير الصحابة", type: "audio" }, // أرشيف رقم 8
+    { title: "سيره طلحة بن عبيد الله رضي الله عنه - 09", src: "https://archive.org/download/Qisas_Sahaba/09-.mp3", category: "سير الصحابة", type: "audio" }, // أرشيف رقم 9
+    { title: "سيره الزبير بن العوام رضي الله عنه - 10", src: "https://archive.org/download/Qisas_Sahaba/10-.mp3", category: "سير الصحابة", type: "audio" }, // أرشيف رقم 10
+    { title: "سيره عبد الرحمن بن عوف رضي الله عنه - 11", src: "https://archive.org/download/Qisas_Sahaba/11-.mp3", category: "سير الصحابة", type: "audio" }, // أرشيف رقم 11
+    { title: "سيره سعد بن أبي وقاص رضي الله عنه - 12", src: "https://archive.org/download/Qisas_Sahaba/12-.mp3", category: "سير الصحابة", type: "audio" }, // أرشيف رقم 12
+    { title: "سيره سعيد بن زيد رضي الله عنه - 13", src: "https://archive.org/download/Qisas_Sahaba/13-.mp3", category: "سير الصحابة", type: "audio" }, // أرشيف رقم 13
+    { title: "سيره أبو عبيده عامر بن الجراح رضي الله عنه - 14", src: "https://archive.org/download/Qisas_Sahaba/14-.mp3", category: "سير الصحابة", type: "audio" }, // أرشيف رقم 14
+    { title: "سيره عبدالله بن مسعود رضي الله عنه - 15", src: "https://archive.org/download/Qisas_Sahaba/15-.mp3", category: "سير الصحابة", type: "audio" }, // أرشيف رقم 15
+    { title: "سيره خالد بن الوليد رضي الله عنه - 16", src: "https://archive.org/download/Qisas_Sahaba/16-.mp3", category: "سير الصحابة", type: "audio" }, // أرشيف رقم 16
+    { title: "سيره أم المؤمنين عائشه رضي الله عنها - 17", src: "https://archive.org/download/Qisas_Sahaba/17-.mp3", category: "سير الصحابة", type: "audio" }, // أرشيف رقم 17
+    { title: "سيره معاذ بن جبل رضي الله عنه - 18", src: "https://archive.org/download/Qisas_Sahaba/18-.mp3", category: "سير الصحابة", type: "audio" }, // أرشيف رقم 18
+    { title: "سيره بلال بن رباح رضي الله عنه - 19", src: "https://archive.org/download/Qisas_Sahaba/19-.mp3", category: "سير الصحابة", type: "audio" }, // أرشيف رقم 19
+    { title: "سيره سلمان الفارسي رضي الله عنه - 20", src: "https://archive.org/download/Qisas_Sahaba/20-.mp3", category: "سير الصحابة", type: "audio" }  // أرشيف رقم 20
 
 
 
@@ -871,6 +894,12 @@ window.sheikhsInfoData = {
         title: "سلسلة قصص الأنبياء والمرسلين (كاملة)",
         icon: "🕌",
         desc: "سلسلة تاريخية وثائقية ممتعة تسرد حياة وسير أنبياء الله ورسله عليهم السلام ابتداءً من آدم عليه السلام حتى عيسى عليه السلام بأسلوب مشوق وعميق."
+    },
+    "سير الصحابة": {
+        sheikh: "فضيلة الشيخ نواف السالم",
+        title: "سلسلة سير الصحابة والمبشرين بالجنة (كاملة)",
+        icon: "⚔️",
+        desc: "سلسلة إيمانية وتاريخية جامعة تسلط الضوء على فضل الصحابة الكرام وسير الخلفاء الراشدين، أمهات المؤمنين، والمبشرين بالجنة بأسلوب الشارع الميسر والشيّق."
     }
 };
 
