@@ -2827,11 +2827,15 @@ window.exportStudioOffline = async function() {
     const wasPaused = video.paused;
     video.pause();
 
-    try {
+try {
+        // استخراج الصوت الأول عشان نعرف الـ sampleRate الحقيقي قبل نظبيط الـ muxer
+        const audioBuffer = await window.extractAudioBufferFromVideo(video, startTime, endTime);
+        const audioSampleRate = audioBuffer ? audioBuffer.sampleRate : 44100;
+
         const muxer = new Mp4Muxer.Muxer({
             target: new Mp4Muxer.ArrayBufferTarget(),
             video: { codec: 'avc', width, height },
-            audio: { codec: 'aac', numberOfChannels: 2, sampleRate: 44100 },
+            audio: audioBuffer ? { codec: 'aac', numberOfChannels: 2, sampleRate: audioSampleRate } : undefined,
             fastStart: 'in-memory'
         });
 
@@ -2844,8 +2848,7 @@ window.exportStudioOffline = async function() {
             width, height, bitrate, framerate: fps
         });
 
-        // استخراج وترميز الصوت أولاً (كامل الكليب المحدد)
-        const audioBuffer = await window.extractAudioBufferFromVideo(video, startTime, endTime);
+        // ترميز الصوت (لو موجود)
         if (audioBuffer) {
             const audioEncoder = new AudioEncoder({
                 output: (chunk, meta) => muxer.addAudioChunk(chunk, meta),
@@ -2853,7 +2856,7 @@ window.exportStudioOffline = async function() {
             });
             audioEncoder.configure({
                 codec: 'mp4a.40.2',
-                sampleRate: 44100,
+                sampleRate: audioSampleRate,
                 numberOfChannels: 2,
                 bitrate: 128000
             });
