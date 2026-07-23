@@ -975,6 +975,7 @@ window.handleStudioFileUpload = function(event) {
     const video = document.getElementById('studioVideoPlayer');
     const videoURL = URL.createObjectURL(file);
     video.src = videoURL;
+    video.loop = false; // 🚫 إيقاف التكرار التلقائي للفيديو
     
     window.studioEngine.videoElement = video;
     window.studioEngine.renderCanvas = document.getElementById('studioCanvas');
@@ -982,38 +983,30 @@ window.handleStudioFileUpload = function(event) {
 
     document.getElementById('studioWorkArea').style.display = 'block';
 
-    // 🎯 دالة إنهاء إعداد الكليب بعد التأكد من صحة الـ Duration
     const finalizeClip = (dur) => {
         if (!dur || isNaN(dur) || !isFinite(dur)) return;
         window.studioEngine.clips = [{ id: 1, start: 0, end: dur }];
 
-// 👈 ضيف السطرين دول هنا
-    window.studioEngine.renderCanvas.width = video.videoWidth || 1280;
-    window.studioEngine.renderCanvas.height = video.videoHeight || 720;
-    
-    // تشغيل حلقة الرسم المستمرة
-    if (typeof window.startRenderLoop === 'function') {
-        window.startRenderLoop();
-    }
-
-
+        window.studioEngine.renderCanvas.width = video.videoWidth || 1280;
+        window.studioEngine.renderCanvas.height = video.videoHeight || 720;
         
+        if (typeof window.startRenderLoop === 'function') {
+            window.startRenderLoop();
+        }
+
         window.studioEngine.selectedClipIndex = 0;
         window.renderTimelineUI();
         window.updateStudioLayoutConfig();
-       window.updateEstimatedSize();
-        window.updateExportEstimates();
+        window.updateEstimatedSize();
+        if (typeof window.updateExportEstimates === 'function') window.updateExportEstimates();
         window.drawSingleStudioFrame();
     };
 
     video.onloadeddata = () => {
-        // أ) لو المدة صحيحة وموجودة فوراً
         if (isFinite(video.duration) && video.duration > 0) {
             finalizeClip(video.duration);
             return;
         }
-
-        // ب) لو المدة لسه مش جاهزة، ننتظر حدث durationchange
         const onDurationChange = () => {
             if (isFinite(video.duration) && video.duration > 0) {
                 video.removeEventListener('durationchange', onDurationChange);
@@ -1022,9 +1015,8 @@ window.handleStudioFileUpload = function(event) {
         };
         video.addEventListener('durationchange', onDurationChange);
 
-        // جـ) حيلة احتياطية لبعض صيغ WebM/MKV التي ترجع Infinity
         if (!isFinite(video.duration)) {
-            video.currentTime = 1e10; // القفز لأخر الفيديو لإجبار المتصفح على حساب مدته
+            video.currentTime = 1e10;
             video.ontimeupdate = () => {
                 video.ontimeupdate = null;
                 video.currentTime = 0;
@@ -1035,19 +1027,29 @@ window.handleStudioFileUpload = function(event) {
         }
     };
 
+    // 🎵 عند تشغيل الفيديو: تشغيل المؤثر الصوتي
     video.onplay = () => {
         window.initStudioAudioEngine();
         if (window.studioEngine.ambientAudioEl) {
             window.studioEngine.ambientAudioEl.play();
         }
         window.startCanvasRenderLoop();
-        window.drawAudioWaveform();
+        if (typeof window.drawAudioWaveform === 'function') window.drawAudioWaveform();
     };
 
+    // 🛑 عند إيقاف الفيديو: إيقاف المؤثر الصوتي فوراً
     video.onpause = () => {
         if (window.studioEngine.ambientAudioEl) {
             window.studioEngine.ambientAudioEl.pause();
         }
+    };
+
+    // 🏁 عند انتهاء الفيديو: الوقوف تماماً وعدم الإعادة
+    video.onended = () => {
+        if (window.studioEngine.ambientAudioEl) {
+            window.studioEngine.ambientAudioEl.pause();
+        }
+        video.pause();
     };
 };
 
@@ -2965,12 +2967,21 @@ window.exportStudioOffline = async function() {
     const height = canvas.height;
     const frameDurationUs = 1_000_000 / fps;
 
+   // 🎨 شكل الواجهة أثناء التصدير السريع بدون أرقام أو عداد
     log.innerHTML = `
         <div class="athr-export-spinner"></div>
-        <div style="color:var(--gold); font-family:'Amiri', serif; font-size:15px; font-weight:bold;">
-            جاري ترميز الفيديو بسرعة فائقة... ✨
+        <div style="color:var(--gold); font-family:'Amiri', serif; font-size:16px; font-weight:bold; margin-top:8px;">
+            جاري تجهيز أثرك المبارك ... ✨
         </div>
-        <div id="offlineExportProgress" style="color:var(--text2); font-size:12px; margin-top:6px;">0%</div>
+        <div style="color:var(--text); font-size:13px; margin-top:8px; font-family:'Amiri', serif;">
+            ﴿ إِنَّ اللَّهَ وَمَلَائِكَتَهُ يُصَلُّونَ عَلَى النَّبِيِّ ﴾
+        </div>
+        <div style="color:var(--gold); font-size:12px; margin-top:4px; font-family:'Amiri', serif; font-weight:bold;">
+            استغل وقتك في الصلاة على النبي صلى الله عليه وسلم
+        </div>
+        <div style="color:#ff4d4d; font-size:11px; margin-top:10px; opacity:0.9; font-weight:bold;">
+            ⚠️ يُرجى إبقاء هذه الشاشة مفتوحة وعدم الخروج من التطبيق حتى مكتمل التصدير.
+        </div>
     `;
 
     engine.isExporting = true;
@@ -3130,5 +3141,98 @@ window.encodeAudioBufferToEncoder = async function(audioBuffer, encoder) {
 
         encoder.encode(audioData);
         audioData.close();
+    }
+};
+// =========================================================================
+// 🎵 دالة استخراج الصوت المنقى والصافي بشكل منفصل
+// =========================================================================
+window.exportStudioPureAudio = async function() {
+    const e = window.studioEngine;
+    const video = e.videoElement;
+    const log = document.getElementById('studioStatusLog');
+
+    if (!video || !video.src) {
+        alert("⚠️ يرجى رفع مقطع فيديو أو صوت أولاً!");
+        return;
+    }
+
+    try {
+        log.innerHTML = `
+            <div class="athr-export-spinner"></div>
+            <div style="color:var(--gold); font-family:'Amiri', serif; font-size:15px; font-weight:bold;">
+                جاري استخراج وتنقية الصوت... ✨
+            </div>
+            <div style="color:var(--text2); font-size:12px; margin-top:6px; font-family:'Amiri', serif;">
+                استغل وقتك في الصلاة على الحبيب محمد ﷺ
+            </div>
+            <div style="color:var(--text2); font-size:11px; margin-top:8px; opacity:0.8;">
+                (يرجى عدم إغلاق النافذة للحفاظ على استمرار المعالجة)
+            </div>
+        `;
+
+        const currentClip = e.clips[e.selectedClipIndex];
+        const startTime = currentClip ? currentClip.start : 0;
+        const endTime = currentClip ? currentClip.end : video.duration;
+
+        // 1. استخراج الـ AudioBuffer
+        const audioBuffer = await window.extractAudioBufferFromVideo(video, startTime, endTime);
+        if (!audioBuffer) {
+            alert("⚠️ تعذر استخراج الصوت من هذا المقطع!");
+            log.textContent = "❌ فشل استخراج الصوت.";
+            return;
+        }
+
+        // 2. تحويل الـ AudioBuffer لملف WAV قابل للتنزيل
+        function bufferToWav(abuffer) {
+            const numOfChan = abuffer.numberOfChannels,
+                length = abuffer.length * numOfChan * 2 + 44,
+                out = new DataView(new ArrayBuffer(length)),
+                channels = [], sampleRate = abuffer.sampleRate;
+            let offset = 44, pos = 0;
+
+            function setUint16(data) { out.setUint16(pos, data, true); pos += 2; }
+            function setUint32(data) { out.setUint32(pos, data, true); pos += 4; }
+
+            setUint32(0x46464952); // "RIFF"
+            setUint32(length - 8);
+            setUint32(0x45564157); // "WAVE"
+            setUint32(0x20746d66); // "fmt "
+            setUint32(16);         // length
+            setUint16(1);          // PCM
+            setUint16(numOfChan);
+            setUint32(sampleRate);
+            setUint32(sampleRate * 2 * numOfChan);
+            setUint16(numOfChan * 2);
+            setUint16(16);         // 16-bit
+            setUint32(0x61746164); // "data"
+            setUint32(length - pos - 4);
+
+            for (let i = 0; i < abuffer.numberOfChannels; i++) channels.push(abuffer.getChannelData(i));
+
+            while (pos < length) {
+                for (let i = 0; i < numOfChan; i++) {
+                    let sample = Math.max(-1, Math.min(1, channels[i][offset / (numOfChan * 2) | 0]));
+                    sample = (0.5 + sample < 0 ? sample * 32768 : sample * 32767) | 0;
+                    out.setInt16(pos, sample, true);
+                    pos += 2;
+                }
+                offset += numOfChan * 2;
+            }
+            return new Blob([out], { type: "audio/wav" });
+        }
+
+        const wavBlob = bufferToWav(audioBuffer);
+        const downloadUrl = URL.createObjectURL(wavBlob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = `صوت_أثر_منقى_${Date.now()}.wav`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        log.textContent = "🎉 تم استخراج وتحميل الصوت المنقى بنجاح!";
+    } catch (err) {
+        console.error("❌ خطأ استخراج الصوت:", err);
+        log.textContent = "❌ حدث خطأ أثناء استخراج الصوت.";
     }
 };
