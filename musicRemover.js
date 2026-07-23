@@ -2936,7 +2936,11 @@ window.exportStudioOffline = async function() {
     const video = engine.videoElement;
     const canvas = engine.renderCanvas;
     const log = document.getElementById('studioStatusLog');
-
+// حط السطرين دول تحت try { مباشرة في exportStudioOffline:
+console.log("🎬 [Export Offline Debug] بدء استخراج الـ Audio Buffer بالـ Offline Context...");
+const audioBuffer = await window.extractAudioBufferFromVideo(video, startTime, endTime);
+console.log("📊 [Export Offline Debug] نتيجة الـ AudioBuffer المستخرج:", audioBuffer ? `SampleRate: ${audioBuffer.sampleRate}, Channels: ${audioBuffer.numberOfChannels}` : "لم يستخرج أي صوت (فارغ!)");
+    
     if (!video || !canvas || !video.src) {
         alert("⚠️ يرجى رفع مقطع فيديو أولاً!");
         return;
@@ -3093,10 +3097,16 @@ window.seekVideoTo = function(video, time) {
 window.extractAudioBufferFromVideo = async function(video, startTime, endTime) {
     try {
         const e = window.studioEngine;
+        
+        // 🧪 [تشخيص] طباعة قيم السلايدرات والمؤثرات الحالية
+        console.log("🔊 [Audio Export Debug] بدء استخراج الصوت مع التاثيرات التالية:");
+        console.log("   - Voice Amplification:", document.getElementById('sliderVoice')?.value);
+        console.log("   - Reverb Gain:", document.getElementById('sliderReverb')?.value);
+        console.log("   - Ambient Audio Active:", e.ambientAudioEl ? true : false);
+
         const response = await fetch(video.src);
         const arrayBuffer = await response.arrayBuffer();
         
-        // استخدام أوفلاين كونتكس مضاف إليه الفلاتر المطبقة حالياً
         const duration = Math.max(0.1, endTime - startTime);
         const offlineCtx = new OfflineAudioContext(2, Math.ceil(duration * 44100), 44100);
         const decoded = await offlineCtx.decodeAudioData(arrayBuffer);
@@ -3104,10 +3114,7 @@ window.extractAudioBufferFromVideo = async function(video, startTime, endTime) {
         const srcNode = offlineCtx.createBufferSource();
         srcNode.buffer = decoded;
 
-        // تطبيق قيمة الصدى والفلاتر الحالية من محركك
         const voice = parseFloat(document.getElementById('sliderVoice')?.value || 100);
-        const reverb = parseFloat(document.getElementById('sliderReverb')?.value || 0);
-
         const vFilter = offlineCtx.createBiquadFilter();
         vFilter.type = 'peaking';
         vFilter.frequency.value = 1200;
@@ -3118,9 +3125,11 @@ window.extractAudioBufferFromVideo = async function(video, startTime, endTime) {
 
         srcNode.start(0, startTime, duration);
         const renderedBuffer = await offlineCtx.startRendering();
+        
+        console.log("✅ [Audio Export Debug] اكتمل الـ Offline Context بنجاح:", renderedBuffer);
         return renderedBuffer;
     } catch (err) {
-        console.warn("⚠️ تعذر معالجة الصوت:", err);
+        console.error("❌ [Audio Export Debug] فشل معالجة الصوت أوفلاين:", err);
         return null;
     }
 };
