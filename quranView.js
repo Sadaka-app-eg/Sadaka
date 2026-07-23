@@ -1,5 +1,5 @@
 // =========================================================================
-// 📖 تطبيق أثر - المحرك الشامل للمصحف الشريف (QCF V2)
+// 📖 تطبيق أثر - المحرك الشامل للمصحف الشريف (QCF V2 + التمرير التلقائي)
 // =========================================================================
 
 (function() {
@@ -69,8 +69,75 @@
     `;
   }
 
+  // =========================================================================
+  // 🔄 محرك التمرير التلقائي (Auto-Scroll Engine)
+  // =========================================================================
+  let scrollInterval = null;
+  let isAutoScrolling = false;
+  let scrollSpeed = 30; // السرعة الافتراضية
+
+  window.toggleAutoScrollControls = function() {
+    let bar = document.getElementById('autoScrollControlBar');
+    if (!bar) return;
+    if (bar.style.display === 'flex') {
+      bar.style.display = 'none';
+      stopAutoScroll();
+    } else {
+      bar.style.display = 'flex';
+      startAutoScroll();
+    }
+  };
+
+  window.toggleAutoScrollPlay = function() {
+    if (isAutoScrolling) {
+      stopAutoScroll();
+    } else {
+      startAutoScroll();
+    }
+  };
+
+  function startAutoScroll() {
+    const container = document.getElementById('mushafScrollContainer');
+    if (!container) return;
+
+    isAutoScrolling = true;
+    const playBtn = document.getElementById('autoScrollPlayBtn');
+    if (playBtn) playBtn.innerHTML = '⏸';
+
+    clearInterval(scrollInterval);
+    // حساسية السرعة: كل ما زاد الرقم في السلايدر ينزل أسرع
+    scrollInterval = setInterval(() => {
+      container.scrollTop += 1;
+      
+      // إذا وصل لآخر الصفحة ينقل للصفحة التالية تلقائياً
+      if (container.scrollTop + container.clientHeight >= container.scrollHeight - 2) {
+        stopAutoScroll();
+        const currentPage = Number(localStorage.getItem('last_quran_page') || 1);
+        if (currentPage < TOTAL_PAGES) {
+          window.renderQcfPage(currentPage + 1);
+        }
+      }
+    }, Math.max(10, 100 - scrollSpeed));
+  }
+
+  function stopAutoScroll() {
+    isAutoScrolling = false;
+    clearInterval(scrollInterval);
+    const playBtn = document.getElementById('autoScrollPlayBtn');
+    if (playBtn) playBtn.innerHTML = '▶';
+  }
+
+  window.updateScrollSpeed = function(val) {
+    scrollSpeed = Number(val);
+    document.getElementById('scrollSpeedLabel').textContent = toArNum(scrollSpeed);
+    if (isAutoScrolling) {
+      startAutoScroll(); // اعادة ضبط التايمر بالسرعة الجديدة
+    }
+  };
+
   // الدالة الرئيسية لعرض الصفحة بملء الشاشة
   window.renderQcfPage = async function(pNum) {
+    stopAutoScroll(); // إيقاف التمرير عند النقل
     pNum = Math.max(1, Math.min(TOTAL_PAGES, Number(pNum) || 1));
     localStorage.setItem('last_quran_page', pNum);
 
@@ -81,7 +148,6 @@
       document.body.appendChild(overlay);
     }
 
-    // الستايل المباشر لضمان الشاشة الكاملة 100%
     overlay.style.cssText = `
       position: fixed !important;
       top: 0 !important;
@@ -94,7 +160,6 @@
       display: flex !important;
       flex-direction: column !important;
       justify-content: space-between !important;
-      padding: 10px 14px !important;
       box-sizing: border-box !important;
       direction: rtl !important;
       user-select: none !important;
@@ -124,7 +189,6 @@
       const surahName = chapter?.name_arabic || "المصحف الشريف";
       const juzNum = first.juz_number;
 
-      // تجميع الكلمات حسب الأسطر
       const groupedLines = {};
       json.verses.forEach((verse) => {
         verse.words.forEach((word) => {
@@ -137,8 +201,7 @@
         });
       });
 
-      const isOdd = pNum % 2 !== 0;
-      const isSpecialPage = pNum === 1 || pNum === 2; // استثناء الفاتحة وبداية البقرة
+      const isSpecialPage = pNum === 1 || pNum === 2;
 
       let linesHTML = '';
       const lineNumbers = Array.from({ length: 15 }, (_, i) => i + 1);
@@ -157,49 +220,62 @@
           }
         }
 
-        // ضبط التنسيق لصفحتي الفاتحة والبقرة الأولى بمركزتها
         const justifyStyle = isSpecialPage ? 'center' : 'space-between';
         const gapStyle = isSpecialPage ? '10px' : '0px';
         const fontSizeStyle = isSpecialPage ? 'clamp(20px, 5.5vw, 32px)' : 'clamp(18px, 4.3vw, 27px)';
 
         linesHTML += `<div style="display:flex; justify-content:${justifyStyle}; align-items:center; width:100%; gap:${gapStyle}; overflow:hidden;">`;
         lineWords.forEach(w => {
-          linesHTML += `<span style="font-family:'QCF_V2_P${pNum}'; font-size:${fontSizeStyle}; cursor:pointer; line-height:1; display:inline-flex; align-items:center;" 
+          linesHTML += `<span style="font-family:'QCF_V2_P${pNum}'; font-size:${fontSizeStyle}; cursor:pointer; line-height:1.1; display:inline-flex; align-items:center;" 
             onclick="alert('الآية: ${w.text}')">${w.code}</span>`;
         });
         linesHTML += `</div>`;
       });
 
-      // رسم الشاشة الكاملة
+      // رسم الشاشة الكلية
       overlay.innerHTML = `
-        {/* الهيدر العلوي */}
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(212,175,55,0.15); padding-bottom:6px; font-size:13px; font-weight:bold;">
+        <!-- الهيدر العلوي -->
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(212,175,55,0.15); padding:8px 14px; font-size:13px; font-weight:bold; background:#0b1411; z-index:10;">
           <button onclick="document.getElementById('mushafFullScreenApp').remove()" style="background:rgba(255,255,255,0.08); border:none; color:#ff6b6b; padding:4px 10px; border-radius:8px; cursor:pointer; font-size:12px;">✕ خروج</button>
           <span style="color:#d4af37; font-family:'Amiri', serif; font-size:15px;">سورة ${surahName}</span>
           <span style="color:#6fbf73;">${getJuzText(juzNum)}</span>
         </div>
 
-        {/* أسطر المصحف */}
-        <div style="flex:1; display:flex; flex-direction:column; justify-content:${isSpecialPage ? 'center' : 'space-between'}; padding:8px 0;">
+        <!-- وعاء السكرول للمصحف -->
+        <div id="mushafScrollContainer" style="flex:1; overflow-y:auto; padding:10px 14px; display:flex; flex-direction:column; justify-content:${isSpecialPage ? 'center' : 'space-between'};">
           ${linesHTML}
         </div>
 
-        {/* الفوتر وأزرار التقليب */}
-        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(212,175,55,0.15); padding-top:6px;">
-          <button onclick="window.renderQcfPage(${pNum - 1})" ${pNum <= 1 ? 'disabled style="opacity:0.3"' : ''} style="background:rgba(212,175,55,0.15); border:1px solid #d4af37; color:#d4af37; padding:4px 14px; border-radius:10px; cursor:pointer; font-size:12px; font-weight:bold;">▶ الصفحة السابقة</button>
+        <!-- شريط التحكم بالسرعة (يظهر ويختفي عند تفعيل التمرير التلقائي) -->
+        <div id="autoScrollControlBar" style="display:none; align-items:center; gap:10px; background:rgba(25, 56, 38, 0.95); border-top:1px solid #d4af37; padding:8px 16px; backdrop-filter:blur(8px);">
+          <button id="autoScrollPlayBtn" onclick="window.toggleAutoScrollPlay()" style="background:#d4af37; color:#111; border:none; width:36px; height:36px; border-radius:50%; cursor:pointer; font-size:16px; font-weight:bold; display:flex; align-items:center; justify-content:center;">⏸</button>
           
-          <div style="background:linear-gradient(135deg, #12281e, #0a1712); border:1px solid #3d5e4a; border-radius:12px; padding:2px 14px; color:#e2d1a4; font-weight:bold; font-size:13px;">
+          <input type="range" min="5" max="90" value="${scrollSpeed}" oninput="window.updateScrollSpeed(this.value)" style="flex:1; accent-color:#d4af37; cursor:pointer;">
+          
+          <span style="color:#fce788; font-size:12px; font-weight:bold; min-width:30px; text-align:center;" id="scrollSpeedLabel">${toArNum(scrollSpeed)}</span>
+          
+          <button onclick="window.toggleAutoScrollControls()" style="background:transparent; border:none; color:#ff6b6b; font-size:16px; cursor:pointer;">✕</button>
+        </div>
+
+        <!-- الفوتر السفلي للشاشة -->
+        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(212,175,55,0.15); padding:8px 14px; background:#0b1411; z-index:10;">
+          <button onclick="window.renderQcfPage(${pNum - 1})" ${pNum <= 1 ? 'disabled style="opacity:0.3"' : ''} style="background:rgba(212,175,55,0.15); border:1px solid #d4af37; color:#d4af37; padding:5px 12px; border-radius:10px; cursor:pointer; font-size:12px; font-weight:bold;">▶ السابقة</button>
+          
+          <!-- زرار التمرير التلقائي المخصص (زي تطبيق وحي) -->
+          <button onclick="window.toggleAutoScrollControls()" title="تمرير تلقائي" style="background:rgba(212,175,55,0.2); border:1px solid #d4af37; color:#fce788; padding:5px 14px; border-radius:12px; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center;">
+            ⏬
+          </button>
+
+          <div style="background:linear-gradient(135deg, #12281e, #0a1712); border:1px solid #3d5e4a; border-radius:12px; padding:3px 12px; color:#e2d1a4; font-weight:bold; font-size:12px;">
             ❖ ${toArNum(pNum)}
           </div>
 
-          <button onclick="window.renderQcfPage(${pNum + 1})" ${pNum >= TOTAL_PAGES ? 'disabled style="opacity:0.3"' : ''} style="background:rgba(212,175,55,0.15); border:1px solid #d4af37; color:#d4af37; padding:4px 14px; border-radius:10px; cursor:pointer; font-size:12px; font-weight:bold;">الصفحة التالية ◀</button>
+          <button onclick="window.renderQcfPage(${pNum + 1})" ${pNum >= TOTAL_PAGES ? 'disabled style="opacity:0.3"' : ''} style="background:rgba(212,175,55,0.15); border:1px solid #d4af37; color:#d4af37; padding:5px 12px; border-radius:10px; cursor:pointer; font-size:12px; font-weight:bold;">التالية ◀</button>
         </div>
       `;
 
-      // تفعيل السحب اللمسي بين الصفحات
       setupSwipeEvents(pNum);
 
-      // كاش الصفحات المجاورة
       if (pNum + 1 <= TOTAL_PAGES) loadPageFont(pNum + 1);
       if (pNum - 1 >= 1) loadPageFont(pNum - 1);
 
@@ -209,14 +285,13 @@
     }
   };
 
-  // دالة تحويل أي رقم سورة لصفحتها
   window.openSurahByNumber = function(surahNum) {
     const startPage = SURAH_START_PAGES[surahNum] || 1;
     window.renderQcfPage(startPage);
   };
 
   function setupSwipeEvents(currentPage) {
-    const el = document.getElementById('mushafFullScreenApp');
+    const el = document.getElementById('mushafScrollContainer');
     if (!el) return;
 
     let startX = 0;
@@ -225,9 +300,9 @@
       const endX = e.changedTouches[0].clientX;
       const dist = startX - endX;
 
-      if (dist > 45 && currentPage < TOTAL_PAGES) {
+      if (dist > 55 && currentPage < TOTAL_PAGES) {
         window.renderQcfPage(currentPage + 1);
-      } else if (dist < -45 && currentPage > 1) {
+      } else if (dist < -55 && currentPage > 1) {
         window.renderQcfPage(currentPage - 1);
       }
     }, {passive: true});
