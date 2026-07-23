@@ -93,8 +93,68 @@ window.lecturesData = [
     { title: "برنامج الفقه الميسر - الحلقة 46", src: "https://archive.org/download/xboxgamer-242/alfiqh-46.mp4", category: "الفقه الميسر", type: "video" },
     { title: "برنامج الفقه الميسر - الحلقة 47", src: "https://archive.org/download/xboxgamer-242/alfiqh-47.mp4", category: "الفقه الميسر", type: "video" },
     { title: "برنامج الفقه الميسر - الحلقة 48", src: "https://archive.org/download/xboxgamer-242/alfiqh-48.mp4", category: "الفقه الميسر", type: "video" },
-    { title: "برنامج الفقه الميسر - الحلقة 49 والأخيرة", src: "https://archive.org/download/xboxgamer-242/alfiqh-49.mp4", category: "الفقه الميسر", type: "video" }
-
+    { title: "برنامج الفقه الميسر - الحلقة 49 والأخيرة", src: "https://archive.org/download/xboxgamer-242/alfiqh-49.mp4", category: "الفقه الميسر", type: "video" },
+// 🎙️ سلسلة أصول العقيدة - 60 درس واختبار كاملة MP3 من أرشيف
+    { title: "أصول العقيدة - الدرس 01 (الجزء 1)", src: "https://archive.org/download/khaled_alridwany_062/011.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 01 (الجزء 2)", src: "https://archive.org/download/khaled_alridwany_062/012.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 02 (الجزء 1)", src: "https://archive.org/download/khaled_alridwany_062/021.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 02 (الجزء 2)", src: "https://archive.org/download/khaled_alridwany_062/022.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 03 (الجزء 1)", src: "https://archive.org/download/khaled_alridwany_062/031.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 03 (الجزء 2)", src: "https://archive.org/download/khaled_alridwany_062/032.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 04 (الجزء 1)", src: "https://archive.org/download/khaled_alridwany_062/041.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 04 (الجزء 2)", src: "https://archive.org/download/khaled_alridwany_062/042.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 05 (الجزء 1)", src: "https://archive.org/download/khaled_alridwany_062/051.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 05 (الجزء 2)", src: "https://archive.org/download/khaled_alridwany_062/052.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 06 (الجزء 1)", src: "https://archive.org/download/khaled_alridwany_062/061.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 06 (الجزء 2)", src: "https://archive.org/download/khaled_alridwany_062/062.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 07 (الجزء 1)", src: "https://archive.org/download/khaled_alridwany_062/071.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 07 (الجزء 2)", src: "https://archive.org/download/khaled_alridwany_062/072.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 08 (الجزء 1)", src: "https://archive.org/download/khaled_alridwany_062/081.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 08 (الجزء 2)", src: "https://archive.org/download/khaled_alridwany_062/082.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 09 (الجزء 1)", src: "https://archive.org/download/khaled_alridwany_062/091.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 09 (الجزء 2)", src: "https://archive.org/download/khaled_alridwany_062/092.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 10 (الجزء 1)", src: "https://archive.org/download/khaled_alridwany_062/101.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 10 (الجزء 2)", src: "https://archive.org/download/khaled_alridwany_062/102.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 11 (الجزء 1)", src: "https://archive.org/download/khaled_alridwany_062/111.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 11 (الجزء 2)", src: "https://archive.org/download/khaled_alridwany_062/112.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 12 (الجزء 1)", src: "https://archive.org/download/khaled_alridwany_062/121.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 12 (الجزء 2)", src: "https://archive.org/download/khaled_alridwany_062/122.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 13 (الجزء 1)", src: "https://archive.org/download/khaled_alridwany_062/131.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 13 (الجزء 2)", src: "https://archive.org/download/khaled_alridwany_062/132.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 14 (الجزء 1)", src: "https://archive.org/download/khaled_alridwany_062/141.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 14 (الجزء 2)", src: "https://archive.org/download/khaled_alridwany_062/142.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 15 (الجزء 1)", src: "https://archive.org/download/khaled_alridwany_062/151.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 15 (الجزء 2)", src: "https://archive.org/download/khaled_alridwany_062/152.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 16 (الجزء 1)", src: "https://archive.org/download/khaled_alridwany_062/161.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 16 (الجزء 2)", src: "https://archive.org/download/khaled_alridwany_062/162.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 17 (الجزء 1)", src: "https://archive.org/download/khaled_alridwany_062/171.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 17 (الجزء 2)", src: "https://archive.org/download/khaled_alridwany_062/172.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 18 (الجزء 1)", src: "https://archive.org/download/khaled_alridwany_062/181.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 18 (الجزء 2)", src: "https://archive.org/download/khaled_alridwany_062/182.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 19 (الجزء 1)", src: "https://archive.org/download/khaled_alridwany_062/191.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 19 (الجزء 2)", src: "https://archive.org/download/khaled_alridwany_062/192.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 20 (الجزء 1)", src: "https://archive.org/download/khaled_alridwany_062/201.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 20 (الجزء 2)", src: "https://archive.org/download/khaled_alridwany_062/202.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 21 (الجزء 1)", src: "https://archive.org/download/khaled_alridwany_062/211.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 21 (الجزء 2)", src: "https://archive.org/download/khaled_alridwany_062/212.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 22 (الجزء 1)", src: "https://archive.org/download/khaled_alridwany_062/221.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 22 (الجزء 2)", src: "https://archive.org/download/khaled_alridwany_062/222.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 23 (الجزء 1)", src: "https://archive.org/download/khaled_alridwany_062/231.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 23 (الجزء 2)", src: "https://archive.org/download/khaled_alridwany_062/232.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 24 (الجزء 1)", src: "https://archive.org/download/khaled_alridwany_062/241.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 24 (الجزء 2)", src: "https://archive.org/download/khaled_alridwany_062/242.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 25 (الجزء 1)", src: "https://archive.org/download/khaled_alridwany_062/251.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 25 (الجزء 2)", src: "https://archive.org/download/khaled_alridwany_062/252.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 26 (الجزء 1)", src: "https://archive.org/download/khaled_alridwany_062/261.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 26 (الجزء 2)", src: "https://archive.org/download/khaled_alridwany_062/262.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 27 (الجزء 1)", src: "https://archive.org/download/khaled_alridwany_062/271.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 27 (الجزء 2)", src: "https://archive.org/download/khaled_alridwany_062/272.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 28 (الجزء 1)", src: "https://archive.org/download/khaled_alridwany_062/281.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 28 (الجزء 2)", src: "https://archive.org/download/khaled_alridwany_062/282.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 29 (الجزء 1)", src: "https://archive.org/download/khaled_alridwany_062/291.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - الدرس 29 (الجزء 2)", src: "https://archive.org/download/khaled_alridwany_062/292.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - نموذج اختبار 01", src: "https://archive.org/download/khaled_alridwany_062/301.mp3", category: "أصول العقيدة", type: "audio" },
+    { title: "أصول العقيدة - نموذج اختبار 02 والأخير", src: "https://archive.org/download/khaled_alridwany_062/302.mp3", category: "أصول العقيدة", type: "audio" }
     
 ];
 
@@ -166,6 +226,64 @@ window.athrQuizzesModels = {
             { q: "أين دفن الحبيب المصطفى محمد ﷺ بعد وفاته؟", os: ["في حجرة عائشة رضي الله عنها", "في البقيع", "في المسجد النبوي", "في مكة المكرمة"], a: 0 }
         ]
     ],
+    "الفقه الميسر": [
+        // 🔹 النموذج الأول (15 سؤالاً)
+        [
+            { q: "ما هو الماء الذي يجوز التطهر به ورفع الحدث وإزالة النجس به إجماعاً؟", os: ["الماء المستعمل في طهارة", "الماء الطهور الباقي على أصل خيلقته", "الماء المخلوط بظاهر غلب عليه", "الماء المتغير بنجاسة"], a: 1 },
+            { q: "ما هو الفرض والحد الشرعي لغسل الوجه في الوضوء؟", os: ["من منابت شعر الرأس المعتاد إلى منحدر الذقن طولاً، ومن الأذن إلى الأذن عرضاً", "مسح الوجه باليدين فقط", "غسل ما ظهر من الخدين والذقن فقط", "من جبهة الرأس إلى الرقبة"], a: 0 },
+            { q: "كم تبلغ مدة المسح على الخفين للقيم والمسافر على الترتيب؟", os: ["ثلاثة أيام للمقيم وللمسافر يوم وليلة", "يومان للمقيم وثلاثة أيام للمسافر", "يوم وليلة للمقيم، وثلاثة أيام بلياليها للمسافر", "أسبوع كامل للمسافر ويوم للمقيم"], a: 2 },
+            { q: "ما هو الضابط الشرعي الذي يُوجب التيمم بدلاً من الوضوء بالماء؟", os: ["الكسل وتأخر الوقت", "عدم وجود الماء أو العجز عن استعماله لمرض ونحوه", "شدة برودة الجو مطلقاً", "السفر مطلقاً حتى مع وجود الماء"], a: 1 },
+            { q: "أي من الخيارات التالية يُعد من نواقض الوضوء المتفق عليها؟", os: ["أكل طعام مطبوخ بالنار", "الخارج من السبيلين من بول أو غائط أو ريح", "لمس الحائل والملابس", "الكلام أثناء الوضوء"], a: 1 },
+            { q: "ما هو حكم أداء صلاة الجماعة في المسجد على الرجال القادرين؟", os: ["سنة خفيفة", "مستحبة فقط", "واجبة على الأعيان على الراجح", "فرض كفاية سقط بالبعض"], a: 2 },
+            { q: "ما هي الصلوات التي يُشرع للمسافر قصرها من أربع ركعات إلى ركعتين؟", os: ["الفجر والظهر والعصر", "الظهر والعصر والعشاء", "المغرب والعشاء", "جميع الصلوات الخمس"], a: 1 },
+            { q: "ما هو الحكم الفقهي لـ 'سجود السهو' إذا كان بسبب زيادة في الصلاة؟", os: ["يكون قبل السلام وجوباً", "يكون بعد السلام مستحباً", "يكون بعد السلام", "تبطل الصلاة ويستأنفها"], a: 2 },
+            { q: "ما هي الشرائط الواجبة لوجوب زكاة أموال التجارة والأنعام؟", os: ["بلوغ النصاب وحولان الحول الكامل", "وجود المال في البنك", "أن يكون صاحب المال كبيراً في السن", "مرور شهر واحد على ملكيته"], a: 0 },
+            { q: "ما هو وقت صلاة الجمعة الشرعي الذي تُقام فيه؟", os: ["بعد غروب الشمس", "وقت صلاة الظهر عند زوال الشمس", "عند شروق الشمس مباشرة", "قبل الفجر بساعة"], a: 1 },
+            { q: "أي من الأشياء التالية لا يُعتبر من مبطلات الصيام في نهار رمضان؟", os: ["الأكل والشرب عمداً", "القيء العمد", "الاحتلام أو خروج الدم بغير اختيار", "الجماع في نهار رمضان"], a: 2 },
+            { q: "ما هو الفرض والحديث عن كفارة من جامع زوجته في نهار رمضان عمداً؟", os: ["إطعام عشرة مساكين فقط", "صيام ثلاثة أيام متتالية", "عتق رقبة، فإن لم يجد فصيام شهرين متتابعين، فإن لم يستطع فإطعام 60 مسكيناً", "استغفار فقط بدون قضاء"], a: 2 },
+            { q: "ما هي العبادة التي تُفرض لمرة واحدة في العمر على المسلم المستطيع مالياً وبدنياً؟", os: ["زكاة الفطر", "حج بيت الله الحرام", "صوم شهر رجب", "صلاة العيدين"], a: 1 },
+            { q: "ما هو الميقات المكاني لإحرام أهل مصر والشام ومن يمر بطريقهم؟", os: ["ذو الحليفة (أبيار علي)", "قرن المنازل", "الرابغ أو الجحفة", "يلملم"], a: 2 },
+            { q: "ما حكم التكبيرات الزائدة في صلاة العيدين (في الركعة الأولى والثانية)؟", os: ["سنة كفائية", "ركن تبطل الصلاة بتركه", "سنة مستحبة (سبع في الأولى وخمس في الثانية)", "واجبة تبطل الصلاة بنسيانها"], a: 2 }
+        ],
+
+        // 🔸 النموذج الثاني (15 سؤالاً مكملاً)
+        [
+            { q: "ما هي الطهارة الواجبة لإزالة الحدث الأكبر كالجنابة والحيض؟", os: ["الوضوء الصغير فقط", "الغسل بفيض الماء على سائر الجسد مع النية", "التيمم بالتراب مع وجود الماء", "غسل الأطراف الأربعة فقط"], a: 1 },
+            { q: "ما حكم المسح على الجبيرة أو الضماد الموضوع على جرح عند الوضوء؟", os: ["يمسح عليها بالماء بالكامل بدلاً من غسلها ما دامت دعت الحاجة إليها", "يبطل الوضوء ولا يصح", "يسقط غسل العضو ولا يمسح عليه", "يتيمم فقط ويترك الوضوء"], a: 0 },
+            { q: "أي من الحالات التالية يُلزم فيها المريض بالصلاة على حاله؟", os: ["يصلي قائماً، فإن لم يستطع فقاعداً، فإن لم يستطع فعلى جنب", "تسقط عنه الصلاة بالكلية", "يؤجل الصلوات حتى يبرأ تماماً", "يصلي بالنية فقط دون حركة"], a: 0 },
+            { q: "ما هو أركان عقد النكاح الأساسية التي لا يصح إلا بها؟", os: ["الزوجان الخاليان من الموانع، والإيجاب والقبول، والولي، والشاهدان العدلان", "موافقة الزوجين فقط بدون ولي", "دفع المهر الكبير في المجلس", "الإشهار في المسجد فقط"], a: 0 },
+            { q: "ما هو حكم صلاة سنن الرواتب المؤكدة التابعة للصلوات الخمس؟", os: ["12 ركعة في اليوم والليلة (4 قبل الظهر و2 بعدها، 2 بعد المغرب، 2 بعد العشاء، 2 قبل الفجر)", "10 ركعات بدون الفجر", "20 ركعة مقسمة بالسوية", "ركعتان قبل كل صلاة م مكتوبة"], a: 0 },
+            { q: "متى تجب زكاة الفطر، وما هو مقدارها الشرعي عن كل فرد؟", os: ["صاع من طعام قبل صلاة العيد", "درهم واحد في منتصف رمضان", "كيلو لحم يوم العيد", "نصف صاع بعد العيد"], a: 0 },
+            { q: "ما هو أول عمل يبدأ به الحاج عند دخوله المسجد الحرام لطواف القدوم أو العمرة؟", os: ["السعي بين الصفا والمروة", "طواف البيت سبعة أطواف ابتداءً من الحجر الأسود", "صلاة ركعتين خلف المقام قبل الطواف", "الوقوف بعرفة"], a: 1 },
+            { q: "ما هي سنن الفطرة التي يجب عدم تركها أكثر من أربعين ليلة؟", os: ["قص الشارب وحلق العانة وتقليم الأظافر ونتف الإبط", "إطالة الشعر وتصفيفه", "لبس الأبيض من الثياب", "استعمال البخور"], a: 0 },
+            { q: "ما حكم السواك للمصلي والصائم في الأوقات المختلفة؟", os: ["مستحب في كل وقت وعند كل صلاة ووضوء", "مكروه للصائم مطلقاً", "واجب تبطل الصلاة بدونه", "محرم في المساجد"], a: 0 },
+            { q: "ما الذي يجب على من أكل أو شرب في نهار رمضان ناسياً؟", os: ["صيامه صحيح ويتم يومه ولا قضاء عليه ولا كفارة", "عليه القضاء والكفارة المغلظة", "يبطل صومه وعليه إعادة اليوم", "عليه التيمم وإطعام مسكين"], a: 0 },
+            { q: "ما هي الأوقات التي يُنهى عن الصلاة النافلة المطلقة فيها؟", os: ["بعد الفجر حتى تطلع الشمس، وعند استوائها، وبعد العصر حتى تغرب", "بين المغرب والعشاء", "في منتصف الليل", "أوقات خطبة الجمعة فقط"], a: 0 },
+            { q: "ما هي زكاة السائمة من الإبل والبقر والغنم؟", os: ["الأنعام التي ترعى الأكلاء المباح معظم الحول بدون تكلفة علف", "التي تُعلف في الزريبة طوال السنة", "التي تُستخدم في الحراثة والركوب", "التي تُباع وتشترى يومياً"], a: 0 },
+            { q: "ما هو الركن الأعظم في الحج الذي قال عنه النبي ﷺ: (الحج ...)؟", os: ["طواف الإفاضة", "الوقوف بعرفة", "رمي الجمرات", "المبيت بمنى"], a: 1 },
+            { q: "ما هو حكم صلاة سجدة التلاوة لمن قيلت أمامه آية فيها سجدة؟", os: ["سنة مؤكدة للمستمع والقارئ", "فرض عين تبطل الصلاة بتركها", "واجبة في الصلاة ومحرمة خارجها", "مكروهة بغير وضوء"], a: 0 },
+            { q: "ما هي الأواني التي حظر الشارع الحكيم استعمالها في الأكل والشرب؟", os: ["أواني النحاس والألومنيوم", "أواني الذهب والفضة", "أواني الفخار والخزف", "أواني الزجاج الشفاف"], a: 1 }
+        ],
+
+        // 🔹 النموذج الثالث (15 سؤالاً للمتقدمين)
+        [
+            { q: "إذا شك المصلي أثناء صلاته هل صلى ثلاثاً أم أربعاً، كيف يبني صلاته؟", os: ["يبني على اليقين وهو الأقل (ثلاثاً) ويسجد للسهو", "يبني على الأكثر (أربعاً) ويسلم فوراً", "يعيد الصلاة من بدايتها قطعاً", "يسأل من بجانبه في الصلاة"], a: 0 },
+            { q: "ما هو الحد الفاصل والمميز بين عقد البيع الصحيح وعقد الربا؟", os: ["وجود الفائدة المشروطة في بيع الجنس والجنس الربوي بزيادة", "التراضي بدون كتب العقد", "البيع في المسجد", "تأخير استلام المبيع بدون شرط"], a: 0 },
+            { q: "ما حكم طلاق الحائض في فترة الحيض من الناحية الشرعية (الطلاق البدعي)؟", os: ["محرم ويأثم فاعله ويقع عند جمهور العلماء", "حلال ومستحب", "مباح لا إثم فيه ولا يقع", "يلزم منه الكفارة المغلظة فوراً"], a: 0 },
+            { q: "ما هي حدة العدة الشرعية للمرأة المتوفى عنها زوجها إذا لم تكن حاملاً؟", os: ["ثلاثة أطهار", "أربعة أشهر وعشراً", "سنة كاملة", "ثلاثة أشهر فقط"], a: 1 },
+            { q: "ما هي العدة الشرعية للمرأة الحامل المطلقة أو المتوفى عنها زوجها؟", os: ["أربعة أشهر وعشراً", "حتى تضع حملها", "ثلاثة أشهر", "تسعة أشهر كاملة"], a: 1 },
+            { q: "ما هو الحكم الشرعي لأداء صلاة الكسوف والخسوف عند رؤية الظاهرة؟", os: ["سنة مؤكدة تُصلى بنظام ركوعين وسجودين في كل ركعة", "فرض عين على كل مسلم", "ركعتان كصلاة الفجر تماماً", "تُصلى بدون ركوع ولا سجود"], a: 0 },
+            { q: "ما هي المشروبات والمطعومات المحرمة بالضابط الفقهي الشامل؟", os: ["كل ما يسكر أو يضر بالبدن والعقل كالخمر والمخدرات والنجاسات", "المأكولات البحرية الكبيرة", "طعام أهل الكتاب مطلقاً", "اللحوم المستوردة المذكاة"], a: 0 },
+            { q: "ما هو النصاب الشرعي لزكاة الذهب الموزون؟", os: ["85 جراماً من الذهب الخالص (عيار 24)", "50 جراماً", "100 جرام", "200 جرام"], a: 0 },
+            { q: "ما هو النصاب الشرعي لزكاة الفضة الموزونة؟", os: ["595 جراماً من الفضة الخالصة (200 درهم)", "100 جرام", "1000 جرام", "50 جراماً"], a: 0 },
+            { q: "ما هو مقدار الواجب إخراجه في زكاة الزروع والثمار التي سُقيت بماء المطر (بلا تكلفة)؟", os: ["العُشر كاملاً (10%)", "نصف العُشر (5%)", "ربع العُشر (2.5%)", "ليس فيها زكاة"], a: 0 },
+            { q: "ما هو مقدار الواجب إخراجه في زكاة الزروع التي سُقيت بالآلات والآبار (بتكلفة ومؤونة)؟", os: ["نصف العُشر (5%)", "العُشر كاملاً (10%)", "ربع العُشر (2.5%)", "ثلاثة أرباع العشر"], a: 0 },
+            { q: "ما هو الهدي الواجب على الحاج المتمتع والقارن؟", os: ["ذبح شاة أو سبع بدنة أو بقرة، فإن لم يجد فصيام 3 أيام في الحج و7 إذا رجع", "صيام شهر كامل", "إطعام مسكين واحد", "ليس عليه شيء"], a: 0 },
+            { q: "ما هي صلاة العيدين من حيث الكيفية والتكبيرات في الركعة الأولى؟", os: ["تكبيرة الإحرام ثم 6 تكبيرات زوائد قبل القراءة", "تكبيرة واحدة فقط", "10 تكبيرات متتالية", "بدون تكبيرات زوائد"], a: 0 },
+            { q: "ما حكم إجابة دعوة وليمة العرس إذا لم يكن فيها منكرات؟", os: ["واجبة على من دُعي إليها بشخصه على الراجح", "مكروهة", "سنة خفيفة", "مباحة يسع تركها"], a: 0 },
+            { q: "ما هي الأضحية المجزئة شرطاً من حيث السن في بهيمة الأنعام؟", os: ["الجذع من الضأن (6 أشهر)، والثني من الإبل (5 سنين) والبقر (سنتين) والمعز (سنة)", "أي سن صغير أو كبير", "أن تكون أنثى فقط", "أن تكون بيضاء اللون"], a: 0 }
+        ]
+    ],
     "دورة التجويد": [
         // 🔹 النموذج الأول (15 سؤال)
         [
@@ -223,6 +341,8 @@ window.athrQuizzesModels = {
         ]
     ]
 };
+
+
 
 window.currentLectureFilter = 'all';
 window.currentPlayingLectureAudio = null; 
@@ -326,30 +446,34 @@ function renderLectures() {
             </div>
             
             ${isVideo ? `
-                <button onclick="window.openAthrVideoModal('${lecture.title}', '${lecture.src}')" style="background:var(--gold); color:#111; border:none; padding:6px 14px; border-radius:20px; font-weight:bold; font-size:12px; cursor:pointer; display:flex; align-items:center; gap:4px; flex-shrink:0;">
-                    🎬 مشاهدة الفيديو
-                </button>
+                <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                    <button onclick="window.openAthrVideoModal('${lecture.title}', '${lecture.src}')" style="background:var(--gold); color:#111; border:none; padding:6px 12px; border-radius:20px; font-weight:bold; font-size:12px; cursor:pointer; display:flex; align-items:center; gap:4px;">
+                        🎬 مشاهدة
+                    </button>
+                    <div id="lectureDlRing_${realIndex}" onclick="window.startLectureDownloadRing(${realIndex})" style="width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; background:var(--bg2); color:var(--gold); border:1px solid var(--border); border-radius:50%; font-size:12px;" title="تحميل أوفلاين">⬇️</div>
+                </div>
             ` : `
                 <button class="play-btn" id="lectureBtn_${realIndex}" onclick="window.toggleLectureAudio(${realIndex})" style="background:var(--gold); color:#111; border:none; width:34px; height:34px; border-radius:50%; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;">${isThisPlaying ? '⏸' : '▶'}</button>
                 <div id="lectureDlRing_${realIndex}" onclick="window.startLectureDownloadRing(${realIndex})" style="width:34px; height:34px; flex-shrink:0; display:flex; align-items:center; justify-content:center; cursor:pointer; background:var(--bg2); color:var(--gold); border:1px solid var(--border); border-radius:50%;">⬇️</div> 
             `}
           </div>
 
+          <div id="lectureDlStatus_${realIndex}" style="font-size:10px; color:var(--gold); margin-top:2px; text-align:center; font-family:sans-serif;"></div>
+
           ${!isVideo ? `
-          <div style="margin-top:10px; width:100%;">
+          <div style="margin-top:6px; width:100%;">
             <input type="range" id="lectureSeek_${realIndex}" value="0" min="0" max="100" step="0.1" oninput="window.seekLectureAudio(${realIndex}, this.value)" style="width:100%; accent-color:var(--gold); cursor:pointer; height:4px; background:rgba(255,255,255,0.2); outline:none; border-radius:2px;">
             <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text2); direction:ltr; margin-top:4px; font-family:monospace;">
               <span id="lectureCurTime_${realIndex}">0:00</span>
               <span id="lectureTotalTime_${realIndex}">--:--</span>
             </div>
           </div>
-          <div id="lectureDlStatus_${realIndex}" style="font-size:10px; color:var(--gold); margin-top:4px; text-align:center; font-family:sans-serif;"></div>
           ` : ''}
         </div>`;
     }).join('');
 
     let quizBoxHtml = "";
-    if (['السيرة النبوية', 'دورة التجويد', 'الفقه الميسر'].includes(window.currentLectureFilter)) {
+    if (['السيرة النبوية', 'دورة التجويد', 'الفقه الميسر', 'أصول العقيدة'].includes(window.currentLectureFilter)) {
         quizBoxHtml = `
         <div class="comm-card" id="athrQuizSection" style="background:var(--card); border:1px dashed var(--gold); border-radius:16px; padding:18px; margin-top:20px; direction:rtl; text-align:right;">
             <h4 style="color:var(--gold); font-family:'Amiri',serif; font-size:17px; margin-bottom:6px; display:flex; align-items:center; gap:8px;">🧠 اختبار التحدي الأكبر لـ ${window.currentLectureFilter}</h4>
@@ -797,7 +921,6 @@ window.shareAthrCertificateImage = function() {
 // 🎬 مشغل الفيديو المنبثق المطور (Video Modal Player)
 // =========================================================================
 window.openAthrVideoModal = function(title, src) {
-    // إيقاف الصوت الشغال لو فيه حاجة شغالة في الخلفية
     if (window.currentPlayingLectureAudio) {
         window.currentPlayingLectureAudio.pause();
         if (window.currentPlayingLectureBtn) window.currentPlayingLectureBtn.textContent = '▶';
@@ -814,18 +937,44 @@ window.openAthrVideoModal = function(title, src) {
     modal.innerHTML = `
     <div style="width:100%; max-width:850px; background:var(--card, #111); border:1px solid var(--gold, #d4af37); border-radius:16px; overflow:hidden; box-shadow:0 20px 50px rgba(0,0,0,0.8); display:flex; flex-direction:column;">
         <div style="padding:15px; background:var(--bg2, #1a1a1a); display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border, #333);">
-            <strong style="color:var(--gold, #d4af37); font-family:'Amiri',serif; font-size:16px;">🎥 ${title}</strong>
-            <button onclick="window.closeAthrVideoModal()" style="background:rgba(255,77,77,0.2); color:#ff4d4d; border:1px solid #ff4d4d; border-radius:50%; width:32px; height:34px; cursor:pointer; font-weight:bold;">✕</button>
+            <strong style="color:var(--gold, #d4af37); font-family:'Amiri',serif; font-size:15px;">🎥 ${title}</strong>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <button onclick="window.enableVideoAudioOnlyBackground()" style="background:rgba(212,175,55,0.15); color:var(--gold); border:1px solid var(--gold); border-radius:12px; padding:4px 10px; font-size:11px; cursor:pointer; font-weight:bold;">🎧 تشغيل في الخلفية</button>
+                <button onclick="window.closeAthrVideoModal()" style="background:rgba(255,77,77,0.2); color:#ff4d4d; border:1px solid #ff4d4d; border-radius:50%; width:30px; height:30px; cursor:pointer; font-weight:bold;">✕</button>
+            </div>
         </div>
         <div style="position:relative; width:100%; padding-top:56.25%; background:#000;">
-            <video id="athrActiveVideoElement" controls autoplay style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;">
+            <video id="athrActiveVideoElement" controls autoplay playsinline x5-playsinline webkit-playsinline style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;">
                 <source src="${src}" type="video/mp4">
-                متصفحك لا يدعم تشغيل الفيديو المباشر.
             </video>
         </div>
     </div>`;
 
     modal.style.display = 'flex';
+
+    // تفعيل التحكم بالميديا في ستارة الموبايل (MediaSession API) للتشغيل بالخلفية
+    const video = document.getElementById('athrActiveVideoElement');
+    if (video && 'mediaSession' in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: title,
+            artist: 'منصة أثر الإسلامية',
+            album: 'الفقه الميسر'
+        });
+
+        navigator.mediaSession.setActionHandler('play', () => video.play());
+        navigator.mediaSession.setActionHandler('pause', () => video.pause());
+    }
+};
+
+window.enableVideoAudioOnlyBackground = function() {
+    const video = document.getElementById('athrActiveVideoElement');
+    if (video) {
+        if (video.requestPictureInPicture) {
+            video.requestPictureInPicture().catch(() => {});
+        } else {
+            alert("✨ يمكنك الآن الخروج وتصفح الهاتف وسيقوم المشغل بمتابعة الصوت في الخلفية بروقان!");
+        }
+    }
 };
 
 window.closeAthrVideoModal = function() {
