@@ -3178,119 +3178,119 @@ function toggleMenu() {
 
 // دالة التنقل بين الصفحات مع دعم ملء الشاشة الكاملة والعودة للرئيسية
 function showPage(id, el) {
- document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-    // إغلاق المنيو الجانبي وإخفاء طبقة التعتيم تماماً لفك تجميد الشاشة
-  const menu = document.getElementById('tabsMenu');
-  const overlay = document.getElementById('menuOverlay');
-  if(menu) menu.classList.remove('open');
-  if(overlay) {
-    overlay.classList.remove('show');
-    overlay.style.display = 'none'; // أمان إضافي لإلغاء وجود الطبقة تماماً من الشاشة
-  }
-  // إرجاع السكرول الطبيعي للموبايل وفك الـ fixed
-  document.body.style.overflow = '';
-  document.body.style.position = '';
-  document.body.style.width = '';
+ document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+    // إغلاق المنيو الجانبي وإخفاء طبقة التعتيم تماماً لفك تجميد الشاشة
+  const menu = document.getElementById('tabsMenu');
+  const overlay = document.getElementById('menuOverlay');
+  if(menu) menu.classList.remove('open');
+  if(overlay) {
+    overlay.classList.remove('show');
+    overlay.style.display = 'none'; // أمان إضافي لإلغاء وجود الطبقة تماماً من الشاشة
+  }
+  // إرجاع السكرول الطبيعي للموبايل وفك الـ fixed
+  document.body.style.overflow = '';
+  document.body.style.position = '';
+  document.body.style.width = '';
 
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  
-  localStorage.setItem('last_opened_tab', id);
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  
+  localStorage.setItem('last_opened_tab', id);
 if(document.getElementById(id)) {
-    document.getElementById(id).classList.add('active');
-    document.getElementById(id).style.display = 'block'; // 👈 إظهار الصفحة المحددة فوراً
+    document.getElementById(id).classList.add('active');
+    document.getElementById(id).style.display = 'block'; // 👈 إظهار الصفحة المحددة فوراً
 }
-  
-  // تفعيل كلاس التنشيط على العنصر المختار جوه المنيو
-  if (el) {
-    el.classList.add('active');
-  } else {
-    const tabs = document.querySelectorAll('.tabs .tab');
-    tabs.forEach(t => {
-      if (t.getAttribute('onclick') && t.getAttribute('onclick').includes(`'${id}'`)) {
-        t.classList.add('active');
-      }
-    });
-  }
+  
+  // تفعيل كلاس التنشيط على العنصر المختار جوه المنيو
+  if (el) {
+    el.classList.add('active');
+  } else {
+    const tabs = document.querySelectorAll('.tabs .tab');
+    tabs.forEach(t => {
+      if (t.getAttribute('onclick') && t.getAttribute('onclick').includes(`'${id}'`)) {
+        t.classList.add('active');
+      }
+    });
+  }
 
-  // التحكم في وضع ملء الشاشة وظهور زر العودة للرئيسية
+  // التحكم في وضع ملء الشاشة وظهور زر العودة للرئيسية
 // نقل زر العودة ليصبح جزءًا فعليًا من الصفحة النشطة فقط
-  const backBtn = document.querySelector('.back-to-home-btn');
-  if (backBtn) {
-    if (id === 'home') {
-      backBtn.style.display = 'none';
-    } else {
-      const targetPage = document.getElementById(id);
-      if (targetPage && backBtn.parentElement !== targetPage) {
-        targetPage.appendChild(backBtn);
-      }
-      backBtn.style.display = 'block';
-    }
-  }
+  const backBtn = document.querySelector('.back-to-home-btn');
+  if (backBtn) {
+    if (id === 'home') {
+      backBtn.style.display = 'none';
+    } else {
+      const targetPage = document.getElementById(id);
+      if (targetPage && backBtn.parentElement !== targetPage) {
+        targetPage.appendChild(backBtn);
+      }
+      backBtn.style.display = 'block';
+    }
+  }
 
-    if(id === 'favPage') renderFav();
-  if(id === 'awkat') loadPrayerTimes();
-  if(id === 'notifPage') { renderNotifPresets(); renderCustomNotifList(); }
-  if(id === 'home') renderFlameCompanion(false);
-  if(id === 'home' && typeof renderAcademyMain === 'function') renderAcademyMain();
+    if(id === 'favPage') renderFav();
+  if(id === 'awkat') loadPrayerTimes();
+  if(id === 'notifPage') { renderNotifPresets(); renderCustomNotifList(); }
+  if(id === 'home') renderFlameCompanion(false);
+  if(id === 'home' && typeof renderAcademyMain === 'function') renderAcademyMain();
 
-  if(id === 'abwabElmPage') renderAbwabElmMain();
-  // تشغيل المكتبة العلمية بشكل مستقل
-  if(id === 'islamicContent' && typeof switchSubContent === 'function') {
-    switchSubContent('fiqh');
-  }
-  
-  // تشغيل التلاوات النادرة بشكل مستقل تماماً وفوري
-  if(id === 'rareRecitationsPage') {
-    setTimeout(() => {
-      if (typeof window.renderRareRecitations === 'function') {
-        window.renderRareRecitations();
-      }
-    }, 50);
-  }
+  if(id === 'abwabElmPage') renderAbwabElmMain();
+  // تشغيل المكتبة العلمية بشكل مستقل
+  if(id === 'islamicContent' && typeof switchSubContent === 'function') {
+    switchSubContent('fiqh');
+  }
+  
+  // تشغيل التلاوات النادرة بشكل مستقل تماماً وفوري
+  if(id === 'rareRecitationsPage') {
+    setTimeout(() => {
+      if (typeof window.renderRareRecitations === 'function') {
+        window.renderRareRecitations();
+      }
+    }, 50);
+  }
 // ضيف السطرين دول جوه دالة showPage عشان نحدث واجهة الحساب فوراً عند دخولها
 if (id === 'settingsPage') {
-  updateSettingsAccountBox();
+  updateSettingsAccountBox();
 }
-  if(id === 'favPage') renderFav();
-  if(id === 'blessingsPage') renderBlessingsPage();
-  if(id === 'home') loadPrayerTimes();
-  if(id === 'hiddenDeedsPage') renderHiddenDeedsPage();
-  updateHomeBookmarkCard();
-  if(id === 'notifPage') { renderNotifPresets(); renderCustomNotifList(); }
-  
-  // 🌟 ضع هذا السطر الجديد هنا بالظبط:
-  if(id === 'obeyPlanPage' && typeof window.initObeyPlanPage === 'function') {
-    window.initObeyPlanPage();
-  }
-  if(id === 'prayForThemPage' && typeof window.initPrayForThemPage === 'function') {
-  window.initPrayForThemPage();
+  if(id === 'favPage') renderFav();
+  if(id === 'blessingsPage') renderBlessingsPage();
+  if(id === 'home') loadPrayerTimes();
+  if(id === 'hiddenDeedsPage') renderHiddenDeedsPage();
+  updateHomeBookmarkCard();
+  if(id === 'notifPage') { renderNotifPresets(); renderCustomNotifList(); }
+  
+  // 🌟 ضع هذا السطر الجديد هنا بالظبط:
+  if(id === 'obeyPlanPage' && typeof window.initObeyPlanPage === 'function') {
+    window.initObeyPlanPage();
+  }
+  if(id === 'prayForThemPage' && typeof window.initPrayForThemPage === 'function') {
+  window.initPrayForThemPage();
 }
 if(id === 'shareAppPage' && typeof window.initShareAppPage === 'function') {
-  window.initShareAppPage();
+  window.initShareAppPage();
 }
 if(id === 'heartMirrorPage' && typeof window.initHeartMirrorPage === 'function') {
-  window.initHeartMirrorPage();
- }
-  if(id === 'downloadsManagerPage' && typeof window.initDownloadsManager === 'function') {
-    window.initDownloadsManager();
-  }
- if (id === 'lecturesPage' && typeof renderLectures === 'function') {
-        renderLectures();
-    }
- if(id === 'moreAppsTab') {
-        // صفحة مزيد من تطبيقاتنا جاهزة وتعمل بنجاح
-    }
+  window.initHeartMirrorPage();
+ }
+  if(id === 'downloadsManagerPage' && typeof window.initDownloadsManager === 'function') {
+    window.initDownloadsManager();
+  }
+ if (id === 'lecturesPage' && typeof renderLectures === 'function') {
+        renderLectures();
+    }
+ if(id === 'moreAppsTab') {
+        // صفحة مزيد من تطبيقاتنا جاهزة وتعمل بنجاح
+    }
 if (id === 'quran') {
-  const lastPage = localStorage.getItem('last_page') || 1;
-  if (typeof window.renderNewQcfMushaf === 'function') {
-    window.renderNewQcfMushaf(Number(lastPage));
-  }
+  const lastPage = localStorage.getItem('last_page') || 1;
+  if (typeof window.renderNewQcfMushaf === 'function') {
+    window.renderNewQcfMushaf(Number(lastPage));
+  }
 }
- 
-  updateStats();
+ 
+  updateStats();
 
- 
+ 
 }
 
   
@@ -3577,9 +3577,8 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
   const bm = JSON.parse(localStorage.getItem('quran_bookmark') || 'null');
   document.getElementById('bookmarkJumpBtn').style.display = (bm && bm.surah === n) ? 'flex' : 'none';
 
- const slider = document.getElementById('mushafSlider');
-// بنخلي الحاوية فاضية ومنسابة تماماً بدون أي إزعاج للمستخدم
-slider.innerHTML = '';
+  const slider = document.getElementById('mushafSlider');
+  slider.innerHTML = '<div style="width:100%;text-align:center;padding:50px;color:var(--gold);font-family:Amiri,serif;font-size:18px;">⚡ جاري التحميل...</div>';
 
   stopAudio();
   selectedAyahsQueue = [];
@@ -3658,24 +3657,21 @@ sliderHtml += `
   }
 
   const lines = Object.keys(pagesDict[pageNum]).map(Number).sort((a, b) => a - b);
-lines.forEach(lineNum => {
-    // 👈 التعديل هنا: جعل السطر مفروداً بالكامل من الطرف للطرف (Justified) زي ترتيل
-    const lineJustify = isSpecialPage ? 'justify-content:center;gap:8px;' : 'justify-content:space-between; text-align-last:justify;';
-    const fontSize = isSpecialPage ? 'clamp(18px, 4.8vw, 26px)' : 'clamp(15px, 3.8vw, 22px)';
+  lines.forEach(lineNum => {
+    const lineJustify = isSpecialPage ? 'justify-content:center;gap:8px;' : 'justify-content:space-between;';
+   const fontSize = isSpecialPage ? 'clamp(20px, 5.2vw, 30px)' : 'clamp(18px, 4.5vw, 26px)';
 
-    sliderHtml += `<div style="display:flex; ${lineJustify} align-items:center; width:100%; height: calc(100% / 15); overflow:visible;">`;
-    
+  sliderHtml += `<div style="display:flex; ${lineJustify} align-items:center; width:100%; min-height: calc(100% / 15); overflow:visible;">`;
+   
     pagesDict[pageNum][lineNum].forEach(w => {
       const ayahIndex = currentAyahsData.findIndex(a => a.numberInSurah === w.vAyah);
-      
-      // 👈 هنا بنخلي كل كلمة تاخد مساحتها بمرونة عشان الخط يمسك في بعضه صح
-      sliderHtml += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}"
-        style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:2.0; display:inline-flex; align-items:center; user-select:none; flex-grow:1; justify-content:center;"
-        ontouchstart="startPress(event, ${ayahIndex})"
-        ontouchmove="cancelPress(event)"
-        ontouchend="cancelPress(event); if(!isScrolling && window.isPickingEndAyah){ handleAyahClick(${ayahIndex}); }">
-        ${w.code}
-      </span>`;
+sliderHtml += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}"
+  style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:2.0; display:inline-flex; align-items:center; user-select:none;"
+  ontouchstart="startPress(event, ${ayahIndex})"
+  ontouchmove="cancelPress(event)"
+  ontouchend="cancelPress(event); if(!isScrolling && window.isPickingEndAyah){ handleAyahClick(${ayahIndex}); }">
+  ${w.code}
+</span>`;
     });
     sliderHtml += `</div>`;
   });
@@ -4022,7 +4018,6 @@ function formatAudioTime(seconds) {
 }
 
 // ربط أحداث مشغل الصوت بالشريط والعدادات تلقائياً
-// ربط أحداث مشغل الصوت والشريط والعدادات والتحميل الصامت فور فتح التطبيق
 document.addEventListener('DOMContentLoaded', () => {
   const audio = document.getElementById('audioPlayer');
   const seekbar = document.getElementById('audioSeekbar');
@@ -4045,7 +4040,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (totalTimeEl) totalTimeEl.textContent = formatAudioTime(audio.duration);
     });
 
-    // 3. لقط سحب الشريط وتغيير وقت الصوت فوراً (تقديم وتأخير)
+    // 3. السحر كله هنا: لقط سحب الشريط وتغيير وقت الصوت فوراً (تقديم وتأخير)
     seekbar.addEventListener('input', () => {
       if (!isNaN(audio.duration) && audio.duration > 0) {
         const targetTime = (seekbar.value / 100) * audio.duration;
@@ -4053,37 +4048,13 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
-
-  // تشغيل الدوال الأساسية
-  loadPrayerTimes();
-  updateDailyTasksProgress();
-  restoreLastState();
+ loadPrayerTimes(); // 🕌 السطر السحري لتشغيل حساب المواقيت فور فتح التطبيق على الرئيسية
+  updateDailyTasksProgress(); 
+  restoreLastState(); 
   updateHomeBookmarkCard();
   updateHomeBlessingsHint();
   updateHomeHiddenDeedsHint();
   renderFlameCompanion(false);
-
-  // 🚀 ⚡ كود التحميل الصامت والشامل لجميع صفحات المصحف الـ 604 في الخلفية:
-  setTimeout(async () => {
-    if ('caches' in window) {
-      try {
-        const fontCache = await caches.open('athr-quran-fonts-v1');
-        for (let p = 1; p <= 604; p++) {
-          const fontUrl = `https://verses.quran.foundation/fonts/quran/hafs/v2/woff2/p${p}.woff2`;
-          const match = await fontCache.match(fontUrl);
-          if (!match) {
-            try {
-              await fontCache.add(fontUrl);
-            } catch (err) {}
-          }
-          await new Promise(r => setTimeout(r, 20)); // توقف خفيف لراحة المعالج
-        }
-        console.log("✅ تمت المزامنة الشاملة لجميع خطوط المصحف الـ 604 في الخلفية بنجاح تام!");
-      } catch (e) {
-        console.log("التخزين الخلفي يعمل بصمت");
-      }
-    }
-  }, 3000);
 });
 function toggleAudio() {
   if(!currentSurah) return;
