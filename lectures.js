@@ -1864,12 +1864,62 @@ window.closeAthrVideoModal = function() {
 
 // =========================================================================
 // 💭 نظام "ما المستفاد؟" - تسجيل خواطر وتعلّم من كل درس (نص أو صوت)
+// النصوص في localStorage — الصوتيات في IndexedDB (تخزين حقيقي كبير)
 // =========================================================================
 window.lectureReflections = JSON.parse(localStorage.getItem('lecture_reflections') || '{}');
 window.activeRecorder = null;
 window.activeRecorderChunks = [];
 window.activeRecordingIndex = null;
 window.recordingTimerInterval = null;
+
+// ---------- طبقة IndexedDB بسيطة لتخزين ملفات الصوت ----------
+window.athrAudioDB = null;
+
+function openAthrAudioDB() {
+  return new Promise((resolve, reject) => {
+    if (window.athrAudioDB) { resolve(window.athrAudioDB); return; }
+    const request = indexedDB.open('athr_reflections_db', 1);
+    request.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains('audios')) {
+        db.createObjectStore('audios', { keyPath: 'key' });
+      }
+    };
+    request.onsuccess = (e) => { window.athrAudioDB = e.target.result; resolve(window.athrAudioDB); };
+    request.onerror = (e) => reject(e);
+  });
+}
+
+async function saveAudioBlobToDB(key, blob, date) {
+  const db = await openAthrAudioDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('audios', 'readwrite');
+    tx.objectStore('audios').put({ key, blob, date });
+    tx.oncomplete = () => resolve(true);
+    tx.onerror = (e) => reject(e);
+  });
+}
+
+async function getAudioBlobFromDB(key) {
+  const db = await openAthrAudioDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('audios', 'readonly');
+    const req = tx.objectStore('audios').get(key);
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = (e) => reject(e);
+  });
+}
+
+async function deleteAudioBlobFromDB(key) {
+  const db = await openAthrAudioDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('audios', 'readwrite');
+    tx.objectStore('audios').delete(key);
+    tx.oncomplete = () => resolve(true);
+    tx.onerror = (e) => reject(e);
+  });
+}
+// ---------------------------------------------------------------
 
 function getReflectionKey(index) {
   const lecture = window.lecturesData[index];
@@ -1884,11 +1934,13 @@ window.toggleReflectionBox = function(index) {
   if (isHidden) renderReflectionBoxContent(index);
 };
 
-function renderReflectionBoxContent(index) {
+async function renderReflectionBoxContent(index) {
   const box = document.getElementById('reflectionBox_' + index);
   if (!box) return;
   const key = getReflectionKey(index);
   const saved = window.lectureReflections[key];
+
+  box.innerHTML = `<div style="text-align:center; padding:10px; color:var(--text2); font-size:12px;">⏳ جاري التحميل...</div>`;
 
   let savedHtml = '';
   if (saved) {
@@ -1899,11 +1951,21 @@ function renderReflectionBoxContent(index) {
           <div style="font-size:13px; color:var(--text); font-family:'Amiri',serif; line-height:1.7;">${saved.content}</div>
         </div>`;
     } else if (saved.type === 'audio') {
-      savedHtml = `
-        <div style="background:rgba(76,175,80,0.08); border:1px solid rgba(76,175,80,0.3); border-radius:10px; padding:10px; margin-bottom:10px;">
-          <div style="font-size:10px; color:#4caf50; margin-bottom:6px;">🎙️ تسجيلك الصوتي — ${saved.date}</div>
-          <audio controls src="${saved.content}" style="width:100%; height:32px;"></audio>
-        </div>`;
+      try {
+        const record = await getAudioBlobFromDB(key);
+        if (record && record.blob) {
+          const url = URL.createObjectURL(record.blob);
+          savedHtml = `
+            <div style="background:rgba(76,175,80,0.08); border:1px solid rgba(76,175,80,0.3); border-radius:10px; padding:10px; margin-bottom:10px;">
+              <div style="font-size:10px; color:#4caf50; margin-bottom:6px;">🎙️ تسجيلك الصوتي — ${saved.date}</div>
+              <audio controls src="${url}" style="width:100%; height:32px;"></audio>
+            </div>`;
+        } else {
+          savedHtml = `<div style="font-size:11px; color:#ff6b6b; margin-bottom:10px;">⚠️ التسجيل الصوتي مفقود، جرب تسجل من جديد</div>`;
+        }
+      } catch (e) {
+        savedHtml = `<div style="font-size:11px; color:#ff6b6b; margin-bottom:10px;">⚠️ حصلت مشكلة في تحميل التسجيل</div>`;
+      }
     }
   }
 
@@ -1953,11 +2015,26 @@ window.toggleVoiceReflection = async function(index) {
 
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    window.activeRecorder = new MediaRecorder(stream);
+
+    const preferredTypes = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus'];
+    let chosenMimeType = '';
+    for (const t of preferredTypes) {
+      if (window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) {
+        chosenMimeType = t;
+        break;
+      }
+    }
+
+    window.activeRecorder = chosenMimeType
+      ? new MediaRecorder(stream, { mimeType: chosenMimeType })
+      : new MediaRecorder(stream);
+
     window.activeRecorderChunks = [];
     window.activeRecordingIndex = index;
 
-    window.activeRecorder.ondataavailable = (e) => window.activeRecorderChunks.push(e.data);
+    window.activeRecorder.ondataavailable = (e) => {
+      if (e.data && e.data.size > 0) window.activeRecorderChunks.push(e.data);
+    };
 
     let seconds = 0;
     timerEl.style.display = 'block';
@@ -1968,32 +2045,57 @@ window.toggleVoiceReflection = async function(index) {
       timerEl.textContent = `⏺️ جاري التسجيل... ${m}:${String(s).padStart(2,'0')}`;
     }, 1000);
 
-    window.activeRecorder.onstop = () => {
+    window.activeRecorder.onstop = async () => {
       clearInterval(window.recordingTimerInterval);
       timerEl.style.display = 'none';
       stream.getTracks().forEach(t => t.stop());
 
-      const blob = new Blob(window.activeRecorderChunks, { type: 'audio/webm' });
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const key = getReflectionKey(index);
+      const b = document.getElementById('recBtn_' + index);
+
+      if (window.activeRecorderChunks.length === 0) {
+        alert('⚠️ للأسف ما اتسجلش صوت، جرب تاني وتأكد إن الميكروفون شغال 🙏');
+        if (b) {
+          b.textContent = '🎙️ سجّل صوتك';
+          b.style.background = 'transparent';
+          b.style.color = 'var(--gold)';
+          b.style.borderColor = 'var(--gold)';
+        }
+        window.activeRecorder = null;
+        window.activeRecordingIndex = null;
+        return;
+      }
+
+      const actualMimeType = window.activeRecorder.mimeType || 'audio/webm';
+      const blob = new Blob(window.activeRecorderChunks, { type: actualMimeType });
+      const key = getReflectionKey(index);
+      const dateStr = new Date().toLocaleDateString('ar-EG');
+
+      try {
+        await saveAudioBlobToDB(key, blob, dateStr);
+
+        // نحتفظ في localStorage بإشارة خفيفة بس (بدون الملف نفسه)
         window.lectureReflections[key] = {
           type: 'audio',
-          content: reader.result,
-          date: new Date().toLocaleDateString('ar-EG')
+          content: null, // الملف الفعلي في IndexedDB مش هنا
+          date: dateStr
         };
         localStorage.setItem('lecture_reflections', JSON.stringify(window.lectureReflections));
-        renderReflectionBoxContent(index);
-        setTimeout(() => alert('✨ تم حفظ تسجيلك الصوتي بنجاح، بارك الله في وقتك'), 100);
-      };
-      reader.readAsDataURL(blob);
 
-      window.activeRecorder = null;
-      window.activeRecordingIndex = null;
-      btn.textContent = '🎙️ سجّل صوتك';
-      btn.style.background = 'transparent';
-      btn.style.color = 'var(--gold)';
-      btn.style.borderColor = 'var(--gold)';
+        window.activeRecorder = null;
+        window.activeRecordingIndex = null;
+
+        await renderReflectionBoxContent(index);
+
+        const box = document.getElementById('reflectionBox_' + index);
+        if (box) box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        setTimeout(() => alert('✨ تم حفظ تسجيلك الصوتي بنجاح، بارك الله في وقتك'), 150);
+      } catch (err) {
+        console.error('خطأ حفظ الصوت في IndexedDB:', err);
+        alert('⚠️ حصلت مشكلة في حفظ التسجيل، جرب تاني 🙏');
+        window.activeRecorder = null;
+        window.activeRecordingIndex = null;
+      }
     };
 
     window.activeRecorder.start();
@@ -2003,13 +2105,20 @@ window.toggleVoiceReflection = async function(index) {
     btn.style.borderColor = '#ff6b6b';
 
   } catch (e) {
+    console.error('خطأ التسجيل:', e);
     alert('محتاجين إذن الميكروفون عشان تقدر تسجل صوتك 🎙️🙏');
   }
 };
 
-window.deleteReflection = function(index) {
+window.deleteReflection = async function(index) {
   if (!confirm('متأكد إنك عايز تمسح الخاطرة دي؟')) return;
   const key = getReflectionKey(index);
+  const saved = window.lectureReflections[key];
+
+  if (saved && saved.type === 'audio') {
+    try { await deleteAudioBlobFromDB(key); } catch(e) {}
+  }
+
   delete window.lectureReflections[key];
   localStorage.setItem('lecture_reflections', JSON.stringify(window.lectureReflections));
   renderReflectionBoxContent(index);
