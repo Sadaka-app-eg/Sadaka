@@ -116,6 +116,19 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
   opacity: 0;
   pointer-events: none;
 }
+
+  /* ⏬ إخفاء شريط التمرير التلقائي بنعومة عند النقر على الشاشة */
+.controls-hidden #mainAutoScrollControlBar {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translateY(20px) !important;
+  transition: opacity 0.3s ease, transform 0.3s ease !important;
+}
+
+#mainAutoScrollControlBar {
+  transition: opacity 0.3s ease, transform 0.3s ease !important;
+}
+  
 .mushaf-jump-bar{
   position:absolute; bottom:0; left:0; right:0; z-index:50;
   background: rgba(11,18,12,0.85); backdrop-filter: blur(6px);
@@ -3517,27 +3530,38 @@ async function loadQcfPageFont(pageNum) {
   }
 }
 
-function getHeaderJuzText(pageNum, allVersesDict, currentSurahPages) {
+function getHeaderJuzText(pageNum, allVerses) {
+  if (!allVerses || allVerses.length === 0) return "الجزء الأول";
+
+  const JUZ_NAMES = [
+    "", "الجزء الأول", "الجزء الثاني", "الجزء الثالث", "الجزء الرابع", "الجزء الخامس",
+    "الجزء السادس", "الجزء السابع", "الجزء الثامن", "الجزء التاسع", "الجزء العاشر",
+    "الجزء الحادي عشر", "الجزء الثاني عشر", "الجزء الثالث عشر", "الجزء الرابع عشر", "الجزء الخامس عشر",
+    "الجزء السادس عشر", "الجزء السابع عشر", "الجزء الثامن عشر", "الجزء التاسع عشر", "الجزء العشرون",
+    "الجزء الحادي والعشرون", "الجزء الثاني والعشرون", "الجزء الثالث والعشرون", "الجزء الرابع والعشرون", "الجزء الخامس والعشرون",
+    "الجزء السادس والعشرون", "الجزء السابع والعشرون", "الجزء الثامن والعشرون", "الجزء التاسع والعشرون", "الجزء الثلاثون"
+  ];
+
   // جلب أول آية في الصفحة الحالية
-  const pageVerses = json.verses.filter(v => v.page_number === pageNum);
+  const pageVerses = allVerses.filter(v => v.page_number === pageNum);
   if (!pageVerses || pageVerses.length === 0) return "الجزء الأول";
 
   const currentVerse = pageVerses[0];
-  const juzText = getJuzText(currentVerse.juz_number);
+  const juzText = JUZ_NAMES[currentVerse.juz_number] || `الجزء ${toAr(currentVerse.juz_number)}`;
   const currentRub = currentVerse.rub_number; // رقم الربع من 1 لـ 240
 
-  // جلب آيات الصفحة السابقة لمعرفة هل الربع تغير أم لا
-  const prevPageVerses = json.verses.filter(v => v.page_number === pageNum - 1);
+  // جلب آيات الصفحة السابقة
+  const prevPageVerses = allVerses.filter(v => v.page_number === pageNum - 1);
   const prevRub = (prevPageVerses && prevPageVerses.length > 0) ? prevPageVerses[0].rub_number : null;
 
-  // لو الربع نفس الربع السابق (مش صفحة بداية ربع جديد) -> اظهر اسم الجزء فقط
+  // لو الربع نفس الربع السابق -> اعرض اسم الجزء فقط
   if (prevRub && currentRub === prevRub) {
     return juzText;
   }
 
-  // لو بداية ربع/حزب جديد -> احسب اسمه المظبوط
-  const hizbNum = Math.ceil(currentRub / 4); // رقم الحزب (من 1 لـ 60)
-  const rubPos = (currentRub - 1) % 4; // 0=حزب كامل, 1=ربع, 2=نصف, 3=ثلاثة أرباع
+  // لو بداية ربع/حزب جديد -> احسب اسم الربع/الحزب المظبوط
+  const hizbNum = Math.ceil(currentRub / 4);
+  const rubPos = (currentRub - 1) % 4; // 0=حزب, 1=ربع, 2=نصف, 3=ثلاثة أرباع
 
   let rubLabel = "";
   if (rubPos === 0) rubLabel = `الحزب ${toAr(hizbNum)}`;
@@ -3619,7 +3643,7 @@ pageNums.forEach((pageNum, pageIndex) => {
   const isSpecialPage = pageNum === 1 || pageNum === 2;
 
   // جلب نص الهيدر المظبوط (الجزء + الحزب/الربع لو جديد)
-  const headerRightText = getHeaderJuzText(pageNum, json.verses);
+ const headerRightText = getHeaderJuzText(pageNum, json.verses);
 
   sliderHtml += `<div class="mushaf-page" id="mpage_${pageNum}">`;
   
@@ -3649,8 +3673,9 @@ pageNums.forEach((pageNum, pageIndex) => {
     sliderHtml += `<div style="display:flex; ${lineJustify} align-items:center; width:100%; overflow:visible;">`;
     pagesDict[pageNum][lineNum].forEach(w => {
       const ayahIndex = currentAyahsData.findIndex(a => a.numberInSurah === w.vAyah);
-      sliderHtml += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}"
-        style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:2.4; display:inline-flex; align-items:center; user-select:none;"
+     sliderHtml += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}"
+  style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:3.0; display:inline-flex; align-items:center; user-select:none;"
+        
         ontouchstart="startPress(event, ${ayahIndex})"
         ontouchmove="cancelPress(event)"
         ontouchend="cancelPress(event); if(!isScrolling && window.isPickingEndAyah){ handleAyahClick(${ayahIndex}); }">
@@ -7740,17 +7765,30 @@ function stopMainAutoScroll() {
 
   const slider = document.getElementById('mushafSlider');
   if (slider) {
-    slider.classList.remove('vscroll-mode');
-    // نرجّع المستخدم لنفس الصفحة اللي كان واقف عندها أفقيًا
+    // 🎯 حساب الصفحة الحقيقية الواقف عليها القارئ حالياً بدقة
     const pages = Array.from(slider.children);
     let closestIndex = 0;
-    let minDist = Infinity;
+    let minDiff = Infinity;
+    const sliderTop = slider.getBoundingClientRect().top;
+
     pages.forEach((p, i) => {
-      const dist = Math.abs(p.offsetTop - slider.scrollTop);
-      if (dist < minDist) { minDist = dist; closestIndex = i; }
+      const diff = Math.abs(p.getBoundingClientRect().top - sliderTop);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closestIndex = i;
+      }
     });
+
+    // إيقاف وضع السكرول الرأسي بدون تصفير
+    slider.classList.remove('vscroll-mode');
     slider.scrollTop = 0;
-    setTimeout(() => window.scrollToMushafIndex(closestIndex), 50);
+
+    // 📌 التثبيت الفوري في نفس الصفحة التي وقف عندها القارئ بالظبط
+    setTimeout(() => {
+      if (typeof window.scrollToMushafIndex === 'function') {
+        window.scrollToMushafIndex(closestIndex);
+      }
+    }, 50);
   }
 }
 
