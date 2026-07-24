@@ -3523,8 +3523,8 @@ async function loadQcfPageFont(pageNum) {
   }
 }
 
-function getHeaderJuzText(pageNum, allVerses) {
-  if (!allVerses || allVerses.length === 0) return "الجزء الأول";
+function getHeaderJuzText(pageNum, versesArray) {
+  if (!versesArray || versesArray.length === 0) return "الجزء الأول";
 
   const JUZ_NAMES = [
     "", "الجزء الأول", "الجزء الثاني", "الجزء الثالث", "الجزء الرابع", "الجزء الخامس",
@@ -3535,26 +3535,22 @@ function getHeaderJuzText(pageNum, allVerses) {
     "الجزء السادس والعشرون", "الجزء السابع والعشرون", "الجزء الثامن والعشرون", "الجزء التاسع والعشرون", "الجزء الثلاثون"
   ];
 
-  // جلب أول آية في الصفحة الحالية
-  const pageVerses = allVerses.filter(v => v.page_number === pageNum);
+  const pageVerses = versesArray.filter(v => v.page_number === pageNum);
   if (!pageVerses || pageVerses.length === 0) return "الجزء الأول";
 
   const currentVerse = pageVerses[0];
   const juzText = JUZ_NAMES[currentVerse.juz_number] || `الجزء ${toAr(currentVerse.juz_number)}`;
-  const currentRub = currentVerse.rub_number; // رقم الربع من 1 لـ 240
+  const currentRub = currentVerse.rub_number;
 
-  // جلب آيات الصفحة السابقة
-  const prevPageVerses = allVerses.filter(v => v.page_number === pageNum - 1);
+  const prevPageVerses = versesArray.filter(v => v.page_number === pageNum - 1);
   const prevRub = (prevPageVerses && prevPageVerses.length > 0) ? prevPageVerses[0].rub_number : null;
 
-  // لو الربع نفس الربع السابق -> اعرض اسم الجزء فقط
   if (prevRub && currentRub === prevRub) {
     return juzText;
   }
 
-  // لو بداية ربع/حزب جديد -> احسب اسم الربع/الحزب المظبوط
   const hizbNum = Math.ceil(currentRub / 4);
-  const rubPos = (currentRub - 1) % 4; // 0=حزب, 1=ربع, 2=نصف, 3=ثلاثة أرباع
+  const rubPos = (currentRub - 1) % 4;
 
   let rubLabel = "";
   if (rubPos === 0) rubLabel = `الحزب ${toAr(hizbNum)}`;
@@ -3636,7 +3632,7 @@ pageNums.forEach((pageNum, pageIndex) => {
   const isSpecialPage = pageNum === 1 || pageNum === 2;
 
   // جلب نص الهيدر المظبوط (الجزء + الحزب/الربع لو جديد)
- const headerRightText = getHeaderJuzText(pageNum, json.verses);
+const headerRightText = getHeaderJuzText(pageNum, currentAyahsData);
 
   sliderHtml += `<div class="mushaf-page" id="mpage_${pageNum}">`;
   
@@ -7760,30 +7756,29 @@ function stopMainAutoScroll() {
 
   const slider = document.getElementById('mushafSlider');
   if (slider) {
-    // 🎯 حساب الصفحة الحقيقية الواقف عليها القارئ حالياً بدقة
+    // تحديد الصفحة الأقرب لعين القارئ حالياً
     const pages = Array.from(slider.children);
     let closestIndex = 0;
-    let minDiff = Infinity;
-    const sliderTop = slider.getBoundingClientRect().top;
+    let minDistance = Infinity;
 
     pages.forEach((p, i) => {
-      const diff = Math.abs(p.getBoundingClientRect().top - sliderTop);
-      if (diff < minDiff) {
-        minDiff = diff;
+      const rect = p.getBoundingClientRect();
+      const distance = Math.abs(rect.top);
+      if (distance < minDistance) {
+        minDistance = distance;
         closestIndex = i;
       }
     });
 
-    // إيقاف وضع السكرول الرأسي بدون تصفير
     slider.classList.remove('vscroll-mode');
     slider.scrollTop = 0;
 
-    // 📌 التثبيت الفوري في نفس الصفحة التي وقف عندها القارئ بالظبط
+    // التثبيت الفوري في نفس الصفحة بدون رجوع للأول
     setTimeout(() => {
       if (typeof window.scrollToMushafIndex === 'function') {
         window.scrollToMushafIndex(closestIndex);
       }
-    }, 50);
+    }, 40);
   }
 }
 
