@@ -297,28 +297,21 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
 .mushaf-pages-wrap{position:absolute;top:0;left:0;right:0;bottom:0;overflow:hidden;z-index:1;}
   .mushaf-slider{display:flex;flex-direction:row;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;height:100%;scrollbar-width:none;}
 .mushaf-slider::-webkit-scrollbar{display:none;}
-.mushaf-page{
-  flex:0 0 100vw;
-  width:100vw;
-  scroll-snap-align:center;
- padding: 10px 12px 15px !important;
-display: flex !important;
-flex-direction: column !important;
-justify-content: space-between !important;
-height: 100vh !important;
-box-sizing: border-box !important;
-  overflow-y: auto !important; /* 👈 تفعيل النزول العمودي داخل الصفحة */
-  -webkit-overflow-scrolling: touch;
-  background:var(--mushaf-bg);
-  color:var(--mushaf-text);
-  font-family:'KFGQPC Uthmanic Script HAFS', 'Amiri Quran', serif;
-  font-size:22px;
-  line-height:3.2;
-  text-align:justify;
-  text-justify:inter-word;
-  border-right:4px solid var(--mushaf-border);
-  word-spacing:2px;
-  box-sizing: border-box;
+.mushaf-page {
+  flex: 0 0 100vw !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
+  padding: 10px 12px 12px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+ scroll-snap-align: center !important;
+scroll-snap-stop: always !important; /* 👈 السطر ده اللي بيمنع جريان الصفحات ويوقفها صفحة صفحة */
+  background: var(--mushaf-bg);
+  color: var(--mushaf-text);
 }
 
   .mushaf-slider.vscroll-mode {
@@ -3668,13 +3661,15 @@ pageNums.forEach((pageNum, pageIndex) => {
   const lines = Object.keys(pagesDict[pageNum]).map(Number).sort((a, b) => a - b);
   lines.forEach(lineNum => {
     const lineJustify = isSpecialPage ? 'justify-content:center;gap:8px;' : 'justify-content:space-between;';
-    const fontSize = isSpecialPage ? 'clamp(20px, 5.5vw, 30px)' : 'clamp(18px, 4.3vw, 27px)';
+   const fontSize = isSpecialPage ? 'clamp(18px, 4.8vw, 26px)' : 'clamp(15px, 3.8vw, 22px)';
 
-    sliderHtml += `<div style="display:flex; ${lineJustify} align-items:center; width:100%; overflow:visible;">`;
+  sliderHtml += `<div style="display:flex; ${lineJustify} align-items:center; width:100%; height: calc(100% / 15); overflow:visible;">`;
+   
     pagesDict[pageNum][lineNum].forEach(w => {
       const ayahIndex = currentAyahsData.findIndex(a => a.numberInSurah === w.vAyah);
-     sliderHtml += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}"
-  style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:3.0; display:inline-flex; align-items:center; user-select:none;"
+    sliderHtml += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}"
+  style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height: 1.8; display:inline-flex; align-items:center; user-select:none;"
+`;
         
         ontouchstart="startPress(event, ${ayahIndex})"
         ontouchmove="cancelPress(event)"
