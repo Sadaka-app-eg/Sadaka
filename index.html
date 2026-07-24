@@ -3710,6 +3710,12 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
   localStorage.setItem('last_active_surah', n);
   localStorage.setItem('surah_screen_open', '1');
 
+  // إلغاء أي نداء استرجاع تلقائي معلّق، عشان مايجيش يفتح سورة قديمة فوق اللي إنت فاتحه دلوقتي
+  if (window._restoreTimeoutId) { clearTimeout(window._restoreTimeoutId); window._restoreTimeoutId = null; }
+
+  // رقم تعريفي لكل نداء، عشان لو نداء أقدم يخلص متأخر، مايكتبش فوق الشاشة
+  window._openSurahReqId = (window._openSurahReqId || 0) + 1;
+  const myOpenReqId = window._openSurahReqId;
   const screen = document.getElementById('surahScreen');
   screen.classList.add('open');
   document.getElementById('surahScreenTitle').textContent = 'سورة ' + currentSurah.name;
@@ -3860,6 +3866,7 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
       sliderHtml += `</div>`;
     });
 
+  if (myOpenReqId !== window._openSurahReqId) return; // فيه سورة اتفتحت بعدي، أنا نداء قديم، بلاش أكتب فوقها
     slider.innerHTML = sliderHtml;
 
     attachMushafEdgeSwipe();
@@ -5620,7 +5627,7 @@ function restoreLastState() {
   const wasOpen = localStorage.getItem('surah_screen_open') === '1';
   const lastSurah = localStorage.getItem('last_active_surah');
   if (wasOpen && lastSurah) {
-    setTimeout(async () => {
+    window._restoreTimeoutId = setTimeout(async () => {
       await openSurah(parseInt(lastSurah));
     }, 1000);
   }
