@@ -7854,62 +7854,85 @@ function getMushafPageIndex(slider) {
 
 function attachMushafEdgeSwipe() {
   const slider = document.getElementById('mushafSlider');
-  if (!slider) return;
+  if (!slider) {
+    console.error("❌ السلايدر mushafSlider غير موجود بالصفحة!");
+    return;
+  }
 
   const newSlider = slider.cloneNode(false);
   while (slider.firstChild) newSlider.appendChild(slider.firstChild);
   slider.parentNode.replaceChild(newSlider, slider);
 
-  let isDragging = false;
+  newSlider.addEventListener('touchstart', (e) => {
+    mushafSwipeStartX = e.touches[0].clientX;
+    console.log("👇 بداية السحب - X:", mushafSwipeStartX);
+  }, { passive: true });
 
-  // 🎯 1. تسجيل بداية السحب (لللمس والماوس)
-  const startDrag = (clientX) => {
-    isDragging = true;
-    mushafSwipeStartX = clientX;
-  };
+  newSlider.addEventListener('touchend', (e) => {
+    if (mushafSwipeLocked) {
+      console.warn("⚠️ السحب معطل حالياً (mushafSwipeLocked = true)");
+      return;
+    }
 
-  // 🎯 2. تسجيل نهاية السحب ومعالجة الانتقال
-  const endDrag = (clientX) => {
-    if (!isDragging || mushafSwipeLocked) return;
-    isDragging = false;
-
-    const deltaX = clientX - mushafSwipeStartX;
-    if (Math.abs(deltaX) < 50) return; // مسافة سحب قصيرة
-
+    const endX = e.changedTouches[0].clientX;
+    const deltaX = endX - mushafSwipeStartX;
     const total = newSlider.children.length;
     const idx = getMushafPageIndex(newSlider);
+
+    console.log(`📊 نهاية السحب | DeltaX: ${deltaX.toFixed(1)} | المؤشر الحالي: ${idx} من إجمالي ${total} صفحات`);
+
+    if (Math.abs(deltaX) < 55) {
+      console.log("ℹ️ مسافة السحب ضعيفة جداً (أقل من 55px)");
+      return;
+    }
+
     const currentPageEl = newSlider.children[idx];
-    if (!currentPageEl) return;
+    if (!currentPageEl) {
+      console.error("❌ لم نتمكن من الوصول لعنصر الصفحة الحالية في الـ DOM!");
+      return;
+    }
 
     const currentP = parseInt(currentPageEl.getAttribute('data-page'));
+    console.log("📍 رقم الصفحة المستخرج من العنصر (data-page):", currentP);
 
-    // اتجاه RTL: السحب لليسار (deltaX < 0) للتقدم | السحب لليمين (deltaX > 0) للرجوع
     if (deltaX < 0 && idx >= total - 1) {
+      console.log("🚀 محاولة التقدم للصفحة التالية...");
       if (currentP && currentP < 604) {
         mushafSwipeLocked = true;
         const nextP = currentP + 1;
         const nextS = getSurahByPageNumber(nextP);
-        openSurah(nextS.n, null, nextP);
-        setTimeout(() => { mushafSwipeLocked = false; }, 500);
+        console.log(`➡️ سينتقل الآن للصفحة رقم ${nextP} (سورة ${nextS ? nextS.name : 'غير معروفة'})`);
+        
+        openSurah(nextS.n, null, nextP).then(() => {
+          console.log("✅ تمت عملية فتح الصفحة بنجاح!");
+        }).catch(err => {
+          console.error("❌ حدث خطأ أثناء فتح الصفحة:", err);
+        });
+
+        setTimeout(() => { mushafSwipeLocked = false; }, 600);
+      } else {
+        console.warn("⚠️ وصلنا لنهاية المصحف (صفحة 604) أو رقم الصفحة غير صحيح.");
       }
     } else if (deltaX > 0 && idx <= 0) {
+      console.log("⬅️ محاولة الرجوع للصفحة السابقة...");
       if (currentP && currentP > 1) {
         mushafSwipeLocked = true;
         const prevP = currentP - 1;
         const prevS = getSurahByPageNumber(prevP);
-        openSurah(prevS.n, null, prevP);
-        setTimeout(() => { mushafSwipeLocked = false; }, 500);
+        console.log(`⬅️ سينتقل الآن للصفحة رقم ${prevP} (سورة ${prevS ? prevS.name : 'غير معروفة'})`);
+        
+        openSurah(prevS.n, null, prevP).then(() => {
+          console.log("✅ تمت عملية فتح الصفحة بنجاح!");
+        }).catch(err => {
+          console.error("❌ حدث خطأ أثناء فتح الصفحة:", err);
+        });
+
+        setTimeout(() => { mushafSwipeLocked = false; }, 600);
       }
+    } else {
+      console.log("ℹ️ السحب تم داخل حدود الصفحات المحملة بالفعل وليس عند الحافة.");
     }
-  };
-
-  // 📱 أحداث الهواتف (Touch Events)
-  newSlider.addEventListener('touchstart', (e) => startDrag(e.touches[0].clientX), { passive: true });
-  newSlider.addEventListener('touchend', (e) => endDrag(e.changedTouches[0].clientX), { passive: true });
-
-  // 💻 أحداث الكمبيوتر والماوس (Mouse Events)
-  newSlider.addEventListener('mousedown', (e) => startDrag(e.clientX));
-  newSlider.addEventListener('mouseup', (e) => endDrag(e.clientX));
+  }, { passive: true });
 }
 
 // تفعيل الدوس على الشاشة لإظهار/إخفاء عناصر التحكم
