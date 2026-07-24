@@ -3510,6 +3510,7 @@ function filterSurahs(q) {
 // تحميل الخط العثماني بصفحاته بدقة عالية بدون تاكل
 async function loadQcfPageFont(pageNum) {
   const fontName = `QCF_V2_P${pageNum}`;
+  if (document.fonts.check(`12px ${fontName}`)) return true; // 👈 الخط محمّل بالفعل، متكررش التحميل
   const fontUrl = `https://verses.quran.foundation/fonts/quran/hafs/v2/woff2/p${pageNum}.woff2`;
   try {
     const font = new FontFace(fontName, `url(${fontUrl})`);
@@ -3562,6 +3563,93 @@ function getHeaderJuzText(pageNum, rawVerses) {
   // 🛡️ التأكد من عدم وجود فاصلة زائدة
   return rubLabel ? `${juzText}، ${rubLabel}` : juzText;
 }
+
+
+// ===========================
+// نظام تخزين المصحف الدائم (IndexedDB)
+// ===========================
+const QuranDB = {
+  db: null,
+  ready: null,
+  init() {
+    if (this.ready) return this.ready;
+    this.ready = new Promise((resolve, reject) => {
+      const req = indexedDB.open('quranOfflineDB_v1', 1);
+      req.onupgradeneeded = (e) => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains('surahs')) {
+          db.createObjectStore('surahs', { keyPath: 'n' });
+        }
+      };
+      req.onsuccess = (e) => { this.db = e.target.result; resolve(this.db); };
+      req.onerror = (e) => reject(e);
+    });
+    return this.ready;
+  },
+  async get(n) {
+    await this.init();
+    return new Promise((resolve) => {
+      const tx = this.db.transaction('surahs', 'readonly');
+      const req = tx.objectStore('surahs').get(n);
+      req.onsuccess = () => resolve(req.result ? req.result.verses : null);
+      req.onerror = () => resolve(null);
+    });
+  },
+  async set(n, verses) {
+    await this.init();
+    return new Promise((resolve) => {
+      const tx = this.db.transaction('surahs', 'readwrite');
+      tx.objectStore('surahs').put({ n, verses, savedAt: Date.now() });
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => resolve(false);
+    });
+  },
+  async count() {
+    await this.init();
+    return new Promise((resolve) => {
+      const tx = this.db.transaction('surahs', 'readonly');
+      const req = tx.objectStore('surahs').count();
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => resolve(0);
+    });
+  }
+};
+
+// دالة موحّدة: تجيب بيانات السورة من الكاش لو موجودة، أو من النت وتخزنها
+async function getSurahVersesData(n) {
+  const cached = await QuranDB.get(n);
+  if (cached) return cached;
+
+  const res = await fetch(`https://api.quran.com/api/v4/verses/by_chapter/${n}?per_page=300&words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number,rub_number`);
+  const json = await res.json();
+  if (json.verses && json.verses.length > 0) {
+    QuranDB.set(n, json.verses); // تخزين صامت في الخلفية
+  }
+  return json.verses || [];
+}
+
+// تحميل المصحف كامل صامت في الخلفية أول ما التطبيق يفتح (مرة واحدة بس)
+async function preloadEntireQuranSilently() {
+  const done = localStorage.getItem('quran_full_preload_done_v1');
+  if (done === '1') return;
+
+  for (let n = 1; n <= 114; n++) {
+    try {
+      const existing = await QuranDB.get(n);
+      if (!existing) {
+        await getSurahVersesData(n);
+        await new Promise(r => setTimeout(r, 120)); // مايهنجش الجهاز
+      }
+    } catch (e) { /* هيحاول تاني لما يفتح نت */ }
+  }
+  localStorage.setItem('quran_full_preload_done_v1', '1');
+  console.log('✅ المصحف كامل اتخزن أوفلاين بنجاح');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => { preloadEntireQuranSilently(); }, 4000);
+});
+ 
  
 async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
   currentSurah = surahs.find(s => s.n === n);
@@ -3587,11 +3675,16 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
 
   try {
     // ⚡ جلب كل آيات السورة بطلب واحد فقط وسريع جداً
-const res = await fetch(`https://api.quran.com/api/v4/verses/by_chapter/${n}?per_page=300&words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number,rub_number`);
-   const json = await res.json();
+// ⚡ هات البيانات من الكاش المحلي أول، ولو مش موجودة هات من النت وخزنها
+    const cachedCheck = await QuranDB.get(n);
+    if (!cachedCheck) {
+      // مفيش كاش للسورة دي لسه، هنعرض تحميل بسيط بس أول مرة فقط
+      slider.innerHTML = '<div style="width:100%;text-align:center;padding:50px;color:var(--gold);font-family:Amiri,serif;font-size:18px;">⚡ جاري التحميل لأول مرة فقط...</div>';
+    }
+    const versesData = await getSurahVersesData(n);
+    const json = { verses: versesData };
 
     if (!json.verses || json.verses.length === 0) throw new Error("لا توجد بيانات");
-
     const pagesDict = {};
     currentAyahsData = [];
 
