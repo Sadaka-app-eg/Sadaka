@@ -3365,12 +3365,7 @@ if(id === 'heartMirrorPage' && typeof window.initHeartMirrorPage === 'function')
  if(id === 'moreAppsTab') {
         // صفحة مزيد من تطبيقاتنا جاهزة وتعمل بنجاح
     }
-if (id === 'quran') {
-  const lastPage = localStorage.getItem('last_page') || 1;
-  if (typeof window.renderNewQcfMushaf === 'function') {
-    window.renderNewQcfMushaf(Number(lastPage));
-  }
-}
+
  
   updateStats();
 
@@ -8066,7 +8061,6 @@ window.closeSurah = function() {
 <script src="shareApp.js"></script>
 <script src="heartMirror.js"></script>
 <script src="downloadsManager.js"></script>
-<script src="quranView.js"></script>
  <!-- مكتبة موزيلا الرسمية لقراءة ملفات الـ PDF داخلياً -->
 
  
