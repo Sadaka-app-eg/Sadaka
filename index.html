@@ -288,7 +288,12 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
   flex:0 0 100vw;
   width:100vw;
   scroll-snap-align:center;
-  padding: 80px 14px 140px !important; /* 👈 زيادة المسافة من فوق وتحت لعمل مساحة سكرول رأسي ممتاز */
+ padding: 10px 12px 15px !important;
+display: flex !important;
+flex-direction: column !important;
+justify-content: space-between !important;
+height: 100vh !important;
+box-sizing: border-box !important;
   overflow-y: auto !important; /* 👈 تفعيل النزول العمودي داخل الصفحة */
   -webkit-overflow-scrolling: touch;
   background:var(--mushaf-bg);
@@ -3512,35 +3517,27 @@ async function loadQcfPageFont(pageNum) {
   }
 }
 
-function getHeaderJuzText(pageNum, allVerses) {
+function getHeaderJuzText(pageNum, allVersesDict, currentSurahPages) {
   // جلب أول آية في الصفحة الحالية
-  const currentVerse = allVerses.find(v => v.page_number === pageNum);
-  if (!currentVerse) return "الجزء الأول";
+  const pageVerses = json.verses.filter(v => v.page_number === pageNum);
+  if (!pageVerses || pageVerses.length === 0) return "الجزء الأول";
 
-  const juzNames = [
-    "", "الجزء الأول", "الجزء الثاني", "الجزء الثالث", "الجزء الرابع", "الجزء الخامس",
-    "الجزء السادس", "الجزء السابع", "الجزء الثامن", "الجزء التاسع", "الجزء العاشر",
-    "الجزء الحادي عشر", "الجزء الثاني عشر", "الجزء الثالث عشر", "الجزء الرابع عشر", "الجزء الخامس عشر",
-    "الجزء السادس عشر", "الجزء السابع عشر", "الجزء الثامن عشر", "الجزء التاسع عشر", "الجزء العشرون",
-    "الجزء الحادي والعشرون", "الجزء الثاني والعشرون", "الجزء الثالث والعشرون", "الجزء الرابع والعشرون", "الجزء الخامس والعشرون",
-    "الجزء السادس والعشرون", "الجزء السابع والعشرون", "الجزء الثامن والعشرون", "الجزء التاسع والعشرون", "الجزء الثلاثون"
-  ];
+  const currentVerse = pageVerses[0];
+  const juzText = getJuzText(currentVerse.juz_number);
+  const currentRub = currentVerse.rub_number; // رقم الربع من 1 لـ 240
 
-  const juzText = juzNames[currentVerse.juz_number] || `الجزء ${toAr(currentVerse.juz_number)}`;
-  const currentRub = currentVerse.rub_number;
+  // جلب آيات الصفحة السابقة لمعرفة هل الربع تغير أم لا
+  const prevPageVerses = json.verses.filter(v => v.page_number === pageNum - 1);
+  const prevRub = (prevPageVerses && prevPageVerses.length > 0) ? prevPageVerses[0].rub_number : null;
 
-  // جلب أول آية في الصفحة السابقة (لو موجودة)
-  const prevVerse = allVerses.find(v => v.page_number === pageNum - 1);
-  const prevRub = prevVerse ? prevVerse.rub_number : null;
-
-  // لو لسه جوه نفس الربع بتاع الصفحة اللي قبلها -> اظهر اسم الجزء فقط
+  // لو الربع نفس الربع السابق (مش صفحة بداية ربع جديد) -> اظهر اسم الجزء فقط
   if (prevRub && currentRub === prevRub) {
     return juzText;
   }
 
-  // لو دي صفحة بداية ربع أو حزب جديد -> احسب اسم الربع/الحزب
-  const hizbNum = Math.ceil(currentRub / 4);
-  const rubPos = (currentRub - 1) % 4; // 0=بداية حزب, 1=ربع, 2=نصف, 3=ثلاثة أرباع
+  // لو بداية ربع/حزب جديد -> احسب اسمه المظبوط
+  const hizbNum = Math.ceil(currentRub / 4); // رقم الحزب (من 1 لـ 60)
+  const rubPos = (currentRub - 1) % 4; // 0=حزب كامل, 1=ربع, 2=نصف, 3=ثلاثة أرباع
 
   let rubLabel = "";
   if (rubPos === 0) rubLabel = `الحزب ${toAr(hizbNum)}`;
@@ -3575,8 +3572,8 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
 
   try {
     // ⚡ جلب كل آيات السورة بطلب واحد فقط وسريع جداً
-    const res = await fetch(`https://api.quran.com/api/v4/verses/by_chapter/${n}?per_page=300&words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number`);
-    const json = await res.json();
+const res = await fetch(`https://api.quran.com/api/v4/verses/by_chapter/${n}?per_page=300&words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number,rub_number`);
+   const json = await res.json();
 
     if (!json.verses || json.verses.length === 0) throw new Error("لا توجد بيانات");
 
@@ -3618,58 +3615,58 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
 
     let sliderHtml = '';
 
-    pageNums.forEach((pageNum, pageIndex) => {
-      const isSpecialPage = pageNum === 1 || pageNum === 2;
-      const containerStyle = isSpecialPage
-        ? 'display:flex;flex-direction:column;justify-content:center;margin-top:auto;margin-bottom:auto;gap:12px;'
-        : 'display:flex;flex-direction:column;justify-content:space-between;height:100%;gap:2px;';
+pageNums.forEach((pageNum, pageIndex) => {
+  const isSpecialPage = pageNum === 1 || pageNum === 2;
 
-      sliderHtml += `<div class="mushaf-page" id="mpage_${pageNum}" style="flex:0 0 100vw;width:100vw;height:100%;padding:20px 14px 40px;overflow-y:auto;display:flex;flex-direction:column;justify-content:space-between;background:var(--mushaf-bg);box-sizing:border-box;">`;
-      sliderHtml += `<div style="${containerStyle}">`;
-const rightHeaderInfo = getHeaderJuzText(pageNum, json.verses);
-     
-// 1️⃣ 👈 حط كود الهيدر هنا (علشان يظهر فوق في كل صفحة):
-    const firstVerseOfPage = json.verses.find(v => v.page_number === pageNum);
-    const juzNum = firstVerseOfPage ? firstVerseOfPage.juz_number : 1;
+  // جلب نص الهيدر المظبوط (الجزء + الحزب/الربع لو جديد)
+  const headerRightText = getHeaderJuzText(pageNum, json.verses);
 
-    sliderHtml += `
-      <div style="display:flex; justify-content:space-between; align-items:center; padding: 4px 10px 8px; font-size:13px; font-weight:bold; color:var(--mushaf-border); border-bottom:1px solid rgba(205,168,105,0.2); margin-bottom:8px; font-family:'Amiri', serif;">
-        <span>الجزء ${toAr(juzNum)}</span>
-        <span>سُورَةُ ${currentSurah.name}</span>
-      </div>
-    `;
- 
-      if (pageIndex === 0) {
-        sliderHtml += `<div class="surah-name-header">سُورَةُ ${currentSurah.name}</div>`;
-        if (n !== 1 && n !== 9) {
-          sliderHtml += `<div class="bismillah">بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</div>`;
-        }
-      }
+  sliderHtml += `<div class="mushaf-page" id="mpage_${pageNum}">`;
+  
+  // 1️⃣ الهيدر العلوي المفرود فوق خالص في السقف
+  sliderHtml += `
+    <div style="display:flex; justify-content:space-between; align-items:center; width:100%; padding:0 4px 6px; font-size:13px; font-weight:bold; color:var(--text2); border-bottom:1px solid rgba(212,175,55,0.15); margin-bottom:8px; font-family:'Amiri', serif;">
+      <span>${headerRightText}</span>
+      <span>سُورَةُ ${currentSurah.name}</span>
+    </div>
+  `;
 
-      const lines = Object.keys(pagesDict[pageNum]).map(Number).sort((a, b) => a - b);
-      lines.forEach(lineNum => {
-        const lineJustify = isSpecialPage ? 'justify-content:center;gap:8px;' : 'justify-content:space-between;';
-        const fontSize = isSpecialPage ? 'clamp(20px, 5.5vw, 30px)' : 'clamp(18px, 4.3vw, 27px)';
+  // 2️⃣ أسطر الآيات المفرودة في منتصف الشاشة
+  sliderHtml += `<div style="flex:1; display:flex; flex-direction:column; justify-content:${isSpecialPage ? 'center' : 'space-between'}; width:100%;">`;
 
-        sliderHtml += `<div style="display:flex;${lineJustify}align-items:center;width:100%;overflow:hidden;">`;
+  if (pageIndex === 0) {
+    sliderHtml += `<div class="surah-name-header">سُورَةُ ${currentSurah.name}</div>`;
+    if (n !== 1 && n !== 9) {
+      sliderHtml += `<div class="bismillah">بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</div>`;
+    }
+  }
 
-        pagesDict[pageNum][lineNum].forEach(w => {
-          const ayahIndex = currentAyahsData.findIndex(a => a.numberInSurah === w.vAyah);
-          sliderHtml += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}"
-            style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:2; display:inline-flex; align-items:center; user-select:none;"
-            ontouchstart="startPress(event, ${ayahIndex})"
-            ontouchmove="cancelPress(event)"
-            ontouchend="cancelPress(event); if(!isScrolling && window.isPickingEndAyah){ handleAyahClick(${ayahIndex}); }">
-            ${w.code}
-          </span>`;
-        });
+  const lines = Object.keys(pagesDict[pageNum]).map(Number).sort((a, b) => a - b);
+  lines.forEach(lineNum => {
+    const lineJustify = isSpecialPage ? 'justify-content:center;gap:8px;' : 'justify-content:space-between;';
+    const fontSize = isSpecialPage ? 'clamp(20px, 5.5vw, 30px)' : 'clamp(18px, 4.3vw, 27px)';
 
-        sliderHtml += `</div>`;
-      });
-
-      sliderHtml += `</div>`;
-      sliderHtml += `<div class="page-footer" style="text-align:center;font-weight:bold;margin-top:8px;">صفحة ${toAr(pageNum)}</div></div>`;
+    sliderHtml += `<div style="display:flex; ${lineJustify} align-items:center; width:100%; overflow:visible;">`;
+    pagesDict[pageNum][lineNum].forEach(w => {
+      const ayahIndex = currentAyahsData.findIndex(a => a.numberInSurah === w.vAyah);
+      sliderHtml += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}"
+        style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:2.4; display:inline-flex; align-items:center; user-select:none;"
+        ontouchstart="startPress(event, ${ayahIndex})"
+        ontouchmove="cancelPress(event)"
+        ontouchend="cancelPress(event); if(!isScrolling && window.isPickingEndAyah){ handleAyahClick(${ayahIndex}); }">
+        ${w.code}
+      </span>`;
     });
+    sliderHtml += `</div>`;
+  });
+
+  sliderHtml += `</div>`; // نهاية وعاء أسطر الآيات
+
+  // 3️⃣ الفوتر السفلي (رقم الصفحة نازل لتحت خالص في الأرض)
+  sliderHtml += `<div class="page-footer" style="text-align:center; font-weight:bold; font-size:13px; color:var(--gold); padding-top:6px; margin-top: auto; border-top:1px solid rgba(212,175,55,0.15);">صفحة ${toAr(pageNum)}</div>`;
+
+  sliderHtml += `</div>`; // نهاية mushaf-page
+});
 
     document.getElementById('mushafSlider').innerHTML = sliderHtml;
 
