@@ -7862,45 +7862,56 @@ function attachMushafEdgeSwipe() {
   while (slider.firstChild) newSlider.appendChild(slider.firstChild);
   slider.parentNode.replaceChild(newSlider, slider);
 
-  newSlider.addEventListener('touchstart', (e) => {
-    mushafSwipeStartX = e.touches[0].clientX;
-  }, { passive: true });
+  let isDragging = false;
 
-  newSlider.addEventListener('touchend', (e) => {
-    if (mushafSwipeLocked) return;
-    const endX = e.changedTouches[0].clientX;
-    const deltaX = endX - mushafSwipeStartX;
-    if (Math.abs(deltaX) < 55) return; // سحبة خفيفة
+  // 🎯 1. تسجيل بداية السحب (لللمس والماوس)
+  const startDrag = (clientX) => {
+    isDragging = true;
+    mushafSwipeStartX = clientX;
+  };
+
+  // 🎯 2. تسجيل نهاية السحب ومعالجة الانتقال
+  const endDrag = (clientX) => {
+    if (!isDragging || mushafSwipeLocked) return;
+    isDragging = false;
+
+    const deltaX = clientX - mushafSwipeStartX;
+    if (Math.abs(deltaX) < 50) return; // مسافة سحب قصيرة
 
     const total = newSlider.children.length;
     const idx = getMushafPageIndex(newSlider);
+    const currentPageEl = newSlider.children[idx];
+    if (!currentPageEl) return;
 
-    // 🎯 في الاتجاه العربي RTL:
-    // السحب من اليمين لليسار (deltaX < 0) عند آخر صفحة = التقدم للصفحة التالية
-    // السحب من اليسار لليمين (deltaX > 0) عند أول صفحة = الرجوع للصفحة السابقة
+    const currentP = parseInt(currentPageEl.getAttribute('data-page'));
 
+    // اتجاه RTL: السحب لليسار (deltaX < 0) للتقدم | السحب لليمين (deltaX > 0) للرجوع
     if (deltaX < 0 && idx >= total - 1) {
-      const currentPageEl = newSlider.children[idx];
-      const currentP = parseInt(currentPageEl.getAttribute('data-page'));
       if (currentP && currentP < 604) {
         mushafSwipeLocked = true;
         const nextP = currentP + 1;
         const nextS = getSurahByPageNumber(nextP);
         openSurah(nextS.n, null, nextP);
-        setTimeout(() => { mushafSwipeLocked = false; }, 600);
+        setTimeout(() => { mushafSwipeLocked = false; }, 500);
       }
     } else if (deltaX > 0 && idx <= 0) {
-      const currentPageEl = newSlider.children[idx];
-      const currentP = parseInt(currentPageEl.getAttribute('data-page'));
       if (currentP && currentP > 1) {
         mushafSwipeLocked = true;
         const prevP = currentP - 1;
         const prevS = getSurahByPageNumber(prevP);
         openSurah(prevS.n, null, prevP);
-        setTimeout(() => { mushafSwipeLocked = false; }, 600);
+        setTimeout(() => { mushafSwipeLocked = false; }, 500);
       }
     }
-  }, { passive: true });
+  };
+
+  // 📱 أحداث الهواتف (Touch Events)
+  newSlider.addEventListener('touchstart', (e) => startDrag(e.touches[0].clientX), { passive: true });
+  newSlider.addEventListener('touchend', (e) => endDrag(e.changedTouches[0].clientX), { passive: true });
+
+  // 💻 أحداث الكمبيوتر والماوس (Mouse Events)
+  newSlider.addEventListener('mousedown', (e) => startDrag(e.clientX));
+  newSlider.addEventListener('mouseup', (e) => endDrag(e.clientX));
 }
 
 // تفعيل الدوس على الشاشة لإظهار/إخفاء عناصر التحكم
