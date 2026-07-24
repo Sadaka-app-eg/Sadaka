@@ -3706,6 +3706,9 @@ function getSurahByPageNumber(pageNum) {
 // =========================================================================
 // 🚀 دالة فتح السورة بالبسملة العثمانية والتنسيق المتناسق
 // =========================================================================
+// =========================================================================
+// 🚀 دالة فتح السورة المستقرة مع تصحيح البسملة وحرية السحب بين الصفحات
+// =========================================================================
 async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
   currentSurah = surahs.find(s => s.n === n);
   localStorage.setItem('last_active_surah', n);
@@ -3713,7 +3716,6 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
 
   const screen = document.getElementById('surahScreen');
   screen.classList.add('open');
-  screen.classList.add('controls-hidden');
   document.getElementById('surahScreenTitle').textContent = 'سورة ' + currentSurah.name;
   document.getElementById('favSurahBtn').textContent = favorites.includes('s'+n) ? '⭐' : '🤍';
 
@@ -3734,8 +3736,9 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
     targetP = targetPageNumber;
   }
 
-  const minPage = Math.max(1, surahStartP - 1);
-  const maxPage = Math.min(604, surahEndP + 1);
+  // 🎯 تحميل كل صفحات السورة كاملة بدون اقتطاع لتسهيل السحب والتحرك الحر
+  const minPage = surahStartP;
+  const maxPage = surahEndP;
 
   try {
     let allVerses = [];
@@ -3826,11 +3829,11 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
           
           sliderHtml += `<div class="surah-name-header" style="margin: 4px 0 2px; padding: 4px 10px; font-size: 17px;">سُورَةُ ${sName}</div>`;
           
-          // 🎯 استخدام الرسم العثماني للبسملة متناسق مع خط المصحف
+          // 🎯 البسملة بالنص العربي الواضح والأنيق بالخط القرآني الأصلي (بدون شفرات)
           if (firstWord.vSurah !== 1 && firstWord.vSurah !== 9) {
             sliderHtml += `
-              <div class="bismillah" style="font-family:'QCF_V2_P${pageNum}', 'Amiri Quran', serif; font-size: clamp(20px, 5vw, 28px); margin: 2px 0 6px; text-align:center; color:#5a3e00;">
-                ﭑ ﭒ ﭓ ﭔ
+              <div class="bismillah" style="font-family:'Amiri Quran', serif; font-size: clamp(18px, 4.5vw, 24px); margin: 2px 0 6px; text-align:center; color:#5a3e00;">
+                بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ
               </div>
             `;
           }
@@ -3861,27 +3864,15 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
 
     slider.innerHTML = sliderHtml;
 
-    slider.onscroll = () => {
-      const rawIndex = Math.round(Math.abs(slider.scrollLeft) / window.innerWidth);
-      const currentPageElement = slider.children[rawIndex];
-      if (currentPageElement) {
-        const pageNum = parseInt(currentPageElement.getAttribute('data-page'));
-        if (pageNum) {
-          const activeS = getSurahByPageNumber(pageNum);
-          if (activeS && currentSurah.n !== activeS.n) {
-            currentSurah = activeS;
-            document.getElementById('surahScreenTitle').textContent = 'سورة ' + activeS.name;
-            document.getElementById('favSurahBtn').textContent = favorites.includes('s' + activeS.n) ? '⭐' : '🤍';
-          }
-        }
-      }
-    };
+    // 🎯 إعادة تفعيل سحب وإفلات الحواف للانتقال بين السور
+    attachMushafEdgeSwipe();
 
+    // 🎯 التوجيه المباشر والدقيق للصفحة المطلوبة
     const targetIdx = pageNums.indexOf(targetP);
     if (targetIdx !== -1) {
-      requestAnimationFrame(() => {
+      setTimeout(() => {
         window.scrollToMushafIndex(targetIdx);
-      });
+      }, 50);
     }
 
     renderBookmarkHighlight();
@@ -3891,7 +3882,6 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
     console.error("خطأ فتح المصحف:", e);
   }
 }
-
 // دالة التنقل الانسيابي بين السور
 window.navSurah = function(direction) {
   if (!currentSurah) return;
