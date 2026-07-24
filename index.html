@@ -3166,122 +3166,120 @@ function toggleMenu() {
 }
 
 // دالة التنقل بين الصفحات مع دعم ملء الشاشة الكاملة والعودة للرئيسية
-function showPage(id, el) {
-  document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-  
-  // إغلاق المنيو الجانبي وإخفاء طبقة التعتيم تماماً لفك تجميد الشاشة
-  const menu = document.getElementById('tabsMenu');
-  const overlay = document.getElementById('menuOverlay');
-  if(menu) menu.classList.remove('open');
-  if(overlay) {
-    overlay.classList.remove('show');
-    overlay.style.display = 'none'; // أمان إضافي لإلغاء وجود الطبقة تماماً من الشاشة
-  }
-  
-  // إرجاع السكرول الطبيعي للموبايل وفك الـ fixed
-  document.body.style.overflow = '';
-  document.body.style.position = '';
-  document.body.style.width = '';
+دي فانكشن الshowpage اهو ! function showPage(id, el) {
+ document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+    // إغلاق المنيو الجانبي وإخفاء طبقة التعتيم تماماً لفك تجميد الشاشة
+  const menu = document.getElementById('tabsMenu');
+  const overlay = document.getElementById('menuOverlay');
+  if(menu) menu.classList.remove('open');
+  if(overlay) {
+    overlay.classList.remove('show');
+    overlay.style.display = 'none'; // أمان إضافي لإلغاء وجود الطبقة تماماً من الشاشة
+  }
+  // إرجاع السكرول الطبيعي للموبايل وفك الـ fixed
+  document.body.style.overflow = '';
+  document.body.style.position = '';
+  document.body.style.width = '';
 
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  
-  localStorage.setItem('last_opened_tab', id);
-  if(document.getElementById(id)) {
-    document.getElementById(id).classList.add('active');
-    document.getElementById(id).style.display = 'block'; // 👈 إظهار الصفحة المحددة فوراً
-  }
-  
-  // تفعيل كلاس التنشيط على العنصر المختار جوه المنيو
-  if (el) {
-    el.classList.add('active');
-  } else {
-    const tabs = document.querySelectorAll('.tabs .tab');
-    tabs.forEach(t => {
-      if (t.getAttribute('onclick') && t.getAttribute('onclick').includes(`'${id}'`)) {
-        t.classList.add('active');
-      }
-    });
-  }
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  
+  localStorage.setItem('last_opened_tab', id);
+if(document.getElementById(id)) {
+    document.getElementById(id).classList.add('active');
+    document.getElementById(id).style.display = 'block'; // 👈 إظهار الصفحة المحددة فوراً
+}
+  
+  // تفعيل كلاس التنشيط على العنصر المختار جوه المنيو
+  if (el) {
+    el.classList.add('active');
+  } else {
+    const tabs = document.querySelectorAll('.tabs .tab');
+    tabs.forEach(t => {
+      if (t.getAttribute('onclick') && t.getAttribute('onclick').includes(`'${id}'`)) {
+        t.classList.add('active');
+      }
+    });
+  }
 
-  // نقل زر العودة ليصبح جزءًا فعليًا من الصفحة النشطة فقط
-  const backBtn = document.querySelector('.back-to-home-btn');
-  if (backBtn) {
-    if (id === 'home') {
-      backBtn.style.display = 'none';
-    } else {
-      const targetPage = document.getElementById(id);
-      if (targetPage && backBtn.parentElement !== targetPage) {
-        targetPage.appendChild(backBtn);
-      }
-      backBtn.style.display = 'block';
-    }
-  }
+  // التحكم في وضع ملء الشاشة وظهور زر العودة للرئيسية
+// نقل زر العودة ليصبح جزءًا فعليًا من الصفحة النشطة فقط
+  const backBtn = document.querySelector('.back-to-home-btn');
+  if (backBtn) {
+    if (id === 'home') {
+      backBtn.style.display = 'none';
+    } else {
+      const targetPage = document.getElementById(id);
+      if (targetPage && backBtn.parentElement !== targetPage) {
+        targetPage.appendChild(backBtn);
+      }
+      backBtn.style.display = 'block';
+    }
+  }
 
-  // 🌟 [السطور السحرية المضافة لإصلاح المشكلة]: تشغيل رندر الأذكار وأسماء الله الحسنى والختمة فوراً
-  if (id === 'azkar' && typeof showAzkar === 'function') {
-    showAzkar('sabah', document.querySelector('#azkar .cat-btn'));
-  }
-  if (id === 'asma2' && typeof filterAsma2 === 'function') {
-    filterAsma2('');
-  }
-  if (id === 'khatma' && typeof renderKhatma === 'function') {
-    renderKhatma();
-  }
+    if(id === 'favPage') renderFav();
+  if(id === 'awkat') loadPrayerTimes();
+  if(id === 'notifPage') { renderNotifPresets(); renderCustomNotifList(); }
+  if(id === 'home') renderFlameCompanion(false);
+  if(id === 'home' && typeof renderAcademyMain === 'function') renderAcademyMain();
 
-  // بقية الشروط القديمة الخاصة بك كاملة دون نقص:
-  if(id === 'favPage') renderFav();
-  if(id === 'awkat') loadPrayerTimes();
-  if(id === 'notifPage') { renderNotifPresets(); renderCustomNotifList(); }
-  if(id === 'home') renderFlameCompanion(false);
-  if(id === 'home' && typeof renderAcademyMain === 'function') renderAcademyMain();
+  if(id === 'abwabElmPage') renderAbwabElmMain();
+  // تشغيل المكتبة العلمية بشكل مستقل
+  if(id === 'islamicContent' && typeof switchSubContent === 'function') {
+    switchSubContent('fiqh');
+  }
+  
+  // تشغيل التلاوات النادرة بشكل مستقل تماماً وفوري
+  if(id === 'rareRecitationsPage') {
+    setTimeout(() => {
+      if (typeof window.renderRareRecitations === 'function') {
+        window.renderRareRecitations();
+      }
+    }, 50);
+  }
+// ضيف السطرين دول جوه دالة showPage عشان نحدث واجهة الحساب فوراً عند دخولها
+if (id === 'settingsPage') {
+  updateSettingsAccountBox();
+}
+  if(id === 'favPage') renderFav();
+  if(id === 'blessingsPage') renderBlessingsPage();
+  if(id === 'home') loadPrayerTimes();
+  if(id === 'hiddenDeedsPage') renderHiddenDeedsPage();
+  updateHomeBookmarkCard();
+  if(id === 'notifPage') { renderNotifPresets(); renderCustomNotifList(); }
+  
+  // 🌟 ضع هذا السطر الجديد هنا بالظبط:
+  if(id === 'obeyPlanPage' && typeof window.initObeyPlanPage === 'function') {
+    window.initObeyPlanPage();
+  }
+  if(id === 'prayForThemPage' && typeof window.initPrayForThemPage === 'function') {
+  window.initPrayForThemPage();
+}
+if(id === 'shareAppPage' && typeof window.initShareAppPage === 'function') {
+  window.initShareAppPage();
+}
+if(id === 'heartMirrorPage' && typeof window.initHeartMirrorPage === 'function') {
+  window.initHeartMirrorPage();
+ }
+  if(id === 'downloadsManagerPage' && typeof window.initDownloadsManager === 'function') {
+    window.initDownloadsManager();
+  }
+ if (id === 'lecturesPage' && typeof renderLectures === 'function') {
+        renderLectures();
+    }
+ if(id === 'moreAppsTab') {
+        // صفحة مزيد من تطبيقاتنا جاهزة وتعمل بنجاح
+    }
+if (id === 'quran') {
+  const lastPage = localStorage.getItem('last_page') || 1;
+  if (typeof window.renderNewQcfMushaf === 'function') {
+    window.renderNewQcfMushaf(Number(lastPage));
+  }
+}
+ 
+  updateStats();
 
-  if(id === 'abwabElmPage') renderAbwabElmMain();
-  if(id === 'islamicContent' && typeof switchSubContent === 'function') {
-    switchSubContent('fiqh');
-  }
-  
-  if(id === 'rareRecitationsPage') {
-    setTimeout(() => {
-      if (typeof window.renderRareRecitations === 'function') {
-        window.renderRareRecitations();
-      }
-    }, 50);
-  }
-
-  if (id === 'settingsPage') {
-    updateSettingsAccountBox();
-  }
-  if(id === 'blessingsPage') renderBlessingsPage();
-  if(id === 'hiddenDeedsPage') renderHiddenDeedsPage();
-  updateHomeBookmarkCard();
-  
-  if(id === 'obeyPlanPage' && typeof window.initObeyPlanPage === 'function') {
-    window.initObeyPlanPage();
-  }
-  if(id === 'prayForThemPage' && typeof window.initPrayForThemPage === 'function') {
-    window.initPrayForThemPage();
-  }
-  if(id === 'shareAppPage' && typeof window.initShareAppPage === 'function') {
-    window.initShareAppPage();
-  }
-  if(id === 'heartMirrorPage' && typeof window.initHeartMirrorPage === 'function') {
-    window.initHeartMirrorPage();
-  }
-  if(id === 'downloadsManagerPage' && typeof window.initDownloadsManager === 'function') {
-    window.initDownloadsManager();
-  }
-  if (id === 'lecturesPage' && typeof renderLectures === 'function') {
-    renderLectures();
-  }
-  if (id === 'quran') {
-    const lastPage = localStorage.getItem('last_page') || 1;
-    if (typeof window.renderNewQcfMushaf === 'function') {
-      window.renderNewQcfMushaf(Number(lastPage));
-    }
-  }
- 
-  updateStats();
+ 
 }
 
   
