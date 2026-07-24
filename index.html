@@ -3703,10 +3703,7 @@ function getSurahByPageNumber(pageNum) {
 
 // 3. دالة فتح السورة الشاملة
 // =========================================================================
-// 🚀 دالة فتح السورة بالبسملة العثمانية والتنسيق المتناسق
-// =========================================================================
-// =========================================================================
-// 🚀 دالة فتح السورة المستقرة مع تصحيح البسملة وحرية السحب بين الصفحات
+// 🚀 دالة فتح السورة المستقرة والمضبوطة بالملي 100%
 // =========================================================================
 async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
   currentSurah = surahs.find(s => s.n === n);
@@ -3735,14 +3732,14 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
     targetP = targetPageNumber;
   }
 
-// 🎯 تحميل نطاق متصل (السورة الحالية + الصفحات المجاورة للرجوع السلس لآخر صفحة)
- const minPage = Math.max(1, surahStartP - 1);
-const maxPage = Math.min(604, surahEndP + 1);
+  // 🎯 تحميل صفحات السورة المحددة فقط بالكامل من بدايتها لنهايتها بالضبط
+  const minPage = surahStartP;
+  const maxPage = surahEndP;
 
   try {
     let allVerses = [];
 
-    // ⚡ جلب كافة الصفحات بالتوازي من IndexedDB لسرعة 0 ثانية
+    // ⚡ جلب كافة صفحات السورة بالتوازي من IndexedDB لسرعة 0 ثانية
     const pagePromises = Array.from({ length: maxPage - minPage + 1 }, (_, i) => minPage + i).map(async (p) => {
       let pageData = await getCachedSurahDB(`page_${p}`);
       if (!pageData) {
@@ -3807,7 +3804,7 @@ const maxPage = Math.min(604, surahEndP + 1);
       sliderHtml += `
         <div style="display:flex; justify-content:space-between; align-items:center; width:100%; padding:2px 4px 6px; font-size:13px; font-weight:bold; color:var(--text2); border-bottom:1px solid rgba(212,175,55,0.12); margin-bottom:4px; font-family:'Amiri', serif; flex-shrink:0;">
           <span>${headerRightText}</span>
-          <span>${pageSurah ? pageSurah.name : ''}</span>
+          <span>سُورَةُ ${pageSurah ? pageSurah.name : ''}</span>
         </div>
       `;
 
@@ -3830,7 +3827,6 @@ const maxPage = Math.min(604, surahEndP + 1);
           
           sliderHtml += `<div class="surah-name-header" style="margin: 4px 0 2px; padding: 4px 10px; font-size: 17px;">سُورَةُ ${sName}</div>`;
           
-          // 🎯 البسملة بالنص العربي الواضح والأنيق بالخط القرآني الأصلي (بدون شفرات)
           if (firstWord.vSurah !== 1 && firstWord.vSurah !== 9) {
             sliderHtml += `
               <div class="bismillah" style="font-family:'Amiri Quran', serif; font-size: clamp(18px, 4.5vw, 24px); margin: 2px 0 6px; text-align:center; color:#5a3e00;">
@@ -3865,17 +3861,15 @@ const maxPage = Math.min(604, surahEndP + 1);
 
     slider.innerHTML = sliderHtml;
 
-    // 🎯 إعادة تفعيل سحب وإفلات الحواف للانتقال بين السور
     attachMushafEdgeSwipe();
 
-    // 🎯 التوجيه المباشر والدقيق للصفحة المطلوبة
-// 🎯 التوجيه المباشر والدقيق للصفحة المطلوبة (أول صفحة أو آخر صفحة فوراً)
-const targetIdx = pageNums.indexOf(targetP);
-if (targetIdx !== -1) {
-  requestAnimationFrame(() => {
-    window.scrollToMushafIndex(targetIdx);
-  });
-}
+    // 🎯 التوجيه المباشر للصفحة المطلوبة
+    const targetIdx = pageNums.indexOf(targetP);
+    if (targetIdx !== -1) {
+      setTimeout(() => {
+        window.scrollToMushafIndex(targetIdx);
+      }, 50);
+    }
 
     renderBookmarkHighlight();
     setupMushafJumpSlider(pageNums);
