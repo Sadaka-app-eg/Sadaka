@@ -3758,6 +3758,9 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
     });
 
     const pagesResults = await Promise.all(pagePromises);
+
+    if (myOpenReqId !== window._openSurahReqId) return; // نداء قديم، بلاش يوسخ أي بيانات
+
     pagesResults.forEach(verses => allVerses.push(...verses));
 
     const pagesDict = {};
@@ -3795,7 +3798,10 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
     window.currentSurahPages = pageNums;
 
     // 🎯 الضمان الأول: انتظار تمام تحميل الخطوط العثمانية لكل الصفحات قبل الرسم
+ // 🎯 الضمان الأول: انتظار تمام تحميل الخطوط العثمانية لكل الصفحات قبل الرسم
     await Promise.all(pageNums.map(p => loadQcfPageFont(p)));
+
+    if (myOpenReqId !== window._openSurahReqId) return; // فحص تاني بعد الانتظار
 
     let sliderHtml = '';
 
@@ -3804,6 +3810,16 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
       const headerRightText = getHeaderJuzText(pageNum, allVerses);
       const pageSurah = getSurahByPageNumber(pageNum);
 
+      // فحص هل الصفحة دي فيها بداية سورة جديدة (هيدر/بسملة) عشان نصغّر الخط شوية ونعوّض المساحة
+      let pageHasNewSurahStart = false, pageHasBismillah = false;
+      Object.values(pagesDict[pageNum]).forEach(lineWords => {
+        const fw = lineWords[0];
+        if (fw && fw.vAyah === 1) {
+          pageHasNewSurahStart = true;
+          if (fw.vSurah !== 1 && fw.vSurah !== 9) pageHasBismillah = true;
+        }
+      });
+      const extraLines = (pageHasNewSurahStart ? 1 : 0) + (pageHasBismillah ? 1 : 0);
       sliderHtml += `<div class="mushaf-page" id="mpage_${pageNum}" data-page="${pageNum}">`;
       
       // الهيدر العلوي
@@ -3822,8 +3838,10 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
 
       lines.forEach(lineNum => {
         const lineWords = pagesDict[pageNum][lineNum];
-        const lineJustify = isSpecialPage ? 'justify-content:center;gap:8px;' : 'justify-content:space-between;';
-        const fontSize = isSpecialPage ? 'clamp(20px, 5.2vw, 30px)' : 'clamp(17px, 4.3vw, 25px)';
+const lineJustify = isSpecialPage ? 'justify-content:center;gap:8px;' : 'justify-content:space-between;';
+        const fontSize = isSpecialPage 
+          ? 'clamp(20px, 5.2vw, 30px)' 
+          : `clamp(${17 - extraLines*1.5}px, ${4.3 - extraLines*0.3}vw, ${25 - extraLines*2}px)`;
 
         const firstWord = lineWords[0];
         if (firstWord && firstWord.vAyah === 1 && !renderedSurahHeaders.has(firstWord.vSurah)) {
