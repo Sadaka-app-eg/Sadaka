@@ -1290,12 +1290,7 @@ body.hide-controls #quran {
       <button class="icon-btn" onclick="window.downloadCurrentSurahAudio()" title="تحميل للاستماع أوفلاين" style="width:36px;height:36px;font-size:15px;flex-shrink:0;">⬇️</button>
       
           
-<!-- نضع الزرار هنا بعد قفلة الديف بتاع audio-bar مباشرة -->
-<div id="clearSelWrap" style="display:none; padding: 6px 14px; text-align: center; background: var(--bg2); border-bottom: 1px solid var(--border);">
-  <button class="clear-sel-btn" id="clearSelBtn" onclick="clearSelection()" style="width: 100%; max-width: 250px; margin: 0 auto; padding: 7px 16px; background: rgba(255, 107, 107, 0.15); border: 1px solid #ff6b6b; color: #ff6b6b; border-radius: 20px; font-family: 'Amiri', serif; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
-    <span>✕</span> إيقاف وإلغاء تحديد الآيات
-  </button>
-</div>
+
      
       <audio id="audioPlayer"></audio>
     </div>
@@ -1322,6 +1317,12 @@ body.hide-controls #quran {
       
       <!-- شريط التنقل بين الصفحات -->
       <input type="range" id="mushafJumpSlider" min="0" max="0" value="0" step="1" style="flex:1;">
+    </div>
+   <!-- 🎯 زرار إلغاء التحديد متمركز أسفل السلايدر بدون ما يتزحم فوق -->
+    <div id="clearSelWrap" style="display:none; width: 100%; text-align: center; margin-top: 4px;">
+      <button class="clear-sel-btn" id="clearSelBtn" onclick="clearSelection()" style="width: 100%; max-width: 280px; margin: 0 auto; padding: 6px 14px; background: rgba(255, 82, 82, 0.22); border: 1px solid #ff5252; color: #ff6b6b; border-radius: 18px; font-family: 'Amiri', serif; font-size: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+        <span>✕</span> إيقاف وإلغاء تحديد الآيات
+      </button>
     </div>
   </div>
 </div> <!-- 👈 ضيف وسم الإغلاق ده هنا لقفل surahScreen -->
@@ -3743,7 +3744,8 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
   try {
     let allVerses = [];
 
-    for (let p = minPage; p <= maxPage; p++) {
+// ⚡ جلب كل صفحات السورة في نفس اللحظة بالتوازي (بدل واحدة ورا الثانية)
+    const pagePromises = Array.from({ length: maxPage - minPage + 1 }, (_, i) => minPage + i).map(async (p) => {
       let pageData = await getCachedSurahDB(`page_${p}`);
       if (!pageData) {
         const res = await fetch(`https://api.quran.com/api/v4/verses/by_page/${p}?per_page=300&words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number,rub_number`);
@@ -3752,10 +3754,11 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
           await setCachedSurahDB(`page_${p}`, pageData);
         }
       }
-      if (pageData && pageData.verses) {
-        allVerses.push(...pageData.verses);
-      }
-    }
+      return pageData && pageData.verses ? pageData.verses : [];
+    });
+
+    const pagesResults = await Promise.all(pagePromises);
+    pagesResults.forEach(verses => allVerses.push(...verses));
 
     const pagesDict = {};
     currentAyahsData = [];
@@ -4099,28 +4102,28 @@ function actionSelect() {
     return;
   }
   closeActionMenu();
-  const idx = activeAyahIndex; // الآية الأولى اللي ضغط عليها مطولاً  
+  const idx = activeAyahIndex; 
   
-  // تثبيت آية البداية وتفعيل الوضع الذكي
   window.firstSelectedAyahIndex = idx;
   window.isPickingEndAyah = true;
   
-  // تنظيف أي تحديد قديم وتظليل آية البداية فوراً
   selectedAyahsQueue = [idx];
   clearHighlightBars('selected');
   highlightAyah(idx, 'selected');
  
-  // تحديث شريط الحالة تحت ليوجه المستخدم بوضوح وبخط بارز
   const statusEl = document.getElementById('audioStatus');
   if (statusEl) {
     statusEl.innerHTML = `<span style="color:var(--gold); font-weight:bold;">اضغط الآن (ضغطة عادية) على آية النهاية التي تريد التوقف عندها 🏁</span>`;
   }
   
-  // 🎯 إظهار الوعاء والزرار فوراً عند بداية التحديد
+  // 🎯 تفعيل ظهور شريط التحكم والزرار بالأسفل فوراً
+  const screen = document.getElementById('surahScreen');
+  if (screen) screen.classList.remove('controls-hidden');
+
   const clearWrap = document.getElementById('clearSelWrap');
   if (clearWrap) clearWrap.style.display = 'block';
   const clearBtn = document.getElementById('clearSelBtn');
-  if (clearBtn) clearBtn.style.display = 'inline-flex';
+  if (clearBtn) clearBtn.style.display = 'flex';
 }
 
 // متغيرات عالمية جديدة للتحكم في التكرار
