@@ -3737,14 +3737,14 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
     targetP = targetPageNumber;
   }
 
-  // 🎯 تحميل كل صفحات السورة كاملة بدون اقتطاع لتسهيل السحب والتحرك الحر
-  const minPage = surahStartP;
-  const maxPage = surahEndP;
+// 🎯 تحميل نطاق متصل (السورة الحالية + الصفحات المجاورة للرجوع السلس لآخر صفحة)
+  const minPage = Math.max(1, surahStartP - 3);
+  const maxPage = Math.min(604, surahEndP + 3);
 
   try {
     let allVerses = [];
 
-// ⚡ جلب كل صفحات السورة في نفس اللحظة بالتوازي (بدل واحدة ورا الثانية)
+    // ⚡ جلب كافة الصفحات بالتوازي من IndexedDB لسرعة 0 ثانية
     const pagePromises = Array.from({ length: maxPage - minPage + 1 }, (_, i) => minPage + i).map(async (p) => {
       let pageData = await getCachedSurahDB(`page_${p}`);
       if (!pageData) {
@@ -3871,12 +3871,13 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
     attachMushafEdgeSwipe();
 
     // 🎯 التوجيه المباشر والدقيق للصفحة المطلوبة
-    const targetIdx = pageNums.indexOf(targetP);
-    if (targetIdx !== -1) {
-      setTimeout(() => {
-        window.scrollToMushafIndex(targetIdx);
-      }, 50);
-    }
+// 🎯 التوجيه المباشر والدقيق للصفحة المطلوبة (أول صفحة أو آخر صفحة فوراً)
+const targetIdx = pageNums.indexOf(targetP);
+if (targetIdx !== -1) {
+  requestAnimationFrame(() => {
+    window.scrollToMushafIndex(targetIdx);
+  });
+}
 
     renderBookmarkHighlight();
     setupMushafJumpSlider(pageNums);
