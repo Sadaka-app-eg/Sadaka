@@ -44,6 +44,147 @@ class AthrProjectState {
         return null;
     }
 }
+class AthrParticleSystem {
+    constructor() {
+        this.particles = [];
+        this.type = 'none';
+        this.density = 50;
+        this.speed = 1.0;
+        this.size = 1.0;
+    }
+
+    init(w, h) {
+        this.particles = [];
+        if (this.type === 'none' || !w || !h) return;
+        for (let i = 0; i < this.density; i++) {
+            this.particles.push(this.createParticle(w, h, true));
+        }
+    }
+
+    createParticle(w, h, randomY = false) {
+        const base = { x: Math.random() * w, y: randomY ? Math.random() * h : -20 };
+        switch (this.type) {
+            case 'snow':
+                return { ...base, r: (Math.random() * 3 + 1) * this.size, speedY: (Math.random() * 1 + 0.5) * this.speed, speedX: (Math.random() - 0.5) * 0.5, opacity: Math.random() * 0.5 + 0.5, drift: Math.random() * 2 };
+            case 'stars':
+                return { ...base, r: (Math.random() * 2 + 1) * this.size, opacity: Math.random(), twinkleSpeed: Math.random() * 0.05 + 0.01, twinkleDir: 1 };
+            case 'goldDust':
+                return { ...base, y: Math.random() * h, r: (Math.random() * 2 + 0.5) * this.size, speedY: -(Math.random() * 0.6 + 0.2) * this.speed, speedX: (Math.random() - 0.5) * 0.3, opacity: Math.random() * 0.6 + 0.2, angle: Math.random() * Math.PI * 2 };
+            case 'shootingStars':
+                return { x: Math.random() * w, y: Math.random() * h * 0.5, len: Math.random() * 80 + 40, speed: (Math.random() * 8 + 6) * this.speed, angle: Math.PI / 4, opacity: 0, delay: Math.random() * 200, life: 0 };
+            case 'rain':
+                return { ...base, len: (Math.random() * 15 + 10) * this.size, speedY: (Math.random() * 6 + 8) * this.speed, opacity: Math.random() * 0.3 + 0.2 };
+            case 'leaves':
+                return { ...base, r: (Math.random() * 6 + 4) * this.size, speedY: (Math.random() * 0.8 + 0.4) * this.speed, speedX: (Math.random() - 0.5) * 0.8, angle: Math.random() * Math.PI * 2, rotSpeed: (Math.random() - 0.5) * 0.05, opacity: Math.random() * 0.5 + 0.5 };
+            case 'sparks':
+                return { x: w / 2 + (Math.random() - 0.5) * w * 0.3, y: h + 10, r: (Math.random() * 2 + 1) * this.size, speedY: -(Math.random() * 2 + 1) * this.speed, speedX: (Math.random() - 0.5) * 1, opacity: Math.random() * 0.8 + 0.2, life: Math.random() * 100 };
+            default:
+                return base;
+        }
+    }
+
+    update(w, h) {
+        if (this.type === 'none' || !w || !h) return;
+        this.particles.forEach((p) => {
+            switch (this.type) {
+                case 'snow':
+                    p.y += p.speedY;
+                    p.x += Math.sin(p.y / 30) * p.drift * 0.3 + p.speedX;
+                    if (p.y > h + 10) { Object.assign(p, this.createParticle(w, h)); p.y = -10; }
+                    break;
+                case 'stars':
+                    p.opacity += p.twinkleSpeed * p.twinkleDir;
+                    if (p.opacity >= 1) { p.opacity = 1; p.twinkleDir = -1; }
+                    if (p.opacity <= 0.1) { p.opacity = 0.1; p.twinkleDir = 1; }
+                    break;
+                case 'goldDust':
+                    p.y += p.speedY;
+                    p.x += p.speedX + Math.sin(p.angle) * 0.3;
+                    p.angle += 0.02;
+                    if (p.y < -10) { Object.assign(p, this.createParticle(w, h)); p.y = h + 10; }
+                    break;
+                case 'shootingStars':
+                    p.life++;
+                    if (p.life > p.delay) {
+                        p.opacity = Math.min(1, p.opacity + 0.1);
+                        p.x += Math.cos(p.angle) * p.speed;
+                        p.y += Math.sin(p.angle) * p.speed;
+                    }
+                    if (p.x > w + 100 || p.y > h + 100) { Object.assign(p, this.createParticle(w, h)); }
+                    break;
+                case 'rain':
+                    p.y += p.speedY;
+                    if (p.y > h + 10) { p.y = -10; p.x = Math.random() * w; }
+                    break;
+                case 'leaves':
+                    p.y += p.speedY;
+                    p.x += p.speedX + Math.sin(p.y / 40) * 0.5;
+                    p.angle += p.rotSpeed;
+                    if (p.y > h + 10) { Object.assign(p, this.createParticle(w, h)); p.y = -10; }
+                    break;
+                case 'sparks':
+                    p.y += p.speedY;
+                    p.x += p.speedX;
+                    p.opacity -= 0.01;
+                    if (p.opacity <= 0 || p.y < -10) { Object.assign(p, this.createParticle(w, h)); }
+                    break;
+            }
+        });
+    }
+
+    draw(ctx) {
+        if (this.type === 'none') return;
+        ctx.save();
+        this.particles.forEach(p => {
+            ctx.save();
+            ctx.globalAlpha = p.opacity !== undefined ? p.opacity : 1;
+            switch (this.type) {
+                case 'snow':
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+                    break;
+                case 'stars':
+                    ctx.fillStyle = '#ffffff';
+                    ctx.shadowColor = '#ffffff'; ctx.shadowBlur = 6;
+                    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+                    break;
+                case 'goldDust':
+                    ctx.fillStyle = '#d4af37';
+                    ctx.shadowColor = '#d4af37'; ctx.shadowBlur = 8;
+                    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+                    break;
+                case 'shootingStars':
+                    if (p.life > p.delay) {
+                        const grad = ctx.createLinearGradient(p.x, p.y, p.x - Math.cos(p.angle) * p.len, p.y - Math.sin(p.angle) * p.len);
+                        grad.addColorStop(0, 'rgba(255,255,255,1)');
+                        grad.addColorStop(1, 'rgba(255,255,255,0)');
+                        ctx.strokeStyle = grad; ctx.lineWidth = 2;
+                        ctx.beginPath(); ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(p.x - Math.cos(p.angle) * p.len, p.y - Math.sin(p.angle) * p.len);
+                        ctx.stroke();
+                    }
+                    break;
+                case 'rain':
+                    ctx.strokeStyle = 'rgba(200,220,255,0.6)'; ctx.lineWidth = 1.5;
+                    ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - 2, p.y + p.len); ctx.stroke();
+                    break;
+                case 'leaves':
+                    ctx.translate(p.x, p.y); ctx.rotate(p.angle);
+                    ctx.fillStyle = '#6fbf73';
+                    ctx.beginPath(); ctx.ellipse(0, 0, p.r, p.r * 0.6, 0, 0, Math.PI * 2); ctx.fill();
+                    break;
+                case 'sparks':
+                    ctx.fillStyle = '#ff8c00';
+                    ctx.shadowColor = '#ff8c00'; ctx.shadowBlur = 8;
+                    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+                    break;
+            }
+            ctx.restore();
+        });
+        ctx.restore();
+    }
+}
+
 
 class AthrKeyframeEngine {
     static interpolate(kf1, kf2, progress, easing = 'linear') {
@@ -129,7 +270,7 @@ window.studioEngine = {
         pip: { visible: true, locked: false },
         stickers: { visible: true, locked: false }
     },
-
+ particleSystem: new AthrParticleSystem(),
 
 // 🆕 خصائص CapCut Engine الجديدة
     projectState: new AthrProjectState(),
@@ -311,9 +452,9 @@ window.renderStudioUI = function() {
                 <button onclick="window.switchStudioTab('videoTab')" id="tabBtn_videoTab" class="studio-tab-btn" style="padding: 8px 14px; border-radius: 8px; background: var(--bg2); color: var(--text); border: 1px solid var(--border); cursor: pointer; font-size: 12px;">🎬 الأبعاد والأشكال والخلفيات</button>
                 <button onclick="window.switchStudioTab('cinematicTab')" id="tabBtn_cinematicTab" class="studio-tab-btn" style="padding: 8px 14px; border-radius: 8px; background: var(--bg2); color: var(--text); border: 1px solid var(--border); cursor: pointer; font-size: 12px;">🌟 المؤثرات والإطارات</button>
         <button onclick="window.switchStudioTab('colorGradingTab')" id="tabBtn_colorGradingTab" class="studio-tab-btn" style="padding: 8px 14px; border-radius: 8px; background: var(--bg2); color: var(--text); border: 1px solid var(--border); cursor: pointer; font-size: 12px;">🎨 تصحيح الألوان والأنيميشن</button>
-            <button onclick="window.switchStudioTab('stickersTab')" id="tabBtn_stickersTab" class="studio-tab-btn" style="padding: 8px 14px; border-radius: 8px; background: var(--bg2); color: var(--text); border: 1px solid var(--border); cursor: pointer; font-size: 12px;">🎨 الملصقات والطبقات (PiP)</button>
+           <button onclick="window.switchStudioTab('stickersTab')" id="tabBtn_stickersTab" class="studio-tab-btn" style="padding: 8px 14px; border-radius: 8px; background: var(--bg2); color: var(--text); border: 1px solid var(--border); cursor: pointer; font-size: 12px;">🎨 الملصقات والطبقات (PiP)</button>
+<button onclick="window.switchStudioTab('particlesTab')" id="tabBtn_particlesTab" class="studio-tab-btn" style="padding: 8px 14px; border-radius: 8px; background: var(--bg2); color: var(--text); border: 1px solid var(--border); cursor: pointer; font-size: 12px;">❄️ مؤثرات الجو (ثلج ونجوم)</button>
 <button onclick="window.switchStudioTab('layersTab')" id="tabBtn_layersTab" class="studio-tab-btn" style="padding: 8px 14px; border-radius: 8px; background: var(--bg2); color: var(--text); border: 1px solid var(--border); cursor: pointer; font-size: 12px;">🥞 الطبقات والسجل</button>
-
             
             </div>
 
@@ -402,11 +543,47 @@ window.renderStudioUI = function() {
             </div>
         </div>
 
-        <div style="margin-top: 10px; text-align: left;">
+      <div style="margin-top: 10px; text-align: left;">
             <button onclick="window.clearAllStickersAndPip()" style="background:#ff4d4d; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:11px;">🗑️ حظر/حذف جميع الطبقات والملصقات</button>
         </div>
     </div>
 </div>
+
+<!-- ❄️ 8. تبويب مؤثرات الجو (Particle Effects) -->
+<div id="tabContent_particlesTab" class="studio-tab-content" style="display: none;">
+    <div style="background: var(--bg2); padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 15px; font-size: 12px;">
+        <strong style="color: var(--gold); font-size: 14px; display: block; margin-bottom: 10px;">❄️ اختر تأثير الجو المتحرك:</strong>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; margin-bottom: 15px;">
+            <button onclick="window.selectParticleType('none', this)" class="particle-type-btn active-particle" style="background: var(--gold); color: #111; border: none; padding: 8px; border-radius: 8px; font-size: 11px; cursor: pointer; font-weight: bold;">🚫 بدون تأثير</button>
+            <button onclick="window.selectParticleType('snow', this)" class="particle-type-btn" style="background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 8px; border-radius: 8px; font-size: 11px; cursor: pointer;">❄️ ثلج متساقط</button>
+            <button onclick="window.selectParticleType('stars', this)" class="particle-type-btn" style="background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 8px; border-radius: 8px; font-size: 11px; cursor: pointer;">✨ نجوم متلألئة</button>
+            <button onclick="window.selectParticleType('goldDust', this)" class="particle-type-btn" style="background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 8px; border-radius: 8px; font-size: 11px; cursor: pointer;">🌟 غبار ذهبي عائم</button>
+            <button onclick="window.selectParticleType('shootingStars', this)" class="particle-type-btn" style="background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 8px; border-radius: 8px; font-size: 11px; cursor: pointer;">💫 شهب متساقطة</button>
+            <button onclick="window.selectParticleType('rain', this)" class="particle-type-btn" style="background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 8px; border-radius: 8px; font-size: 11px; cursor: pointer;">🌧️ مطر خفيف</button>
+            <button onclick="window.selectParticleType('leaves', this)" class="particle-type-btn" style="background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 8px; border-radius: 8px; font-size: 11px; cursor: pointer;">🍃 ورق متطاير</button>
+            <button onclick="window.selectParticleType('sparks', this)" class="particle-type-btn" style="background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 8px; border-radius: 8px; font-size: 11px; cursor: pointer;">🔥 شرر متصاعد</button>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <div>
+                <div style="display:flex; justify-content:space-between; color:var(--text2);"><span>🔢 الكمية (Density):</span> <span id="particleDensityLabel">50</span></div>
+                <input type="range" id="particleDensitySlider" min="5" max="200" value="50" oninput="window.updateParticleEffect()" style="width:100%; accent-color:var(--gold);">
+            </div>
+            <div>
+                <div style="display:flex; justify-content:space-between; color:var(--text2);"><span>⚡ السرعة:</span> <span id="particleSpeedLabel">1.0x</span></div>
+                <input type="range" id="particleSpeedSlider" min="0.2" max="3.0" step="0.1" value="1.0" oninput="window.updateParticleEffect()" style="width:100%; accent-color:var(--gold);">
+            </div>
+            <div>
+                <div style="display:flex; justify-content:space-between; color:var(--text2);"><span>🔍 الحجم:</span> <span id="particleSizeLabel">1.0x</span></div>
+                <input type="range" id="particleSizeSlider" min="0.3" max="3.0" step="0.1" value="1.0" oninput="window.updateParticleEffect()" style="width:100%; accent-color:var(--gold);">
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- 🥞 7. تبويب الطبقات والسجل وإدارة الأصول -->
 
 
 <!-- 🥞 7. تبويب الطبقات والسجل وإدارة الأصول -->
@@ -644,8 +821,8 @@ window.renderStudioUI = function() {
 
                     <div style="margin-bottom: 10px;">
                         <label style="display:block; color:var(--text2); margin-bottom:4px;">🎭 شكل كادر الفيديو (Video Mask):</label>
-                        <select id="videoMaskSelect" onchange="window.studioEngine.videoMaskShape = this.value" style="width:100%; padding:6px; border-radius:6px; background:var(--card); color:var(--text); border:1px solid var(--border);">
-                            <option value="none">مستطيل عادي (كلاسيكي)</option>
+<select id="videoMaskSelect" onchange="window.studioEngine.videoMaskShape = this.value; if(typeof window.drawStudioCanvas === 'function') window.drawStudioCanvas();" style="width:100%; padding:6px; border-radius:6px; background:var(--card); color:var(--text); border:1px solid var(--border);">
+<option value="none">مستطيل عادي (كلاسيكي)</option>
                             <option value="rounded">حواف مدورة ناعمة (Rounded)</option>
                             <option value="circle">شكل دائري / بيضاوي (Circle)</option>
                             <option value="arch">قوس محراب إسلامي (Islamic Arch)</option>
@@ -1422,8 +1599,10 @@ window.updateStudioLayoutConfig = function() {
     
     e.textX = canvas.width / 2;
     e.textY = canvas.height * 0.8;
-    e.logoX = canvas.width - 150;
+  e.logoX = canvas.width - 150;
     e.logoY = 40;
+
+    if (e.particleSystem) e.particleSystem.init(canvas.width, canvas.height);
 
     window.updateEstimatedSize();
 };
@@ -1520,7 +1699,8 @@ window.startCanvasRenderLoop = function() {
 
     if (!video || !canvas || !ctx) return;
 
-    function drawFrame() {
+  function drawFrame() {
+      try {
         // 1. التحكم بحدود الكليب (التايم لاين) فقط أثناء التشغيل
 if (!video.paused && !video.ended) {
     const currentClip = e.clips[e.selectedClipIndex];
@@ -1572,9 +1752,13 @@ if (!video.paused && !video.ended) {
         const mask = e.videoMaskShape || 'none';
         if (mask !== 'none') {
             ctx.beginPath();
-            if (mask === 'rounded') {
+         if (mask === 'rounded') {
                 const rx = 0, ry = 0, rw = canvas.width, rh = canvas.height, radius = 40;
-                ctx.roundRect(rx + 15, ry + 15, rw - 30, rh - 30, radius);
+                if (ctx.roundRect) {
+                    ctx.roundRect(rx + 15, ry + 15, rw - 30, rh - 30, radius);
+                } else {
+                    ctx.rect(rx + 15, ry + 15, rw - 30, rh - 30);
+                }
             } else if (mask === 'circle') {
                 ctx.ellipse(canvas.width / 2, canvas.height / 2, canvas.width * 0.42, canvas.height * 0.42, 0, 0, 2 * Math.PI);
             } else if (mask === 'arch') {
@@ -1763,6 +1947,12 @@ if (!video.paused && !video.ended) {
             ctx.drawImage(e.logoImage, e.logoX, e.logoY, currentLogoSize, currentLogoSize * (e.logoImage.height / e.logoImage.width));
         }
 
+ // ❄️ رسم طبقة المؤثرات الجوية (ثلج، نجوم، غبار ذهبي، إلخ)
+        if (e.particleSystem && e.particleSystem.type !== 'none') {
+            e.particleSystem.update(canvas.width, canvas.height);
+            e.particleSystem.draw(ctx);
+        }
+          
         // 📐 المحاذاة الذكية (Smart Guides)
         if (e.isDragging && e.renderCanvas) {
             const centerX = canvas.width / 2;
@@ -1779,7 +1969,9 @@ if (!video.paused && !video.ended) {
             }
             ctx.restore();
         }
-
+ catch (err) {
+        console.error('⚠️ خطأ أثناء رسم الإطار:', err);
+      }
       if (e.isExporting) {
             e.animFrameId = setTimeout(drawFrame, 33); // ~30fps حتى لو التاب في الخلفية
         } else {
@@ -2763,9 +2955,15 @@ window.drawStudioCanvas = function () {
         if (e.keyframes && e.keyframes['logoScale'] && e.keyframes['logoScale'].length > 0) {
             currentLogoSize = AthrKeyframeEngine.getValueAtTime(e.keyframes['logoScale'], vid.currentTime, e.logoSize);
         }
-        ctx.globalAlpha = e.logoOpacity || 0.9;
+    ctx.globalAlpha = e.logoOpacity || 0.9;
         ctx.drawImage(e.logoImage, e.logoX, e.logoY, currentLogoSize, currentLogoSize * (e.logoImage.height / e.logoImage.width));
         ctx.restore();
+    }
+
+    // ❄️ رسم طبقة المؤثرات الجوية أثناء التصدير أيضاً
+    if (e.particleSystem && e.particleSystem.type !== 'none') {
+        e.particleSystem.update(canvas.width, canvas.height);
+        e.particleSystem.draw(ctx);
     }
 };
 
@@ -2935,12 +3133,8 @@ window.exportStudioOffline = async function() {
     const engine = window.studioEngine;
     const video = engine.videoElement;
     const canvas = engine.renderCanvas;
-    const log = document.getElementById('studioStatusLog');
-// حط السطرين دول تحت try { مباشرة في exportStudioOffline:
-console.log("🎬 [Export Offline Debug] بدء استخراج الـ Audio Buffer بالـ Offline Context...");
-const audioBuffer = await window.extractAudioBufferFromVideo(video, startTime, endTime);
-console.log("📊 [Export Offline Debug] نتيجة الـ AudioBuffer المستخرج:", audioBuffer ? `SampleRate: ${audioBuffer.sampleRate}, Channels: ${audioBuffer.numberOfChannels}` : "لم يستخرج أي صوت (فارغ!)");
-    
+  const log = document.getElementById('studioStatusLog');
+
     if (!video || !canvas || !video.src) {
         alert("⚠️ يرجى رفع مقطع فيديو أولاً!");
         return;
@@ -3285,4 +3479,51 @@ window.exportStudioPureAudio = async function() {
         console.error("❌ خطأ استخراج الصوت:", err);
         log.textContent = "❌ حدث خطأ أثناء استخراج الصوت.";
     }
+};
+
+
+window.selectParticleType = function(type, btnEl) {
+    document.querySelectorAll('.particle-type-btn').forEach(b => {
+        b.style.background = 'var(--card)';
+        b.style.color = 'var(--text)';
+        b.style.border = '1px solid var(--border)';
+        b.style.fontWeight = 'normal';
+    });
+    if (btnEl) {
+        btnEl.style.background = 'var(--gold)';
+        btnEl.style.color = '#111';
+        btnEl.style.border = 'none';
+        btnEl.style.fontWeight = 'bold';
+    }
+
+    const e = window.studioEngine;
+    e.particleSystem.type = type;
+
+    const canvas = e.renderCanvas;
+    if (canvas) e.particleSystem.init(canvas.width, canvas.height);
+
+    document.getElementById('studioStatusLog').textContent = type === 'none'
+        ? '🚫 تم إيقاف تأثيرات الجو'
+        : '✨ تم تفعيل التأثير! يمكنك التحكم في كميته وسرعته من السلايدرات تحت.';
+};
+
+window.updateParticleEffect = function() {
+    const e = window.studioEngine;
+    const density = parseInt(document.getElementById('particleDensitySlider')?.value || 50);
+    const speed = parseFloat(document.getElementById('particleSpeedSlider')?.value || 1.0);
+    const size = parseFloat(document.getElementById('particleSizeSlider')?.value || 1.0);
+
+    e.particleSystem.density = density;
+    e.particleSystem.speed = speed;
+    e.particleSystem.size = size;
+
+    const canvas = e.renderCanvas;
+    if (canvas) e.particleSystem.init(canvas.width, canvas.height);
+
+    const dLabel = document.getElementById('particleDensityLabel');
+    const sLabel = document.getElementById('particleSpeedLabel');
+    const zLabel = document.getElementById('particleSizeLabel');
+    if (dLabel) dLabel.textContent = density;
+    if (sLabel) sLabel.textContent = speed.toFixed(1) + 'x';
+    if (zLabel) zLabel.textContent = size.toFixed(1) + 'x';
 };
