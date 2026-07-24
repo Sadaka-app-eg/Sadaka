@@ -1323,8 +1323,7 @@ body.hide-controls #quran {
     <button class="cat-btn active" onclick="showAzkar('sabah',this)">🌅 الصباح</button>
     <button class="cat-btn" onclick="showAzkar('masa',this)">🌆 المساء</button>
     <button class="cat-btn" onclick="showAzkar('nawm',this)">🌙 النوم</button>
-   <button class="cat-btn" onclick="showAzkar('istiqadh',this)">☀️ الاستيقاظ</button> <!-- 🌟 اضف هذا السطر هنا -->
-
+    <button class="cat-btn" onclick="showAzkar('istiqadh',this)">☀️ الاستيقاظ</button>
     <button class="cat-btn" onclick="showAzkar('salah',this)">🕌 بعد الصلاة</button>
   </div>
   <div id="azkarList"></div>
@@ -1352,20 +1351,14 @@ body.hide-controls #quran {
     <div class="tasbeh-totals" id="tasbehTotal"></div>
   </div>
 </div>
+
 <!-- AWKAT -->
-<!-- واجهة مواقيت الصلاة المتطورة بالزرين المطلوبين فقط (القبلة وأقرب مسجد) -->
 <div class="page" id="awkat">
-  
-  <!-- كارت العداد المدمج الملون (تصميم الصورة 66056.jpg) -->
   <div style="background: linear-gradient(135deg, #123524 0%, #0b120c 100%); border-radius: 24px; padding: 24px; border: 1px solid rgba(212,175,55,0.15); display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; color: #fff; box-shadow: 0 8px 25px rgba(0,0,0,0.3);">
-    
-    <!-- العداد الدائري والتنازلي على اليسار -->
     <div style="position: relative; width: 130px; height: 130px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); border-radius: 50%; border: 3px solid var(--border);">
       <div id="countdownTimer" style="font-size: 24px; font-weight: bold; font-family: monospace; color: var(--gold);">00:00:00</div>
       <div id="countdownLabel" style="font-size: 11px; color: #9aa79c; margin-top: 4px;">متبقي على الأذان</div>
     </div>
-
-    <!-- بيانات الصلاة الحالية والمنطقة على اليمين -->
     <div style="text-align: right; flex: 1; padding-right: 20px; display: flex; flex-direction: column; gap: 8px;">
       <div>
         <div style="font-size: 12px; color: #9aa79c;">الصلاة القادمة</div>
@@ -1380,19 +1373,14 @@ body.hide-controls #quran {
     </div>
   </div>
 
-  <!-- التواريخ الهجرية والميلادية المدمجة -->
   <div style="background: var(--card); border-radius: 16px; padding: 14px; border: 1px solid var(--border); text-align: center; margin-bottom: 16px; display: flex; justify-content: space-around; align-items: center;">
     <div id="hijriDate" style="font-size: 14px; font-weight: bold; color: var(--gold);"></div>
     <div id="gregorianDate" style="font-size: 14px; color: var(--text);"></div>
   </div>
 
-  <!-- شبكة مواقيت الصلوات الخمس والشروق -->
   <div id="prayerTimes" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 24px;"></div>
 
-  <!-- 🌟 الأزرار السفلية المطلوبة فقط (القبلة وأقرب مسجد) 🌟 -->
   <div style="display: flex; justify-content: center; gap: 40px; margin-top: 15px; text-align: center; width: 100%;">
-    
-    <!-- زر القبلة مستقل (يفتح صفحة القبلة المخصصة) -->
     <div onclick="showPage('qiblaPage', null)" style="cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px;">
       <div style="background: #ffffff; width: 70px; height: 70px; border-radius: 18px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(0,0,0,0.1); border: 1px solid var(--border);">
         <span style="font-size: 34px;">🧭</span>
@@ -1400,19 +1388,16 @@ body.hide-controls #quran {
       <span style="font-size: 14px; color: var(--text); font-family: 'Amiri', serif; font-weight: bold;">القبلة</span>
     </div>
 
-    <!-- زر أقرب مسجد (يفتح خرائط جوجل مباشرة لإحداثيات المستخدم) -->
     <div onclick="window.openNearestMosque()" style="cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px;">
       <div style="background: #ffffff; width: 70px; height: 70px; border-radius: 18px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(0,0,0,0.1); border: 1px solid var(--border);">
         <span style="font-size: 34px;">📍</span>
       </div>
       <span style="font-size: 14px; color: var(--text); font-family: 'Amiri', serif; font-weight: bold;">أقرب مسجد</span>
     </div>
-
   </div>
-
 </div>
 
-<!-- صفحة اتجاه القبلة المستقلة التابعة للزر السفلية -->
+<!-- QIBLA PAGE -->
 <div class="page" id="qiblaPage">
   <div class="qibla-card" style="margin-top: 20px;">
     <div style="font-size:16px; color:var(--gold); font-family:'Amiri',serif; margin-bottom:4px; font-weight: bold;">🧭 اتجاه القبلة الذكي</div>
@@ -1434,19 +1419,15 @@ body.hide-controls #quran {
   </div>
 </div>
 
- 
- <!-- ASMA2 -->
+<!-- ASMA2 -->
 <div class="page" id="asma2">
   <input class="asma2-search-box" placeholder="🔍 ابحث باسم أو رقم..." oninput="filterAsma2(this.value)">
   <div id="asma2List"></div>
 </div>
 
-<!-- KHATMA -->
-        <!-- 🧠 حط كود قسم خطة الحفظ والمراجعة الجديد هنا بالظبط تحت قفلة الكارت القديم -->
-    <!-- KHATMA PAGE -->
+<!-- KHATMA PAGE -->
 <div class="page" id="khatma">
-  
-  <!-- 1. واجهة إعداد الختمة (تظهر في البداية فقط) -->
+  <!-- 1. واجهة إعداد الختمة -->
   <div id="khatmaSetup">
     <div style="background:var(--card);border-radius:20px;padding:20px;border:1px solid var(--border);text-align:center;margin-bottom:14px;">
       <div style="font-size:16px;color:var(--gold);font-family:'Amiri',serif;margin-bottom:14px;">📿 ابدأ خطة ختم القرآن</div>
@@ -1459,14 +1440,13 @@ body.hide-controls #quran {
           <button onclick="startCustomKhatma()" class="cat-btn" style="padding:12px 20px;background:var(--gold);color:#111;">ابدأ</button>
         </div>
       </div>
-    </div> <!-- قفلة كارت الختمة القديم -->
+    </div>
 
-    <!-- 🧠 قسم خطة الحفظ والمراجعة الجديد (مدمج بأمان بالداخل) -->
+    <!-- قسم خطة الحفظ والمراجعة -->
     <div style="background:var(--card);border-radius:20px;padding:20px;border:1px solid var(--border);text-align:center;margin-top:20px; border-right: 4px solid var(--green);">
       <div style="font-size:16px;color:var(--green);font-family:'Amiri',serif;margin-bottom:10px;font-weight:bold;">🧠 خطة الحفظ والمراجعة</div>
       <p style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.6;">حدد مدة الختمة وأيام إجازتك الأسبوعية لنرسم لك خطتك بدقة</p>
 
-      <!-- خانات إدخال الخطة -->
       <div id="memoSetupForm">
         <div style="display:flex;gap:8px;margin-bottom:10px;">
           <input type="number" id="memoTotalDays" placeholder="المدة (مثال: 365 يوم)" min="30" style="flex:1;padding:12px;border-radius:12px;background:var(--bg2);color:var(--text);border:1px solid var(--border);font-family:'Amiri',serif;font-size:13px;text-align:center;outline:none;">
@@ -1475,43 +1455,20 @@ body.hide-controls #quran {
         <button onclick="calculateMemoPlan()" class="cat-btn" style="width:100%;padding:12px 20px;background:var(--green);color:#fff;border-color:var(--green);font-size:15px;font-weight:bold;cursor:pointer;">احسب خطتي الآن</button>
       </div>
 
-      <!-- نتيجة الخطة بعد الحساب (مخفية في البداية) -->
       <div id="memoPlanResult" style="display:none; background: rgba(0,0,0,0.15); padding: 15px; border-radius: 12px; margin-top: 15px; border: 1px dashed var(--green);"></div>
 
-      <!-- قسم نصائح وفضائل الحفظ -->
       <div style="margin-top: 15px; background: rgba(212,175,55,0.1); padding: 12px; border-radius: 12px; font-size: 13px; color: var(--text); border-right: 2px solid var(--gold); text-align: justify; line-height: 1.8;">
         <span id="memoTipText">جاري تحميل النصيحة...</span>
       </div>
     </div>
-    <!-- 🧠 نهاية قسم الحفظ الجديد -->            
-  </div> <!-- قفلة الـ khatmaSetup الكبيرة الصحيحة بالملي -->
+  </div>
 
-  <!-- 2. نتيجة الختمة والورد اليومي (تظهر بعد الحفظ والضغط على ابدأ) -->
+  <!-- 2. نتيجة الختمة والورد اليومي -->
   <div id="khatmaDisplay" style="display:none;">
     <div style="background:var(--card);border-radius:20px;padding:20px;border:1px solid var(--border);margin-bottom:14px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
         <span style="color:var(--gold);font-family:'Amiri',serif;font-size:15px;">📊 تقدمك</span>
         <span id="khatmaProgressText" style="color:var(--gold);font-weight:700;font-size:18px;">0%</span>
-      </div>
-      <div class="tasbeh-progress"><div id="khatmaProgressBar" class="tasbeh-bar" style="width:0%"></div></div>
-      <div id="khatmaStats" style="font-size:12px;color:var(--text2);margin-top:12px;line-height:2;font-family:'Amiri',serif;"></div>
-    </div>
-    <div id="todayWird" style="margin-bottom:14px;"></div>
-    <div style="font-size:14px;color:var(--gold);margin-bottom:10px;font-family:'Amiri',serif;">📖 السور</div>
-    <div id="completedSurahs" style="display:grid;gap:8px;margin-bottom:14px;"></div>
-    <button onclick="resetKhatma()" class="reset-btn" style="width:100%;">↺ إعادة تعيين الختمة</button>
-  </div>
-
-</div> <!-- القفلة النهائية لصفحة الـ khatma الكبيرة بالملي -->
-
-     </div> <!-- السطر 893 الحالي عندك (قفلة الـ page الكبيرة) -->
-
-
-  <div id="khatmaDisplay" style="display:none;">
-    <div style="background:var(--card);border-radius:20px;padding:20px;border:1px solid var(--border);margin-bottom:14px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-        <span style="color:var(--gold);font-family:'Amiri',serif;font-size:15px;">📊 تقدمك</span>
-        <span id="khatmaProgressText" style="color:var(--gold);font-weight:700;font-size:18px;"></span>
       </div>
       <div class="tasbeh-progress"><div id="khatmaProgressBar" class="tasbeh-bar" style="width:0%"></div></div>
       <div id="khatmaStats" style="font-size:12px;color:var(--text2);margin-top:12px;line-height:2;font-family:'Amiri',serif;"></div>
