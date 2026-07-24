@@ -295,8 +295,8 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
 }
 /* Mushaf Pages */
 .mushaf-pages-wrap{position:absolute;top:0;left:0;right:0;bottom:0;overflow:hidden;z-index:1;}
-  .mushaf-slider{display:flex;flex-direction:row;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;height:100%;scrollbar-width:none;}
-.mushaf-slider::-webkit-scrollbar{display:none;}
+.mushaf-slider{display:flex;flex-direction:row;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;height:100%;scrollbar-width:none;}
+  .mushaf-slider::-webkit-scrollbar{display:none;}
 .mushaf-page {
   flex: 0 0 100vw !important;
   width: 100vw !important;
@@ -3703,7 +3703,7 @@ function getSurahByPageNumber(pageNum) {
 
 // 3. دالة فتح السورة الشاملة
 // =========================================================================
-// 🚀 دالة فتح السورة المستقرة والمضبوطة بالملي 100%
+// 🚀 دالة فتح السورة (انضباط الأسطر 100% + سلاسة الحركة)
 // =========================================================================
 async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
   currentSurah = surahs.find(s => s.n === n);
@@ -3732,14 +3732,13 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
     targetP = targetPageNumber;
   }
 
-  // 🎯 تحميل صفحات السورة المحددة فقط بالكامل من بدايتها لنهايتها بالضبط
   const minPage = surahStartP;
   const maxPage = surahEndP;
 
   try {
     let allVerses = [];
 
-    // ⚡ جلب كافة صفحات السورة بالتوازي من IndexedDB لسرعة 0 ثانية
+    // جلب بيانات صفحات السورة بالتوازي
     const pagePromises = Array.from({ length: maxPage - minPage + 1 }, (_, i) => minPage + i).map(async (p) => {
       let pageData = await getCachedSurahDB(`page_${p}`);
       if (!pageData) {
@@ -3789,7 +3788,8 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
     const pageNums = Object.keys(pagesDict).map(Number).sort((a,b) => a-b);
     window.currentSurahPages = pageNums;
 
-    pageNums.forEach(p => loadQcfPageFont(p));
+    // 🎯 الضمان الأول: انتظار تمام تحميل الخطوط العثمانية لكل الصفحات قبل الرسم
+    await Promise.all(pageNums.map(p => loadQcfPageFont(p)));
 
     let sliderHtml = '';
 
@@ -3800,15 +3800,15 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
 
       sliderHtml += `<div class="mushaf-page" id="mpage_${pageNum}" data-page="${pageNum}">`;
       
-      // 1️⃣ الهيدر العلوي
+      // الهيدر العلوي
       sliderHtml += `
-        <div style="display:flex; justify-content:space-between; align-items:center; width:100%; padding:2px 4px 6px; font-size:13px; font-weight:bold; color:var(--text2); border-bottom:1px solid rgba(212,175,55,0.12); margin-bottom:4px; font-family:'Amiri', serif; flex-shrink:0;">
-          <span>${headerRightText}</span>
-          <span>سُورَةُ ${pageSurah ? pageSurah.name : ''}</span>
+        <div style="display:flex; justify-content:space-between; align-items:center; width:100%; padding:2px 6px; font-size:12px; font-weight:bold; color:var(--text2); border-bottom:1px solid rgba(212,175,55,0.12); margin-bottom:4px; font-family:'Amiri', serif; flex-shrink:0; white-space:nowrap; overflow:hidden;">
+          <span style="overflow:hidden; text-overflow:ellipsis; max-width:65%;">${headerRightText}</span>
+          <span style="flex-shrink:0;">سُورَةُ ${pageSurah ? pageSurah.name : ''}</span>
         </div>
       `;
 
-      // 2️⃣ أسطر الآيات
+      // أسطر الآيات
       sliderHtml += `<div style="flex:1; display:flex; flex-direction:column; justify-content:${isSpecialPage ? 'center' : 'space-between'}; width:100%; overflow:hidden;">`;
 
       const lines = Object.keys(pagesDict[pageNum]).map(Number).sort((a, b) => a - b);
@@ -3836,12 +3836,13 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
           }
         }
 
-        sliderHtml += `<div style="display:flex; ${lineJustify} align-items:center; width:100%; min-height: calc(100% / 15); overflow:visible;">`;
+        // 🎯 الضمان الثاني: تثبيت السطر أفقي محذى 100% بدون انكسار
+        sliderHtml += `<div style="display:flex; flex-direction:row; ${lineJustify} align-items:center; width:100%; min-height: calc(100% / 15); overflow:visible; white-space:nowrap;">`;
         
         lineWords.forEach(w => {
           const ayahIndex = currentAyahsData.findIndex(a => a.surahNumber === w.vSurah && a.numberInSurah === w.vAyah);
           sliderHtml += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}"
-            style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:1.9; display:inline-flex; align-items:center; user-select:none;"
+            style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:1.9; display:inline-flex; align-items:center; user-select:none; white-space:nowrap;"
             ontouchstart="startPress(event, ${ayahIndex})"
             ontouchmove="cancelPress(event)"
             ontouchend="cancelPress(event); if(!isScrolling && window.isPickingEndAyah){ handleAyahClick(${ayahIndex}); }">
@@ -3853,7 +3854,7 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
 
       sliderHtml += `</div>`;
 
-      // 3️⃣ الفوتر السفلي
+      // الفوتر السفلي
       sliderHtml += `<div class="page-footer" style="text-align:center; font-weight:bold; font-size:12px; color:var(--gold); padding-top:2px; margin-top:auto; border-top:1px solid rgba(212,175,55,0.12); flex-shrink:0;">صفحة ${toAr(pageNum)}</div>`;
       
       sliderHtml += `</div>`;
@@ -3863,12 +3864,12 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
 
     attachMushafEdgeSwipe();
 
-    // 🎯 التوجيه المباشر للصفحة المطلوبة
+    // التوجيه المباشر والدقيق
     const targetIdx = pageNums.indexOf(targetP);
     if (targetIdx !== -1) {
-      setTimeout(() => {
+      requestAnimationFrame(() => {
         window.scrollToMushafIndex(targetIdx);
-      }, 50);
+      });
     }
 
     renderBookmarkHighlight();
@@ -7848,85 +7849,53 @@ function getMushafPageIndex(slider) {
 
 function attachMushafEdgeSwipe() {
   const slider = document.getElementById('mushafSlider');
-  if (!slider) {
-    console.error("❌ السلايدر mushafSlider غير موجود بالصفحة!");
-    return;
-  }
+  if (!slider) return;
 
-  const newSlider = slider.cloneNode(false);
-  while (slider.firstChild) newSlider.appendChild(slider.firstChild);
-  slider.parentNode.replaceChild(newSlider, slider);
-
-  newSlider.addEventListener('touchstart', (e) => {
-    mushafSwipeStartX = e.touches[0].clientX;
-    console.log("👇 بداية السحب - X:", mushafSwipeStartX);
-  }, { passive: true });
-
-  newSlider.addEventListener('touchend', (e) => {
-    if (mushafSwipeLocked) {
-      console.warn("⚠️ السحب معطل حالياً (mushafSwipeLocked = true)");
-      return;
+  // استخدام متغيرات على مستوى window لمنع التكرار والتراكم
+  slider.ontouchstart = (e) => {
+    if (e.touches && e.touches.length > 0) {
+      window.mushafSwipeStartX = e.touches[0].clientX;
     }
+  };
 
+  slider.ontouchend = (e) => {
+    if (window.mushafSwipeLocked || !window.mushafSwipeStartX) return;
+
+    if (!e.changedTouches || e.changedTouches.length === 0) return;
     const endX = e.changedTouches[0].clientX;
-    const deltaX = endX - mushafSwipeStartX;
-    const total = newSlider.children.length;
-    const idx = getMushafPageIndex(newSlider);
+    const deltaX = endX - window.mushafSwipeStartX;
 
-    console.log(`📊 نهاية السحب | DeltaX: ${deltaX.toFixed(1)} | المؤشر الحالي: ${idx} من إجمالي ${total} صفحات`);
+    // حساسية السحب (55 بكسل)
+    if (Math.abs(deltaX) < 55) return;
 
-    if (Math.abs(deltaX) < 55) {
-      console.log("ℹ️ مسافة السحب ضعيفة جداً (أقل من 55px)");
-      return;
-    }
-
-    const currentPageEl = newSlider.children[idx];
-    if (!currentPageEl) {
-      console.error("❌ لم نتمكن من الوصول لعنصر الصفحة الحالية في الـ DOM!");
-      return;
-    }
+    const total = slider.children.length;
+    const idx = getMushafPageIndex(slider);
+    const currentPageEl = slider.children[idx];
+    if (!currentPageEl) return;
 
     const currentP = parseInt(currentPageEl.getAttribute('data-page'));
-    console.log("📍 رقم الصفحة المستخرج من العنصر (data-page):", currentP);
 
+    // التقدم (سحب لليسار) عند آخر صفحة
     if (deltaX < 0 && idx >= total - 1) {
-      console.log("🚀 محاولة التقدم للصفحة التالية...");
       if (currentP && currentP < 604) {
-        mushafSwipeLocked = true;
+        window.mushafSwipeLocked = true;
         const nextP = currentP + 1;
         const nextS = getSurahByPageNumber(nextP);
-        console.log(`➡️ سينتقل الآن للصفحة رقم ${nextP} (سورة ${nextS ? nextS.name : 'غير معروفة'})`);
-        
-        openSurah(nextS.n, null, nextP).then(() => {
-          console.log("✅ تمت عملية فتح الصفحة بنجاح!");
-        }).catch(err => {
-          console.error("❌ حدث خطأ أثناء فتح الصفحة:", err);
-        });
-
-        setTimeout(() => { mushafSwipeLocked = false; }, 600);
-      } else {
-        console.warn("⚠️ وصلنا لنهاية المصحف (صفحة 604) أو رقم الصفحة غير صحيح.");
+        openSurah(nextS.n, null, nextP);
+        setTimeout(() => { window.mushafSwipeLocked = false; }, 400);
       }
-    } else if (deltaX > 0 && idx <= 0) {
-      console.log("⬅️ محاولة الرجوع للصفحة السابقة...");
+    } 
+    // الرجوع (سحب لليمن) عند أول صفحة
+    else if (deltaX > 0 && idx <= 0) {
       if (currentP && currentP > 1) {
-        mushafSwipeLocked = true;
+        window.mushafSwipeLocked = true;
         const prevP = currentP - 1;
         const prevS = getSurahByPageNumber(prevP);
-        console.log(`⬅️ سينتقل الآن للصفحة رقم ${prevP} (سورة ${prevS ? prevS.name : 'غير معروفة'})`);
-        
-        openSurah(prevS.n, null, prevP).then(() => {
-          console.log("✅ تمت عملية فتح الصفحة بنجاح!");
-        }).catch(err => {
-          console.error("❌ حدث خطأ أثناء فتح الصفحة:", err);
-        });
-
-        setTimeout(() => { mushafSwipeLocked = false; }, 600);
+        openSurah(prevS.n, null, prevP);
+        setTimeout(() => { window.mushafSwipeLocked = false; }, 400);
       }
-    } else {
-      console.log("ℹ️ السحب تم داخل حدود الصفحات المحملة بالفعل وليس عند الحافة.");
     }
-  }, { passive: true });
+  };
 }
 
 // تفعيل الدوس على الشاشة لإظهار/إخفاء عناصر التحكم
