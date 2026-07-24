@@ -1699,291 +1699,291 @@ window.startCanvasRenderLoop = function() {
 
     if (!video || !canvas || !ctx) return;
 
-  function drawFrame() {
-      try {
-        // 1. التحكم بحدود الكليب (التايم لاين) فقط أثناء التشغيل
-if (!video.paused && !video.ended) {
-    const currentClip = e.clips[e.selectedClipIndex];
-    if (currentClip && video.currentTime >= (currentClip.end - 0.05)) {
-        if (e.selectedClipIndex < e.clips.length - 1) {
-            e.selectedClipIndex++;
-            video.currentTime = e.clips[e.selectedClipIndex].start;
-            window.renderTimelineUI();
-        } else {
-            // 🛑 وصلنا لنهاية الفيديو أو الكليب الأخير: نعمل وقف تام
-            video.pause();
-            if (window.studioEngine.ambientAudioEl) {
-                window.studioEngine.ambientAudioEl.pause();
-            }
-        }
-    }
-}
-
-        const currentClip = e.clips[e.selectedClipIndex];
-        const timeInClip = video.currentTime - (currentClip ? currentClip.start : 0);
-        const transType = e.transitions[e.selectedClipIndex - 1] || 'none';
-        const transDuration = 1.0;
-
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.save();
-
-        // 🎨 أ) رسم خلفية الشاشة (صورة مخصصة أو مموهة أو أسود)
-        if (e.bgCustomImage) {
-            ctx.save();
-            ctx.globalAlpha = e.bgImageOpacity;
-            const scale = e.bgImageScale || 1.0;
-            const imgW = canvas.width * scale;
-            const imgH = canvas.height * scale;
-            const imgX = (canvas.width - imgW) / 2;
-            const imgY = (canvas.height - imgH) / 2;
-            ctx.drawImage(e.bgCustomImage, imgX, imgY, imgW, imgH);
-            ctx.restore();
-        } else if (e.aspectBgStyle === "blur") {
-            ctx.save();
-            ctx.filter += ' blur(25px) brightness(0.4)';
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            ctx.restore();
-        } else {
-            ctx.fillStyle = "#0a0f0d";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-        }
-
-        // 🎭 ب) تطبيق قناع الشكل على الفيديو (Video Masking)
-        const mask = e.videoMaskShape || 'none';
-        if (mask !== 'none') {
-            ctx.beginPath();
-         if (mask === 'rounded') {
-                const rx = 0, ry = 0, rw = canvas.width, rh = canvas.height, radius = 40;
-                if (ctx.roundRect) {
-                    ctx.roundRect(rx + 15, ry + 15, rw - 30, rh - 30, radius);
-                } else {
-                    ctx.rect(rx + 15, ry + 15, rw - 30, rh - 30);
+    function drawFrame() {
+        try {
+            // 1. التحكم بحدود الكليب (التايم لاين) فقط أثناء التشغيل
+            if (!video.paused && !video.ended) {
+                const currentClip = e.clips[e.selectedClipIndex];
+                if (currentClip && video.currentTime >= (currentClip.end - 0.05)) {
+                    if (e.selectedClipIndex < e.clips.length - 1) {
+                        e.selectedClipIndex++;
+                        video.currentTime = e.clips[e.selectedClipIndex].start;
+                        window.renderTimelineUI();
+                    } else {
+                        // 🛑 وصلنا لنهاية الفيديو أو الكليب الأخير: نعمل وقف تام
+                        video.pause();
+                        if (window.studioEngine.ambientAudioEl) {
+                            window.studioEngine.ambientAudioEl.pause();
+                        }
+                    }
                 }
-            } else if (mask === 'circle') {
-                ctx.ellipse(canvas.width / 2, canvas.height / 2, canvas.width * 0.42, canvas.height * 0.42, 0, 0, 2 * Math.PI);
-            } else if (mask === 'arch') {
-                const w = canvas.width, h = canvas.height;
-                ctx.moveTo(w * 0.1, h);
-                ctx.lineTo(w * 0.1, h * 0.35);
-                ctx.quadraticCurveTo(w * 0.1, h * 0.05, w * 0.5, h * 0.05);
-                ctx.quadraticCurveTo(w * 0.9, h * 0.05, w * 0.9, h * 0.35);
-                ctx.lineTo(w * 0.9, h);
-                ctx.closePath();
-            }
-            ctx.clip();
-        }
-
-        // --- جـ) تطبيق منطق الانتقالات البصرية ---
-        if (timeInClip < transDuration && transType !== 'none') {
-            const progress = timeInClip / transDuration;
-            if (transType === 'fade') {
-                ctx.globalAlpha = progress;
-            } else if (transType === 'slide') {
-                ctx.translate((1 - progress) * canvas.width, 0);
-            } else if (transType === 'zoom') {
-                const scale = 0.5 + (progress * 0.5);
-                ctx.translate(canvas.width/2, canvas.height/2);
-                ctx.scale(scale, scale);
-                ctx.translate(-canvas.width/2, -canvas.height/2);
-            } else if (transType === 'rotate') {
-                ctx.translate(canvas.width/2, canvas.height/2);
-                ctx.rotate(progress * 2 * Math.PI);
-                ctx.translate(-canvas.width/2, -canvas.height/2);
-            }
-        }
-
-        // د) رسم محتوى الفيديو الرئيسي (مع فحص حالة ظهور طبقة الفيديو)
-        const isVideoVisible = e.layerSettings && e.layerSettings.video ? e.layerSettings.video.visible : true;
-        
-        if (isVideoVisible) {
-            if (e.enableMirrorFlip) {
-                ctx.translate(canvas.width, 0);
-                ctx.scale(-1, 1);
             }
 
-            if (e.rotationAngle !== 0) {
-                ctx.translate(canvas.width / 2, canvas.height / 2);
-                ctx.rotate((e.rotationAngle * Math.PI) / 180);
-                ctx.translate(-canvas.width / 2, -canvas.height / 2);
-            }
+            const currentClip = e.clips[e.selectedClipIndex];
+            const timeInClip = video.currentTime - (currentClip ? currentClip.start : 0);
+            const transType = e.transitions[e.selectedClipIndex - 1] || 'none';
+            const transDuration = 1.0;
 
-            // 🎨 تطبيق فلاتر الألوان والـ Advanced Color Grading
-            let filterStr = "";
-            if (e.colorFilter === 'warm-gold') filterStr += 'sepia(0.35) contrast(1.1) brightness(1.05)';
-            else if (e.colorFilter === 'cinematic') filterStr += 'contrast(1.25) saturate(1.15) brightness(0.95)';
-            else if (e.colorFilter === 'bw') filterStr += 'grayscale(1) contrast(1.2)';
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
 
-            if (e.colorAdjustments) {
-                const ca = e.colorAdjustments;
-                if (ca.exposure) filterStr += ` brightness(${1 + ca.exposure / 100})`;
-                if (ca.contrast) filterStr += ` contrast(${1 + ca.contrast / 100})`;
-                if (ca.saturation) filterStr += ` saturate(${1 + ca.saturation / 100})`;
-                if (ca.hue) filterStr += ` hue-rotate(${ca.hue}deg)`;
-            }
-
-            if (filterStr.trim() !== "") {
-                ctx.filter = filterStr.trim();
-            }
-
-            if (e.aspectRatio === "9:16") {
-                const scale = Math.min(canvas.width / video.videoWidth, canvas.height / video.videoHeight);
-                const drawW = video.videoWidth * scale;
-                const drawH = video.videoHeight * scale;
-                ctx.drawImage(video, (canvas.width - drawW) / 2, (canvas.height - drawH) / 2, drawW, drawH);
-            } else {
+            // 🎨 أ) رسم خلفية الشاشة
+            if (e.bgCustomImage) {
+                ctx.save();
+                ctx.globalAlpha = e.bgImageOpacity;
+                const scale = e.bgImageScale || 1.0;
+                const imgW = canvas.width * scale;
+                const imgH = canvas.height * scale;
+                const imgX = (canvas.width - imgW) / 2;
+                const imgY = (canvas.height - imgH) / 2;
+                ctx.drawImage(e.bgCustomImage, imgX, imgY, imgW, imgH);
+                ctx.restore();
+            } else if (e.aspectBgStyle === "blur") {
+                ctx.save();
+                ctx.filter += ' blur(25px) brightness(0.4)';
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                ctx.restore();
+            } else {
+                ctx.fillStyle = "#0a0f0d";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
-        }
 
-        ctx.restore(); // نهاية رسم الفيديو
+            // 🎭 ب) تطبيق قناع الشكل على الفيديو
+            const mask = e.videoMaskShape || 'none';
+            if (mask !== 'none') {
+                ctx.beginPath();
+                if (mask === 'rounded') {
+                    const rx = 0, ry = 0, rw = canvas.width, rh = canvas.height, radius = 40;
+                    if (ctx.roundRect) {
+                        ctx.roundRect(rx + 15, ry + 15, rw - 30, rh - 30, radius);
+                    } else {
+                        ctx.rect(rx + 15, ry + 15, rw - 30, rh - 30);
+                    }
+                } else if (mask === 'circle') {
+                    ctx.ellipse(canvas.width / 2, canvas.height / 2, canvas.width * 0.42, canvas.height * 0.42, 0, 0, 2 * Math.PI);
+                } else if (mask === 'arch') {
+                    const w = canvas.width, h = canvas.height;
+                    ctx.moveTo(w * 0.1, h);
+                    ctx.lineTo(w * 0.1, h * 0.35);
+                    ctx.quadraticCurveTo(w * 0.1, h * 0.05, w * 0.5, h * 0.05);
+                    ctx.quadraticCurveTo(w * 0.9, h * 0.05, w * 0.9, h * 0.35);
+                    ctx.lineTo(w * 0.9, h);
+                    ctx.closePath();
+                }
+                ctx.clip();
+            }
 
-        // 📺 1. رسم طبقة الـ Picture-in-Picture (مع فحص زر الإظهار 👁️)
-        const isPipVisible = e.layerSettings && e.layerSettings.pip ? e.layerSettings.pip.visible : true;
-        if (e.pipOverlayImage && isPipVisible) {
-            ctx.save();
-            ctx.globalAlpha = e.pipOpacity || 0.9;
-            const pRatio = e.pipOverlayImage.height / e.pipOverlayImage.width;
-            ctx.drawImage(e.pipOverlayImage, e.pipX, e.pipY, e.pipSize, e.pipSize * pRatio);
+            // جـ) تطبيق منطق الانتقالات البصرية
+            if (timeInClip < transDuration && transType !== 'none') {
+                const progress = timeInClip / transDuration;
+                if (transType === 'fade') {
+                    ctx.globalAlpha = progress;
+                } else if (transType === 'slide') {
+                    ctx.translate((1 - progress) * canvas.width, 0);
+                } else if (transType === 'zoom') {
+                    const scale = 0.5 + (progress * 0.5);
+                    ctx.translate(canvas.width/2, canvas.height/2);
+                    ctx.scale(scale, scale);
+                    ctx.translate(-canvas.width/2, -canvas.height/2);
+                } else if (transType === 'rotate') {
+                    ctx.translate(canvas.width/2, canvas.height/2);
+                    ctx.rotate(progress * 2 * Math.PI);
+                    ctx.translate(-canvas.width/2, -canvas.height/2);
+                }
+            }
+
+            // د) رسم محتوى الفيديو الرئيسي
+            const isVideoVisible = e.layerSettings && e.layerSettings.video ? e.layerSettings.video.visible : true;
+            
+            if (isVideoVisible) {
+                if (e.enableMirrorFlip) {
+                    ctx.translate(canvas.width, 0);
+                    ctx.scale(-1, 1);
+                }
+
+                if (e.rotationAngle !== 0) {
+                    ctx.translate(canvas.width / 2, canvas.height / 2);
+                    ctx.rotate((e.rotationAngle * Math.PI) / 180);
+                    ctx.translate(-canvas.width / 2, -canvas.height / 2);
+                }
+
+                let filterStr = "";
+                if (e.colorFilter === 'warm-gold') filterStr += 'sepia(0.35) contrast(1.1) brightness(1.05)';
+                else if (e.colorFilter === 'cinematic') filterStr += 'contrast(1.25) saturate(1.15) brightness(0.95)';
+                else if (e.colorFilter === 'bw') filterStr += 'grayscale(1) contrast(1.2)';
+
+                if (e.colorAdjustments) {
+                    const ca = e.colorAdjustments;
+                    if (ca.exposure) filterStr += ` brightness(${1 + ca.exposure / 100})`;
+                    if (ca.contrast) filterStr += ` contrast(${1 + ca.contrast / 100})`;
+                    if (ca.saturation) filterStr += ` saturate(${1 + ca.saturation / 100})`;
+                    if (ca.hue) filterStr += ` hue-rotate(${ca.hue}deg)`;
+                }
+
+                if (filterStr.trim() !== "") {
+                    ctx.filter = filterStr.trim();
+                }
+
+                if (e.aspectRatio === "9:16") {
+                    const scale = Math.min(canvas.width / video.videoWidth, canvas.height / video.videoHeight);
+                    const drawW = video.videoWidth * scale;
+                    const drawH = video.videoHeight * scale;
+                    ctx.drawImage(video, (canvas.width - drawW) / 2, (canvas.height - drawH) / 2, drawW, drawH);
+                } else {
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                }
+            }
+
             ctx.restore();
-        }
 
-        // 🕌 2. رسم كافة الملصقات والرموز المضافة (مع فحص زر الإظهار 👁️)
-        const isStickersVisible = e.layerSettings && e.layerSettings.stickers ? e.layerSettings.stickers.visible : true;
-        if (e.stickersList && e.stickersList.length > 0 && isStickersVisible) {
-            e.stickersList.forEach(stk => {
+            // 1. Picture-in-Picture
+            const isPipVisible = e.layerSettings && e.layerSettings.pip ? e.layerSettings.pip.visible : true;
+            if (e.pipOverlayImage && isPipVisible) {
                 ctx.save();
-                ctx.globalAlpha = stk.opacity || 1.0;
-                if (stk.type === 'text') {
-                    ctx.font = `${stk.size || 55}px 'Amiri', serif`;
+                ctx.globalAlpha = e.pipOpacity || 0.9;
+                const pRatio = e.pipOverlayImage.height / e.pipOverlayImage.width;
+                ctx.drawImage(e.pipOverlayImage, e.pipX, e.pipY, e.pipSize, e.pipSize * pRatio);
+                ctx.restore();
+            }
+
+            // 2. الملصقات والرموز
+            const isStickersVisible = e.layerSettings && e.layerSettings.stickers ? e.layerSettings.stickers.visible : true;
+            if (e.stickersList && e.stickersList.length > 0 && isStickersVisible) {
+                e.stickersList.forEach(stk => {
+                    ctx.save();
+                    ctx.globalAlpha = stk.opacity || 1.0;
+                    if (stk.type === 'text') {
+                        ctx.font = `${stk.size || 55}px 'Amiri', serif`;
+                        ctx.fillStyle = "#d4af37";
+                        ctx.textAlign = "center";
+                        ctx.textBaseline = "middle";
+                        ctx.fillText(stk.content, stk.x, stk.y);
+                    } else if (stk.type === 'image' && stk.imgElement) {
+                        const imgH = stk.size * (stk.imgElement.height / stk.imgElement.width);
+                        ctx.drawImage(stk.imgElement, stk.x, stk.y, stk.size, imgH);
+                    }
+                    ctx.restore();
+                });
+            }
+
+            // 3. التأثيرات الإضافية
+            if (e.enableVignette) {
+                const grad = ctx.createRadialGradient(canvas.width/2, canvas.height/2, canvas.width*0.2, canvas.width/2, canvas.height/2, canvas.width*0.65);
+                grad.addColorStop(0, 'rgba(0,0,0,0)'); grad.addColorStop(1, 'rgba(0,0,0,0.7)');
+                ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+
+            if (e.enableIslamicFrame) {
+                const pad = canvas.width * 0.03;
+                ctx.strokeStyle = "#d4af37"; ctx.lineWidth = 12;
+                ctx.strokeRect(pad, pad, canvas.width - (pad*2), canvas.height - (pad*2));
+            }
+
+            // شريط اسم الشيخ
+            const isBannerVisible = e.layerSettings && e.layerSettings.banner ? e.layerSettings.banner.visible : true;
+            if ((e.speakerName || e.lessonTitle) && isBannerVisible) {
+                const bWidth = canvas.width * 0.55;
+                const bHeight = 75;
+                const bx = e.bannerX || 40;
+                const by = e.bannerY || (canvas.height - 120);
+
+                const bGrad = ctx.createLinearGradient(bx, by, bx + bWidth, by);
+                bGrad.addColorStop(0, 'rgba(15, 25, 20, 0.92)');
+                bGrad.addColorStop(1, 'rgba(15, 25, 20, 0.1)');
+
+                ctx.fillStyle = bGrad;
+                ctx.fillRect(bx, by, bWidth, bHeight);
+
+                ctx.fillStyle = "#d4af37";
+                ctx.fillRect(bx, by, 6, bHeight);
+
+                ctx.textAlign = "right";
+                if (e.speakerName) {
+                    ctx.font = `bold ${canvas.width * 0.03}px 'Amiri', serif`;
                     ctx.fillStyle = "#d4af37";
+                    ctx.fillText(e.speakerName, bx + bWidth - 15, by + 30);
+                }
+                if (e.lessonTitle) {
+                    ctx.font = `${canvas.width * 0.02}px 'Cairo', sans-serif`;
+                    ctx.fillStyle = "#ffffff";
+                    ctx.fillText(e.lessonTitle, bx + bWidth - 15, by + 58);
+                }
+            }
+
+            // النص الرئيسي
+            const isTextVisible = e.layerSettings && e.layerSettings.overlayText ? e.layerSettings.overlayText.visible : true;
+            if (e.overlayText && isTextVisible) {
+                ctx.fillStyle = e.textBgColor;
+                ctx.font = `bold ${e.textSize * (canvas.width / 800)}px ${e.textFont}`;
+                ctx.textAlign = "center";
+                ctx.fillText(e.overlayText, e.textX, e.textY);
+            }
+
+            // الآيات الموقوتة
+            if (e.timedCaptions && e.timedCaptions.length > 0 && isTextVisible) {
+                const currentTime = video.currentTime;
+                const currentCaption = e.timedCaptions.find(c => currentTime >= c.start && currentTime <= c.end);
+                
+                if (currentCaption) {
+                    ctx.save();
+                    ctx.fillStyle = e.textColor || "#ffffff";
+                    ctx.font = `bold ${e.textSize * (canvas.width / 700)}px ${e.textFont}`;
                     ctx.textAlign = "center";
-                    ctx.textBaseline = "middle";
-                    ctx.fillText(stk.content, stk.x, stk.y);
-                } else if (stk.type === 'image' && stk.imgElement) {
-                    const imgH = stk.size * (stk.imgElement.height / stk.imgElement.width);
-                    ctx.drawImage(stk.imgElement, stk.x, stk.y, stk.size, imgH);
+                    ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
+                    ctx.shadowBlur = 10;
+                    ctx.fillText(currentCaption.text, e.textX, e.textY);
+                    ctx.restore();
+                }
+            }
+
+            // الشعار
+            const isLogoVisible = e.layerSettings && e.layerSettings.logo ? e.layerSettings.logo.visible : true;
+            if (e.logoImage && isLogoVisible) {
+                let currentLogoSize = e.logoSize;
+                if (e.keyframes && e.keyframes['logoScale'] && e.keyframes['logoScale'].length > 0) {
+                    currentLogoSize = AthrKeyframeEngine.getValueAtTime(e.keyframes['logoScale'], video.currentTime, e.logoSize);
+                }
+                ctx.drawImage(e.logoImage, e.logoX, e.logoY, currentLogoSize, currentLogoSize * (e.logoImage.height / e.logoImage.width));
+            }
+
+            // المؤثرات الجوية
+            if (e.particleSystem && e.particleSystem.type !== 'none') {
+                e.particleSystem.update(canvas.width, canvas.height);
+                e.particleSystem.draw(ctx);
+            }
+
+            // المحاذاة الذكية
+            if (e.isDragging && e.renderCanvas) {
+                const centerX = canvas.width / 2;
+                ctx.save();
+                ctx.strokeStyle = "#d4af37";
+                ctx.lineWidth = 2;
+                ctx.setLineDash([6, 6]);
+
+                if (Math.abs(e.textX - centerX) < 10 || Math.abs(e.logoX - centerX) < 10 || Math.abs(e.bannerX - centerX) < 10) {
+                    ctx.beginPath();
+                    ctx.moveTo(centerX, 0);
+                    ctx.lineTo(centerX, canvas.height);
+                    ctx.stroke();
                 }
                 ctx.restore();
-            });
-        }
-
-        // 3. العناصر الثابتة (الإطار والـ Vignette)
-        if (e.enableVignette) {
-            const grad = ctx.createRadialGradient(canvas.width/2, canvas.height/2, canvas.width*0.2, canvas.width/2, canvas.height/2, canvas.width*0.65);
-            grad.addColorStop(0, 'rgba(0,0,0,0)'); grad.addColorStop(1, 'rgba(0,0,0,0.7)');
-            ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);
-        }
-
-        if (e.enableIslamicFrame) {
-            const pad = canvas.width * 0.03;
-            ctx.strokeStyle = "#d4af37"; ctx.lineWidth = 12;
-            ctx.strokeRect(pad, pad, canvas.width - (pad*2), canvas.height - (pad*2));
-        }
-
-        // 🏷️ رسم شريط اسم الشيخ والدرس (مع فحص زر الإظهار 👁️)
-        const isBannerVisible = e.layerSettings && e.layerSettings.banner ? e.layerSettings.banner.visible : true;
-        if ((e.speakerName || e.lessonTitle) && isBannerVisible) {
-            const bWidth = canvas.width * 0.55;
-            const bHeight = 75;
-            const bx = e.bannerX || 40;
-            const by = e.bannerY || (canvas.height - 120);
-
-            const bGrad = ctx.createLinearGradient(bx, by, bx + bWidth, by);
-            bGrad.addColorStop(0, 'rgba(15, 25, 20, 0.92)');
-            bGrad.addColorStop(1, 'rgba(15, 25, 20, 0.1)');
-
-            ctx.fillStyle = bGrad;
-            ctx.fillRect(bx, by, bWidth, bHeight);
-
-            ctx.fillStyle = "#d4af37";
-            ctx.fillRect(bx, by, 6, bHeight);
-
-            ctx.textAlign = "right";
-            if (e.speakerName) {
-                ctx.font = `bold ${canvas.width * 0.03}px 'Amiri', serif`;
-                ctx.fillStyle = "#d4af37";
-                ctx.fillText(e.speakerName, bx + bWidth - 15, by + 30);
             }
-            if (e.lessonTitle) {
-                ctx.font = `${canvas.width * 0.02}px 'Cairo', sans-serif`;
-                ctx.fillStyle = "#ffffff";
-                ctx.fillText(e.lessonTitle, bx + bWidth - 15, by + 58);
-            }
+        } catch (err) {
+            console.error('⚠️ خطأ أثناء رسم الإطار:', err);
         }
 
-      // ✍️ 1. رسم النص الرئيسي الثابت (إن وجد)
-        const isTextVisible = e.layerSettings && e.layerSettings.overlayText ? e.layerSettings.overlayText.visible : true;
-        if (e.overlayText && isTextVisible) {
-            ctx.fillStyle = e.textBgColor;
-            ctx.font = `bold ${e.textSize * (canvas.width / 800)}px ${e.textFont}`;
-            ctx.textAlign = "center";
-            ctx.fillText(e.overlayText, e.textX, e.textY);
-        }
-
-        // 📖 2. رسم آية القرآن الموقوتة بحسب الثانية الحالية للفيديو
-        if (e.timedCaptions && e.timedCaptions.length > 0 && isTextVisible) {
-            const currentTime = video.currentTime;
-            const currentCaption = e.timedCaptions.find(c => currentTime >= c.start && currentTime <= c.end);
-            
-            if (currentCaption) {
-                ctx.save();
-                ctx.fillStyle = e.textColor || "#ffffff";
-                ctx.font = `bold ${e.textSize * (canvas.width / 700)}px ${e.textFont}`;
-                ctx.textAlign = "center";
-                ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
-                ctx.shadowBlur = 10;
-                ctx.fillText(currentCaption.text, e.textX, e.textY);
-                ctx.restore();
-            }
-        }
-
-        // 🖼️ رسم اللوجو (مع فحص زر الإظهار 👁️)
-        const isLogoVisible = e.layerSettings && e.layerSettings.logo ? e.layerSettings.logo.visible : true;
-        if (e.logoImage && isLogoVisible) {
-            let currentLogoSize = e.logoSize;
-            if (e.keyframes && e.keyframes['logoScale'] && e.keyframes['logoScale'].length > 0) {
-                currentLogoSize = AthrKeyframeEngine.getValueAtTime(e.keyframes['logoScale'], video.currentTime, e.logoSize);
-            }
-            ctx.drawImage(e.logoImage, e.logoX, e.logoY, currentLogoSize, currentLogoSize * (e.logoImage.height / e.logoImage.width));
-        }
-
- // ❄️ رسم طبقة المؤثرات الجوية (ثلج، نجوم، غبار ذهبي، إلخ)
-        if (e.particleSystem && e.particleSystem.type !== 'none') {
-            e.particleSystem.update(canvas.width, canvas.height);
-            e.particleSystem.draw(ctx);
-        }
-          
-        // 📐 المحاذاة الذكية (Smart Guides)
-        if (e.isDragging && e.renderCanvas) {
-            const centerX = canvas.width / 2;
-            ctx.save();
-            ctx.strokeStyle = "#d4af37";
-            ctx.lineWidth = 2;
-            ctx.setLineDash([6, 6]);
-
-            if (Math.abs(e.textX - centerX) < 10 || Math.abs(e.logoX - centerX) < 10 || Math.abs(e.bannerX - centerX) < 10) {
-                ctx.beginPath();
-                ctx.moveTo(centerX, 0);
-                ctx.lineTo(centerX, canvas.height);
-                ctx.stroke();
-            }
-            ctx.restore();
-        }
- catch (err) {
-        console.error('⚠️ خطأ أثناء رسم الإطار:', err);
-      }
-      if (e.isExporting) {
-            e.animFrameId = setTimeout(drawFrame, 33); // ~30fps حتى لو التاب في الخلفية
+        if (e.isExporting) {
+            e.animFrameId = setTimeout(drawFrame, 33);
         } else {
             e.animFrameId = requestAnimationFrame(drawFrame);
         }
     }
 
- if (e.animFrameId) { cancelAnimationFrame(e.animFrameId); clearTimeout(e.animFrameId); }
+    if (e.animFrameId) { 
+        cancelAnimationFrame(e.animFrameId); 
+        clearTimeout(e.animFrameId); 
+    }
     drawFrame();
-
-
-    
 };
 
 window.updateEstimatedSize = function() {
