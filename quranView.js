@@ -177,9 +177,31 @@
       const surahRes = await fetch("https://api.quran.com/api/v4/chapters");
       const surahJson = await surahRes.json();
 
-      const response = await fetch(
-        `https://api.quran.com/api/v4/verses/by_page/${pNum}?words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number`
-      );
+    const response = await fetch(
+  `https://api.quran.com/api/v4/verses/by_page/${pNum}?words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number,rub_number`
+);
+const json = await response.json();
+
+if (!json.verses || json.verses.length === 0) return;
+
+// جلب بيانات الصفحة السابقة لمعرفة تغيير الربع
+let prevPageFirstVerse = null;
+if (pNum > 1) {
+  try {
+    const prevRes = await fetch(`https://api.quran.com/api/v4/verses/by_page/${pNum - 1}?per_page=1&fields=rub_number`);
+    const prevJson = await prevRes.json();
+    if (prevJson.verses && prevJson.verses.length > 0) {
+      prevPageFirstVerse = prevJson.verses[0];
+    }
+  } catch (e) { console.error(e); }
+}
+
+const first = json.verses[0];
+const chapter = surahJson.chapters.find(c => c.id === first.chapter_id);
+const surahName = chapter?.name_arabic || "المصحف الشريف";
+
+// نص الهيدر المظبوط (الجزء + الربع/الحزب عند البداية فقط)
+const rightHeaderText = getHeaderJuzText(first, prevPageFirstVerse);
       const json = await response.json();
 
       if (!json.verses || json.verses.length === 0) return;
@@ -226,51 +248,47 @@
 
         linesHTML += `<div style="display:flex; justify-content:${justifyStyle}; align-items:center; width:100%; gap:${gapStyle}; overflow:hidden;">`;
         lineWords.forEach(w => {
-          linesHTML += `<span style="font-family:'QCF_V2_P${pNum}'; font-size:${fontSizeStyle}; cursor:pointer; line-height:1.1; display:inline-flex; align-items:center;" 
+          linesHTML += `<span style="font-family:'QCF_V2_P${pNum}'; font-size:${fontSizeStyle}; cursor:pointer; line-height:2.0; display:inline-flex; align-items:center;" 
             onclick="alert('الآية: ${w.text}')">${w.code}</span>`;
         });
         linesHTML += `</div>`;
       });
 
       // رسم الشاشة الكلية
-      overlay.innerHTML = `
-        <!-- الهيدر العلوي -->
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(212,175,55,0.15); padding:8px 14px; font-size:13px; font-weight:bold; background:#0b1411; z-index:10;">
-          <button onclick="document.getElementById('mushafFullScreenApp').remove()" style="background:rgba(255,255,255,0.08); border:none; color:#ff6b6b; padding:4px 10px; border-radius:8px; cursor:pointer; font-size:12px;">✕ خروج</button>
-          <span style="color:#d4af37; font-family:'Amiri', serif; font-size:15px;">سورة ${surahName}</span>
-          <span style="color:#6fbf73;">${getJuzText(juzNum)}</span>
+overlay.innerHTML = `
+        <!-- الهيدر العلوي المطور (يمين: الجزء والربع / شمال: اسم السورة) -->
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 18px 6px; font-size:13px; font-weight:bold; background:#0b1411; color:#a0aec0; font-family:'Amiri', serif; z-index:10; border-bottom:1px solid rgba(212,175,55,0.1);">
+          <span style="color:#e2e8f0; font-size:13px;">${rightHeaderText}</span>
+          <span style="color:#e2e8f0; font-size:14px; font-weight:bold;">${surahName}</span>
         </div>
 
-        <!-- وعاء السكرول للمصحف -->
-        <div id="mushafScrollContainer" style="flex:1; overflow-y:auto; padding:10px 14px; display:flex; flex-direction:column; justify-content:${isSpecialPage ? 'center' : 'space-between'};">
+        <!-- وعاء السكرول للمصحف (مفروش ومريح للعين وعكس التصاق الأسطر) -->
+        <div id="mushafScrollContainer" style="flex:1; overflow-y:auto; padding:16px 12px 28px; display:flex; flex-direction:column; justify-content:${isSpecialPage ? 'center' : 'space-between'}; gap:6px;">
           ${linesHTML}
         </div>
 
-        <!-- شريط التحكم بالسرعة (يظهر ويختفي عند تفعيل التمرير التلقائي) -->
+        <!-- شريط التمرير التلقائي -->
         <div id="autoScrollControlBar" style="display:none; align-items:center; gap:10px; background:rgba(25, 56, 38, 0.95); border-top:1px solid #d4af37; padding:8px 16px; backdrop-filter:blur(8px);">
           <button id="autoScrollPlayBtn" onclick="window.toggleAutoScrollPlay()" style="background:#d4af37; color:#111; border:none; width:36px; height:36px; border-radius:50%; cursor:pointer; font-size:16px; font-weight:bold; display:flex; align-items:center; justify-content:center;">⏸</button>
-          
           <input type="range" min="5" max="90" value="${scrollSpeed}" oninput="window.updateScrollSpeed(this.value)" style="flex:1; accent-color:#d4af37; cursor:pointer;">
-          
           <span style="color:#fce788; font-size:12px; font-weight:bold; min-width:30px; text-align:center;" id="scrollSpeedLabel">${toArNum(scrollSpeed)}</span>
-          
           <button onclick="window.toggleAutoScrollControls()" style="background:transparent; border:none; color:#ff6b6b; font-size:16px; cursor:pointer;">✕</button>
         </div>
 
-        <!-- الفوتر السفلي للشاشة -->
-        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(212,175,55,0.15); padding:8px 14px; background:#0b1411; z-index:10;">
-          <button onclick="window.renderQcfPage(${pNum - 1})" ${pNum <= 1 ? 'disabled style="opacity:0.3"' : ''} style="background:rgba(212,175,55,0.15); border:1px solid #d4af37; color:#d4af37; padding:5px 12px; border-radius:10px; cursor:pointer; font-size:12px; font-weight:bold;">▶ السابقة</button>
+        <!-- الفوتر السفلي (تنزل رقم الصفحة لتحت وتنسيقه بشكل فخم) -->
+        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(212,175,55,0.15); padding:10px 16px 14px; background:#0b1411; z-index:10;">
+          <button onclick="window.renderQcfPage(${pNum - 1})" ${pNum <= 1 ? 'disabled style="opacity:0.2"' : ''} style="background:rgba(212,175,55,0.12); border:1px solid #d4af37; color:#d4af37; padding:6px 14px; border-radius:10px; cursor:pointer; font-size:12px; font-weight:bold;">▶ السابقة</button>
           
-          <!-- زرار التمرير التلقائي المخصص (زي تطبيق وحي) -->
-          <button onclick="window.toggleAutoScrollControls()" title="تمرير تلقائي" style="background:rgba(212,175,55,0.2); border:1px solid #d4af37; color:#fce788; padding:5px 14px; border-radius:12px; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center;">
+          <button onclick="window.toggleAutoScrollControls()" title="تمرير تلقائي" style="background:rgba(212,175,55,0.2); border:1px solid #d4af37; color:#fce788; padding:6px 12px; border-radius:12px; cursor:pointer; font-size:15px; display:flex; align-items:center; justify-content:center;">
             ⏬
           </button>
 
-          <div style="background:linear-gradient(135deg, #12281e, #0a1712); border:1px solid #3d5e4a; border-radius:12px; padding:3px 12px; color:#e2d1a4; font-weight:bold; font-size:12px;">
-            ❖ ${toArNum(pNum)}
+          <!-- رقم الصفحة نزل لتحت في إطار المخطوطة -->
+          <div style="background:linear-gradient(135deg, #142a1e, #091510); border:1px solid #d4af37; border-radius:12px; padding:4px 16px; color:#fce788; font-weight:bold; font-size:13px; font-family:'Amiri', serif; box-shadow: 0 2px 8px rgba(0,0,0,0.4);">
+            ${toArNum(pNum)}
           </div>
 
-          <button onclick="window.renderQcfPage(${pNum + 1})" ${pNum >= TOTAL_PAGES ? 'disabled style="opacity:0.3"' : ''} style="background:rgba(212,175,55,0.15); border:1px solid #d4af37; color:#d4af37; padding:5px 12px; border-radius:10px; cursor:pointer; font-size:12px; font-weight:bold;">التالية ◀</button>
+          <button onclick="window.renderQcfPage(${pNum + 1})" ${pNum >= TOTAL_PAGES ? 'disabled style="opacity:0.2"' : ''} style="background:rgba(212,175,55,0.12); border:1px solid #d4af37; color:#d4af37; padding:6px 14px; border-radius:10px; cursor:pointer; font-size:12px; font-weight:bold;">التالية ◀</button>
         </div>
       `;
 
@@ -309,3 +327,27 @@
   }
 
 })();
+
+// دالة حساب الجزء والحزب/الربع الذكية
+function getHeaderJuzText(firstVerse, prevPageFirstVerse) {
+  const juzText = getJuzText(firstVerse.juz_number);
+  const currentRub = firstVerse.rub_number; // رقم الربع من 1 لـ 240
+  const prevRub = prevPageFirstVerse ? prevPageFirstVerse.rub_number : null;
+
+  // لو الربع هو نفسه بتاع الصفحة اللي قبلها -> يعرض اسم الجزء فقط
+  if (prevRub && currentRub === prevRub) {
+    return juzText;
+  }
+
+  // لو الصفحة بداية ربع أو حزب جديد:
+  const hizbNum = Math.ceil(currentRub / 4); // رقم الحزب (من 1 لـ 60)
+  const rubPos = (currentRub - 1) % 4; // 0=حزب, 1=ربع, 2=نصف, 3=ثلاثة أرباع
+
+  let rubLabel = "";
+  if (rubPos === 0) rubLabel = `الحزب ${toArNum(hizbNum)}`;
+  else if (rubPos === 1) rubLabel = `ربع الحزب ${toArNum(hizbNum)}`;
+  else if (rubPos === 2) rubLabel = `نصف الحزب ${toArNum(hizbNum)}`;
+  else if (rubPos === 3) rubLabel = `ثلاثة أرباع الحزب ${toArNum(hizbNum)}`;
+
+  return `${juzText}، ${rubLabel}`;
+}
