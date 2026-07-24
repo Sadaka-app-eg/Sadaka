@@ -180,7 +180,7 @@
     const response = await fetch(
   `https://api.quran.com/api/v4/verses/by_page/${pNum}?words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number,rub_number`
 );
-const json = await response.json();
+const dataJson = await response.json();
 
 if (!json.verses || json.verses.length === 0) return;
 
