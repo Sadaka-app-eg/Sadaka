@@ -1339,6 +1339,10 @@ function renderLectures() {
             </div>
           </div>
           ` : ''}
+      <div style="text-align:center; margin-top:2px;">
+            <button onclick="window.toggleReflectionBox(${realIndex})" style="background:transparent; border:none; color:var(--gold,#d4af37); font-size:11px; cursor:pointer; font-family:'Amiri',serif; text-decoration:underline;">💭 ما المستفاد من هذا الدرس؟</button>
+          </div>
+          <div id="reflectionBox_${realIndex}" style="display:none;"></div>
         </div>`;
     }).join('');
 
@@ -1856,4 +1860,157 @@ window.closeAthrVideoModal = function() {
         if (video) video.pause();
         modal.style.display = 'none';
     }
+};
+
+// =========================================================================
+// 💭 نظام "ما المستفاد؟" - تسجيل خواطر وتعلّم من كل درس (نص أو صوت)
+// =========================================================================
+window.lectureReflections = JSON.parse(localStorage.getItem('lecture_reflections') || '{}');
+window.activeRecorder = null;
+window.activeRecorderChunks = [];
+window.activeRecordingIndex = null;
+window.recordingTimerInterval = null;
+
+function getReflectionKey(index) {
+  const lecture = window.lecturesData[index];
+  return lecture ? (lecture.title + '_' + lecture.category) : ('idx_' + index);
+}
+
+window.toggleReflectionBox = function(index) {
+  const box = document.getElementById('reflectionBox_' + index);
+  if (!box) return;
+  const isHidden = box.style.display === 'none' || !box.style.display;
+  box.style.display = isHidden ? 'block' : 'none';
+  if (isHidden) renderReflectionBoxContent(index);
+};
+
+function renderReflectionBoxContent(index) {
+  const box = document.getElementById('reflectionBox_' + index);
+  if (!box) return;
+  const key = getReflectionKey(index);
+  const saved = window.lectureReflections[key];
+
+  let savedHtml = '';
+  if (saved) {
+    if (saved.type === 'text') {
+      savedHtml = `
+        <div style="background:rgba(76,175,80,0.08); border:1px solid rgba(76,175,80,0.3); border-radius:10px; padding:10px; margin-bottom:10px;">
+          <div style="font-size:10px; color:#4caf50; margin-bottom:4px;">✅ خاطرتك المحفوظة — ${saved.date}</div>
+          <div style="font-size:13px; color:var(--text); font-family:'Amiri',serif; line-height:1.7;">${saved.content}</div>
+        </div>`;
+    } else if (saved.type === 'audio') {
+      savedHtml = `
+        <div style="background:rgba(76,175,80,0.08); border:1px solid rgba(76,175,80,0.3); border-radius:10px; padding:10px; margin-bottom:10px;">
+          <div style="font-size:10px; color:#4caf50; margin-bottom:6px;">🎙️ تسجيلك الصوتي — ${saved.date}</div>
+          <audio controls src="${saved.content}" style="width:100%; height:32px;"></audio>
+        </div>`;
+    }
+  }
+
+  box.innerHTML = `
+    <div style="background:rgba(212,175,55,0.05); border:1px dashed var(--gold,#d4af37); border-radius:12px; padding:12px; margin-top:8px; direction:rtl;">
+      <div style="font-size:13px; color:var(--gold,#d4af37); font-weight:bold; margin-bottom:8px; font-family:'Amiri',serif;">💭 سجّل بنفسك أهم فايدة استفدتها، وثبّت الأثر الطيب في قلبك 🤍</div>
+      ${savedHtml}
+      <textarea id="reflectionText_${index}" placeholder="اكتب أهم فايدة استفدتها من الدرس..." style="width:100%; min-height:60px; padding:8px; border-radius:8px; background:var(--bg2,#121e14); color:var(--text); border:1px solid var(--border); font-family:'Amiri',serif; font-size:13px; resize:vertical; outline:none; margin-bottom:8px;"></textarea>
+      <div style="display:flex; gap:6px; margin-bottom:6px;">
+        <button onclick="window.saveTextReflection(${index})" style="flex:1; background:var(--gold,#d4af37); color:#111; border:none; padding:8px; border-radius:8px; font-family:'Amiri',serif; font-size:12px; font-weight:bold; cursor:pointer;">💾 حفظ النص</button>
+        <button id="recBtn_${index}" onclick="window.toggleVoiceReflection(${index})" style="flex:1; background:transparent; border:1px solid var(--gold,#d4af37); color:var(--gold,#d4af37); padding:8px; border-radius:8px; font-family:'Amiri',serif; font-size:12px; font-weight:bold; cursor:pointer;">🎙️ سجّل صوتك</button>
+      </div>
+      <div id="recTimer_${index}" style="text-align:center; font-size:11px; color:#ff6b6b; display:none;"></div>
+      ${saved ? `<button onclick="window.deleteReflection(${index})" style="width:100%; background:transparent; border:1px solid rgba(255,100,100,0.3); color:#ff6b6b; padding:6px; border-radius:8px; font-size:11px; cursor:pointer; margin-top:4px;">🗑️ حذف الخاطرة المحفوظة</button>` : ''}
+    </div>
+  `;
+}
+
+window.saveTextReflection = function(index) {
+  const ta = document.getElementById('reflectionText_' + index);
+  const text = ta ? ta.value.trim() : '';
+  if (!text) { alert('اكتب حاجة الأول يا بطل 🙏'); return; }
+
+  const key = getReflectionKey(index);
+  window.lectureReflections[key] = {
+    type: 'text',
+    content: text,
+    date: new Date().toLocaleDateString('ar-EG')
+  };
+  localStorage.setItem('lecture_reflections', JSON.stringify(window.lectureReflections));
+  renderReflectionBoxContent(index);
+  setTimeout(() => alert('✨ ما شاء الله! تم حفظ خاطرتك، جعلها الله في ميزان حسناتك'), 100);
+};
+
+window.toggleVoiceReflection = async function(index) {
+  const btn = document.getElementById('recBtn_' + index);
+  const timerEl = document.getElementById('recTimer_' + index);
+
+  if (window.activeRecorder && window.activeRecorder.state === 'recording') {
+    if (window.activeRecordingIndex === index) {
+      window.activeRecorder.stop();
+    } else {
+      alert('عندك تسجيل شغال في درس تاني، وقفه الأول 🙏');
+    }
+    return;
+  }
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    window.activeRecorder = new MediaRecorder(stream);
+    window.activeRecorderChunks = [];
+    window.activeRecordingIndex = index;
+
+    window.activeRecorder.ondataavailable = (e) => window.activeRecorderChunks.push(e.data);
+
+    let seconds = 0;
+    timerEl.style.display = 'block';
+    window.recordingTimerInterval = setInterval(() => {
+      seconds++;
+      const m = Math.floor(seconds / 60);
+      const s = seconds % 60;
+      timerEl.textContent = `⏺️ جاري التسجيل... ${m}:${String(s).padStart(2,'0')}`;
+    }, 1000);
+
+    window.activeRecorder.onstop = () => {
+      clearInterval(window.recordingTimerInterval);
+      timerEl.style.display = 'none';
+      stream.getTracks().forEach(t => t.stop());
+
+      const blob = new Blob(window.activeRecorderChunks, { type: 'audio/webm' });
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const key = getReflectionKey(index);
+        window.lectureReflections[key] = {
+          type: 'audio',
+          content: reader.result,
+          date: new Date().toLocaleDateString('ar-EG')
+        };
+        localStorage.setItem('lecture_reflections', JSON.stringify(window.lectureReflections));
+        renderReflectionBoxContent(index);
+        setTimeout(() => alert('✨ تم حفظ تسجيلك الصوتي بنجاح، بارك الله في وقتك'), 100);
+      };
+      reader.readAsDataURL(blob);
+
+      window.activeRecorder = null;
+      window.activeRecordingIndex = null;
+      btn.textContent = '🎙️ سجّل صوتك';
+      btn.style.background = 'transparent';
+      btn.style.color = 'var(--gold)';
+      btn.style.borderColor = 'var(--gold)';
+    };
+
+    window.activeRecorder.start();
+    btn.textContent = '⏹️ إيقاف التسجيل';
+    btn.style.background = '#ff6b6b';
+    btn.style.color = '#fff';
+    btn.style.borderColor = '#ff6b6b';
+
+  } catch (e) {
+    alert('محتاجين إذن الميكروفون عشان تقدر تسجل صوتك 🎙️🙏');
+  }
+};
+
+window.deleteReflection = function(index) {
+  if (!confirm('متأكد إنك عايز تمسح الخاطرة دي؟')) return;
+  const key = getReflectionKey(index);
+  delete window.lectureReflections[key];
+  localStorage.setItem('lecture_reflections', JSON.stringify(window.lectureReflections));
+  renderReflectionBoxContent(index);
 };
