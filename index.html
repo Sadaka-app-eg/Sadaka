@@ -3483,6 +3483,7 @@ window.showSurahInsightsModal = function(surahId, surahName) {
 function renderSurahs(list) {
   document.getElementById('surahList').innerHTML = list.map(s => `
     <div class="surah-item" 
+         onclick="if(!window.isLongPressAction) openSurah(${s.n});"
          ontouchstart="
            window.isLongPressAction = false;
            window.isScrolling = false;
@@ -3504,11 +3505,8 @@ function renderSurahs(list) {
          "
          ontouchend="
            clearTimeout(longPressTimer);
-           if(!window.isScrolling && !window.isLongPressAction) { 
-             openSurah(${s.n}); 
-           }
          "
-         style="user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;">
+         style="user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; cursor: pointer;">
       <div class="surah-num">${s.n}</div>
       <div class="surah-info">
         <div class="surah-name">${s.name}</div>
@@ -3517,7 +3515,7 @@ function renderSurahs(list) {
       <div class="surah-type">${favorites.includes('s'+s.n) ? '⭐' : ''}</div>
     </div>
   `).join('');
-};
+}
 
 
 
