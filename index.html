@@ -3545,6 +3545,7 @@ function getHeaderJuzText(pageNum, rawVerses) {
   const prevPageVerses = rawVerses.filter(v => v.page_number === pageNum - 1);
   const prevRub = (prevPageVerses && prevPageVerses.length > 0) ? prevPageVerses[0].rub_number : null;
 
+// لو مفيش ربع/حزب جديد اعرض اسم الجزء فقط بدون فاصلة
   if (prevRub && currentRub === prevRub) {
     return juzText;
   }
@@ -3558,7 +3559,8 @@ function getHeaderJuzText(pageNum, rawVerses) {
   else if (rubPos === 2) rubLabel = `نصف الحزب ${toAr(hizbNum)}`;
   else if (rubPos === 3) rubLabel = `ثلاثة أرباع الحزب ${toAr(hizbNum)}`;
 
-  return `${juzText}، ${rubLabel}`;
+  // 🛡️ التأكد من عدم وجود فاصلة زائدة
+  return rubLabel ? `${juzText}، ${rubLabel}` : juzText;
 }
  
 async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
@@ -3637,12 +3639,12 @@ const headerRightText = getHeaderJuzText(pageNum, json.verses);
   sliderHtml += `<div class="mushaf-page" id="mpage_${pageNum}">`;
   
   // 1️⃣ الهيدر العلوي المفرود فوق خالص في السقف
-  sliderHtml += `
-    <div style="display:flex; justify-content:space-between; align-items:center; width:100%; padding:0 4px 6px; font-size:13px; font-weight:bold; color:var(--text2); border-bottom:1px solid rgba(212,175,55,0.15); margin-bottom:8px; font-family:'Amiri', serif;">
-      <span>${headerRightText}</span>
-      <span>سُورَةُ ${currentSurah.name}</span>
-    </div>
-  `;
+sliderHtml += `
+  <div style="display:flex; justify-content:space-between; align-items:center; width:100%; padding:2px 4px 6px; font-size:13px; font-weight:bold; color:var(--text2); border-bottom:1px solid rgba(212,175,55,0.12); margin-bottom:6px; font-family:'Amiri', serif;">
+    <span>${headerRightText}</span>
+    <span>${currentSurah.name}</span>
+  </div>
+`;
 
   // 2️⃣ أسطر الآيات المفرودة في منتصف الشاشة
   sliderHtml += `<div style="flex:1; display:flex; flex-direction:column; justify-content:${isSpecialPage ? 'center' : 'space-between'}; width:100%;">`;
@@ -3657,13 +3659,19 @@ const headerRightText = getHeaderJuzText(pageNum, json.verses);
   const lines = Object.keys(pagesDict[pageNum]).map(Number).sort((a, b) => a - b);
   lines.forEach(lineNum => {
     const lineJustify = isSpecialPage ? 'justify-content:center;gap:8px;' : 'justify-content:space-between;';
-   const fontSize = isSpecialPage ? 'clamp(18px, 4.8vw, 26px)' : 'clamp(15px, 3.8vw, 22px)';
+   const fontSize = isSpecialPage ? 'clamp(20px, 5.2vw, 30px)' : 'clamp(18px, 4.5vw, 26px)';
 
-  sliderHtml += `<div style="display:flex; ${lineJustify} align-items:center; width:100%; height: calc(100% / 15); overflow:visible;">`;
+  sliderHtml += `<div style="display:flex; ${lineJustify} align-items:center; width:100%; min-height: calc(100% / 15); overflow:visible;">`;
    
     pagesDict[pageNum][lineNum].forEach(w => {
       const ayahIndex = currentAyahsData.findIndex(a => a.numberInSurah === w.vAyah);
-sliderHtml += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}" style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:1.8; display:inline-flex; align-items:center; user-select:none;" ontouchstart="startPress(event, ${ayahIndex})" ontouchmove="cancelPress(event)" ontouchend="cancelPress(event); if(!isScrolling && window.isPickingEndAyah){ handleAyahClick(${ayahIndex}); }">${w.code}</span>`;
+sliderHtml += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}"
+  style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:2.0; display:inline-flex; align-items:center; user-select:none;"
+  ontouchstart="startPress(event, ${ayahIndex})"
+  ontouchmove="cancelPress(event)"
+  ontouchend="cancelPress(event); if(!isScrolling && window.isPickingEndAyah){ handleAyahClick(${ayahIndex}); }">
+  ${w.code}
+</span>`;
     });
     sliderHtml += `</div>`;
   });
@@ -3671,8 +3679,8 @@ sliderHtml += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}" style="f
   sliderHtml += `</div>`; // نهاية وعاء أسطر الآيات
 
   // 3️⃣ الفوتر السفلي (رقم الصفحة نازل لتحت خالص في الأرض)
-  sliderHtml += `<div class="page-footer" style="text-align:center; font-weight:bold; font-size:13px; color:var(--gold); padding-top:6px; margin-top: auto; border-top:1px solid rgba(212,175,55,0.15);">صفحة ${toAr(pageNum)}</div>`;
-
+sliderHtml += `<div class="page-footer" style="text-align:center; font-weight:bold; font-size:13px; color:var(--gold); padding-top:4px; margin-top:auto; border-top:1px solid rgba(212,175,55,0.12);">صفحة ${toAr(pageNum)}</div>`;
+ 
   sliderHtml += `</div>`; // نهاية mushaf-page
 });
 
