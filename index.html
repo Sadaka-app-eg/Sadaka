@@ -3523,8 +3523,8 @@ async function loadQcfPageFont(pageNum) {
   }
 }
 
-function getHeaderJuzText(pageNum, versesArray) {
-  if (!versesArray || versesArray.length === 0) return "الجزء الأول";
+function getHeaderJuzText(pageNum, rawVerses) {
+  if (!rawVerses || rawVerses.length === 0) return "الجزء الأول";
 
   const JUZ_NAMES = [
     "", "الجزء الأول", "الجزء الثاني", "الجزء الثالث", "الجزء الرابع", "الجزء الخامس",
@@ -3535,14 +3535,14 @@ function getHeaderJuzText(pageNum, versesArray) {
     "الجزء السادس والعشرون", "الجزء السابع والعشرون", "الجزء الثامن والعشرون", "الجزء التاسع والعشرون", "الجزء الثلاثون"
   ];
 
-  const pageVerses = versesArray.filter(v => v.page_number === pageNum);
+  const pageVerses = rawVerses.filter(v => v.page_number === pageNum);
   if (!pageVerses || pageVerses.length === 0) return "الجزء الأول";
 
   const currentVerse = pageVerses[0];
   const juzText = JUZ_NAMES[currentVerse.juz_number] || `الجزء ${toAr(currentVerse.juz_number)}`;
   const currentRub = currentVerse.rub_number;
 
-  const prevPageVerses = versesArray.filter(v => v.page_number === pageNum - 1);
+  const prevPageVerses = rawVerses.filter(v => v.page_number === pageNum - 1);
   const prevRub = (prevPageVerses && prevPageVerses.length > 0) ? prevPageVerses[0].rub_number : null;
 
   if (prevRub && currentRub === prevRub) {
@@ -3632,7 +3632,7 @@ pageNums.forEach((pageNum, pageIndex) => {
   const isSpecialPage = pageNum === 1 || pageNum === 2;
 
   // جلب نص الهيدر المظبوط (الجزء + الحزب/الربع لو جديد)
-const headerRightText = getHeaderJuzText(pageNum, currentAyahsData);
+const headerRightText = getHeaderJuzText(pageNum, json.verses);
 
   sliderHtml += `<div class="mushaf-page" id="mpage_${pageNum}">`;
   
@@ -3663,15 +3663,7 @@ const headerRightText = getHeaderJuzText(pageNum, currentAyahsData);
    
     pagesDict[pageNum][lineNum].forEach(w => {
       const ayahIndex = currentAyahsData.findIndex(a => a.numberInSurah === w.vAyah);
-    sliderHtml += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}"
-  style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height: 1.8; display:inline-flex; align-items:center; user-select:none;"
-`;
-        
-        ontouchstart="startPress(event, ${ayahIndex})"
-        ontouchmove="cancelPress(event)"
-        ontouchend="cancelPress(event); if(!isScrolling && window.isPickingEndAyah){ handleAyahClick(${ayahIndex}); }">
-        ${w.code}
-      </span>`;
+sliderHtml += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}" style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:1.8; display:inline-flex; align-items:center; user-select:none;" ontouchstart="startPress(event, ${ayahIndex})" ontouchmove="cancelPress(event)" ontouchend="cancelPress(event); if(!isScrolling && window.isPickingEndAyah){ handleAyahClick(${ayahIndex}); }">${w.code}</span>`;
     });
     sliderHtml += `</div>`;
   });
@@ -7756,7 +7748,6 @@ function stopMainAutoScroll() {
 
   const slider = document.getElementById('mushafSlider');
   if (slider) {
-    // تحديد الصفحة الأقرب لعين القارئ حالياً
     const pages = Array.from(slider.children);
     let closestIndex = 0;
     let minDistance = Infinity;
@@ -7773,7 +7764,6 @@ function stopMainAutoScroll() {
     slider.classList.remove('vscroll-mode');
     slider.scrollTop = 0;
 
-    // التثبيت الفوري في نفس الصفحة بدون رجوع للأول
     setTimeout(() => {
       if (typeof window.scrollToMushafIndex === 'function') {
         window.scrollToMushafIndex(closestIndex);
