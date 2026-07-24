@@ -7858,7 +7858,6 @@ function attachMushafEdgeSwipe() {
   const slider = document.getElementById('mushafSlider');
   if (!slider) return;
 
-  // تنظيف أي مستمع قديم قبل ما نضيف واحد جديد (عشان مايتكررش عند فتح سورة جديدة)
   const newSlider = slider.cloneNode(false);
   while (slider.firstChild) newSlider.appendChild(slider.firstChild);
   slider.parentNode.replaceChild(newSlider, slider);
@@ -7871,22 +7870,36 @@ function attachMushafEdgeSwipe() {
     if (mushafSwipeLocked) return;
     const endX = e.changedTouches[0].clientX;
     const deltaX = endX - mushafSwipeStartX;
-    if (Math.abs(deltaX) < 55) return; // مش سحبة قوية كفاية
+    if (Math.abs(deltaX) < 55) return; // سحبة خفيفة
 
     const total = newSlider.children.length;
     const idx = getMushafPageIndex(newSlider);
 
-if (deltaX > 0 && idx >= total - 1) {
-  // آخر صفحة في السورة + سحب من الشمال لليمين (اتجاه القراءة للأمام) => السورة التالية
-  mushafSwipeLocked = true;
-  window.navSurah(1);
-  setTimeout(() => { mushafSwipeLocked = false; }, 600);
-} else if (deltaX < 0 && idx <= 0) {
-  // أول صفحة في السورة + سحب من اليمين للشمال (رجوع) => السورة السابقة
-  mushafSwipeLocked = true;
-  window.navSurah(-1);
-  setTimeout(() => { mushafSwipeLocked = false; }, 600);
-}
+    // 🎯 في الاتجاه العربي RTL:
+    // السحب من اليمين لليسار (deltaX < 0) عند آخر صفحة = التقدم للصفحة التالية
+    // السحب من اليسار لليمين (deltaX > 0) عند أول صفحة = الرجوع للصفحة السابقة
+
+    if (deltaX < 0 && idx >= total - 1) {
+      const currentPageEl = newSlider.children[idx];
+      const currentP = parseInt(currentPageEl.getAttribute('data-page'));
+      if (currentP && currentP < 604) {
+        mushafSwipeLocked = true;
+        const nextP = currentP + 1;
+        const nextS = getSurahByPageNumber(nextP);
+        openSurah(nextS.n, null, nextP);
+        setTimeout(() => { mushafSwipeLocked = false; }, 600);
+      }
+    } else if (deltaX > 0 && idx <= 0) {
+      const currentPageEl = newSlider.children[idx];
+      const currentP = parseInt(currentPageEl.getAttribute('data-page'));
+      if (currentP && currentP > 1) {
+        mushafSwipeLocked = true;
+        const prevP = currentP - 1;
+        const prevS = getSurahByPageNumber(prevP);
+        openSurah(prevS.n, null, prevP);
+        setTimeout(() => { mushafSwipeLocked = false; }, 600);
+      }
+    }
   }, { passive: true });
 }
 
