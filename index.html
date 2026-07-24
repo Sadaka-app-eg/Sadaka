@@ -3736,8 +3736,8 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
   }
 
 // 🎯 تحميل نطاق متصل (السورة الحالية + الصفحات المجاورة للرجوع السلس لآخر صفحة)
-  const minPage = Math.max(1, surahStartP - 3);
-  const maxPage = Math.min(604, surahEndP + 3);
+ const minPage = Math.max(1, surahStartP - 1);
+const maxPage = Math.min(604, surahEndP + 1);
 
   try {
     let allVerses = [];
