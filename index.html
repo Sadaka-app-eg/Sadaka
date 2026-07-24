@@ -3710,6 +3710,20 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
     renderBookmarkHighlight();
     setupMushafJumpSlider(pageNums);
 
+ // 🎯 التوجيه لآخر صفحة لو راجع من سورة بعديها
+    if (targetPageNumber === 'last') {
+      setTimeout(() => {
+        window.scrollToMushafIndex(pageNums.length - 1);
+      }, 60);
+    } else if (typeof targetPageNumber === 'number') {
+      const pageIndex = pageNums.indexOf(targetPageNumber);
+      if (pageIndex !== -1) {
+        setTimeout(() => {
+          window.scrollToMushafIndex(pageIndex);
+        }, 60);
+      }
+    }
+
   } catch(e) {
     console.error("خطأ جلب بيانات السورة:", e);
     document.getElementById('mushafSlider').innerHTML =
@@ -3743,7 +3757,13 @@ window.navSurah = function(direction) {
     document.getElementById('audioStatus').textContent = nextNum < 1 ? '📖 هذه أول سورة في المصحف' : '📖 هذه آخر سورة في المصحف';
     return;
   }
-  openSurah(nextNum);
+  
+  // لو راجع لورا يسحب لآخر صفحة في السورة السابقة، لو طالع لقدام يفتح أول صفحة عادي
+  if (direction === -1) {
+    openSurah(nextNum, null, 'last');
+  } else {
+    openSurah(nextNum);
+  }
 };
 
 function toggleFavSurah() {
