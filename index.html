@@ -3726,18 +3726,16 @@ const minPage = Math.max(1, surahStartP - 1);
 
     // جلب بيانات صفحات السورة بالتوازي
    // 🚀 جلب فوري من الكاش المحلي أولاً (0 تأخير)، والـ API يشتغل في الخلفية بصمت
-   // 🎯 الجلب الذكي: لو الصفحة متخزنة هاتها فوراً، لو مش متخزنة هاتها أونلاين واحفظها
     const pagePromises = Array.from({ length: maxPage - minPage + 1 }, (_, i) => minPage + i).map(async (p) => {
       let pageData = await getCachedSurahDB(`page_${p}`);
-      
       if (!pageData) {
-        try {
-          const res = await fetch(`https://api.quran.com/api/v4/verses/by_page/${p}?per_page=300&words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number,rub_number`);
-          pageData = await res.json();
-          if (pageData && pageData.verses) {
-            await setCachedSurahDB(`page_${p}`, pageData);
-          }
-        } catch(e) {}
+        // لو الصفحة مش متخزنة، بيبعتها في الخلفية ويرجع مصفوفة خفيفة فوراً
+        fetch(`https://api.quran.com/api/v4/verses/by_page/${p}?per_page=300&words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number,rub_number`)
+          .then(res => res.json())
+          .then(data => {
+            if (data && data.verses) setCachedSurahDB(`page_${p}`, data);
+          }).catch(() => {});
+        return [];
       }
       return pageData && pageData.verses ? pageData.verses : [];
     });
@@ -3781,11 +3779,7 @@ const minPage = Math.max(1, surahStartP - 1);
 
     const pageNums = Object.keys(pagesDict).map(Number).sort((a,b) => a-b);
     window.currentSurahPages = pageNums;
-   // 🚀 جدول بحث سريع (O(1)) بدل البحث الخطي البطيء لكل كلمة
-    const ayahIndexMap = new Map();
-    currentAyahsData.forEach((a, idx) => {
-      ayahIndexMap.set(`${a.surahNumber}:${a.numberInSurah}`, idx);
-    });
+ 
 
     // 🎯 الضمان الأول: انتظار تمام تحميل الخطوط العثمانية لكل الصفحات قبل الرسم
  // 🎯 الضمان الأول: انتظار تمام تحميل الخطوط العثمانية لكل الصفحات قبل الرسم
@@ -3852,8 +3846,8 @@ const lineJustify = isSpecialPage ? 'justify-content:center;gap:8px;' : 'justify
         // 🎯 الضمان الثاني: تثبيت السطر أفقي محذى 100% بدون انكسار
         sliderHtml += `<div style="display:flex; flex-direction:row; ${lineJustify} align-items:center; width:100%; min-height: calc(100% / 15); overflow:visible; white-space:nowrap;">`;
         
-       lineWords.forEach(w => {
-          const ayahIndex = ayahIndexMap.get(`${w.vSurah}:${w.vAyah}`); 
+     lineWords.forEach(w => {
+     const ayahIndex = currentAyahsData.findIndex(a => a.surahNumber === w.vSurah && a.numberInSurah === w.vAyah);
           sliderHtml += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}"
             style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:1.9; display:inline-flex; align-items:center; user-select:none; white-space:nowrap;"
             ontouchstart="startPress(event, ${ayahIndex})"
