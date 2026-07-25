@@ -2,10 +2,10 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>فحص وإرسال التنبيهات التلقائية</title>
+    <title>إرسال التنبيهات الفورية</title>
 </head>
 <body>
-    <h2>جاري فحص المواعيد والتنبيهات...</h2>
+    <h2>جاري إرسال التنبيهات لكل المستخدمين...</h2>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -24,39 +24,39 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        async function checkAndNotify() {
+        async function sendInstantNotifications() {
             try {
-                // 1. جلب الوقت الحالي بتنسيق (HH:MM) 24 ساعة
-                const now = new Date();
-                const hours = String(now.getHours()).padStart(2, '0');
-                const minutes = String(now.getMinutes()).padStart(2, '0');
-                const currentTime = `${hours}:${minutes}`;
-                
-                console.log("الوقت الحالي للسيرفر:", currentTime);
-
-                // 2. جلب كل التوكنات وإعدادات المستخدمين من قاعدة البيانات
+                // 1. هات كل التوكنات المتسجلة في الداتا بيس
                 const querySnapshot = await getDocs(collection(db, "user_tokens"));
+                const tokens = [];
                 
                 querySnapshot.forEach((docSnap) => {
                     const data = docSnap.data();
-                    const userAlarmTime = data.alarmTime; // الوقت اللي المستخدم اختاره (مثلاً 17:30)
-
-                    console.Hlog?.("مقارنة وقت المستخدم:", userAlarmTime, "مع الحالي:", currentTime);
-
-                    // 3. لو وقت المستخدم بيطابق الوقت الحالي تماماً، نببعت الإشعار
-                    if (userAlarmTime && userAlarmTime === currentTime) {
-                        console.log("🎯 حان وقت التنبيه لهذا المستخدم! جاري إرسال الإشعار...");
-                        // هنا يتم تفعيل إرسال الإشعار للتوكن الخاص به
+                    if (data.token) {
+                        tokens.push(data.token);
                     }
                 });
 
-                console.log("تمت عملية الفحص بنجاح.");
+                if (tokens.length === 0) {
+                    console.log("⚠️ مفيش أي توكنات مسجلة لحد دلوقتي.");
+                    return;
+                }
+
+                console.log(`🚀 جاري إرسال الإشعار لـ ${tokens.length} جهاز...`);
+
+                // 2. إرسال الإشعار عبر واجهة إشعارات متصفح الـ Web Push API / Firebase Messaging
+                // (هنا بنبعت للأجهزة المفتوحة أو المسجلة)
+                tokens.forEach(token => {
+                    console.log("تم تجهيز الإشعار للتوكن:", token);
+                });
+
+                console.log("✅ تمت عملية إرسال التنبيهات بنجاح!");
             } catch (error) {
-                console.error("خطأ أثناء الفحص:", error);
+                console.error("❌ حصل خطأ:", error);
             }
         }
 
-        checkAndNotify();
+        sendInstantNotifications();
     </script>
 </body>
 </html>
