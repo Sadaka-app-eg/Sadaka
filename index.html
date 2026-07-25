@@ -3148,6 +3148,7 @@ window.downloadCurrentSurahAudio = async function() {
     ajm: `https://server10.mp3quran.net/ajm/${num3}.mp3`,
     shrim: `https://server7.mp3quran.net/shur/${num3}.mp3`,
     dosr: `https://server11.mp3quran.net/yasser/${num3}.mp3`,
+    qarafi: `https://server16.mp3quran.net/download/a_alqrafi/Rewayat-Hafs-A-n-Assem/${num3}.mp3`
   };
 
   const mainUrl = reciterUrls[reciter];
@@ -3157,56 +3158,16 @@ window.downloadCurrentSurahAudio = async function() {
   }
 
   const statusEl = document.getElementById('audioStatus');
-  if (statusEl) statusEl.textContent = '⏳ جاري تحميل السورة والآيات للاستماع أوفلاين...';
+  if (statusEl) statusEl.textContent = '⏳ جاري تحميل السورة أوفلاين...';
 
   try {
-    // 1. حفظ ملف السورة الكاملة أوفلاين
+    // 🎯 تحميل ملف السورة الكاملة فقط (بدون آية آية)
     navigator.serviceWorker.controller.postMessage({ 
       type: 'CACHE_AUDIO_URL', 
       url: mainUrl, 
       label: `quicksurah_${currentSurah.n}` 
     });
 
-    // 2. تجميع وحفظ كافة روابط الآيات المنفصلة لهذه السورة أوفلاين
-    if (currentAyahsData && currentAyahsData.length > 0) {
-      const reciterApiMap = {
-        minsh: 'ar.minshawi',
-        husary: 'ar.husary',
-        afs: 'ar.alafasy',
-        maher: 'ar.mahermuaiqly',
-        ajm: 'ar.ahmedajamy'
-      };
-
-      currentAyahsData.forEach(a => {
-        const surahNum = String(currentSurah.n).padStart(3, '0');
-        const ayahNum = String(a.numberInSurah).padStart(3, '0');
-        const fileKey = `${surahNum}${ayahNum}`;
-        let ayahAudioUrl = '';
-
-        if (reciter === 'shrim') {
-          ayahAudioUrl = `https://www.everyayah.com/data/Saood_ash-Shuraym_128kbps/${fileKey}.mp3`;
-        } else if (reciter === 'frs_a') {
-          ayahAudioUrl = `https://www.everyayah.com/data/Fares_Abbad_64kbps/${fileKey}.mp3`;
-        } else if (reciter === 'dosr') {
-          ayahAudioUrl = `https://www.everyayah.com/data/Yasser_Ad-Dussary_128kbps/${fileKey}.mp3`;
-        } else if (reciter === 'basit') {
-          ayahAudioUrl = `https://www.everyayah.com/data/Abdul_Basit_Murattal_192kbps/${fileKey}.mp3`;
-        } else {
-          const apiId = reciterApiMap[reciter] || 'ar.minshawi';
-          ayahAudioUrl = `https://cdn.islamic.network/quran/audio/128/${apiId}/${a.globalNumber}.mp3`;
-        }
-
-        if (ayahAudioUrl) {
-          navigator.serviceWorker.controller.postMessage({ 
-            type: 'CACHE_AUDIO_URL', 
-            url: ayahAudioUrl, 
-            label: `quicksurah_ayah_${currentSurah.n}` 
-          });
-        }
-      });
-    }
-
-    if (statusEl) statusEl.textContent = '✅ تم تحميل السورة وتحديد الآيات للعمل أوفلاين!';
   } catch (e) {
     console.error("Download Error:", e);
     if (statusEl) statusEl.textContent = '⚠️ حدث خطأ أثناء التحميل، تأكد من الاتصال بالنت';
