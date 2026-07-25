@@ -9,6 +9,32 @@ window.lecturesData = [
     { title: "لا تحزن إن الله يدبر أمرك", src: "audio/audio2/le_8.mp3", category: "مواعظ متنوعة" },
     { title: "من مهالك الرجال .. احذر المهلكة الأولى", src: "audio/audio2/le_9.mp3", category: "مواعظ متنوعة" },
     { title: "الراحة الحقيقية... أين نجدها ؟", src: "audio/audio2/le_10.mp3", category: "مواعظ متنوعة" },
+// مواعظ متنوعة (من 11 إلى 35)
+  { title: "موعظة 11 🎙️", src: "audio/audio2/le_11.mp3", category: "مواعظ متنوعة" },
+  { title: "موعظة 12 🎙️", src: "audio/audio2/le_12.mp3", category: "مواعظ متنوعة" },
+  { title: "موعظة 13 🎙️", src: "audio/audio2/le_13.mp3", category: "مواعظ متنوعة" },
+  { title: "موعظة 14 🎙️", src: "audio/audio2/le_14.mp3", category: "مواعظ متنوعة" },
+  { title: "موعظة 15 🎙️", src: "audio/audio2/le_15.mp3", category: "مواعظ متنوعة" },
+  { title: "موعظة 16 🎙️", src: "audio/audio2/le_16.mp3", category: "مواعظ متنوعة" },
+  { title: "موعظة 17 🎙️", src: "audio/audio2/le_17.mp3", category: "مواعظ متنوعة" },
+  { title: "موعظة 18 🎙️", src: "audio/audio2/le_18.mp3", category: "مواعظ متنوعة" },
+  { title: "موعظة 19 🎙️", src: "audio/audio2/le_19.mp3", category: "مواعظ متنوعة" },
+  { title: "موعظة 20 🎙️", src: "audio/audio2/le_20.mp3", category: "مواعظ متنوعة" },
+  { title: "موعظة 21 🎙️", src: "audio/audio2/le_21.mp3", category: "مواعظ متنوعة" },
+  { title: "موعظة 22 🎙️", src: "audio/audio2/le_22.mp3", category: "مواعظ متنوعة" },
+  { title: "موعظة 23 🎙️", src: "audio/audio2/le_23.mp3", category: "مواعظ متنوعة" },
+  { title: "موعظة 24 🎙️", src: "audio/audio2/le_24.mp3", category: "مواعظ متنوعة" },
+  { title: "موعظة 25 🎙️", src: "audio/audio2/le_25.mp3", category: "مواعظ متنوعة" },
+  { title: "موعظة 26 🎙️", src: "audio/audio2/le_26.mp3", category: "مواعظ متنوعة" },
+  { title: "موعظة 27 🎙️", src: "audio/audio2/le_27.mp3", category: "مواعظ متنوعة" },
+  { title: "موعظة 28 🎙️", src: "audio/audio2/le_28.mp3", category: "مواعظ متنوعة" },
+  { title: "موعظة 29 🎙️", src: "audio/audio2/le_29.mp3", category: "مواعظ متنوعة" },
+  { title: "موعظة 30 🎙️", src: "audio/audio2/le_30.mp3", category: "مواعظ متنوعة" },
+  { title: "موعظة 31 🎙️", src: "audio/audio2/le_31.mp3", category: "مواعظ متنوعة" },
+  { title: "موعظة 32 🎙️", src: "audio/audio2/le_32.mp3", category: "مواعظ متنوعة" },
+  { title: "موعظة 33 🎙️", src: "audio/audio2/le_33.mp3", category: "مواعظ متنوعة" },
+  { title: "موعظة 34 🎙️", src: "audio/audio2/le_34.mp3", category: "مواعظ متنوعة" },
+  { title: "موعظة 35 🎙️", src: "audio/audio2/le_35.mp3", category: "مواعظ متنوعة" },
 
     { title: "دورة تعلم التجويد - الدرس ( 1 )", src: "https://archive.org/download/tajweed_lesson_1/tajweed_lesson_1.mp3", category: "دورة التجويد" },
     { title: "دورة تعلم التجويد - الدرس ( 2 )", src: "https://archive.org/download/tajweed_lesson_2/tajweed_lesson_2.mp3", category: "دورة التجويد" },
@@ -1252,7 +1278,7 @@ function renderLectures() {
     const listEl = document.getElementById('lecturesList');
     if (!listEl) return;
 
-    // 1. المربع الذهبي لاسم الشيخ والدورة (ملموم ومحسّن)
+    // 1. المربع الذهبي لاسم الشيخ والدورة
     let sheikhBannerHtml = "";
     const info = window.sheikhsInfoData ? window.sheikhsInfoData[window.currentLectureFilter] : null;
 
@@ -1307,6 +1333,11 @@ function renderLectures() {
         const isVideo = lecture.type === 'video';
         const isThisPlaying = window.currentPlayingGlobalId === realIndex && window.currentPlayingLectureAudio && !window.currentPlayingLectureAudio.paused;
 
+        // 🔗 إضافة زر المشاركة فقط للمواعظ المتنوعة
+        const shareBtnHtml = lecture.category === "مواعظ متنوعة"
+            ? `<div class="athr-icon-btn" onclick="window.shareLectureAudio('${lecture.title.replace(/'/g, "\\'")}', '${lecture.src}', this)" style="width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:1px solid rgba(212,175,55,0.4); background:rgba(212,175,55,0.15); color:var(--gold, #d4af37); font-size:12px;" title="مشاركة الموعظة">🔗</div>`
+            : '';
+
         return `
         <div class="athr-lecture-card ${isThisPlaying ? 'playing' : ''}" style="background: linear-gradient(145deg, rgba(25, 35, 28, 0.85) 0%, rgba(12, 18, 14, 0.95) 100%); border: 1px solid ${isThisPlaying ? 'var(--gold, #d4af37)' : 'rgba(212, 175, 55, 0.2)'}; border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; direction: rtl; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.35);">
           <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
@@ -1319,11 +1350,13 @@ function renderLectures() {
                 <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
                     <button onclick="window.openAthrVideoModal('${lecture.title}', '${lecture.src}')" style="background: linear-gradient(135deg, #d4af37, #b8860b); color:#111; border:none; padding:5px 12px; border-radius:18px; font-weight:bold; font-size:11.5px; cursor:pointer;">🎬 مشاهدة</button>
                     <div id="lectureDlRing_${realIndex}" class="athr-icon-btn" onclick="window.startLectureDownloadRing(${realIndex})" style="width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:1px solid rgba(212,175,55,0.3); background:rgba(212,175,55,0.1); color:var(--gold, #d4af37); font-size:12px;">⬇️</div>
+                    ${shareBtnHtml}
                 </div>
             ` : `
                 <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
                     <button class="athr-icon-btn primary" id="lectureBtn_${realIndex}" onclick="window.toggleLectureAudio(${realIndex})" style="width:32px; height:32px; border-radius:50%; border:none; background:linear-gradient(135deg, #e6c667, #d4af37); color:#111; font-weight:bold; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center;">${isThisPlaying ? '⏸' : '▶'}</button>
-                    <div id="lectureDlRing_${realIndex}" class="athr-icon-btn" onclick="window.startLectureDownloadRing(${realIndex})" style="width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:1px solid rgba(212,175,55,0.3); background:rgba(212,175,55,0.1); color:var(--gold, #d4af37); font-size:12px;">⬇️</div> 
+                    <div id="lectureDlRing_${realIndex}" class="athr-icon-btn" onclick="window.startLectureDownloadRing(${realIndex})" style="width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:1px solid rgba(212,175,55,0.3); background:rgba(212,175,55,0.1); color:var(--gold, #d4af37); font-size:12px;">⬇️</div>
+                    ${shareBtnHtml}
                 </div>
             `}
           </div>
@@ -1339,7 +1372,7 @@ function renderLectures() {
             </div>
           </div>
           ` : ''}
-      <div style="text-align:center; margin-top:2px;">
+          <div style="text-align:center; margin-top:2px;">
             <button onclick="window.toggleReflectionBox(${realIndex})" style="background:transparent; border:none; color:var(--gold,#d4af37); font-size:11px; cursor:pointer; font-family:'Amiri',serif; text-decoration:underline;">💭 ما المستفاد من هذا الدرس؟</button>
           </div>
           <div id="reflectionBox_${realIndex}" style="display:none;"></div>
@@ -2122,4 +2155,46 @@ window.deleteReflection = async function(index) {
   delete window.lectureReflections[key];
   localStorage.setItem('lecture_reflections', JSON.stringify(window.lectureReflections));
   renderReflectionBoxContent(index);
+};
+window.shareLectureAudio = async function(title, src, btnElement) {
+    const cleanTitle = title.replace('🎙️', '').trim();
+    const btn = btnElement || (event ? event.currentTarget : null);
+    const originalHTML = btn ? btn.innerHTML : '🔗';
+    
+    try {
+        if (btn) btn.innerHTML = '⏳';
+        let blob = null;
+
+        if ('caches' in window) {
+            try {
+                const cache = await caches.open('athr-audio-cache-v1');
+                const matchedResponse = await cache.match(src);
+                if (matchedResponse) blob = await matchedResponse.blob();
+            } catch (e) {}
+        }
+
+        if (!blob) {
+            const response = await fetch(src);
+            blob = await response.blob();
+        }
+
+        const audioFile = new File([blob], `${cleanTitle}.mp3`, { type: 'audio/mp3' });
+
+        if (navigator.canShare && navigator.canShare({ files: [audioFile] })) {
+            await navigator.share({
+                title: cleanTitle,
+                text: `موعظة خاشعة: ${cleanTitle} 🎙️ - تطبيق أثر`,
+                files: [audioFile]
+            });
+        } else {
+            const fullAudioUrl = new URL(src, window.location.href).href;
+            await navigator.share({ title: cleanTitle, text: cleanTitle, url: fullAudioUrl });
+        }
+    } catch (err) {
+        if (err.name !== 'AbortError') {
+            alert('⚠️ تعذر مشاركة الملف الصوتي.');
+        }
+    } finally {
+        if (btn) btn.innerHTML = originalHTML;
+    }
 };
