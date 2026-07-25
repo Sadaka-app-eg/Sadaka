@@ -4585,10 +4585,29 @@ function audioEnded() {
 
 function stopAudio() {
   const audio = document.getElementById('audioPlayer');
-  audio.pause(); audio.src='';
-  isPlaying=false; isPlayingQueue=false;
-  document.getElementById('playBtn').textContent='▶';
-  document.querySelectorAll('.ayah-span').forEach(el=>el.classList.remove('playing'));
+  if (audio) {
+    audio.pause();
+    // 🎯 تفريغ المصدر بالكامل وكسر أي بروميس تشغيل معلق في الخلفية
+    audio.src = '';
+    audio.removeAttribute('src');
+    audio.load(); 
+  }
+  
+  isPlaying = false; 
+  isPlayingQueue = false;
+  
+  const playBtn = document.getElementById('playBtn');
+  if (playBtn) playBtn.textContent = '▶';
+  
+  // 🎯 تصفير شريط حالة الصوت فوراً
+  const statusEl = document.getElementById('audioStatus');
+  if (statusEl) {
+    statusEl.textContent = 'اضغط تشغيل • اضغط مطولًا على آية للخيارات';
+  }
+
+  document.querySelectorAll('.qcf-word, .ayah-span').forEach(el => {
+    el.classList.remove('playing');
+  });
 }
 
 // ===========================
