@@ -298,7 +298,7 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
 .mushaf-slider{display:flex;flex-direction:row;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;height:100%;scrollbar-width:none;}
   .mushaf-slider::-webkit-scrollbar{display:none;}
 .mushaf-page {
-  position: relative !important
+  position: relative !important;
   flex: 0 0 100vw !important;
   width: 100vw !important;
   height: 100vh !important;
@@ -4482,10 +4482,11 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
       }
+      if (physicalIdx >= window.currentSurahPages.length - 2) extendMushafPages(1);
+      if (physicalIdx <= 1) extendMushafPages(-1);
     }, { passive: true });
   }
- if (physicalIdx >= window.currentSurahPages.length - 2) extendMushafPages(1);
-      if (physicalIdx <= 1) extendMushafPages(-1);
+
 
   // 4️⃣ تهيئة وتحديث بيانات الصفحة الرئيسية والخدمات
   loadPrayerTimes();
