@@ -4289,6 +4289,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   // 3️⃣ مراقب السكرول الذكي لصفحات المصحف (لتحديث اسم السورة العلوية فور التقليب)
+// 3️⃣ مراقب السكرول الذكي المعدل (بيحدث السورة الحالية وبيوقف الصوت القديم فوراً)
   const slider = document.getElementById('mushafSlider');
   if (slider) {
     slider.addEventListener('scroll', () => {
@@ -4302,8 +4303,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const activeSurah = getSurahByPageNumber(currentPageNum);
         if (activeSurah) {
           const titleEl = document.getElementById('surahScreenTitle');
+          
+          // 🎯 لو انتقلنا لسورة جديدة فعلياً أثناء السحب
           if (titleEl && titleEl.textContent !== 'سورة ' + activeSurah.name) {
             titleEl.textContent = 'سورة ' + activeSurah.name;
+            
+            // 🚀 التحديث السحري: إيقاف صوت السورة القديمة وتحديث المتغير بالجديدة فوراً!
+            if (currentSurah && currentSurah.n !== activeSurah.n) {
+              currentSurah = activeSurah;
+              localStorage.setItem('last_active_surah', activeSurah.n);
+              stopAudio(); // قطع صوت السورة السابقة تلقائياً
+            }
           }
         }
       }
