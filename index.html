@@ -7862,18 +7862,20 @@ function highlightAyah(ayahIndex, type = 'selected', clearOld = true) {
 let mushafSwipeStartX = 0;
 let mushafSwipeLocked = false;
 
+// 1️⃣ دالة معالجة المؤشر بدقة متساهلة مع كسور البكسل ع الموبايل
 function getMushafPageIndex(slider) {
   const total = slider.children.length;
   if (total === 0) return 0;
-  const rawIndex = Math.round(Math.abs(slider.scrollLeft) / window.innerWidth);
-  return Math.max(0, Math.min(total - 1, rawIndex));
+  const pageWidth = slider.clientWidth || window.innerWidth;
+  const rawIndex = Math.abs(slider.scrollLeft) / pageWidth;
+  return rawIndex;
 }
 
+// 2️⃣ حسّاس الحواف المطور (خفيف جداً ويلقط السحب فوراً)
 function attachMushafEdgeSwipe() {
   const slider = document.getElementById('mushafSlider');
   if (!slider) return;
 
-  // استخدام متغيرات على مستوى window لمنع التكرار والتراكم
   slider.ontouchstart = (e) => {
     if (e.touches && e.touches.length > 0) {
       window.mushafSwipeStartX = e.touches[0].clientX;
@@ -7882,39 +7884,40 @@ function attachMushafEdgeSwipe() {
 
   slider.ontouchend = (e) => {
     if (window.mushafSwipeLocked || !window.mushafSwipeStartX) return;
-
     if (!e.changedTouches || e.changedTouches.length === 0) return;
+
     const endX = e.changedTouches[0].clientX;
     const deltaX = endX - window.mushafSwipeStartX;
 
-    // حساسية السحب (55 بكسل)
-    if (Math.abs(deltaX) < 55) return;
+    // 🎯 قللنا المسافة المطلوبة لـ 35px عشان السحب يبقى استجابته طيارة وخفيفة
+    if (Math.abs(deltaX) < 35) return;
 
     const total = slider.children.length;
-    const idx = getMushafPageIndex(slider);
-    const currentPageEl = slider.children[idx];
+    const rawIdx = getMushafPageIndex(slider);
+    const currentPageEl = slider.children[Math.round(rawIdx)];
     if (!currentPageEl) return;
 
     const currentP = parseInt(currentPageEl.getAttribute('data-page'));
 
-    // التقدم (سحب لليسار) عند آخر صفحة
-    if (deltaX < 0 && idx >= total - 1) {
+    // 🚀 التقدم للسورة التالية (سحب لليسار عند الصفحة الأخيرة)
+    // التقريب بيضمن لو واقف عند 47.1 أو 47.8 يعتبرك عند آخر صفحة فوراً
+    if (deltaX < -35 && rawIdx >= total - 1.2) {
       if (currentP && currentP < 604) {
         window.mushafSwipeLocked = true;
         const nextP = currentP + 1;
         const nextS = getSurahByPageNumber(nextP);
         openSurah(nextS.n, null, nextP);
-        setTimeout(() => { window.mushafSwipeLocked = false; }, 400);
+        setTimeout(() => { window.mushafSwipeLocked = false; }, 350);
       }
     } 
-    // الرجوع (سحب لليمن) عند أول صفحة
-    else if (deltaX > 0 && idx <= 0) {
+    // ⬅️ الرجوع للسورة السابقة (سحب لليمن عند الصفحة الأولى)
+    else if (deltaX > 35 && rawIdx <= 0.2) {
       if (currentP && currentP > 1) {
         window.mushafSwipeLocked = true;
         const prevP = currentP - 1;
         const prevS = getSurahByPageNumber(prevP);
         openSurah(prevS.n, null, prevP);
-        setTimeout(() => { window.mushafSwipeLocked = false; }, 400);
+        setTimeout(() => { window.mushafSwipeLocked = false; }, 350);
       }
     }
   };
