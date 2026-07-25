@@ -3887,13 +3887,19 @@ const lineJustify = isSpecialPage ? 'justify-content:center;gap:8px;' : 'justify
     attachMushafEdgeSwipe();
 
     // التوجيه المباشر والدقيق
+   // 🎯 توجيه فوري حاسم لموقع بداية السورة الحقيقية
     const targetIdx = pageNums.indexOf(targetP);
     if (targetIdx !== -1) {
-      requestAnimationFrame(() => {
-        window.scrollToMushafIndex(targetIdx);
-      });
+      setTimeout(() => {
+        const slider = document.getElementById('mushafSlider');
+        if (slider) {
+          const pageWidth = slider.clientWidth || window.innerWidth;
+          slider.scrollLeft = window.getComputedStyle(slider).direction === 'rtl'
+            ? -(targetIdx * pageWidth)
+            : (targetIdx * pageWidth);
+        }
+      }, 50);
     }
-
   renderBookmarkHighlight();
     const realPageNums = pageNums.filter(p => p >= surahStartP && p <= surahEndP);
     setupMushafJumpSlider(pageNums, realPageNums);
@@ -4304,6 +4310,30 @@ document.addEventListener('DOMContentLoaded', () => {
   updateHomeHiddenDeedsHint();
   renderFlameCompanion(false);
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+  const slider = document.getElementById('mushafSlider');
+  if (!slider) return;
+
+  slider.addEventListener('scroll', () => {
+    if (!window.currentSurahPages || window.currentSurahPages.length === 0) return;
+    
+    const pageWidth = slider.clientWidth || window.innerWidth;
+    const physicalIdx = Math.round(Math.abs(slider.scrollLeft) / pageWidth);
+    const currentPageNum = window.currentSurahPages[physicalIdx];
+
+    if (currentPageNum) {
+      const activeSurah = getSurahByPageNumber(currentPageNum);
+      if (activeSurah) {
+        const titleEl = document.getElementById('surahScreenTitle');
+        if (titleEl && titleEl.textContent !== 'سورة ' + activeSurah.name) {
+          titleEl.textContent = 'سورة ' + activeSurah.name;
+        }
+      }
+    }
+  }, { passive: true });
+});
+ 
 function toggleAudio() {
   if(!currentSurah) return;
   const audio = document.getElementById('audioPlayer');
@@ -5338,7 +5368,7 @@ function setupMushafJumpSlider(pageNums, realPageNums) {
   if (!slider || !mushafSlider) return;
 
   const rp = realPageNums || pageNums;
-  const offset = pageNums.indexOf(rp[0]); // فرق موقع أول صفحة حقيقية داخل القائمة الكاملة (اللي فيها البفر)
+  const offset = pageNums.indexOf(rp[0]);
 
   slider.max = Math.max(0, rp.length - 1);
   slider.value = 0;
@@ -5347,17 +5377,20 @@ function setupMushafJumpSlider(pageNums, realPageNums) {
 
   slider.oninput = () => {
     isDraggingJumpSlider = true;
-    window.scrollToMushafIndex(parseInt(slider.value) + offset);
+    const targetPhysicalIndex = parseInt(slider.value) + offset;
+    window.scrollToMushafIndex(targetPhysicalIndex);
   };
+  
   slider.onchange = () => { isDraggingJumpSlider = false; };
 
   mushafSlider.onscroll = () => {
     if (isDraggingJumpSlider) return;
-    const physicalIdx = Math.round(Math.abs(mushafSlider.scrollLeft) / window.innerWidth);
+    const pageWidth = mushafSlider.clientWidth || window.innerWidth;
+    const physicalIdx = Math.round(Math.abs(mushafSlider.scrollLeft) / pageWidth);
     const realIdx = physicalIdx - offset;
     slider.value = Math.max(0, Math.min(rp.length - 1, realIdx));
   };
-}                            
+}                           
                       
 window.scrollToMushafIndex = function(index) {
   const slider = document.getElementById('mushafSlider');
@@ -8218,10 +8251,14 @@ window.triggerHeaderGoogleLogin = function() {
   };
 
   const _closeSurah = window.closeSurah;
-  window.closeSurah = function(){
+window.closeSurah = function(){
+  if (history.state && history.state.athrState === 'surah') {
+    // نسيب الـ popstate handler هو اللي يقفل الشاشة فعليًا، بدل ما نقفلها إحنا الأول ونعمل تعارض
+    history.back();
+  } else {
     _closeSurah();
-    if (history.state && history.state.athrState === 'surah') history.back();
-  };
+  }
+};
 
   window.addEventListener('popstate', () => {
     const insightModal = document.getElementById('insightModal');
