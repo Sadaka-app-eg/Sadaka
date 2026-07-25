@@ -760,7 +760,20 @@ window.lecturesData = [
     { title: "أصول العقيدة - الدرس 29 (الجزء 1)", src: "https://archive.org/download/khaled_alridwany_062_201902/29%D8%A3%D8%B5%D9%88%D9%84%20%D8%A7%D9%84%D8%B9%D9%82%D9%8A%D8%AF%D8%A91.mp3", category: "أصول العقيدة", type: "audio" },
     { title: "أصول العقيدة - الدرس 29 (الجزء 2)", src: "https://archive.org/download/khaled_alridwany_062_201902/29%D8%A3%D8%B5%D9%88%D9%84%20%D8%A7%D9%84%D8%B9%D9%82%D9%8A%D8%AF%D8%A92.mp3", category: "أصول العقيدة", type: "audio" },
     { title: "أصول العقيدة - نموذج اختبار 01", src: "https://archive.org/download/khaled_alridwany_062_201902/30%D9%86%D9%85%D9%88%D8%B0%D8%AC%20%D8%A7%D8%AE%D8%AA%D8%A8%D8%A7%D8%B11.mp3", category: "أصول العقيدة", type: "audio" },
-    { title: "أصول العقيدة - نموذج اختبار 02 والأخير", src: "https://archive.org/download/khaled_alridwany_062_201902/30%D9%86%D9%85%D9%88%D8%B0%D8%AC%20%D8%A7%D8%AE%D8%AA%D8%A8%D8%A7%D8%B12.mp3", category: "أصول العقيدة", type: "audio" }
+    { title: "أصول العقيدة - نموذج اختبار 02 والأخير", src: "https://archive.org/download/khaled_alridwany_062_201902/30%D9%86%D9%85%D9%88%D8%B0%D8%AC%20%D8%A7%D8%AE%D8%AA%D8%A8%D8%A7%D8%B12.mp3", category: "أصول العقيدة", type: "audio" },
+    // =========================================================================
+    // 🎙️ سلسلة محاضرات كبار العلماء (عبد الرزاق البدر، الحويني، ابن باز، ابن عثيمين، عبد السلام الشويعر)
+    // =========================================================================
+    { title: "محاضرة نافعة - الشيخ عبد الرزاق البدر", src: "audio_2/badr_1.mp3", category: "محاضرات المشايخ", type: "audio" },
+    { title: "درس توجيهي - الشيخ عبد الرزاق البدر", src: "audio_2/badr_2.mp3", category: "محاضرات المشايخ", type: "audio" },
+    { title: "محاضرة علمية - الشيخ أبو إسحاق الحويني", src: "audio_2/huwayni_1.mp3", category: "محاضرات المشايخ", type: "audio" },
+    { title: "درر وفوائد - الشيخ أبو إسحاق الحويني", src: "audio_2/huwayni_2.mp3", category: "محاضرات المشايخ", type: "audio" },
+    { title: "سلسلة الدروس العلمية - الإمام ابن باز", src: "audio_2/binbaz_1.mp3", category: "محاضرات المشايخ", type: "audio" },
+    { title: "فتاوى ولقاءات - الإمام ابن باز", src: "audio_2/binbaz_2.mp3", category: "محاضرات المشايخ", type: "audio" },
+    { title: "شرح الأصول العظيمة - الإمام ابن عثيمين", src: "audio_2/uthaymeen_1.mp3", category: "محاضرات المشايخ", type: "audio" },
+    { title: "مجالس العلم واليقين - الإمام ابن عثيمين", src: "audio_2/uthaymeen_2.mp3", category: "محاضرات المشايخ", type: "audio" },
+    { title: "مجالس الفقه والتأصيل - الشيخ عبد السلام الشويعر", src: "audio_2/shuwayar_1.mp3", category: "محاضرات المشايخ", type: "audio" },
+    { title: "دروس فقهية مختارة - الشيخ عبد السلام الشويعر", src: "audio_2/shuwayar_2.mp3", category: "محاضرات المشايخ", type: "audio" },
     
 ];
 
@@ -1206,7 +1219,13 @@ window.sheikhsInfoData = {
         title: "دورة البيت المسلم (كاملة)",
         icon: "🏡",
         desc: "دورة تربوية واجتماعية مكثفة تناقش أسس بناء الأسرة المسلمة، الأدوار الفطرية للزوجين، وكيفية التعامل مع التحديات والتربية المعاصرة."
-    }
+    },
+    "محاضرات المشايخ": {
+        sheikh: "كبار العلماء (ابن باز، ابن عثيمين، الحويني، البدر، عبد السلام الشويعر)",
+        title: "مكتبة المحاضرات العلمية والدروس التأصيلية",
+        icon: "🎙️",
+        desc: "مجموعة منتقاة من أثمن المحاضرات والدروس العلمية لكبار علماء الأمة ومشايخها الأجلاء لترسيخ العلم الشرعي."
+    },
     
     
 };
