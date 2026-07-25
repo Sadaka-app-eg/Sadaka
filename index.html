@@ -8245,25 +8245,30 @@ window.requestFCMToken = async function() {
     if (permission === 'granted') {
       console.log("✅ تم السماح بالإشعارات من المستخدم.");
       
-      // توليد توكن محلي نظيف ومستقر يمنع طلب الـ Network الفاشل ويدخل السيستم فوراً
-      const stableToken = 'fcm_web_token_' + Math.random().toString(36).substring(2) + Date.now();
-      localStorage.setItem('fcm_device_token', stableToken);
+      // جلب التوكن الحقيقي من خوادم جوجل باستخدام المفتاح الجديد
+      const currentToken = await getToken(messaging, { 
+        vapidKey: 'BOlWXyqUjf26pn85LD9-KUoLY-fMoyAUypb49a94YYA0B7xqoEFIWXecDTUVPKrBfG7y95pAtm04Nuvi_yCto2s' 
+      });
 
-      // حفظ التوكن في Firestore لو مسجل دخول
-      const user = auth.currentUser;
-      if (user) {
-        await setDoc(doc(db, "user_tokens", user.uid), {
-          token: stableToken,
-          updatedAt: new Date().toISOString()
-        }, { merge: true });
-        console.log("💾 تم حفظ التوكن في قاعدة البيانات بنجاح.");
+      if (currentToken) {
+        console.log("🔑 FCM Token الحقيقي:", currentToken);
+        localStorage.setItem('fcm_device_token', currentToken);
+
+        const user = auth.currentUser;
+        if (user) {
+          await setDoc(doc(db, "user_tokens", user.uid), {
+            token: currentToken,
+            updatedAt: new Date().toISOString()
+          }, { merge: true });
+          console.log("💾 تم حفظ التوكن الحقيقي في قاعدة البيانات بنجاح.");
+        }
+        return currentToken;
       }
-      return stableToken;
     } else {
       console.log("⚠️ تم رفض إذن الإشعارات.");
     }
   } catch (err) {
-    console.error('خطأ في إذن الإشعارات:', err);
+    console.error('خطأ في جلب رمز FCM:', err);
   }
 };
 
