@@ -1478,17 +1478,18 @@ function renderLectures() {
         </div>`;
     }
 
-  let filtered = [];
+let filtered = [];
     if (window.currentLectureFilter === 'محاضرات المشايخ') {
         if (window.currentSelectedSheikh === 'الكل') {
             filtered = window.lecturesData.filter(l => l.category === 'محاضرات المشايخ');
         } else {
             filtered = window.lecturesData.filter(l => l.category === 'محاضرات المشايخ' && l.title.includes(window.currentSelectedSheikh));
         }
-    } else if (window.currentLectureFilter === 'all') {
-        filtered = [...window.lecturesData];
     } else {
-        filtered = window.lecturesData.filter(l => l.category === window.currentLectureFilter);
+        // باقي التبويبات والأقسام بتشتغل بشكلها الطبيعي تماماً من غير أي تأثر
+        filtered = window.currentLectureFilter === 'all'
+            ? [...window.lecturesData]
+            : window.lecturesData.filter(l => l.category === window.currentLectureFilter);
     }
 
     if (window.lectureSearchQuery && window.lectureSearchInputText) {
