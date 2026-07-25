@@ -314,11 +314,12 @@ scroll-snap-stop: always !important; /* 👈 السطر ده اللي بيمنع
   color: var(--mushaf-text);
 }
 
-  .mushaf-slider.vscroll-mode {
+.mushaf-slider.vscroll-mode {
   flex-direction: column !important;
   overflow-x: hidden !important;
   overflow-y: auto !important;
   scroll-snap-type: none !important;
+  scroll-behavior: auto !important;
 }
 .mushaf-slider.vscroll-mode .mushaf-page {
   flex: 0 0 auto !important;
@@ -8057,8 +8058,8 @@ function startMainAutoScroll() {
     const currentIdx = Math.round(Math.abs(slider.scrollLeft) / pageWidth);
     const targetPageEl = slider.children[currentIdx] || slider.children[0];
 
+slider.style.scrollBehavior = 'auto'; // إلغاء السموث فورًا قبل الدخول في الوضع الرأسي
     slider.classList.add('vscroll-mode');
-
     // 🎯 مهلة 30 مللي ثانية لمنع الرعشة ولضمان اكتمال الرسم الرأسي قبل القفز
     setTimeout(() => {
       if (targetPageEl) {
@@ -8111,7 +8112,9 @@ function stopMainAutoScroll() {
     });
 
     // 🎯 2. إرجاع الشاشة للوضع الأفقي
+// 🎯 2. إرجاع الشاشة للوضع الأفقي
     slider.classList.remove('vscroll-mode');
+    slider.style.scrollBehavior = ''; // إرجاع السموث للسحب الأفقي العادي بين الصفحات
     slider.scrollTop = 0;
 
     // 🎯 3. التركيز المباشر على نفس الصفحة أفقياً
