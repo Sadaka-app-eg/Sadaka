@@ -3763,8 +3763,7 @@ const minPage = Math.max(1, surahStartP - 1);
 
     // 🎯 الضمان الأول: انتظار تمام تحميل الخطوط العثمانية لكل الصفحات قبل الرسم
  // 🎯 الضمان الأول: انتظار تمام تحميل الخطوط العثمانية لكل الصفحات قبل الرسم
-    await Promise.all(pageNums.map(p => loadQcfPageFont(p)));
-
+pageNums.forEach(p => loadQcfPageFont(p));
     if (myOpenReqId !== window._openSurahReqId) return; // فحص تاني بعد الانتظار
 
     let sliderHtml = '';
@@ -3893,20 +3892,21 @@ window.navSurah = function(direction) {
 // =========================================================================
 function prefetchFullQuranData() {
   setTimeout(async () => {
-    for (let i = 1; i <= 114; i++) {
-      const existing = await getCachedSurahDB(i);
+    // التحميل الذكي لكل صفحات المصحف (من 1 إلى 604) في الخلفية صامتاً
+    for (let p = 1; p <= 604; p++) {
+      const existing = await getCachedSurahDB(`page_${p}`);
       if (!existing) {
         try {
-          const res = await fetch(`https://api.quran.com/api/v4/verses/by_chapter/${i}?per_page=300&words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number,rub_number`);
+          const res = await fetch(`https://api.quran.com/api/v4/verses/by_page/${p}?per_page=300&words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number,rub_number`);
           const data = await res.json();
           if (data && data.verses && data.verses.length > 0) {
-            await setCachedSurahDB(i, data);
+            await setCachedSurahDB(`page_${p}`, data);
           }
         } catch(e) {}
-        await new Promise(r => setTimeout(r, 100));
+        await new Promise(r => setTimeout(r, 60)); // مهلة خفيفة لعدم إجهاد الموبايل
       }
     }
-  }, 2000);
+  }, 3000);
 }
  
     function scrollToTargetAyahIfNeeded(targetAyahNum) {
