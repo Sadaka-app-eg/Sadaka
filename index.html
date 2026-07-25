@@ -3781,6 +3781,11 @@ const minPage = Math.max(1, surahStartP - 1);
 
     const pageNums = Object.keys(pagesDict).map(Number).sort((a,b) => a-b);
     window.currentSurahPages = pageNums;
+   // 🚀 جدول بحث سريع (O(1)) بدل البحث الخطي البطيء لكل كلمة
+    const ayahIndexMap = new Map();
+    currentAyahsData.forEach((a, idx) => {
+      ayahIndexMap.set(`${a.surahNumber}:${a.numberInSurah}`, idx);
+    });
 
     // 🎯 الضمان الأول: انتظار تمام تحميل الخطوط العثمانية لكل الصفحات قبل الرسم
  // 🎯 الضمان الأول: انتظار تمام تحميل الخطوط العثمانية لكل الصفحات قبل الرسم
@@ -3847,8 +3852,8 @@ const lineJustify = isSpecialPage ? 'justify-content:center;gap:8px;' : 'justify
         // 🎯 الضمان الثاني: تثبيت السطر أفقي محذى 100% بدون انكسار
         sliderHtml += `<div style="display:flex; flex-direction:row; ${lineJustify} align-items:center; width:100%; min-height: calc(100% / 15); overflow:visible; white-space:nowrap;">`;
         
-        lineWords.forEach(w => {
-          const ayahIndex = currentAyahsData.findIndex(a => a.surahNumber === w.vSurah && a.numberInSurah === w.vAyah);
+       lineWords.forEach(w => {
+          const ayahIndex = ayahIndexMap.get(`${w.vSurah}:${w.vAyah}`); 
           sliderHtml += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}"
             style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:1.9; display:inline-flex; align-items:center; user-select:none; white-space:nowrap;"
             ontouchstart="startPress(event, ${ayahIndex})"
