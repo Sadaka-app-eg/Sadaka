@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>أطفال الإسلام 🎈 - أثر</title>
+    <!-- استدعاء خط Amiri و Tajawal للأطفال -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="kids-wrapper">
+        <!-- شريط الهيدر العلوي -->
+        <header class="kids-header">
+            <div class="brand-info">
+                <span class="logo-emoji">🎈</span>
+                <div>
+                    <h1>عَالَمُ أَطْفَالِ الإِسْلَامِ</h1>
+                    <p>مَرَحٌ، إِيمَانٌ، وَأَخْلَاقٌ كَرِيمَةٌ</p>
+                </div>
+            </div>
+            <!-- زرار يرجعه للموقع الرئيسي -->
+            <a href="../index.html" class="back-home-btn">🏠 العَوْدَةُ لِلرَّئِيسِيَّةِ</a>
+        </header>
+
+        <!-- شريط أزرار التنقل الداخلي (Pastel Navigation) -->
+        <nav class="kids-nav-tabs">
+            <button onclick="switchKidsTab('tree')" id="kidsTab_tree" class="kids-sub-btn active">
+                🌳 شَجَرَةُ الصَّلَاةِ وَالْخَيْرَاتِ
+            </button>
+            <button onclick="switchKidsTab('radio')" id="kidsTab_radio" class="kids-sub-btn">
+                📻 رَادْيُوَ الْبَطَلِ وَحِكَايَاتُ النَّوْمِ
+            </button>
+            <button onclick="switchKidsTab('manners')" id="kidsTab_manners" class="kids-sub-btn">
+                🌟 كُرُوتُ الأَخْلَاقِ وَالأَوْسِمَةِ
+            </button>
+            <button onclick="switchKidsTab('quiz')" id="kidsTab_quiz" class="kids-sub-btn">
+                🧩 تَحَدِّي الْبَطَلِ الذَّكِيِّ
+            </button>
+        </nav>
+
+        <!-- 1️⃣ شجرة الصلاة والأعمال الصالحة -->
+        <section id="kidsContent_tree" class="kids-tab-content active">
+            <div class="section-title">
+                <h2>🌳 شَجَرَةُ الْعَبَادَاتِ الْيَوْمِيَّةِ</h2>
+                <p>اِضْغَطْ عَلَى الصَّلَاةِ أَوْ الْعَمَلِ الصَّالِحِ لِتُزْهِرَ الشَّجَرَةُ بِالأَلْوَانِ وَالنُّجُومِ! ✨</p>
+            </div>
+
+            <div class="tree-banner">
+                <div id="treeVisualStatus" class="tree-icon">🌱</div>
+                <div id="treeProgressText" class="tree-progress">مَجْمُوعُ الْأَوْرَاقِ الْمُزْهِرَةِ: 0 مِـنْ 8</div>
+            </div>
+
+            <div id="kidsTreeLeavesContainer" class="tree-grid">
+                <!-- توليد أوراق العبادات بالـ JS -->
+            </div>
+        </section>
+
+        <!-- 2️⃣ راديو البطل وحكايات قبل النوم -->
+        <section id="kidsContent_radio" class="kids-tab-content">
+            <div class="section-title">
+                <h2>📻 رَادْيُوَ الْأَبْطَالِ وَأَغَانِي الإِيمَانِ</h2>
+                <p>اِسْتَمِعْ لِأَجْمَلِ الْقِصَصِ الإِيمَانِيَّةِ وَالْأَنَاشِيدِ الْعَذْبَةِ 🎧</p>
+            </div>
+            
+            <div id="kidsRadioList" class="radio-list">
+                <!-- القائمة تولد بالـ JS -->
+            </div>
+        </section>
+
+        <!-- 3️⃣ كروت الأخلاق ونظام الأوسمة -->
+        <section id="kidsContent_manners" class="kids-tab-content">
+            <div class="section-title">
+                <h2>🏆 أَوْسِمَةُ الْبَطَلِ الْخَلُوقِ</h2>
+                <p>طَبِّقِ الْأَخْلَاقَ فِي يَوْمِكَ وَاحْصُلْ عَلَى الأَوْسِمَةِ الذهَبِيَّةِ! ⭐</p>
+            </div>
+
+            <div id="kidsMannersContainer" class="manners-grid">
+                <!-- توليد الكروت من الـ JS -->
+            </div>
+        </section>
+
+        <!-- 4️⃣ تحدي المسابقات والألعاب -->
+        <section id="kidsContent_quiz" class="kids-tab-content">
+            <div class="section-title">
+                <h2>🧩 مَسَابَقَةُ الْبَطَلِ الصَّغِيرِ</h2>
+                <p>أَجِبْ عَنِ الْأَسْئِلَةِ السَّهْلَةِ وَاجْمَعِ النُّجُومَ! 🌟</p>
+            </div>
+            
+            <div id="kidsQuizBox" class="quiz-card">
+                <!-- المسابقة تولد هنا بالـ JS -->
+            </div>
+        </section>
+
+    </div>
+
+    <!-- مشغل صوتي خفي لقسم الأطفال -->
+    <audio id="kidsAudioEngine" style="display: none;"></audio>
+
+    <script src="app.js"></script>
+</body>
+</html>
