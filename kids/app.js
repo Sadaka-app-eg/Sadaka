@@ -1,8 +1,18 @@
 // =========================================================================
-// 👶 محرك وقواعد بيانات أطفال الإسلام (Kids App Engine)
+// 👶 محرك وقواعد بيانات أطفال الإسلام (Kids App Engine Mapped)
 // =========================================================================
 
-// 1. بيانات شجرة الصلاة
+// 📖 1. بيانات الحديقة القرآنية
+const kidsQuranData = [
+    { name: "سُورَةُ الْفَاتِحَةِ 📖", count: "7 آيَاتٍ", src: "https://server8.mp3quran.net/afs/001.mp3" },
+    { name: "سُورَةُ الإِخْلَاصِ 🌟", count: "4 آيَاتٍ", src: "https://server8.mp3quran.net/afs/112.mp3" },
+    { name: "سُورَةُ الْفَلَقِ 🛡️", count: "5 آيَاتٍ", src: "https://server8.mp3quran.net/afs/113.mp3" },
+    { name: "سُورَةُ النَّاسِ 🤍", count: "6 آيَاتٍ", src: "https://server8.mp3quran.net/afs/114.mp3" },
+    { name: "سُورَةُ الْكَوْثَرِ 🌊", count: "3 آيَاتٍ", src: "https://server8.mp3quran.net/afs/108.mp3" },
+    { name: "سُورَةُ النَّصْرِ 🚩", count: "3 آيَاتٍ", src: "https://server8.mp3quran.net/afs/110.mp3" }
+];
+
+// 🌳 2. بيانات شجرة الصلاة
 const kidsTreeItems = [
     { id: 'fajr', title: 'صَلَاةُ الْفَجْرِ 🌅' },
     { id: 'dhuhr', title: 'صَلَاةُ الظُّهْرِ ☀️' },
@@ -14,7 +24,7 @@ const kidsTreeItems = [
     { id: 'adhkar', title: 'أَذْكَارُ الصَّبَاحِ/الْمَسَاءِ 📿' }
 ];
 
-// 2. الصوتيات وحكايات قبل النوم
+// 📻 3. الصوتيات وحكايات قبل النوم
 const kidsAudioData = [
     { title: "قصة أصحاب الفيل للأطفال 🐘", src: "https://archive.org/download/Children_Stories_Islam/Elephant.mp3" },
     { title: "قصة النملة مع سيدنا سليمان 🐜", src: "https://archive.org/download/Children_Stories_Islam/Ant_Solomon.mp3" },
@@ -22,7 +32,7 @@ const kidsAudioData = [
     { title: "دعاء قبل النوم المضيء 🌙", src: "https://archive.org/download/Children_Stories_Islam/Sleeping_Dua.mp3" }
 ];
 
-// 3. كروت الأخلاق والأوسمة
+// 🌟 4. كروت الأخلاق
 const kidsMannersData = [
     { id: 'manner_1', title: "الأَكْلُ بِالْيَدِ الْيُمْنَى 🍽️", desc: "أَقُولُ بِسْمِ اللهِ وَآكُلُ بِيَمِينِي وَمِمَّا يَلِينِي." },
     { id: 'manner_2', title: "إِفْشَاءُ السَّلَامِ 🖐️", desc: "أَبْتَسِمُ وَأَقُولُ: السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللهِ." },
@@ -30,7 +40,7 @@ const kidsMannersData = [
     { id: 'manner_4', title: "مُسَاعَدَةُ الأُمِّ وَالأَبِ 🧹", desc: "أُرَتِّبُ غُرْفَتِي وَأُسَاعِدُ أُسْرَتِي بِحُبٍّ." }
 ];
 
-// 4. بنك أسئلة مسابقة الأطفال
+// 🧩 5. بنك أسئلة المسابقة
 const kidsQuizData = [
     { q: "مَا هُوَ الْكِتَابُ الَّذِي أَنْزَلَهُ اللهُ عَلَى نَبِيِّنَا مُحَمَّدٍ ﷺ؟", os: ["الْقُرْآنُ الْكَرِيمُ", "التَّوْرَاةُ", "الإِنْجِيلُ"], a: 0 },
     { q: "كَمْ عَدَدُ أَرْكَانِ الإِسْلَامِ؟", os: ["3 أَرْكَانٍ", "5 أَرْكَانٍ", "7 أَرْكَانٍ"], a: 1 },
@@ -49,7 +59,21 @@ function switchKidsTab(tabName) {
     if (activeBtn) activeBtn.classList.add('active');
 }
 
-// 1. شجرة الصلاة
+// 1. عرض المصحف المعلم
+function renderKidsQuran() {
+    const container = document.getElementById('kidsQuranContainer');
+    if (!container) return;
+
+    container.innerHTML = kidsQuranData.map(item => `
+        <div class="surah-card">
+            <h3>${item.name}</h3>
+            <p>${item.count}</p>
+            <button onclick="playKidsAudio('${item.src}')" class="play-surah-btn">▶ اسْتَمِعْ وَكَرِّرْ</button>
+        </div>
+    `).join('');
+}
+
+// 2. شجرة العبادات
 function renderKidsTree() {
     const container = document.getElementById('kidsTreeLeavesContainer');
     if (!container) return;
@@ -64,7 +88,7 @@ function renderKidsTree() {
         return `
         <div onclick="toggleKidsLeaf('${item.id}')" class="leaf-card ${isDone ? 'done' : ''}">
             <div style="font-size: 26px; margin-bottom: 4px;">${isDone ? '🌸' : '🍃'}</div>
-            <strong style="font-size: 14px; color: #2d3436; display: block;">${item.title}</strong>
+            <strong style="font-size: 13px; color: #2d3436; display: block;">${item.title}</strong>
             <span style="font-size: 11px; color: ${isDone ? '#10ac84' : '#b2bec3'}; font-weight: bold;">
                 ${isDone ? 'مُزْهِرَةٌ! ✨' : 'اضْغَطْ لِتُزْهِرَ'}
             </span>
@@ -89,12 +113,98 @@ function toggleKidsLeaf(id) {
     renderKidsTree();
 }
 
-// 2. الراديو
+// 3. بالونة الأذكار
+let zikrCount = 0;
+function popKidsZikr() {
+    zikrCount++;
+    const counterEl = document.getElementById('kidsZikrCounter');
+    const balloonEl = document.getElementById('kidsBalloon');
+    if (counterEl) counterEl.textContent = zikrCount;
+
+    // تكبير حجم البالونة تدريجياً
+    const scaleVal = 1 + (zikrCount % 10) * 0.05;
+    if (balloonEl) balloonEl.style.transform = `scale(${scaleVal})`;
+
+    if (zikrCount % 10 === 0) {
+        alert("🎉 مَاشَاءَ اللَّهُ! أَكْمَلْتَ 10 تَسْبِيحَاتٍ كَامِلَةٍ! بَطَلٌ حَقِيقِيٌّ! ✨");
+    }
+}
+
+function setKidsZikr(text) {
+    zikrCount = 0;
+    document.getElementById('kidsZikrText').textContent = text;
+    document.getElementById('kidsZikrCounter').textContent = 0;
+    document.getElementById('kidsBalloon').style.transform = 'scale(1)';
+}
+
+// 4. لعبة الذاكرة الإسلامية
+const gameIcons = ['🕋', '📖', '🕌', '🌙', '⭐', '📿'];
+let gameCards = [];
+let flippedCards = [];
+let moves = 0;
+
+function initMemoryGame() {
+    const board = document.getElementById('memoryBoard');
+    if (!board) return;
+
+    moves = 0;
+    document.getElementById('gameMoves').textContent = moves;
+    flippedCards = [];
+
+    // مضاعفة الصور وخلطها
+    gameCards = [...gameIcons, ...gameIcons].sort(() => Math.random() - 0.5);
+
+    board.innerHTML = gameCards.map((icon, idx) => `
+        <div class="memory-card" id="mCard_${idx}" onclick="flipCard(${idx})">
+            <span style="display:none;" id="mIcon_${idx}">${icon}</span>
+            <span id="mCover_${idx}">❓</span>
+        </div>
+    `).join('');
+}
+
+function flipCard(idx) {
+    const card = document.getElementById(`mCard_${idx}`);
+    const icon = document.getElementById(`mIcon_${idx}`);
+    const cover = document.getElementById(`mCover_${idx}`);
+
+    if (flippedCards.length < 2 && !card.classList.contains('flipped')) {
+        card.classList.add('flipped');
+        icon.style.display = 'block';
+        cover.style.display = 'none';
+        flippedCards.push({ idx, icon: icon.textContent });
+
+        if (flippedCards.length === 2) {
+            moves++;
+            document.getElementById('gameMoves').textContent = moves;
+            checkMatch();
+        }
+    }
+}
+
+function checkMatch() {
+    const [c1, c2] = flippedCards;
+    if (c1.icon === c2.icon) {
+        flippedCards = [];
+    } else {
+        setTimeout(() => {
+            document.getElementById(`mCard_${c1.idx}`).classList.remove('flipped');
+            document.getElementById(`mIcon_${c1.idx}`).style.display = 'none';
+            document.getElementById(`mCover_${c1.idx}`).style.display = 'block';
+
+            document.getElementById(`mCard_${c2.idx}`).classList.remove('flipped');
+            document.getElementById(`mIcon_${c2.idx}`).style.display = 'none';
+            document.getElementById(`mCover_${c2.idx}`).style.display = 'block';
+            flippedCards = [];
+        }, 800);
+    }
+}
+
+// 5. الراديو وكروت الأخلاق والمسابقة
 function renderKidsRadio() {
     const list = document.getElementById('kidsRadioList');
     if (!list) return;
 
-    list.innerHTML = kidsAudioData.map((item, idx) => `
+    list.innerHTML = kidsAudioData.map(item => `
         <div class="radio-item">
             <div style="display: flex; align-items: center; gap: 10px;">
                 <span style="font-size: 24px;">🎧</span>
@@ -109,11 +219,10 @@ function playKidsAudio(src) {
     const audio = document.getElementById('kidsAudioEngine');
     if (audio) {
         audio.src = src;
-        audio.play().catch(() => alert("🎵 جاري تحميل الصوت..."));
+        audio.play().catch(() => alert("🎵 جاري تحميل المحتوى الصوتي..."));
     }
 }
 
-// 3. كروت الأخلاق
 function renderKidsManners() {
     const container = document.getElementById('kidsMannersContainer');
     if (!container) return;
@@ -142,7 +251,6 @@ function toggleKidsBadge(id) {
     renderKidsManners();
 }
 
-// 4. المسابقة
 let currentQuizIdx = 0;
 function renderKidsQuiz() {
     const box = document.getElementById('kidsQuizBox');
@@ -164,9 +272,7 @@ function renderKidsQuiz() {
         <strong style="color:#d63031; font-size:15px; display:block; margin-bottom:12px;">سُؤَالُ ${currentQuizIdx + 1}: ${qItem.q}</strong>
         <div>
             ${qItem.os.map((opt, oIdx) => `
-                <button onclick="answerKidsQuiz(${oIdx})" class="quiz-btn">
-                    ${opt}
-                </button>
+                <button onclick="answerKidsQuiz(${oIdx})" class="quiz-btn">${opt}</button>
             `).join('')}
         </div>
     </div>`;
@@ -183,10 +289,12 @@ function answerKidsQuiz(selectedIdx) {
     }
 }
 
-// تشغيل القوائم عند فتح الصفحة
+// التشغيل الابتدائي
 document.addEventListener('DOMContentLoaded', () => {
+    renderKidsQuran();
     renderKidsTree();
     renderKidsRadio();
     renderKidsManners();
     renderKidsQuiz();
+    initMemoryGame();
 });
