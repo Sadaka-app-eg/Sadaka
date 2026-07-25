@@ -3704,20 +3704,19 @@ const minPage = Math.max(1, surahStartP - 1);
 
     // جلب بيانات صفحات السورة بالتوازي
    // 🚀 جلب فوري من الكاش المحلي أولاً (0 تأخير)، والـ API يشتغل في الخلفية بصمت
+   // 🎯 الجلب الذكي: لو الصفحة متخزنة هاتها فوراً، لو مش متخزنة هاتها أونلاين واحفظها
     const pagePromises = Array.from({ length: maxPage - minPage + 1 }, (_, i) => minPage + i).map(async (p) => {
       let pageData = await getCachedSurahDB(`page_${p}`);
       
-      // لو الصفحة مش موجودة في الكاش المحلي، نجيبها أونلاين بصمت من غير ما نوقف فتح السورة
       if (!pageData) {
-        fetch(`https://api.quran.com/api/v4/verses/by_page/${p}?per_page=300&words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number,rub_number`)
-          .then(res => res.json())
-          .then(data => {
-            if (data && data.verses) setCachedSurahDB(`page_${p}`, data);
-          }).catch(() => {});
-          
-        return []; // إرجاع مصفوفة فارغة فوراً لفتح الشاشة لحظياً
+        try {
+          const res = await fetch(`https://api.quran.com/api/v4/verses/by_page/${p}?per_page=300&words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number,rub_number`);
+          pageData = await res.json();
+          if (pageData && pageData.verses) {
+            await setCachedSurahDB(`page_${p}`, pageData);
+          }
+        } catch(e) {}
       }
-      
       return pageData && pageData.verses ? pageData.verses : [];
     });
 
