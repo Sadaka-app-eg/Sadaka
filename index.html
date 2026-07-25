@@ -4377,25 +4377,28 @@ document.addEventListener('DOMContentLoaded', () => {
 });
  
 function toggleAudio() {
-  if(!currentSurah) return;
+  if (!currentSurah) return;
   const audio = document.getElementById('audioPlayer');
+  if (!audio) return;
   
-  if(isPlaying) {
+  if (isPlaying) {
     audio.pause();
     isPlaying = false;
     document.getElementById('playBtn').textContent = '▶';
     document.getElementById('audioStatus').textContent = 'متوقف مؤقتًا';
   } else {
-    if(selectedAyahsQueue.length > 0) {
+    if (selectedAyahsQueue.length > 0) {
       isPlayingQueue = true;
       currentQueueIndex = 0;
       playNextInQueue();
     } else {
       isPlayingQueue = false;
+
+      // 🎯 قطع أي صوت قديم شغال في الخلفية لمنع التداخل مع السورة الجديدة
+      audio.pause();
+
       const num = currentSurah.n;
       const num3 = String(num).padStart(3, '0');
-
-      let audioSourceUrl = '';
       const reciter = document.getElementById('reciterSelect').value;
       
       const reciterUrls = {
@@ -4411,8 +4414,7 @@ function toggleAudio() {
         'qarafi': `https://server16.mp3quran.net/download/a_alqrafi/Rewayat-Hafs-A-n-Assem/${num3}.mp3`
       };
       
-      audioSourceUrl = reciterUrls[reciter];
-      audio.src = audioSourceUrl;
+      audio.src = reciterUrls[reciter] || reciterUrls['minsh'];
       
       audio.play()
         .then(() => {
@@ -4420,14 +4422,14 @@ function toggleAudio() {
           document.getElementById('playBtn').textContent = '⏸';
           document.getElementById('audioStatus').textContent = `يُشغّل سورة ${currentSurah.name}`;
 
-          // 🌟 السحر هنا: تحديث فوري للإشعارات باسم السورة كاملة ويمسح الإذاعة
+          // 🌟 تحديث فوري للإشعارات باسم السورة الحالية
           if ('mediaSession' in navigator) {
             const fullIconUrl = window.location.origin + window.location.pathname.replace(/[^\/]*$/, '') + 'icon.png';
 
             navigator.mediaSession.metadata = new MediaMetadata({
-              title: `سورة ${currentSurah.name} كاملة 📖`, // اسم السورة منور فوق
+              title: `سورة ${currentSurah.name} كاملة 📖`,
               artist: 'أثر',
-              album: ' ', // مسافة مخفية لحجب الروابط
+              album: ' ',
               artwork: [
                 { src: fullIconUrl, sizes: '192x192', type: 'image/png' },
                 { src: fullIconUrl, sizes: '512x512', type: 'image/png' }
@@ -4587,10 +4589,9 @@ function stopAudio() {
   const audio = document.getElementById('audioPlayer');
   if (audio) {
     audio.pause();
-    // 🎯 تفريغ المصدر بالكامل وكسر أي بروميس تشغيل معلق في الخلفية
-    audio.src = '';
+    audio.currentTime = 0;
     audio.removeAttribute('src');
-    audio.load(); 
+    audio.load(); // 🎯 كسر وإلغاء أي تشغيل معلق في الخلفية فوراً
   }
   
   isPlaying = false; 
@@ -4599,11 +4600,20 @@ function stopAudio() {
   const playBtn = document.getElementById('playBtn');
   if (playBtn) playBtn.textContent = '▶';
   
-  // 🎯 تصفير شريط حالة الصوت فوراً
+  // 🎯 تصفير النص والعدادات فوراً
   const statusEl = document.getElementById('audioStatus');
   if (statusEl) {
     statusEl.textContent = 'اضغط تشغيل • اضغط مطولًا على آية للخيارات';
   }
+
+  const currentTimeEl = document.getElementById('audioCurrentTime');
+  if (currentTimeEl) currentTimeEl.textContent = '00:00';
+  
+  const totalTimeEl = document.getElementById('audioTotalTime');
+  if (totalTimeEl) totalTimeEl.textContent = '00:00';
+
+  const seekbar = document.getElementById('audioSeekbar');
+  if (seekbar) seekbar.value = 0;
 
   document.querySelectorAll('.qcf-word, .ayah-span').forEach(el => {
     el.classList.remove('playing');
