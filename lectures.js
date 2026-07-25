@@ -2395,12 +2395,20 @@ window.currentSelectedSheikh = 'الكل';
 window.toggleSheikhsDropdown = function(event) {
     event.stopPropagation();
     const menu = document.getElementById('sheikhsDropdownMenu');
-    if (!menu) return;
+    const btn = document.getElementById('lectureCatBtn_محاضرات المشايخ');
+    if (!menu || !btn) return;
     
     const isVisible = menu.style.display === 'block';
-    menu.style.display = isVisible ? 'none' : 'block';
+    if (isVisible) {
+        menu.style.display = 'none';
+    } else {
+        // حساب مكان زرار التبويب بالظبط لفتح القائمة تحته مباشرة
+        const rect = btn.getBoundingClientRect();
+        menu.style.top = (rect.bottom + 6) + 'px';
+        menu.style.right = (window.innerWidth - rect.right) + 'px';
+        menu.style.display = 'block';
+    }
     
-    // تفعيل التبويب الرئيسي أصلاً
     window.filterLectures('محاضرات المشايخ');
 };
 
