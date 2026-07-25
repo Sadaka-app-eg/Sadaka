@@ -4272,66 +4272,147 @@ function formatAudioTime(seconds) {
 }
 
 // ربط أحداث مشغل الصوت بالشريط والعدادات تلقائياً
+
+
+// =========================================================================
+// 🚀 كود البدء الموحد والنظيف للتطبيق بالكامل (مرة واحدة فقط)
+// =========================================================================
 document.addEventListener('DOMContentLoaded', () => {
+
+  // 1️⃣ إعداد الثيم والمظهر الخارجي فوراً
+  const savedTheme = localStorage.getItem('theme_choice');
+  if (savedTheme === 'light') {
+    isDark = false;
+    document.body.classList.add('light');
+    const themeBtn = document.getElementById('themeBtn');
+    if (themeBtn) themeBtn.textContent = '🌙';
+  }
+
+  renderBgPicker();
+  const savedBg = localStorage.getItem('home_bg_choice') || 'none';
+  applyHomeBg(savedBg);
+
+
+  // 2️⃣ ربط مشغل الصوت الرئيسي (Audio Player) والعدادات
   const audio = document.getElementById('audioPlayer');
   const seekbar = document.getElementById('audioSeekbar');
   const currentTimeEl = document.getElementById('audioCurrentTime');
   const totalTimeEl = document.getElementById('audioTotalTime');
 
-  if (audio && seekbar) {
-    // 1. تحديث الشريط والعداد أثناء تشغيل الصوت تلقائياً
-    audio.addEventListener('timeupdate', () => {
-      if (!isNaN(audio.duration) && audio.duration > 0) {
-        const pct = (audio.currentTime / audio.duration) * 100;
-        seekbar.value = pct;
-        if (currentTimeEl) currentTimeEl.textContent = formatAudioTime(audio.currentTime);
+  if (audio) {
+    // ربط حدث انتهاء التلاوة
+    audio.addEventListener('ended', audioEnded);
+
+    if (seekbar) {
+      audio.addEventListener('timeupdate', () => {
+        if (!isNaN(audio.duration) && audio.duration > 0) {
+          const pct = (audio.currentTime / audio.duration) * 100;
+          seekbar.value = pct;
+          if (currentTimeEl) currentTimeEl.textContent = formatAudioTime(audio.currentTime);
+          if (totalTimeEl) totalTimeEl.textContent = formatAudioTime(audio.duration);
+        }
+      });
+
+      audio.addEventListener('loadedmetadata', () => {
         if (totalTimeEl) totalTimeEl.textContent = formatAudioTime(audio.duration);
-      }
-    });
+      });
 
-    // 2. تحديث الوقت الإجمالي بمجرد تحميل ملف الصوت
-    audio.addEventListener('loadedmetadata', () => {
-      if (totalTimeEl) totalTimeEl.textContent = formatAudioTime(audio.duration);
-    });
-
-    // 3. السحر كله هنا: لقط سحب الشريط وتغيير وقت الصوت فوراً (تقديم وتأخير)
-    seekbar.addEventListener('input', () => {
-      if (!isNaN(audio.duration) && audio.duration > 0) {
-        const targetTime = (seekbar.value / 100) * audio.duration;
-        audio.currentTime = targetTime;
-      }
-    });
+      seekbar.addEventListener('input', () => {
+        if (!isNaN(audio.duration) && audio.duration > 0) {
+          const targetTime = (seekbar.value / 100) * audio.duration;
+          audio.currentTime = targetTime;
+        }
+      });
+    }
   }
- loadPrayerTimes(); // 🕌 السطر السحري لتشغيل حساب المواقيت فور فتح التطبيق على الرئيسية
-  updateDailyTasksProgress(); 
-  restoreLastState(); 
+
+
+  // 3️⃣ مراقب السكرول الذكي لصفحات المصحف (لتحديث اسم السورة العلوية فور التقليب)
+  const slider = document.getElementById('mushafSlider');
+  if (slider) {
+    slider.addEventListener('scroll', () => {
+      if (!window.currentSurahPages || window.currentSurahPages.length === 0) return;
+      
+      const pageWidth = slider.clientWidth || window.innerWidth;
+      const physicalIdx = Math.round(Math.abs(slider.scrollLeft) / pageWidth);
+      const currentPageNum = window.currentSurahPages[physicalIdx];
+
+      if (currentPageNum) {
+        const activeSurah = getSurahByPageNumber(currentPageNum);
+        if (activeSurah) {
+          const titleEl = document.getElementById('surahScreenTitle');
+          if (titleEl && titleEl.textContent !== 'سورة ' + activeSurah.name) {
+            titleEl.textContent = 'سورة ' + activeSurah.name;
+          }
+        }
+      }
+    }, { passive: true });
+  }
+
+
+  // 4️⃣ تهيئة وتحديث بيانات الصفحة الرئيسية والخدمات
+  loadPrayerTimes();
+  updateDailyTasksProgress();
   updateHomeBookmarkCard();
   updateHomeBlessingsHint();
   updateHomeHiddenDeedsHint();
   renderFlameCompanion(false);
-});
+  setupNafahatSystem();
 
-document.addEventListener('DOMContentLoaded', () => {
-  const slider = document.getElementById('mushafSlider');
-  if (!slider) return;
+  if (typeof renderAcademyMain === 'function') {
+    renderAcademyMain();
+  }
 
-  slider.addEventListener('scroll', () => {
-    if (!window.currentSurahPages || window.currentSurahPages.length === 0) return;
-    
-    const pageWidth = slider.clientWidth || window.innerWidth;
-    const physicalIdx = Math.round(Math.abs(slider.scrollLeft) / pageWidth);
-    const currentPageNum = window.currentSurahPages[physicalIdx];
+  // عرض الأذكار الافتراضية
+  const firstCatBtn = document.querySelector('.cat-btn');
+  if (typeof showAzkar === 'function') {
+    showAzkar('sabah', firstCatBtn);
+  }
 
-    if (currentPageNum) {
-      const activeSurah = getSurahByPageNumber(currentPageNum);
-      if (activeSurah) {
-        const titleEl = document.getElementById('surahScreenTitle');
-        if (titleEl && titleEl.textContent !== 'سورة ' + activeSurah.name) {
-          titleEl.textContent = 'سورة ' + activeSurah.name;
-        }
-      }
+
+  // 5️⃣ إعداد الإشعارات وأوقات الإجابة والنغمات المخصصة
+  renderNotifPresets();
+  renderCustomNotifList();
+  setNotifMode(notifMode);
+  renderAnswerTimesList();
+
+  if (localStorage.getItem('answer_times_active') === '1' && answerTimesSelected.length > 0) {
+    setTimeout(() => { activateAnswerTimes(); }, 2000);
+  }
+
+  if (localStorage.getItem('selected_dhikr_sound') === 'CUSTOM_USER_SOUND') {
+    const opt = document.getElementById('customSoundOption');
+    if (opt) opt.style.display = 'block';
+    const select = document.getElementById('dhikrSoundSelect');
+    if (select) select.value = 'CUSTOM_USER_SOUND';
+  }
+
+
+  // 6️⃣ التايمرات والترحيب (شاشة Splash وتأكيد تسجيل الدخول)
+  setTimeout(() => {
+    const splash = document.getElementById('splashScreen');
+    if (splash) {
+      splash.style.opacity = '0';
+      splash.style.visibility = 'hidden';
+      setTimeout(() => splash.remove(), 800);
     }
-  }, { passive: true });
+  }, 4000);
+
+  setTimeout(() => {
+    const savedName = localStorage.getItem('user_display_name');
+    if (savedName && typeof finishLogin === 'function') {
+      finishLogin(savedName);
+    }
+  }, 4200);
+
+
+  // 7️⃣ استعادة آخر تبويب وحالة كانت مفتوحة (مرة واحدة فقط بدون تكرار)
+  const lastTab = localStorage.getItem('last_opened_tab');
+  if (lastTab && document.getElementById(lastTab)) {
+    showPage(lastTab, null);
+  }
+
+  restoreLastState();
 });
  
 function toggleAudio() {
@@ -4598,12 +4679,7 @@ function showAzkar(cat, el) {
   }).join('');
 }
   
-document.addEventListener('DOMContentLoaded', () => {
- // حط السطر ده داخل DOMContentLoaded لضمان الربط والتشغيل الفوري
-document.getElementById('audioPlayer').addEventListener('ended', audioEnded);
 
-  showAzkar('sabah', document.querySelector('.cat-btn'));
-});
 
 
 function countZekr(cat, i, max) {
@@ -5559,11 +5635,7 @@ function applyHomeBg(id) {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  renderBgPicker();
-  const savedBg = localStorage.getItem('home_bg_choice') || 'none';
-  applyHomeBg(savedBg);
-});
+
 // دالة تجلب السجل التاريخي للإحصائيات (تخزين هيكلي مجمع)
 function getHistoryLog() {
   return JSON.parse(localStorage.getItem('athr_history_log') || '{}');
@@ -5754,43 +5826,7 @@ const index = getDayOfYear() % dailyNafahat.length;
   
 }
 
-// تشغيل النظام الذكي تلقائياً عند فتح التطبيق
-// تشغيل الكود فور فتح التطبيق
-document.addEventListener('DOMContentLoaded', () => {
-  
-  // 👇 التايمر الجديد: إخفاء شاشة الترحيب بنعومة بعد 2 ثواني بالظبط
-  setTimeout(() => {
-    const splash = document.getElementById('splashScreen');
-    if (splash) {
-      splash.style.opacity = '0';
-      splash.style.visibility = 'hidden';
-      setTimeout(() => splash.remove(), 800); // حذفها تماماً من الذاكرة بعد ما تختفي
-    }
-  }, 4000); // 4000 مللي ثانية تعادل 4 ثواني كاملة
 
-  // بقية الكود القديم بتاع استرجاع الثيم والتبويب زي ما هو تحت...
-
-   // استرجاع الثيم المحفوظ فوراً ومنع العودة للداكن تلقائياً
-  const savedTheme = localStorage.getItem('theme_choice');
-  if (savedTheme === 'light') {
-    isDark = false;
-    document.body.classList.add('light');
-    const themeBtn = document.getElementById('themeBtn');
-    if (themeBtn) themeBtn.textContent = '🌙';
-  }
-
-  setupNafahatSystem();
-if(typeof renderAcademyMain === 'function') renderAcademyMain();
-
-  
-  // الكود القديم لتذكر التبويب
-  const lastTab = localStorage.getItem('last_opened_tab');
-  if (lastTab && document.getElementById(lastTab)) {
-    showPage(lastTab, null);
-  }
- restoreLastState(); 
-});
- 
 
 
 function doGoogleSignIn() {
@@ -6397,12 +6433,7 @@ function deactivateNotifications() {
   statusEl.textContent = '🔕 تم إيقاف الإشعارات';
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  renderNotifPresets();
-  renderCustomNotifList();
-  setNotifMode(notifMode);
-  renderAnswerTimesList();
-});
+
 
 // ============================
 // أوقات إجابة الدعاء
@@ -6723,20 +6754,7 @@ async function updateAnswerTimesPreview(existingTargets = null) {
   } catch (e) { /* صامت لو مفيش نت */ }
 }
 
-// إعادة تفعيل التذكيرات تلقائياً لو كانت مفعّلة من قبل وفتح المستخدم التطبيق تاني
-document.addEventListener('DOMContentLoaded', () => {
-  if (localStorage.getItem('answer_times_active') === '1' && answerTimesSelected.length > 0) {
-    setTimeout(() => { activateAnswerTimes(); }, 2000);
-  }
 
-  // 🌟 الكود الجديد المضاف هنا لحقن النغمة الخاصة فور فتح التطبيق
-  if (localStorage.getItem('selected_dhikr_sound') === 'CUSTOM_USER_SOUND') {
-    const opt = document.getElementById('customSoundOption');
-    if (opt) opt.style.display = 'block';
-    const select = document.getElementById('dhikrSoundSelect');
-    if (select) select.value = 'CUSTOM_USER_SOUND';
-  }
-});
 
 // جعل دالة التشغيل عالمية لتراها الملفات الخارجية فوراً
 window.playRare = function(url) {
@@ -6993,15 +7011,7 @@ function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
   if (stroke) ctx.stroke();
         }
 
-  // كود تأمين ظهور الترحيب والاسم بعد إخفاء الـ Splash واستقرار الثيمات
-document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(() => {
-    const savedName = localStorage.getItem('user_display_name');
-    if (savedName && typeof finishLogin === 'function') {
-      finishLogin(savedName);
-    }
-  }, 4200); // خليناها 4,2ثانية عشان تطلع بالملي أول ما الشاشة السوداء تفتح
-});
+
 function updateSettingsAccountBox() {
   const box = document.getElementById('settingsAccountBox');
   if (!box) return;
