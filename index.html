@@ -3735,8 +3735,8 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
 
 // 🎯 تحميل السورة الحالية + صفحات الأمان المجاورة (السورة السابقة والتالية) لتسهيل السحب والحرية الكاملة
  // 🎯 نطاق آمن ومضبوط: السورة الحالية كاملة + صفحة واحدة فقط كحد أقصى للأمان من الحواف بدون تداخل
-const minPage = surahStartP;
-  const maxPage = surahEndP;
+const minPage = Math.max(1, surahStartP - 1);
+  const maxPage = Math.min(604, surahEndP + 1);
 
   try {
     let allVerses = [];
@@ -3894,8 +3894,9 @@ const lineJustify = isSpecialPage ? 'justify-content:center;gap:8px;' : 'justify
       });
     }
 
-    renderBookmarkHighlight();
-    setupMushafJumpSlider(pageNums);
+  renderBookmarkHighlight();
+    const realPageNums = pageNums.filter(p => p >= surahStartP && p <= surahEndP);
+    setupMushafJumpSlider(pageNums, realPageNums);
 
   } catch(e) {
     console.error("خطأ فتح المصحف:", e);
@@ -5331,26 +5332,30 @@ async function loadPageWordsOverlay(imgElement, pageNum) {
   }
 }
 
-        function setupMushafJumpSlider(pageNums) {
+function setupMushafJumpSlider(pageNums, realPageNums) {
   const slider = document.getElementById('mushafJumpSlider');
   const mushafSlider = document.getElementById('mushafSlider');
   if (!slider || !mushafSlider) return;
 
-  slider.max = Math.max(0, pageNums.length - 1);
+  const rp = realPageNums || pageNums;
+  const offset = pageNums.indexOf(rp[0]); // فرق موقع أول صفحة حقيقية داخل القائمة الكاملة (اللي فيها البفر)
+
+  slider.max = Math.max(0, rp.length - 1);
   slider.value = 0;
 
   let isDraggingJumpSlider = false;
 
   slider.oninput = () => {
     isDraggingJumpSlider = true;
-    window.scrollToMushafIndex(parseInt(slider.value));
+    window.scrollToMushafIndex(parseInt(slider.value) + offset);
   };
   slider.onchange = () => { isDraggingJumpSlider = false; };
 
   mushafSlider.onscroll = () => {
     if (isDraggingJumpSlider) return;
-    const idx = Math.round(Math.abs(mushafSlider.scrollLeft) / window.innerWidth);
-    slider.value = Math.max(0, Math.min(pageNums.length - 1, idx));
+    const physicalIdx = Math.round(Math.abs(mushafSlider.scrollLeft) / window.innerWidth);
+    const realIdx = physicalIdx - offset;
+    slider.value = Math.max(0, Math.min(rp.length - 1, realIdx));
   };
 }                            
                       
