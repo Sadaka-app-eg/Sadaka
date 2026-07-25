@@ -8272,6 +8272,19 @@ window.requestFCMToken = async function() {
   }
 };
 
+
+  // طلب التوكن وحفظه أوتوماتيكياً أول ما الصفحة تفتح
+window.addEventListener('DOMContentLoaded', async () => {
+  // التأكد إن المستخدم مسجل دخول أو الموقع محتاج يفعله
+  if (typeof window.requestFCMToken === 'function') {
+    try {
+      await window.requestFCMToken();
+      console.log("🔄 تم فحص وتحديث توكن الإشعارات أوتوماتيكياً.");
+    } catch (e) {
+      console.log("خطأ في التشغيل التلقائي للتوكن:", e);
+    }
+  }
+});
 // تشغيل إرسال التوكن تلقائياً أول ما يفتح التطبيق
 // 🚀 استدعاء مباشر فوراً بعد 3 ثوانٍ بدون انتظار DOMContentLoaded
 setTimeout(() => {
