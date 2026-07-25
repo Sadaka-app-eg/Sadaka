@@ -1327,9 +1327,18 @@ function renderLectures() {
         </div>`;
     }
 
-    let filtered = window.currentLectureFilter === 'all'
-        ? [...window.lecturesData]
-        : window.lecturesData.filter(l => l.category === window.currentLectureFilter);
+  let filtered = [];
+    if (window.currentLectureFilter === 'محاضرات المشايخ') {
+        if (window.currentSelectedSheikh === 'الكل') {
+            filtered = window.lecturesData.filter(l => l.category === 'محاضرات المشايخ');
+        } else {
+            filtered = window.lecturesData.filter(l => l.category === 'محاضرات المشايخ' && l.title.includes(window.currentSelectedSheikh));
+        }
+    } else if (window.currentLectureFilter === 'all') {
+        filtered = [...window.lecturesData];
+    } else {
+        filtered = window.lecturesData.filter(l => l.category === window.currentLectureFilter);
+    }
 
     if (window.lectureSearchQuery && window.lectureSearchInputText) {
         const q = window.lectureSearchInputText.trim().toLowerCase();
@@ -2216,4 +2225,42 @@ window.shareLectureAudio = async function(title, src, btnElement) {
     } finally {
         if (btn) btn.innerHTML = originalHTML;
     }
+};
+// متغير لتخزين الشيخ المختار حالياً داخل قسم المحاضرات
+window.currentSelectedSheikh = 'الكل';
+
+// دالة إظهار أو إخفاء القائمة المنسدلة عند الضغط على زر السهم
+window.toggleSheikhsDropdown = function(event) {
+    event.stopPropagation();
+    const menu = document.getElementById('sheikhsDropdownMenu');
+    if (!menu) return;
+    
+    const isVisible = menu.style.display === 'block';
+    menu.style.display = isVisible ? 'none' : 'block';
+    
+    // تفعيل التبويب الرئيسي أصلاً
+    window.filterLectures('محاضرات المشايخ');
+};
+
+// إغلاق القائمة لو المستخدم ضغط في أي مكان تاني برة القائمة
+document.addEventListener('click', () => {
+    const menu = document.getElementById('sheikhsDropdownMenu');
+    if (menu) menu.style.display = 'none';
+});
+
+// دالة اختيار شيخ معين وعرض صفحته الخاصة ودروسه فقط
+window.selectSheikhFilter = function(sheikhName) {
+    window.currentSelectedSheikh = sheikhName;
+    const menu = document.getElementById('sheikhsDropdownMenu');
+    if (menu) menu.style.display = 'none';
+    
+    // تحديث شكل زر التبويب الرئيسي ليدل على الشيخ المختار
+    const mainBtn = document.getElementById('lectureCatBtn_محاضرات المشايخ');
+    if (mainBtn) {
+        mainBtn.style.background = 'var(--gold)';
+        mainBtn.style.color = '#111';
+        mainBtn.style.border = 'none';
+    }
+    
+    renderLectures();
 };
