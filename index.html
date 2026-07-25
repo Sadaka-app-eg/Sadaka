@@ -7876,7 +7876,6 @@ function getMushafPageIndex(slider) {
   return rawIndex;
 }
 
-// 2️⃣ حسّاس الحواف المطور (خفيف جداً ويلقط السحب فوراً)
 function attachMushafEdgeSwipe() {
   const slider = document.getElementById('mushafSlider');
   if (!slider) return;
@@ -7884,17 +7883,19 @@ function attachMushafEdgeSwipe() {
   slider.ontouchstart = (e) => {
     if (e.touches && e.touches.length > 0) {
       window.mushafSwipeStartX = e.touches[0].clientX;
+      window.mushafSwipeStartXSet = true; // ← علم منفصل بدل الاعتماد على truthy/falsy للرقم
     }
   };
 
   slider.ontouchend = (e) => {
-    if (window.mushafSwipeLocked || !window.mushafSwipeStartX) return;
+    if (window.mushafSwipeLocked || !window.mushafSwipeStartXSet) return;
+    window.mushafSwipeStartXSet = false; // تصفير العلم فورًا بعد الاستخدام
+
     if (!e.changedTouches || e.changedTouches.length === 0) return;
 
     const endX = e.changedTouches[0].clientX;
     const deltaX = endX - window.mushafSwipeStartX;
 
-    // 🎯 قللنا المسافة المطلوبة لـ 35px عشان السحب يبقى استجابته طيارة وخفيفة
     if (Math.abs(deltaX) < 35) return;
 
     const total = slider.children.length;
@@ -7904,25 +7905,23 @@ function attachMushafEdgeSwipe() {
 
     const currentP = parseInt(currentPageEl.getAttribute('data-page'));
 
-    // 🚀 التقدم للسورة التالية (سحب لليسار عند الصفحة الأخيرة)
-    // التقريب بيضمن لو واقف عند 47.1 أو 47.8 يعتبرك عند آخر صفحة فوراً
     if (deltaX < -35 && rawIdx >= total - 1.2) {
       if (currentP && currentP < 604) {
         window.mushafSwipeLocked = true;
         const nextP = currentP + 1;
         const nextS = getSurahByPageNumber(nextP);
-        openSurah(nextS.n, null, nextP);
-        setTimeout(() => { window.mushafSwipeLocked = false; }, 350);
+        openSurah(nextS.n, null, nextP).finally(() => {
+          window.mushafSwipeLocked = false; // ← الفك مربوط بانتهاء التحميل فعليًا، مش بتايمر ثابت
+        });
       }
-    } 
-    // ⬅️ الرجوع للسورة السابقة (سحب لليمن عند الصفحة الأولى)
-    else if (deltaX > 35 && rawIdx <= 0.2) {
+    } else if (deltaX > 35 && rawIdx <= 0.2) {
       if (currentP && currentP > 1) {
         window.mushafSwipeLocked = true;
         const prevP = currentP - 1;
         const prevS = getSurahByPageNumber(prevP);
-        openSurah(prevS.n, null, prevP);
-        setTimeout(() => { window.mushafSwipeLocked = false; }, 350);
+        openSurah(prevS.n, null, prevP).finally(() => {
+          window.mushafSwipeLocked = false;
+        });
       }
     }
   };
