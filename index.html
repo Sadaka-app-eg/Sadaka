@@ -8232,6 +8232,58 @@ window.closeSurah = function() {
   const auth = getAuth(app);
   const db = getFirestore(app);
 
+import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
+
+// ==========================================
+// 🔔 محرك إشعارات Firebase المباشرة (FCM Engine)
+// ==========================================
+const messaging = getMessaging(app);
+
+window.requestFCMToken = async function() {
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission === 'granted') {
+      // جلب FCM Token الخاص بالجهاز باستخدام VAPID Key بتاعك
+      const currentToken = await getToken(messaging, { 
+        vapidKey: 'BHrGPCX8UKMNJe5D6vaCBuP0kxJh6FKZt5N29dp7jcGj_kzKZ6yu2w77x0EAkbLXfMPZokhLJIL9wD-siBseCMs' 
+      });
+
+      if (currentToken) {
+        console.log("🔑 FCM Token الخاص بجهازك:", currentToken);
+        localStorage.setItem('fcm_device_token', currentToken);
+
+        // حفظ التوكن في Firestore لو مسجل دخول
+        const user = auth.currentUser;
+        if (user) {
+          await setDoc(doc(db, "user_tokens", user.uid), {
+            token: currentToken,
+            updatedAt: new Date().toISOString()
+          }, { merge: true });
+        }
+        return currentToken;
+      }
+    }
+  } catch (err) {
+    console.error('خطأ في جلب رمز FCM:', err);
+  }
+};
+
+// تشغيل إرسال التوكن تلقائياً أول ما يفتح التطبيق
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    window.requestFCMToken();
+  }, 3000);
+});
+
+// استقبال الإشعار والتطبيق مفتوح قدام العين
+onMessage(messaging, (payload) => {
+  console.log('وصل إشعار مباشر والتطبيق مفتوح:', payload);
+  new Notification(payload.notification.title || '✨ أثر', {
+    body: payload.notification.body,
+    icon: './icon.png'
+  });
+});
+  
   window.firebaseAuth = auth;
   window.firebaseDb = db;
   window.GoogleAuthProvider = GoogleAuthProvider;
