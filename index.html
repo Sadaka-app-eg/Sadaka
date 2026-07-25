@@ -936,7 +936,26 @@ body.hide-controls #quran {
   font-weight: bold;
 }
 
+/* 📖 تحسين سُمْك ومظهر الخط العثماني وتنسيق المسافات */
+.qcf-word, .ayah-span {
+  /* 1️⃣ إعطاء سُمْك بحبر دافئ وثقيل للكلمات */
+  font-weight: 600 !important;
+  -webkit-text-stroke: 0.35px currentColor; /* بيتقل رسمة الحرف بالظبط زي المصحف المطبوع */
+  text-shadow: 0 0 0.3px currentColor;       /* بيملأ الفراغات الدقيقة جوه الخط العثماني */
+  
+  /* 2️⃣ تحسين نعومة العرض على الشاشات */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  
+  /* 3️⃣ لم المسافات بين الكلمات ومنع التباعد المفرط */
+  margin: 0 1px !important;
+  padding: 0 1px !important;
+}
 
+/* 🎯 تحسين توزيع الأسطر عشان الكلمات ما تبعدش عن بعضها في الأسطر القليلة */
+.mushaf-page div[style*="display:flex"] {
+  letter-spacing: normal !important;
+}
 
   
 </style>  
@@ -1333,18 +1352,18 @@ body.hide-controls #quran {
 <!-- AZKAR -->
 <div class="page" id="azkar">
 <div style="background:var(--card);border-radius:15px;padding:15px;margin-bottom:14px;border:1px solid var(--border);display:flex;align-items:center;gap:10px;">
-    <button id="azkarPlayBtn" onclick="toggleAzkarAudio()" style="background:var(--gold);color:#111;border:none;width:42px;height:42px;border-radius:50%;cursor:pointer;font-size:18px;flex-shrink:0;">▶</button>
-    <div style="flex:1;">
-      <div style="font-size:13px;color:var(--text);font-family:'Amiri',serif;font-weight:bold;">مشاري العفاسي — الأذكار الصوتية المأثورة 🎧</div>
-      <div id="azkarAudioStatus" style="font-size:11px;color:var(--text2);margin-top:2px;">اضغط للاستماع وكرر ورا الشيخ.. تقبل الله منا ومنكم صالح الأعمال ✨</div>
-    </div>
-    
-    <!-- 📥 وعاء حلقة التحميل وزر التنزيل أوفلاين -->
-    <div id="azkarDownloadRingWrap" style="display:flex;align-items:center;justify-content:center;"></div>
-    <button class="icon-btn" onclick="window.downloadCurrentAzkarAudio()" title="تحميل للاستماع أوفلاين" style="width:36px;height:36px;font-size:15px;flex-shrink:0;">⬇️</button>
-    
-    <audio id="azkarPlayer" onended="azkarAudioEnded()"></audio>
+  <button id="azkarPlayBtn" onclick="toggleAzkarAudio()" style="background:var(--gold);color:#111;border:none;width:42px;height:42px;border-radius:50%;cursor:pointer;font-size:18px;flex-shrink:0;">▶</button>
+  <div style="flex:1;">
+    <div style="font-size:13px;color:var(--text);font-family:'Amiri',serif;font-weight:bold;">الأذكار الصوتية المأثورة 🎧</div>
+    <div id="azkarAudioStatus" style="font-size:11px;color:var(--text2);margin-top:2px;">اضغط للاستماع وكرر ورا الشيخ.. تقبل الله منا ومنكم صالح الأعمال ✨</div>
   </div>
+  
+  <!-- 📥 وعاء حلقة التحميل وزر التنزيل أوفلاين -->
+  <div id="azkarDownloadRingWrap" style="display:flex;align-items:center;justify-center;"></div>
+  <button class="icon-btn" onclick="window.downloadCurrentAzkarAudio()" title="تحميل للاستماع أوفلاين" style="width:36px;height:36px;font-size:15px;flex-shrink:0;">⬇️</button>
+  
+  <audio id="azkarPlayer" onended="azkarAudioEnded()"></audio>
+</div>
   <div class="azkar-cats">
     <button class="cat-btn active" onclick="showAzkar('sabah',this)">🌅 الصباح</button>
     <button class="cat-btn" onclick="showAzkar('masa',this)">🌆 المساء</button>
@@ -4646,6 +4665,15 @@ function stopAudio() {
 // ===========================
 // Azkar
 // ===========================
+// 🎵 روابط ملفات الأذكار الصوتية الكاملة
+const azkarAudioUrls = {
+  'sabah': 'https://archive.org/download/1434-mishari-alafasy-azkar-sabah-1434-a-h/%23%D9%85%D8%B4%D8%A7%D8%B1%D9%8A_%D8%B1%D8%A7%D8%B4%D8%AF_%D8%A7%D9%84%D8%B9%D9%81%D8%A7%D8%B3%D9%8A%20%D8%A3%D8%B0%D9%83%D8%A7%D8%B1%20%D8%A7%D9%84%D8%B5%D8%A8%D8%A7%D8%AD%20%D9%84%D8%B9%D8%A7%D9%85%201434%D9%87%D9%80%20-%20Mishari%20Alafasy%20Azkar%20Sabah%201434A%20H.mp3',
+  'masa': 'https://archive.org/download/1434-mishari-alafasy-azkar-sabah-1434-a-h/%23%D9%85%D8%B4%D8%A7%D8%B1%D9%8A_%D8%B1%D8%A7%D8%B4%D8%AF_%D8%A7%D9%84%D8%B9%D9%81%D8%A7%D8%B3%D9%8A%20%D8%A3%D8%B0%D9%83%D8%A7%D8%B1%20%D8%A7%D9%84%D9%85%D8%B3%D8%A7%D8%A1%20%D9%84%D8%B9%D8%A7%D9%85%201434%D9%87%D9%80%20-%20Mishari%20Alafasy%20Azkar%20Almasa%27%201434A%20H.mp3',
+  'nawm': 'audio_2/noom.mp3',
+  'istiqadh': 'audio_2/istikath.mp3',
+  'salah': 'audio_2/after.mp3'
+};
+
 function showAzkar(cat, el) {
   document.querySelectorAll('#azkar .cat-btn').forEach(b => b.classList.remove('active'));
   if (el) el.classList.add('active');
@@ -4686,30 +4714,6 @@ function showAzkar(cat, el) {
     </div>`;
   }).join('');
 }
-
-  // ضخ الكروت بالبيانات والتنسيق الأصلي الفخم
-  document.getElementById('azkarList').innerHTML = azkarData[cat].map((z, i) => {
-    const key = cat + '_' + i;
-    const cur = zekrCounts[key] || 0;
-    const pct = Math.min(cur / z.count * 100, 100);
-    const done = cur >= z.count;
-    return `<div class="zekr-card ${done ? 'done-card' : ''}" id="zcard_${cat}_${i}">
-      <div class="zekr-title">📿 ${z.title}</div>
-      <div class="zekr-text">${z.text}</div>
-      <div class="zekr-hadith">«${z.hadith}»<br><small style="color:var(--green)">${z.source}</small></div>
-      <div class="zekr-bottom">
-        <div class="zekr-counter">
-          <button class="zekr-btn" onclick="countZekr('${cat}',${i},${z.count})">+</button>
-          <div class="zekr-count" id="zc_${cat}_${i}" style="${done ? 'color:#4caf50' : ''}">${cur}</div>
-          <div class="zekr-max">/ ${z.count}</div>
-        </div>
-         <span class="done-badge" id="done_${cat}_${i}" style="${done ? 'display:inline-block' : ''}">✓ تم</span>
-      </div>
-      <div class="zekr-progress"><div class="zekr-prog-bar" id="bar_${cat}_${i}" style="width:${pct}%"></div></div>
-    </div>`;
-  }).join('');
-}
-  
 
 
 
@@ -4909,13 +4913,7 @@ function updateHomeBookmarkCard() {
   window.speechSynthesis.speak(msg);
  }
  let isAzkarPlaying = false;
-const azkarAudioUrls = {
-  'sabah': 'https://archive.org/download/1434-mishari-alafasy-azkar-sabah-1434-a-h/%23%D9%85%D8%B4%D8%A7%D8%B1%D9%8A_%D8%B1%D8%A7%D8%B4%D8%AF_%D8%A7%D9%84%D8%B9%D9%81%D8%A7%D8%B3%D9%8A%20%D8%A3%D8%B0%D9%83%D8%A7%D8%B1%20%D8%A7%D9%84%D8%B5%D8%A8%D8%A7%D8%AD%20%D9%84%D8%B9%D8%A7%D9%85%201434%D9%87%D9%80%20-%20Mishari%20Alafasy%20Azkar%20Sabah%201434A%20H.mp3',
-  'masa': 'https://archive.org/download/1434-mishari-alafasy-azkar-sabah-1434-a-h/%23%D9%85%D8%B4%D8%A7%D8%B1%D9%8A_%D8%B1%D8%A7%D8%B4%D8%AF_%D8%A7%D9%84%D8%B9%D9%81%D8%A7%D8%B3%D9%8A%20%D8%A3%D8%B0%D9%83%D8%A7%D8%B1%20%D8%A7%D9%84%D9%85%D8%B3%D8%A7%D8%A1%20%D9%84%D8%B9%D8%A7%D9%85%201434%D9%87%D9%80%20-%20Mishari%20Alafasy%20Azkar%20Almasa%27%201434A%20H.mp3',
-  'nawm': 'audio_2/noom.mp3',
-  'istiqadh': 'audio_2/istikath.mp3',
-  'salah': 'audio_2/after.mp3'
-};
+
 let currentAzkarCat = 'sabah';
 
 function toggleAzkarAudio() {
