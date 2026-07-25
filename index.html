@@ -3666,10 +3666,12 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
   localStorage.setItem('last_active_surah', n);
   localStorage.setItem('surah_screen_open', '1');
 
-  // إلغاء أي نداء استرجاع تلقائي معلّق، عشان مايجيش يفتح سورة قديمة فوق اللي إنت فاتحه دلوقتي
+  // 🎯 كسر وإيقاف أي صوت قديم فوراً وتصفير المشغل لعدم تداخل الفاتحة مع البقرة
+  stopAudio();
+
+  // إلغاء أي نداء استرجاع تلقائي معلّق
   if (window._restoreTimeoutId) { clearTimeout(window._restoreTimeoutId); window._restoreTimeoutId = null; }
 
-  // رقم تعريفي لكل نداء، عشان لو نداء أقدم يخلص متأخر، مايكتبش فوق الشاشة
   window._openSurahReqId = (window._openSurahReqId || 0) + 1;
   const myOpenReqId = window._openSurahReqId;
   const screen = document.getElementById('surahScreen');
@@ -3678,8 +3680,6 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
   document.getElementById('favSurahBtn').textContent = favorites.includes('s'+n) ? '⭐' : '🤍';
 
   const slider = document.getElementById('mushafSlider');
-
-  stopAudio();
   selectedAyahsQueue = [];
   if(document.getElementById('clearSelBtn')) document.getElementById('clearSelBtn').style.display = 'none';
   if(document.getElementById('clearSelWrap')) document.getElementById('clearSelWrap').style.display = 'none';
@@ -4394,7 +4394,7 @@ function toggleAudio() {
     } else {
       isPlayingQueue = false;
 
-      // 🎯 قطع أي صوت قديم شغال في الخلفية لمنع التداخل مع السورة الجديدة
+      // إيقاف أي صوت سابق
       audio.pause();
 
       const num = currentSurah.n;
@@ -4422,7 +4422,6 @@ function toggleAudio() {
           document.getElementById('playBtn').textContent = '⏸';
           document.getElementById('audioStatus').textContent = `يُشغّل سورة ${currentSurah.name}`;
 
-          // 🌟 تحديث فوري للإشعارات باسم السورة الحالية
           if ('mediaSession' in navigator) {
             const fullIconUrl = window.location.origin + window.location.pathname.replace(/[^\/]*$/, '') + 'icon.png';
 
@@ -4591,7 +4590,7 @@ function stopAudio() {
     audio.pause();
     audio.currentTime = 0;
     audio.removeAttribute('src');
-    audio.load(); // 🎯 كسر وإلغاء أي تشغيل معلق في الخلفية فوراً
+    audio.load(); // 🎯 تفريغ كلي للمشغل وقطع أي استريم شغال في الخلفية
   }
   
   isPlaying = false; 
@@ -4600,7 +4599,7 @@ function stopAudio() {
   const playBtn = document.getElementById('playBtn');
   if (playBtn) playBtn.textContent = '▶';
   
-  // 🎯 تصفير النص والعدادات فوراً
+  // 🎯 تصفير العبارة والعدادات العلوية
   const statusEl = document.getElementById('audioStatus');
   if (statusEl) {
     statusEl.textContent = 'اضغط تشغيل • اضغط مطولًا على آية للخيارات';
