@@ -3735,8 +3735,8 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
 
 // 🎯 تحميل السورة الحالية + صفحات الأمان المجاورة (السورة السابقة والتالية) لتسهيل السحب والحرية الكاملة
  // 🎯 نطاق آمن ومضبوط: السورة الحالية كاملة + صفحة واحدة فقط كحد أقصى للأمان من الحواف بدون تداخل
-  const minPage = Math.max(1, surahStartP - 1);
-  const maxPage = Math.min(604, surahEndP + 1);
+const minPage = surahStartP;
+  const maxPage = surahEndP;
 
   try {
     let allVerses = [];
