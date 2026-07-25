@@ -8027,10 +8027,19 @@ function startMainAutoScroll() {
   const slider = document.getElementById('mushafSlider');
   if (!slider) return;
 
+  // 🎯 1. معرفة الصفحة الحالية بدقة قبل التحويل
+  const pageWidth = slider.clientWidth || window.innerWidth;
+  const currentIdx = Math.round(Math.abs(slider.scrollLeft) / pageWidth);
+
   slider.classList.add('vscroll-mode');
   isMainAutoScrolling = true;
   const playBtn = document.getElementById('mainAutoScrollPlayBtn');
   if (playBtn) playBtn.textContent = '⏸';
+
+  // 🎯 2. ضبط السكرول الرأسي فوراً على نفس مكان الصفحة
+  if (slider.children[currentIdx]) {
+    slider.scrollTop = slider.children[currentIdx].offsetTop;
+  }
 
   clearInterval(mainScrollInterval);
 
@@ -8056,6 +8065,7 @@ function stopMainAutoScroll() {
     let closestIndex = 0;
     let minDistance = Infinity;
 
+    // 🎯 1. معرفة أقرب صفحة معروضة على الشاشة حالياً
     pages.forEach((p, i) => {
       const rect = p.getBoundingClientRect();
       const distance = Math.abs(rect.top);
@@ -8065,14 +8075,15 @@ function stopMainAutoScroll() {
       }
     });
 
+    // 🎯 2. التحويل أفقياً
     slider.classList.remove('vscroll-mode');
-    slider.scrollTop = 0;
 
+    // 🎯 3. القفز الفوري المباشر للنفس الصفحة بدون إعادة تصفير
     setTimeout(() => {
       if (typeof window.scrollToMushafIndex === 'function') {
         window.scrollToMushafIndex(closestIndex);
       }
-    }, 40);
+    }, 10);
   }
 }
 
