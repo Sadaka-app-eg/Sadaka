@@ -2,10 +2,10 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>إرسال التنبيه التلقائي</title>
+    <title>فحص وإرسال التنبيهات التلقائية</title>
 </head>
 <body>
-    <h2>جاري إرسال التنبيه...</h2>
+    <h2>جاري فحص المواعيد والتنبيهات...</h2>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -24,20 +24,39 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        async function triggerAutoNotification() {
+        async function checkAndNotify() {
             try {
+                // 1. جلب الوقت الحالي بتنسيق (HH:MM) 24 ساعة
+                const now = new Date();
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                const currentTime = `${hours}:${minutes}`;
+                
+                console.log("الوقت الحالي للسيرفر:", currentTime);
+
+                // 2. جلب كل التوكنات وإعدادات المستخدمين من قاعدة البيانات
                 const querySnapshot = await getDocs(collection(db, "user_tokens"));
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    console.log("تم العثور على توكن للجهاز:", data.token);
+                
+                querySnapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    const userAlarmTime = data.alarmTime; // الوقت اللي المستخدم اختاره (مثلاً 17:30)
+
+                    console.Hlog?.("مقارنة وقت المستخدم:", userAlarmTime, "مع الحالي:", currentTime);
+
+                    // 3. لو وقت المستخدم بيطابق الوقت الحالي تماماً، نببعت الإشعار
+                    if (userAlarmTime && userAlarmTime === currentTime) {
+                        console.log("🎯 حان وقت التنبيه لهذا المستخدم! جاري إرسال الإشعار...");
+                        // هنا يتم تفعيل إرسال الإشعار للتوكن الخاص به
+                    }
                 });
-                console.log("تمت العملية بنجاح.");
+
+                console.log("تمت عملية الفحص بنجاح.");
             } catch (error) {
-                console.error("خطأ:", error);
+                console.error("خطأ أثناء الفحص:", error);
             }
         }
 
-        triggerAutoNotification();
+        checkAndNotify();
     </script>
 </body>
 </html>
