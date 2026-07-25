@@ -8274,15 +8274,20 @@ window.requestFCMToken = async function() {
 
 
   // طلب التوكن وحفظه أوتوماتيكياً أول ما الصفحة تفتح
+// تشغيل فحص وطلب توكن الإشعارات تلقائياً عند فتح الموقع
 window.addEventListener('DOMContentLoaded', async () => {
-  // التأكد إن المستخدم مسجل دخول أو الموقع محتاج يفعله
-  if (typeof window.requestFCMToken === 'function') {
-    try {
-      await window.requestFCMToken();
-      console.log("🔄 تم فحص وتحديث توكن الإشعارات أوتوماتيكياً.");
-    } catch (e) {
-      console.log("خطأ في التشغيل التلقائي للتوكن:", e);
+  try {
+    if (typeof window.requestFCMToken === 'function') {
+      // التأكد من تسجيل الدخول أولاً عشان نسيف التوكن باسم المستخدم
+      const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
+        if (user) {
+          console.log("🔄 جاري التحقق من توكن الإشعارات أوتوماتيكياً...");
+          await window.requestFCMToken();
+        }
+      });
     }
+  } catch (e) {
+    console.log("خطأ في التشغيل التلقائي للتوكن:", e);
   }
 });
 // تشغيل إرسال التوكن تلقائياً أول ما يفتح التطبيق
