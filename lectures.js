@@ -1479,17 +1479,17 @@ function renderLectures() {
     }
 
 let filtered = [];
+
     if (window.currentLectureFilter === 'محاضرات المشايخ') {
-        if (window.currentSelectedSheikh === 'الكل') {
+        if (!window.currentSelectedSheikh || window.currentSelectedSheikh === 'الكل') {
             filtered = window.lecturesData.filter(l => l.category === 'محاضرات المشايخ');
         } else {
             filtered = window.lecturesData.filter(l => l.category === 'محاضرات المشايخ' && l.title.includes(window.currentSelectedSheikh));
         }
+    } else if (window.currentLectureFilter === 'all') {
+        filtered = [...window.lecturesData];
     } else {
-        // باقي التبويبات والأقسام بتشتغل بشكلها الطبيعي تماماً من غير أي تأثر
-        filtered = window.currentLectureFilter === 'all'
-            ? [...window.lecturesData]
-            : window.lecturesData.filter(l => l.category === window.currentLectureFilter);
+        filtered = window.lecturesData.filter(l => l.category === window.currentLectureFilter);
     }
 
     if (window.lectureSearchQuery && window.lectureSearchInputText) {
@@ -1712,17 +1712,27 @@ document.addEventListener('DOMContentLoaded', () => { renderLectures(); });
 
 window.filterLectures = function(category) {
     window.currentLectureFilter = category;
-    document.querySelectorAll('.sheikh-tabs .sheikh-btn').forEach(btn => {
+
+    // إعادة ضبط فلتر الشيخ لو انتقل لتبويب آخر
+    if (category !== 'محاضرات المشايخ') {
+        window.currentSelectedSheikh = 'الكل';
+    }
+
+    // إزالة التنسيق النشط من كل أزرار التبويبات
+    document.querySelectorAll('.sheikh-tabs .sheikh-btn, .sheikh-btn').forEach(btn => {
         btn.style.background = 'var(--card)';
         btn.style.color = 'var(--text)';
         btn.style.border = '1px solid var(--border)';
     });
+
+    // تفعيل تنسيق الزر النشط
     const activeBtn = document.getElementById('lectureCatBtn_' + category);
     if (activeBtn) {
         activeBtn.style.background = 'var(--gold)';
         activeBtn.style.color = '#111';
         activeBtn.style.border = 'none';
     }
+
     renderLectures();
 };
 
@@ -2403,10 +2413,12 @@ document.addEventListener('click', () => {
 // دالة اختيار شيخ معين وعرض صفحته الخاصة ودروسه فقط
 window.selectSheikhFilter = function(sheikhName) {
     window.currentSelectedSheikh = sheikhName;
+    window.currentLectureFilter = 'محاضرات المشايخ'; // تأكيد الفلتر الرئيسي
+    
     const menu = document.getElementById('sheikhsDropdownMenu');
     if (menu) menu.style.display = 'none';
     
-    // تحديث شكل زر التبويب الرئيسي ليدل على الشيخ المختار
+    // تحديث شكل زر التبويب الرئيسي ليدل على أنه نشط
     const mainBtn = document.getElementById('lectureCatBtn_محاضرات المشايخ');
     if (mainBtn) {
         mainBtn.style.background = 'var(--gold)';
