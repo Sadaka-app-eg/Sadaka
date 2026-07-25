@@ -935,6 +935,27 @@ body.hide-controls #quran {
   font-weight: bold;
 }
 
+/* 📖 تحسين سُمْك ومظهر الخط العثماني وتنسيق المسافات */
+.qcf-word, .ayah-span {
+  /* 1️⃣ إعطاء سُمْك بحبر دافئ وثقيل للكلمات */
+  font-weight: 600 !important;
+  -webkit-text-stroke: 0.35px currentColor; /* بيتقل رسمة الحرف بالظبط زي المصحف المطبوع */
+  text-shadow: 0 0 0.3px currentColor;       /* بيملأ الفراغات الدقيقة جوه الخط العثماني */
+  
+  /* 2️⃣ تحسين نعومة العرض على الشاشات */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  
+  /* 3️⃣ لم المسافات بين الكلمات ومنع التباعد المفرط */
+  margin: 0 1px !important;
+  padding: 0 1px !important;
+}
+
+/* 🎯 تحسين توزيع الأسطر عشان الكلمات ما تبعدش عن بعضها في الأسطر القليلة */
+.mushaf-page div[style*="display:flex"] {
+  letter-spacing: normal !important;
+}
+
   
 </style>  
 
@@ -7996,12 +8017,11 @@ function renderBookmarkHighlight() {
   highlightAyah(bm.index, 'bookmark');
 }
 // =========================================================================
-// 🔄 محرك التمرير التلقائي الرأسي المباشر (Vertical Auto-Scroll Engine)
+// 🔄 محرك التمرير التلقائي الرأسي المطور والآمن (حل الرعشة والرجوع للفاتحة)
 // =========================================================================
 let mainScrollInterval = null;
 let isMainAutoScrolling = false;
 let mainScrollSpeed = 30;
-let pageHoldCounter = 0; // لانتظار الشاشة لو الصفحة كاملة الظهور
 
 window.toggleMainAutoScrollControls = function() {
   const bar = document.getElementById('mainAutoScrollControlBar');
@@ -8027,26 +8047,36 @@ function startMainAutoScroll() {
   const slider = document.getElementById('mushafSlider');
   if (!slider || !slider.children.length) return;
 
-  // 1. تحديد العناصر الظاهرة حالياً بالظبط
-  const pageWidth = slider.clientWidth || window.innerWidth;
-  const currentIdx = Math.round(Math.abs(slider.scrollLeft) / pageWidth);
-  const targetPageEl = slider.children[currentIdx] || slider.children[0];
-
-  // 2. التحويل للوضع الرأسي
-  slider.classList.add('vscroll-mode');
-  isMainAutoScrolling = true;
-  
   const playBtn = document.getElementById('mainAutoScrollPlayBtn');
   if (playBtn) playBtn.textContent = '⏸';
+  isMainAutoScrolling = true;
 
-  // 3. القفز فوراً بالـ offsetTop للعنصر نفسه بدقة
-  if (targetPageEl) {
-    slider.scrollTop = targetPageEl.offsetTop;
+  // 🎯 1. لو الشاشة مش في الوضع الرأسي أصلاً، نحدد الصفحة أفقياً الأول
+  if (!slider.classList.contains('vscroll-mode')) {
+    const pageWidth = slider.clientWidth || window.innerWidth;
+    const currentIdx = Math.round(Math.abs(slider.scrollLeft) / pageWidth);
+    const targetPageEl = slider.children[currentIdx] || slider.children[0];
+
+    slider.classList.add('vscroll-mode');
+
+    // 🎯 مهلة 30 مللي ثانية لمنع الرعشة ولضمان اكتمال الرسم الرأسي قبل القفز
+    setTimeout(() => {
+      if (targetPageEl) {
+        slider.scrollTop = targetPageEl.offsetTop;
+      }
+      runScrollTimer();
+    }, 30);
+  } else {
+    // لو هي رأسي بالفعل (مثلاً كان موقّف ومحتاج يكمل)
+    runScrollTimer();
   }
+}
 
+function runScrollTimer() {
   clearInterval(mainScrollInterval);
+  const slider = document.getElementById('mushafSlider');
+  if (!slider) return;
 
-  // 4. محرك الحركة الرأسية
   mainScrollInterval = setInterval(() => {
     const maxScroll = slider.scrollHeight - slider.clientHeight;
     if (slider.scrollTop >= maxScroll - 2) {
@@ -8060,17 +8090,17 @@ function startMainAutoScroll() {
 function stopMainAutoScroll() {
   isMainAutoScrolling = false;
   clearInterval(mainScrollInterval);
-  
+
   const playBtn = document.getElementById('mainAutoScrollPlayBtn');
   if (playBtn) playBtn.textContent = '▶';
 
   const slider = document.getElementById('mushafSlider');
   if (slider && slider.children.length) {
+    // 🎯 1. تحديد أقرب كارت صفحة ظاهر قدام العين حالياً
     const pages = Array.from(slider.children);
     let closestPage = pages[0];
     let minDistance = Infinity;
 
-    // 1. البحث عن أقرب كارت صفحة ظاهر قدام العين رأسياً
     pages.forEach((p) => {
       const rect = p.getBoundingClientRect();
       const distance = Math.abs(rect.top);
@@ -8080,27 +8110,27 @@ function stopMainAutoScroll() {
       }
     });
 
-    // 2. إلغاء الوضع الرأسي ورجوع الشاشة للوضع الأفقي
+    // 🎯 2. إرجاع الشاشة للوضع الأفقي
     slider.classList.remove('vscroll-mode');
-    slider.scrollTop = 0; // تصفير السكرول الرأسي بأمان بعد التحويل
+    slider.scrollTop = 0;
 
-    // 3. التركيز المباشر السحري على نفس كارت الصفحة أفقياً (بدون الحسابات التي تعيد للفاتحة)
+    // 🎯 3. التركيز المباشر على نفس الصفحة أفقياً
     if (closestPage) {
       setTimeout(() => {
         closestPage.scrollIntoView({ behavior: 'instant', inline: 'center', block: 'nearest' });
-      }, 20);
+      }, 30);
     }
   }
 }
-
-
 
 window.updateMainScrollSpeed = function(val) {
   mainScrollSpeed = Number(val);
   const label = document.getElementById('mainScrollSpeedLabel');
   if (label && typeof toAr === 'function') label.textContent = toAr(mainScrollSpeed);
+
+  // 🎯 السحر هنا: تغيير السرعة بيجدد التايمر فقط بدون إعادة حساب الصفحة أو الرجوع للفاتحة!
   if (isMainAutoScrolling) {
-    startMainAutoScroll();
+    runScrollTimer();
   }
 };
 
