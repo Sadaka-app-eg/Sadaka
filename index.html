@@ -298,6 +298,7 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
 .mushaf-slider{display:flex;flex-direction:row;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;height:100%;scrollbar-width:none;}
   .mushaf-slider::-webkit-scrollbar{display:none;}
 .mushaf-page {
+  position: relative !important
   flex: 0 0 100vw !important;
   width: 100vw !important;
   height: 100vh !important;
@@ -343,17 +344,17 @@ scroll-snap-stop: always !important; /* 👈 السطر ده اللي بيمنع
   color:#5a3e00;display:block;font-family:'Amiri Quran',serif;
 }
 .page-footer{
-  display:block;
+  position:absolute;
+  left:0; right:0; bottom:4px;
   text-align:center;
   font-size:13px;
   color:#8b6914;
-  padding-top:10px;
-  padding-bottom:6px;
+  padding-top:6px;
   font-family:'Amiri',serif;
   border-top:1px solid rgba(200,169,110,0.3);
-  margin-top:14px;
   background: linear-gradient(transparent, rgba(200,169,110,0.08));
-  border-radius:0 0 8px 8px;
+  margin:0;
+  z-index:5;
 }
 .juz-label{font-size:12px;color:#8b6914;text-align:left;margin-bottom:6px;font-family:'Amiri',serif;}
 
@@ -936,26 +937,6 @@ body.hide-controls #quran {
   font-weight: bold;
 }
 
-/* 📖 تحسين سُمْك ومظهر الخط العثماني وتنسيق المسافات */
-.qcf-word, .ayah-span {
-  /* 1️⃣ إعطاء سُمْك بحبر دافئ وثقيل للكلمات */
-  font-weight: 600 !important;
-  -webkit-text-stroke: 0.35px currentColor; /* بيتقل رسمة الحرف بالظبط زي المصحف المطبوع */
-  text-shadow: 0 0 0.3px currentColor;       /* بيملأ الفراغات الدقيقة جوه الخط العثماني */
-  
-  /* 2️⃣ تحسين نعومة العرض على الشاشات */
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  
-  /* 3️⃣ لم المسافات بين الكلمات ومنع التباعد المفرط */
-  margin: 0 1px !important;
-  padding: 0 1px !important;
-}
-
-/* 🎯 تحسين توزيع الأسطر عشان الكلمات ما تبعدش عن بعضها في الأسطر القليلة */
-.mushaf-page div[style*="display:flex"] {
-  letter-spacing: normal !important;
-}
 
   
 </style>  
@@ -3694,6 +3675,147 @@ function getSurahByPageNumber(pageNum) {
   return surahs[0];
 }
 
+ async function extendMushafPages(direction) {
+  if (window._extendingPages) return;
+  const slider = document.getElementById('mushafSlider');
+  if (!slider || !window.currentSurahPages || window.currentSurahPages.length === 0) return;
+
+  const pages = window.currentSurahPages;
+  let newPageNum;
+  if (direction === 1) {
+    newPageNum = pages[pages.length - 1] + 1;
+    if (newPageNum > 604) return;
+  } else {
+    newPageNum = pages[0] - 1;
+    if (newPageNum < 1) return;
+  }
+  if (pages.includes(newPageNum)) return;
+
+  window._extendingPages = true;
+  try {
+    let pageData = await getCachedSurahDB(`page_${newPageNum}`);
+    if (!pageData) {
+      const res = await fetch(`https://api.quran.com/api/v4/verses/by_page/${newPageNum}?per_page=300&words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number,rub_number`);
+      pageData = await res.json();
+      if (pageData && pageData.verses) setCachedSurahDB(`page_${newPageNum}`, pageData);
+    }
+    const verses = pageData && pageData.verses ? pageData.verses : [];
+    if (verses.length === 0) { window._extendingPages = false; return; }
+
+    const pagesDict = { [newPageNum]: {} };
+    verses.forEach((verse) => {
+      const [vSurah, vAyah] = verse.verse_key.split(':').map(Number);
+      currentAyahsData.push({
+        text: verse.words.map(w => w.text_uthmani).join(" "),
+        numberInSurah: vAyah,
+        globalNumber: verse.id,
+        page: newPageNum,
+        surahNumber: vSurah,
+        tafseer: `تفسير الآية ${vAyah}`
+      });
+      verse.words.forEach((word) => {
+        const lineNum = word.line_number;
+        if (!pagesDict[newPageNum][lineNum]) pagesDict[newPageNum][lineNum] = [];
+        pagesDict[newPageNum][lineNum].push({ id: word.id, code: word.code_v2, vSurah, vAyah, text: word.text_uthmani });
+      });
+    });
+
+    await loadQcfPageFont(newPageNum);
+    const pageHTML = buildSinglePageHTML(newPageNum, pagesDict, verses);
+
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = pageHTML;
+    const pageEl = wrapper.firstElementChild;
+
+    if (direction === 1) {
+      slider.appendChild(pageEl);
+      window.currentSurahPages.push(newPageNum);
+    } else {
+      const prevScrollLeft = slider.scrollLeft;
+      const pageWidth = slider.clientWidth || window.innerWidth;
+      slider.insertBefore(pageEl, slider.firstChild);
+      window.currentSurahPages.unshift(newPageNum);
+      const isRTL = window.getComputedStyle(slider).direction === 'rtl';
+      slider.scrollLeft = isRTL ? prevScrollLeft - pageWidth : prevScrollLeft + pageWidth;
+    }
+
+    if (typeof renderBookmarkHighlight === 'function') renderBookmarkHighlight();
+  } catch (e) {
+    console.error('extendMushafPages error:', e);
+  }
+  window._extendingPages = false;
+}
+
+ function buildSinglePageHTML(pageNum, pagesDict, allVerses) {
+  const isSpecialPage = pageNum === 1 || pageNum === 2;
+  const headerRightText = getHeaderJuzText(pageNum, allVerses);
+  const pageSurah = getSurahByPageNumber(pageNum);
+
+  let pageHasNewSurahStart = false, pageHasBismillah = false;
+  Object.values(pagesDict[pageNum]).forEach(lineWords => {
+    const fw = lineWords[0];
+    if (fw && fw.vAyah === 1) {
+      pageHasNewSurahStart = true;
+      if (fw.vSurah !== 1 && fw.vSurah !== 9) pageHasBismillah = true;
+    }
+  });
+  const extraLines = (pageHasNewSurahStart ? 1 : 0) + (pageHasBismillah ? 1 : 0);
+
+  let html = `<div class="mushaf-page" id="mpage_${pageNum}" data-page="${pageNum}">`;
+  html += `
+    <div style="display:flex; justify-content:space-between; align-items:center; width:100%; padding:2px 6px; font-size:12px; font-weight:bold; color:var(--text2); border-bottom:1px solid rgba(212,175,55,0.12); margin-bottom:4px; font-family:'Amiri', serif; flex-shrink:0; white-space:nowrap; overflow:hidden;">
+      <span style="overflow:hidden; text-overflow:ellipsis; max-width:65%;">${headerRightText}</span>
+      <span style="flex-shrink:0;">سُورَةُ ${pageSurah ? pageSurah.name : ''}</span>
+    </div>
+  `;
+
+  html += `<div style="flex:1; display:flex; flex-direction:column; justify-content:${isSpecialPage ? 'center' : 'space-between'}; width:100%; overflow:hidden; padding-bottom:26px;">`;
+
+  const lines = Object.keys(pagesDict[pageNum]).map(Number).sort((a, b) => a - b);
+  let renderedSurahHeaders = new Set();
+
+  lines.forEach(lineNum => {
+    const lineWords = pagesDict[pageNum][lineNum];
+    const lineJustify = isSpecialPage ? 'justify-content:center;gap:8px;' : 'justify-content:space-between;';
+    const fontSize = isSpecialPage
+      ? 'clamp(20px, 5.2vw, 30px)'
+      : `clamp(${16 - extraLines*2}px, ${4.0 - extraLines*0.4}vw, ${23 - extraLines*2.5}px)`;
+
+    const firstWord = lineWords[0];
+    if (firstWord && firstWord.vAyah === 1 && !renderedSurahHeaders.has(firstWord.vSurah)) {
+      renderedSurahHeaders.add(firstWord.vSurah);
+      const sObj = surahs.find(s => s.n === firstWord.vSurah);
+      const sName = sObj ? sObj.name : '';
+      html += `<div class="surah-name-header" style="margin: 3px 0 2px; padding: 3px 10px; font-size: 15px;">سُورَةُ ${sName}</div>`;
+      if (firstWord.vSurah !== 1 && firstWord.vSurah !== 9) {
+        html += `
+          <div class="bismillah" style="font-family:'Amiri Quran', serif; font-size: clamp(16px, 4vw, 20px); margin: 2px 0 4px; text-align:center; color:#5a3e00;">
+            بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ
+          </div>
+        `;
+      }
+    }
+
+    html += `<div style="display:flex; flex-direction:row; ${lineJustify} align-items:center; width:100%; min-height: calc(100% / 15); overflow:visible; white-space:nowrap;">`;
+    lineWords.forEach(w => {
+      const ayahIndex = currentAyahsData.findIndex(a => a.surahNumber === w.vSurah && a.numberInSurah === w.vAyah);
+      html += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}"
+        style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:1.9; display:inline-flex; align-items:center; user-select:none; white-space:nowrap;"
+        ontouchstart="startPress(event, ${ayahIndex})"
+        ontouchmove="cancelPress(event)"
+        ontouchend="cancelPress(event); if(!isScrolling && window.isPickingEndAyah){ handleAyahClick(${ayahIndex}); }">
+        ${w.code}
+      </span>`;
+    });
+    html += `</div>`;
+  });
+
+  html += `</div>`;
+  html += `<div class="page-footer">صفحة ${toAr(pageNum)}</div>`;
+  html += `</div>`;
+  return html;
+}
+
 // 3. دالة فتح السورة الشاملة
 // =========================================================================
 // 🚀 دالة فتح السورة (انضباط الأسطر 100% + سلاسة الحركة)
@@ -3831,8 +3953,8 @@ pageNums.forEach(p => loadQcfPageFont(p));
       `;
 
       // أسطر الآيات
-      sliderHtml += `<div style="flex:1; display:flex; flex-direction:column; justify-content:${isSpecialPage ? 'center' : 'space-between'}; width:100%; overflow:hidden;">`;
-
+sliderHtml += `<div style="flex:1; display:flex; flex-direction:column; justify-content:${isSpecialPage ? 'center' : 'space-between'}; width:100%; overflow:hidden; padding-bottom:26px;">`;
+     
       const lines = Object.keys(pagesDict[pageNum]).map(Number).sort((a, b) => a - b);
       let renderedSurahHeaders = new Set();
 
@@ -4362,7 +4484,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }, { passive: true });
   }
-
+ if (physicalIdx >= window.currentSurahPages.length - 2) extendMushafPages(1);
+      if (physicalIdx <= 1) extendMushafPages(-1);
 
   // 4️⃣ تهيئة وتحديث بيانات الصفحة الرئيسية والخدمات
   loadPrayerTimes();
@@ -8001,46 +8124,26 @@ function attachMushafEdgeSwipe() {
   slider.ontouchstart = (e) => {
     if (e.touches && e.touches.length > 0) {
       window.mushafSwipeStartX = e.touches[0].clientX;
-      window.mushafSwipeStartXSet = true; // ← علم منفصل بدل الاعتماد على truthy/falsy للرقم
+      window.mushafSwipeStartXSet = true;
     }
   };
 
   slider.ontouchend = (e) => {
-    if (window.mushafSwipeLocked || !window.mushafSwipeStartXSet) return;
-    window.mushafSwipeStartXSet = false; // تصفير العلم فورًا بعد الاستخدام
-
+    if (!window.mushafSwipeStartXSet) return;
+    window.mushafSwipeStartXSet = false;
     if (!e.changedTouches || e.changedTouches.length === 0) return;
 
     const endX = e.changedTouches[0].clientX;
     const deltaX = endX - window.mushafSwipeStartX;
-
     if (Math.abs(deltaX) < 35) return;
 
     const total = slider.children.length;
     const rawIdx = getMushafPageIndex(slider);
-    const currentPageEl = slider.children[Math.round(rawIdx)];
-    if (!currentPageEl) return;
-
-    const currentP = parseInt(currentPageEl.getAttribute('data-page'));
 
     if (deltaX < -35 && rawIdx >= total - 1.2) {
-      if (currentP && currentP < 604) {
-        window.mushafSwipeLocked = true;
-        const nextP = currentP + 1;
-        const nextS = getSurahByPageNumber(nextP);
-        openSurah(nextS.n, null, nextP).finally(() => {
-          window.mushafSwipeLocked = false; // ← الفك مربوط بانتهاء التحميل فعليًا، مش بتايمر ثابت
-        });
-      }
+      extendMushafPages(1);
     } else if (deltaX > 35 && rawIdx <= 0.2) {
-      if (currentP && currentP > 1) {
-        window.mushafSwipeLocked = true;
-        const prevP = currentP - 1;
-        const prevS = getSurahByPageNumber(prevP);
-        openSurah(prevS.n, null, prevP).finally(() => {
-          window.mushafSwipeLocked = false;
-        });
-      }
+      extendMushafPages(-1);
     }
   };
 }
