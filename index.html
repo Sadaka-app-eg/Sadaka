@@ -8212,7 +8212,7 @@ window.closeSurah = function() {
   // الغاء مفعول دالة الـ load القديمة تماماً لكسر حلقة إعادة تسجيل الدخول
   window.finishLogin = function(name) { if(typeof window.realFinishLogin === 'function') window.realFinishLogin(name); };
 
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   import { getFirestore, doc, setDoc, getDoc }
@@ -8228,7 +8228,7 @@ window.closeSurah = function() {
     measurementId: "G-WE16D4JC8F"
   };
 
-  const app = initializeApp(firebaseConfig);
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
   const auth = getAuth(app);
   const db = getFirestore(app);
 
@@ -8269,11 +8269,12 @@ window.requestFCMToken = async function() {
 };
 
 // تشغيل إرسال التوكن تلقائياً أول ما يفتح التطبيق
-document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(() => {
+// 🚀 استدعاء مباشر فوراً بعد 3 ثوانٍ بدون انتظار DOMContentLoaded
+setTimeout(() => {
+  if (typeof window.requestFCMToken === 'function') {
     window.requestFCMToken();
-  }, 3000);
-});
+  }
+}, 3000);
 
 // استقبال الإشعار والتطبيق مفتوح قدام العين
 onMessage(messaging, (payload) => {
