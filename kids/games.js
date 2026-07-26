@@ -104,11 +104,35 @@ function checkMatchAns(target) {
 }
 
 // 4️⃣ لعبة من هو؟
-const whoData = {
-    hints: ["نَبِيٌّ ابْتَلَعَهُ الحُوتُ 🐋", "دَعَا رَبَّهُ فِي الظُّلُمَاتِ 🌙", "قَوْمُهُ كَانُوا فِي نِينُوَى 🕌"],
-    opts: ["يُونُسُ عَلَيْهِ السَّلَامُ", "مُوسَى عَلَيْهِ السَّلَامُ", "صَالِحٌ عَلَيْهِ السَّلَامُ"],
-    ans: 0
-};
+// 4️⃣ بنك أسئلة لعبة من هو؟ (مستويات متعددة)
+const whoList = [
+    {
+        hints: ["نَبِيٌّ ابْتَلَعَهُ الحُوتُ 🐋", "دَعَا رَبَّهُ فِي الظُّلُمَاتِ 🌙", "قَوْمُهُ كَانُوا فِي نِينُوَى 🕌"],
+        opts: ["يُونُسُ عَلَيْهِ السَّلَامُ", "مُوسَى عَلَيْهِ السَّلَامُ", "صَالِحٌ عَلَيْهِ السَّلَامُ"],
+        ans: 0
+    },
+    {
+        hints: ["صَحَابِيٌّ جَلِيلٌ يُلَقَّبُ بِـ (الفَارُوق) ⚔️", "ثَانِي الخُلَفَاءِ الرَّاشِدِينَ 🕌", "أَعَزَّ اللَّهُ بِهِ الإِسْلَامَ ✨"],
+        opts: ["عُمَرُ بْنُ الخَطَّابِ", "أَبُو بَكْرٍ الصِّدِّيقُ", "عُثْمَانُ بْنُ عَفَّانَ"],
+        ans: 0
+    },
+    {
+        hints: ["نَبِيٌّ أَعْطَاهُ اللَّهُ المُلْكَ وَعَلَّمَهُ لُغَةَ الطَّيْرِ 🕊️", "بَنَى مَعْبَدًا قَوِيًّا وَتَكَلَّمَ مَعَ النَّمْلَةِ 🐜", "ابْنُ نَبِيِّ اللَّهِ دَاوُدَ 👑"],
+        opts: ["سُلَيْمَانُ عَلَيْهِ السَّلَامُ", "يُوسُفُ عَلَيْهِ السَّلَامُ", "إِبْرَاهِيمُ عَلَيْهِ السَّلَامُ"],
+        ans: 0
+    },
+    {
+        hints: ["صَحَابِيٌّ وَهُوَ أَوَّلُ مَنْ أَذَّنَ فِي الإِسْلَامِ 🎙️", "صَوْتُهُ كَانَ جَمِيلًا وَعَذْبًا 🕌", "كَانَ عَبْدًا فَأَعْتَقَهُ أَبُو بَكْرٍ 🕊️"],
+        opts: ["بِلَالُ بْنُ رَبَاحٍ", "خَالِدُ بْنُ الوَلِيدِ", "عَمَّارُ بْنُ يَاسِرٍ"],
+        ans: 0
+    },
+    {
+        hints: ["نَبِيٌّ كَلَّمَهُ اللَّهُ عِنْدَ الطُّورِ ⛰️", "شَقَّ اللَّهُ لَهُ البَحْرَ بِالعَصَا 🌊", "أُنْزِلَتْ عَلَيْهِ التَّوْرَاةُ 📖"],
+        opts: ["مُوسَى عَلَيْهِ السَّلَامُ", "عِيسَى عَلَيْهِ السَّلَامُ", "هَارُونُ عَلَيْهِ السَّلَامُ"],
+        ans: 0
+    }
+];
+let currentWhoIdx = 0;
 
 function renderWhoGame() {
     const box = document.getElementById('whoGameBox');
@@ -134,6 +158,31 @@ function checkWhoAns(idx) {
     }
 }
 
+// 5️⃣ بنك قضايا المحقق الإسلامي
+const detectivePuzzles = [
+    {
+        q: "🕵️‍♂️ القَضِيَّةُ 1: وَجَدَ المَحَقِّقُ طِفْلًا نَسِيَ غَسْلَ وَجْهِهِ فِي الوُضُوءِ وَذَهَبَ لِلصَّلَاةِ، مَا الحُكْمُ؟",
+        opts: ["صَلَاتُهُ صَحِيحَةٌ وَلا شَيْءَ عَلَيْهِ", "يُعِيدُ الوُضُوءَ كَامِلًا وَيُعِيدُ الصَّلَاةَ", "يَغْسِلُ وَجْهَهُ فَقَطْ وَهُوَ فِي الصَّلَاةِ"],
+        ans: 1
+    },
+    {
+        q: "🕵️‍♂️ القَضِيَّةُ 2: طِفْلٌ قَامَ لِصَلَاةِ الظُّهْرِ وَصَلَّى 3 رَكَعَاتٍ فَقَطْ ثُمَّ سَلَّمَ وَهُوَ يَعْلَمُ، مَاذَا يَفْعَلُ؟",
+        opts: ["يَكْمُلُ رَكْعَةً وَيَسْجُدُ لِلسَّهْوِ", "صَلَاتُهُ بَاطِلَةٌ وَيُعِيدُ الأَرْبَعَ رَكَعَاتٍ", "صَلَاتُهُ المَغْرِبُ وَلَيْسَتِ الظُّهْرَ"],
+        ans: 1
+    },
+    {
+        q: "🕵️‍♂️ القَضِيَّةُ 3: رَأَى المَحَقِّقُ وَرَقَةً مَكْتُوبًا فِيهَا: (سُبْحَانَ اللَّهِ 33، الحَمْدُ لِلَّهِ 33، اللَّهُ أَكْبَرُ 33، لا إِلَهَ إِلا اللَّهُ 1)، مَتَى يُقَالُ هَذَا الذِّكْرُ؟",
+        opts: ["قَبْلَ دُخُولِ المَسْجِدِ", "دُبُرَ كُلِّ صَلَاةٍ مَكْتُوبَةٍ", "عِنْدَ رُكُوبِ السَّيَّارَةِ"],
+        ans: 1
+    },
+    {
+        q: "🕵️‍♂️ القَضِيَّةُ 4: شخص شَرِبَ المَاءَ فِي نَهَارِ رَمَضَانَ نَاسِيًا، مَا الحُكْمُ؟",
+        opts: ["يُفْطِرُ وَيَقْضِي اليَوْمَ", "يُتِمُّ صَوْمَهُ فَإِنَّمَا أَطْعَمَهُ اللَّهُ وَسَقَاهُ", "يَدْفَعُ كَفَّارَةً"],
+        ans: 1
+    }
+];
+let currentDetectiveIdx = 0;
+
 // 5️⃣ لعبة المحقق
 function renderDetective() {
     const box = document.getElementById('detectiveBox');
@@ -158,7 +207,15 @@ function checkDetectiveAns(idx) {
 }
 
 // 6️⃣ أكمل الآية
-const verseData = { q: "قُلْ هُوَ اللَّهُ ...", opts: ["أَحَدٌ ✨", "وَاحِدٌ 🌸", "الأَوَّلُ ☀️"], ans: 0 };
+// 6️⃣ بنك آيات السور القصيرة
+const verseList = [
+    { q: "قُلْ هُوَ اللَّهُ ...", opts: ["أَحَدٌ ✨", "وَاحِدٌ 🌸", "الأَوَّلُ ☀️"], ans: 0 },
+    { q: "إِنَّا أَعْطَيْنَاكَ ...", opts: ["الكَوْثَرَ 🌊", "النَّصْرَ 🚩", "الفَتْحَ 🌟"], ans: 0 },
+    { q: "قُلْ أَعُوذُ بِرَبِّ ...", opts: ["الفَلَقِ 🛡️", "النَّاسِ 🤍", "السَّمَاءِ 🌌"], ans: 0 },
+    { q: "إِذَا جَاءَ نَصْرُ اللَّهِ وَ ...", opts: ["الفَتْحُ 🚩", "الفَرْحُ 🎈", "الخَيْرُ ✨"], ans: 0 },
+    { q: "وَالعَصْرِ ۧ إِنَّ الإِنْسَانَ لَفِي ...", opts: ["خُسْرٍ ⚠️", "نُورٍ 🌟", "جَنَّةٍ 🌿"], ans: 0 }
+];
+let currentVerseIdx = 0;
 function renderVerseGame() {
     const box = document.getElementById('verseGameBox');
     if (!box) return;
@@ -208,6 +265,17 @@ function startBalloonGame() {
 }
 
 // 8️⃣ تحدي الـ 60 ثانية
+// 8️⃣ بنك أسئلة السرعة الـ 60 ثانية (للكبار والصغار)
+const speedQuestionsBank = [
+    { q: "كَمْ عَدَدُ صَلَوَاتِ اليَوْمِ وَاللَّيْلَةِ المَفْرُوضَةِ؟", opts: ["5 صَلَوَاتٍ", "3 صَلَوَاتٍ", "7 صَلَوَاتٍ"], a: 0 },
+    { q: "مَا هِيَ أَطْوَلُ سُورَةٍ فِي القُرْآنِ الكَرِيمِ؟", opts: ["سُورَةُ البَقَرَةِ", "سُورَةُ آلِ عِمْرَانَ", "سُورَةُ النِّسَاءِ"], a: 0 },
+    { q: "مَا هُوَ الرَّكْنُ الأَوَّلُ مِنْ أَرْكَانِ الإِسْلَامِ؟", opts: ["الشَّهَادَتَانِ", "الصَّلَاةُ", "الصَّوْمُ"], a: 0 },
+    { q: "مَنْ هُوَ خَاتَمُ الأَنْبِيَاءِ وَالمُرْسَلِينَ؟", opts: ["مُحَمَّدٌ ﷺ", "إِبْرَاهِيمُ ؑ", "عِيسَى ؑ"], a: 0 },
+    { q: "مَا هِيَ السُّورَةُ الَّتِي تُعَادِلُ ثُلُثَ القُرْآنِ؟", opts: ["سُورَةُ الإِخْلَاصِ", "سُورَةُ الفَاتِحَةِ", "سُورَةُ الكَوْثَرِ"], a: 0 },
+    { q: "كَمْ عَدَدُ أَجْزَاءِ القُرْآنِ الكَرِيمِ؟", opts: ["30 جُزْءًا", "60 جُزْءًا", "114 جُزْءًا"], a: 0 },
+    { q: "مَا هِيَ أَعْظَمُ آيَةٍ فِي القُرْآنِ الكَرِيمِ؟", opts: ["آيَةُ الكُرْسِيِّ", "آيَةُ الدَّيْنِ", "آيَةُ النُّورِ"], a: 0 }
+];
+
 let speedTimer = 60, speedScore = 0, speedInterval = null;
 function startSpeedChallenge() {
     speedTimer = 60; speedScore = 0;
@@ -227,25 +295,33 @@ function startSpeedChallenge() {
     renderSpeedQuestion();
 }
 
+let currentSpeedQ = null;
+
 function renderSpeedQuestion() {
     const qArea = document.getElementById('speedQuestionArea');
     if (!qArea) return;
 
+    // اختيار سؤال عشوائي من البنك
+    currentSpeedQ = speedQuestionsBank[Math.floor(Math.random() * speedQuestionsBank.length)];
+
     qArea.innerHTML = `
-        <p style="font-weight:bold; font-size:16px;">كم عدد أركان الإسلام؟</p>
-        <button onclick="answerSpeed(true)" class="who-opt-btn" style="margin:5px;">5 أركان</button>
-        <button onclick="answerSpeed(false)" class="who-opt-btn" style="margin:5px;">3 أركان</button>
+        <p style="font-weight:bold; font-size:16px; margin-bottom:10px;">${currentSpeedQ.q}</p>
+        <div style="display:flex; flex-direction:column; gap:6px;">
+            ${currentSpeedQ.opts.map((opt, idx) => `
+                <button onclick="answerSpeed(${idx})" class="who-opt-btn">${opt}</button>
+            `).join('')}
+        </div>
     `;
 }
 
-function answerSpeed(isCorrect) {
-    if (isCorrect) {
+function answerSpeed(selectedIdx) {
+    if (currentSpeedQ && selectedIdx === currentSpeedQ.a) {
         speedScore += 10;
         document.getElementById('speedScore').textContent = speedScore;
         window.kidsState.stars += 5;
         saveKidsState();
     }
-    renderSpeedQuestion();
+    renderSpeedQuestion(); // الانتقال للسؤال التالي فوراً
 }
 
 // 9️⃣ المزرعة والشجرة
@@ -274,4 +350,68 @@ document.addEventListener('DOMContentLoaded', () => {
     renderWhoGame();
     renderDetective();
     renderVerseGame();
+});
+// 🌀 محرك لعبة المتاهة
+let playerPos = { r: 0, c: 0 };
+const targetPos = { r: 4, c: 4 };
+const mazeGrid = [
+    [0, 0, 1, 0, 0],
+    [1, 0, 1, 0, 1],
+    [0, 0, 0, 0, 0],
+    [0, 1, 1, 1, 0],
+    [0, 0, 0, 1, 0]
+]; // 0 طريق، 1 جدار
+
+function renderMaze() {
+    const board = document.getElementById('mazeBoard');
+    if (!board) return;
+    board.innerHTML = '';
+
+    for (let r = 0; r < 5; r++) {
+        for (let c = 0; c < 5; c++) {
+            const cell = document.createElement('div');
+            cell.style.width = '50px'; cell.style.height = '50px';
+            cell.style.borderRadius = '10px';
+            cell.style.display = 'flex'; cell.style.alignItems = 'center'; cell.style.justifyContent = 'center';
+            cell.style.fontSize = '24px';
+
+            if (r === playerPos.r && c === playerPos.c) {
+                cell.textContent = '🧒'; cell.style.background = '#ffeaa7';
+            } else if (r === targetPos.r && c === targetPos.c) {
+                cell.textContent = '🕋'; cell.style.background = '#55efc4';
+            } else if (mazeGrid[r][c] === 1) {
+                cell.textContent = '🧱'; cell.style.background = '#b2bec3';
+            } else {
+                cell.style.background = '#f1f2f6';
+            }
+            board.appendChild(cell);
+        }
+    }
+}
+
+function moveMaze(dir) {
+    let nr = playerPos.r, nc = playerPos.c;
+    if (dir === 'up') nr--;
+    if (dir === 'down') nr++;
+    if (dir === 'left') nc--;
+    if (dir === 'right') nc++;
+
+    if (nr >= 0 && nr < 5 && nc >= 0 && nc < 5 && mazeGrid[nr][nc] !== 1) {
+        playerPos = { r: nr, c: nc };
+        renderMaze();
+        if (nr === targetPos.r && nc === targetPos.c) {
+            window.kidsState.stars += 20;
+            window.kidsState.bricks += 5;
+            saveKidsState();
+            alert("🎉 العَفْوُ وَالنَّصْرُ! وَصَلْتَ إِلَى الكَعْبَةِ بِنَجَاحٍ وَكَسَبْتَ 20 نَجْمَةً!");
+            playerPos = { r: 0, c: 0 };
+            renderMaze();
+        }
+    }
+}
+
+// ضيف الدالة دي جوه أحداث التشغيل في آخر الملف
+document.addEventListener('DOMContentLoaded', () => {
+    // باقي ألعابك ...
+    renderMaze();
 });
