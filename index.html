@@ -3679,8 +3679,11 @@ function getSurahByPageNumber(pageNum) {
   return surahs[0];
 }
 
- async function extendMushafPages(direction) {
-  if (window._extendingPages) return;
+async function extendMushafPages(direction) {
+  const now = Date.now();
+  if (window._extendingPages) { window._extendPending = direction; return; }
+  if (window._lastExtendTime && (now - window._lastExtendTime) < 400) return;
+  window._lastExtendTime = now;
   const slider = document.getElementById('mushafSlider');
   if (!slider || !window.currentSurahPages || window.currentSurahPages.length === 0) return;
 
@@ -4466,7 +4469,8 @@ document.addEventListener('DOMContentLoaded', () => {
 // 3️⃣ مراقب السكرول الذكي المعدل (بيحدث السورة الحالية وبيوقف الصوت القديم فوراً)
   const slider = document.getElementById('mushafSlider');
   if (slider) {
-    slider.addEventListener('scroll', () => {
+   slider.addEventListener('scroll', () => {
+      if (slider.classList.contains('vscroll-mode')) return; // 👈 السطر الجديد: تجاهل الحساب أثناء التمرير الرأسي
       if (!window.currentSurahPages || window.currentSurahPages.length === 0) return;
       
       const pageWidth = slider.clientWidth || window.innerWidth;
