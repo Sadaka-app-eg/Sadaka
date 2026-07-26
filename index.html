@@ -1313,7 +1313,8 @@ body.hide-controls #quran {
   </div>
 
   <!-- 🕌 الفوتر السفلي المطور (فيه زرار التمرير ⏬ جنب شريط الصفحات تحت) -->
-  <div class="mushaf-jump-bar" id="mushafJumpBar">
+<div class="mushaf-jump-bar" id="mushafJumpBar">
+    <div id="mushafPageBubble" style="display:none; position:absolute; bottom:56px; left:50%; transform:translateX(-50%); background:var(--gold); color:#111; padding:5px 14px; border-radius:14px; font-family:'Amiri',serif; font-weight:bold; font-size:14px; white-space:nowrap; box-shadow:0 3px 10px rgba(0,0,0,0.35); z-index:60;"></div>
     <div style="display: flex; align-items: center; gap: 10px; width: 100%;">
       <!-- زرار التمرير التلقائي السفلي -->
       <button class="icon-btn" onclick="window.toggleMainAutoScrollControls()" title="تمرير تلقائي" style="width:36px; height:36px; font-size:16px; flex-shrink:0; background:rgba(212,175,55,0.2); border-color:var(--gold); color:var(--gold);">⏬</button>
@@ -4465,12 +4466,18 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
 
-  // 3️⃣ مراقب السكرول الذكي لصفحات المصحف (لتحديث اسم السورة العلوية فور التقليب)
-// 3️⃣ مراقب السكرول الذكي المعدل (بيحدث السورة الحالية وبيوقف الصوت القديم فوراً)
-  const slider = document.getElementById('mushafSlider');
+const slider = document.getElementById('mushafSlider');
   if (slider) {
+   let mushafTouchStartIdx = 0;
+   let mushafScrollSettleTimer = null;
+
+   slider.addEventListener('touchstart', () => {
+     const pw0 = slider.clientWidth || window.innerWidth;
+     mushafTouchStartIdx = Math.round(Math.abs(slider.scrollLeft) / pw0);
+   }, { passive: true });
+
    slider.addEventListener('scroll', () => {
-      if (slider.classList.contains('vscroll-mode')) return; // 👈 السطر الجديد: تجاهل الحساب أثناء التمرير الرأسي
+      if (slider.classList.contains('vscroll-mode')) return;
       if (!window.currentSurahPages || window.currentSurahPages.length === 0) return;
       
       const pageWidth = slider.clientWidth || window.innerWidth;
@@ -4482,21 +4489,33 @@ document.addEventListener('DOMContentLoaded', () => {
         if (activeSurah) {
           const titleEl = document.getElementById('surahScreenTitle');
           
-          // 🎯 لو انتقلنا لسورة جديدة فعلياً أثناء السحب
           if (titleEl && titleEl.textContent !== 'سورة ' + activeSurah.name) {
             titleEl.textContent = 'سورة ' + activeSurah.name;
             
-            // 🚀 التحديث السحري: إيقاف صوت السورة القديمة وتحديث المتغير بالجديدة فوراً!
             if (currentSurah && currentSurah.n !== activeSurah.n) {
               currentSurah = activeSurah;
               localStorage.setItem('last_active_surah', activeSurah.n);
-              stopAudio(); // قطع صوت السورة السابقة تلقائياً
+              stopAudio();
             }
           }
         }
       }
-if (physicalIdx >= window.currentSurahPages.length - 4) { extendMushafPages(1); extendMushafPages(1); }
-if (physicalIdx <= 3) { extendMushafPages(-1); extendMushafPages(-1); }
+
+      clearTimeout(mushafScrollSettleTimer);
+      mushafScrollSettleTimer = setTimeout(() => {
+        let settledIdx = Math.round(Math.abs(slider.scrollLeft) / pageWidth);
+
+        // 🛡️ منع القفز لأكتر من صفحة واحدة في السحبة الواحدة
+        if (Math.abs(settledIdx - mushafTouchStartIdx) > 1) {
+          const dir = settledIdx > mushafTouchStartIdx ? 1 : -1;
+          settledIdx = mushafTouchStartIdx + dir;
+          const isRTL = window.getComputedStyle(slider).direction === 'rtl';
+          slider.scrollTo({ left: isRTL ? -(settledIdx * pageWidth) : (settledIdx * pageWidth), behavior: 'smooth' });
+        }
+
+        if (settledIdx >= window.currentSurahPages.length - 4) { extendMushafPages(1); }
+        if (settledIdx <= 3) { extendMushafPages(-1); }
+      }, 150);
      
     }, { passive: true });
   }
@@ -5654,6 +5673,7 @@ async function loadPageWordsOverlay(imgElement, pageNum) {
 function setupMushafJumpSlider(pageNums, realPageNums) {
   const slider = document.getElementById('mushafJumpSlider');
   const mushafSlider = document.getElementById('mushafSlider');
+  const bubble = document.getElementById('mushafPageBubble');
   if (!slider || !mushafSlider) return;
 
   slider.min = 1;
@@ -5663,13 +5683,25 @@ function setupMushafJumpSlider(pageNums, realPageNums) {
 
   let isDraggingJumpSlider = false;
 
-  slider.oninput = () => { isDraggingJumpSlider = true; };
+  const hideBubble = () => { if (bubble) bubble.style.display = 'none'; };
+
+  slider.oninput = () => {
+    isDraggingJumpSlider = true;
+    if (bubble) {
+      bubble.style.display = 'block';
+      bubble.textContent = '📄 صفحة ' + toAr(parseInt(slider.value));
+    }
+  };
 
   slider.onchange = async () => {
     isDraggingJumpSlider = false;
+    hideBubble();
     const targetPage = parseInt(slider.value);
     await jumpToAbsolutePage(targetPage);
   };
+
+  slider.addEventListener('touchend', hideBubble);
+  slider.addEventListener('mouseup', hideBubble);
 
   mushafSlider.onscroll = () => {
     if (isDraggingJumpSlider) return;
@@ -8277,32 +8309,28 @@ function stopMainAutoScroll() {
 
   const slider = document.getElementById('mushafSlider');
   if (slider && slider.children.length) {
-    // 🎯 1. تحديد أقرب كارت صفحة ظاهر قدام العين حالياً
     const pages = Array.from(slider.children);
-    let closestPage = pages[0];
+    let closestIndex = 0;
     let minDistance = Infinity;
 
-    pages.forEach((p) => {
+    pages.forEach((p, idx) => {
       const rect = p.getBoundingClientRect();
       const distance = Math.abs(rect.top);
       if (distance < minDistance) {
         minDistance = distance;
-        closestPage = p;
+        closestIndex = idx;
       }
     });
 
-    // 🎯 2. إرجاع الشاشة للوضع الأفقي
-// 🎯 2. إرجاع الشاشة للوضع الأفقي
     slider.classList.remove('vscroll-mode');
-    slider.style.scrollBehavior = ''; // إرجاع السموث للسحب الأفقي العادي بين الصفحات
+    slider.style.scrollBehavior = '';
     slider.scrollTop = 0;
 
-    // 🎯 3. التركيز المباشر على نفس الصفحة أفقياً
-    if (closestPage) {
-      setTimeout(() => {
-        closestPage.scrollIntoView({ behavior: 'instant', inline: 'center', block: 'nearest' });
-      }, 30);
-    }
+    setTimeout(() => {
+      const pageWidth = slider.clientWidth || window.innerWidth;
+      const isRTL = window.getComputedStyle(slider).direction === 'rtl';
+      slider.scrollLeft = isRTL ? -(closestIndex * pageWidth) : (closestIndex * pageWidth);
+    }, 30);
   }
 }
 
