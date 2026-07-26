@@ -52,6 +52,7 @@ function switchKidsTab(tabName) {
     if (tabName === 'manners') renderKidsManners();
     if (tabName === 'city' && typeof renderCity === 'function') renderCity();
     if (tabName === 'maze' && typeof renderMaze === 'function') renderMaze();
+    if (tabName === 'memory' && typeof initMemoryGame === 'function') initMemoryGame();
 }
 
 // 3️⃣ الصندوق اليومي
