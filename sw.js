@@ -35,9 +35,16 @@ const APP_SHELL_FILES = [
   './prayforthem/prayforthem.js',
   './musicRemover.js',
   './prayforthem/prayforthem.css',
-  './kids/index.html',
-  './kids/style.css',
-  './kids/app.js'
+'./kids/index.html',
+'./kids/style.css',
+'./kids/app.js',
+'./kids/games.js',
+'./kids/kaaba.png.jpg',
+'./kids/quran.png.jpg',
+'./kids/mosque.png.jpg',
+'./kids/crescent.png.jpg',
+'./kids/star.png.png',
+'./kids/rosary.png.jpg'
 ];
 
 const MUSHAF_IMAGE_HOST = 'cdn.myquran.com';
