@@ -3,140 +3,172 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>أطفال الإسلام 🎈 - منصة أثر</title>
+    <title>عالم أطفال الإسلام 🎈 - مجمع الألعاب الشامل</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@500;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <div class="kids-wrapper">
-        <!-- شريط الهيدر العلوي -->
+        <!-- 🌟 الهيدر العلوي ومؤشرات البطل -->
         <header class="kids-header">
-            <div class="brand-info">
-                <span class="logo-emoji">🎈</span>
-                <div>
-                    <h1>عَالَمُ أَطْفَالِ الإِسْلَامِ</h1>
-                    <p>مَرَحٌ، إِيمَانٌ، وَأَخْلَاقٌ كَرِيمَةٌ ✨</p>
+            <div class="user-hero-card">
+                <span class="hero-avatar">🧒</span>
+                <div class="hero-details">
+                    <h2 id="heroRank">بَطَلٌ مُبْتَدِئٌ ⭐</h2>
+                    <div class="hero-stats">
+                        <span>⭐ <strong id="heroStars">0</strong> نجمة</span> | 
+                        <span>🧱 <strong id="heroBricks">0</strong> طوبة</span>
+                    </div>
                 </div>
             </div>
-            <a href="../index.html" class="back-home-btn">🏠 العَوْدَةُ لِلرَّئِيسِيَّةِ</a>
+
+            <div class="header-actions">
+                <button onclick="openDailyBox()" class="daily-box-btn">🎁 الصُّنْدُوقُ اليَوْمِيُّ</button>
+                <a href="../index.html" class="back-home-btn">🏠 العَوْدَةُ</a>
+            </div>
         </header>
 
-        <!-- شريط التبويبات التفاعلي -->
-        <nav class="kids-nav-tabs">
-            <button onclick="switchKidsTab('quran')" id="kidsTab_quran" class="kids-sub-btn active">
-                📖 الْحَدِيقَةُ الْقُرْآنِيَّةُ
-            </button>
-            <button onclick="switchKidsTab('tree')" id="kidsTab_tree" class="kids-sub-btn">
-                🌳 شَجَرَةُ العَبَادَاتِ
-            </button>
-            <button onclick="switchKidsTab('adhkar')" id="kidsTab_adhkar" class="kids-sub-btn">
-                📿 بَالُونَةُ الأَذْكَارِ
-            </button>
-            <button onclick="switchKidsTab('game')" id="kidsTab_game" class="kids-sub-btn">
-                🎮 لُعْبَةُ الذَّاكِرَةِ
-            </button>
-            <button onclick="switchKidsTab('radio')" id="kidsTab_radio" class="kids-sub-btn">
-                📻 رَادْيُوَ الْأَبْطَالِ
-            </button>
-            <button onclick="switchKidsTab('manners')" id="kidsTab_manners" class="kids-sub-btn">
-                🌟 كُرُوتُ الأَخْلَاقِ
-            </button>
-            <button onclick="switchKidsTab('quiz')" id="kidsTab_quiz" class="kids-sub-btn">
-                🧩 تَحَدِّي الذَّكَاءِ
-            </button>
+        <!-- 🗺️ شريط التنقل بين الألعاب -->
+        <nav class="adventure-map">
+            <button onclick="switchKidsTab('city')" class="map-node active">🕌 بناء المدينة</button>
+            <button onclick="switchKidsTab('wudu')" class="map-node">🌊 ترتيب الوضوء</button>
+            <button onclick="switchKidsTab('match')" class="map-node">🎯 التوصيل الذكي</button>
+            <button onclick="switchKidsTab('who')" class="map-node">👤 من هو؟</button>
+            <button onclick="switchKidsTab('detective')" class="map-node">🕵️‍♂️ المحقق</button>
+            <button onclick="switchKidsTab('verse')" class="map-node">📖 أكمل الآية</button>
+            <button onclick="switchKidsTab('balloons')" class="map-node">🎈 البلالين</button>
+            <button onclick="switchKidsTab('speed')" class="map-node">⚡ تحدي الـ 60ث</button>
+            <button onclick="switchKidsTab('farm')" class="map-node">🐑 المزرعة الشجرة</button>
         </nav>
 
-        <!-- 📖 1. الحديقة القرآنية -->
-        <section id="kidsContent_quran" class="kids-tab-content active">
+        <!-- 1️⃣ 🕌 بناء المدينة والمسجد (ابنِ المسجد) -->
+        <section id="kidsContent_city" class="kids-tab-content active">
             <div class="section-title">
-                <h2>📖 الْحَدِيقَةُ الْقُرْآنِيَّةُ لِلأَبْطَالِ</h2>
-                <p>اِسْتَمِعْ لِلسُّوَرِ الْقَصِيرَةِ بِصَوْتٍ عَذْبٍ وَكَرِّرْ مَعَهَا لِتَحْفَظَهَا! 🎧</p>
+                <h2>🕌 بِنَاءُ المَدِينَةِ وَالمَسْجِدِ (ابْنِ المَسْجِدَ)</h2>
+                <p>كل عمل صالح يقدم لك طوباً 🧱 لبناء مدينتك وتطويرها!</p>
             </div>
-            <div id="kidsQuranContainer" class="quran-grid">
-                <!-- توليد كروت السور من JS -->
-            </div>
-        </section>
-
-        <!-- 🌳 2. شجرة العبادات -->
-        <section id="kidsContent_tree" class="kids-tab-content">
-            <div class="section-title">
-                <h2>🌳 شَجَرَةُ الْعَبَادَاتِ الْيَوْمِيَّةِ</h2>
-                <p>اِضْغَطْ عَلَى الصَّلَاةِ أَوْ الْعَمَلِ الصَّالِحِ لِتُزْهِرَ الشَّجَرَةُ! ✨</p>
-            </div>
-            <div class="tree-banner">
-                <div id="treeVisualStatus" class="tree-icon">🌱</div>
-                <div id="treeProgressText" class="tree-progress">مَجْمُوعُ الْأَوْرَاقِ الْمُزْهِرَةِ: 0 مِـنْ 8</div>
-            </div>
-            <div id="kidsTreeLeavesContainer" class="tree-grid"></div>
-        </section>
-
-        <!-- 📿 3. بالونة الأذكار التفاعلية -->
-        <section id="kidsContent_adhkar" class="kids-tab-content">
-            <div class="section-title">
-                <h2>🎈 بَالُونَةُ الأَذْكَارِ التَّفَاعُلِيَّةُ</h2>
-                <p>اِضْغَطْ عَلَى الْبَالُونَةِ لِتُسَبِّحَ وَتَكْبُرَ البَالُونَةُ مَعَ كُلِّ ذِكْرٍ! 🌟</p>
-            </div>
-            <div class="adhkar-interactive-box">
-                <div id="kidsZikrText" class="zikr-title">سُبْحَانَ اللَّهِ وَبِحَمْدِهِ</div>
-                <div id="kidsBalloon" class="balloon-element" onclick="popKidsZikr()">🎈</div>
-                <div id="kidsZikrCounter" class="zikr-counter">0</div>
-                <div class="zikr-selector-btns">
-                    <button onclick="setKidsZikr('سُبْحَانَ اللَّهِ 🌸')">سُبْحَانَ اللَّهِ</button>
-                    <button onclick="setKidsZikr('الْحَمْدُ لِلَّهِ 🌿')">الْحَمْدُ لِلَّهِ</button>
-                    <button onclick="setKidsZikr('اللَّهُ أَكْبَرُ ☀️')">اللَّهُ أَكْبَرُ</button>
-                    <button onclick="setKidsZikr('أَسْتَغْفِرُ اللَّهَ 🌧️')">أَسْتَغْفِرُ اللَّهَ</button>
+            <div class="city-builder-box">
+                <div id="cityCanvas" class="city-canvas"></div>
+                <div class="building-shop">
+                    <button onclick="buyBuilding('mosque', 5)" class="shop-item-btn">🕌 بناء مسجد (5 طوبات)</button>
+                    <button onclick="buyBuilding('school', 3)" class="shop-item-btn">🏫 بناء مدرسة (3 طوبات)</button>
+                    <button onclick="buyBuilding('library', 4)" class="shop-item-btn">📚 بناء مكتبة (4 طوبات)</button>
+                    <button onclick="buyBuilding('well', 2)" class="shop-item-btn">💧 حفر بئر (2 طوبتان)</button>
                 </div>
             </div>
         </section>
 
-        <!-- 🎮 4. لعبة الذاكرة الإسلامية -->
-        <section id="kidsContent_game" class="kids-tab-content">
+        <!-- 2️⃣ 🌊 لعبة ترتيب خطوات الوضوء -->
+        <section id="kidsContent_wudu" class="kids-tab-content">
             <div class="section-title">
-                <h2>🎮 لُعْبَةُ الذَّاكِرَةِ الإِسْلَامِيَّةِ</h2>
-                <p>اِكْشِفِ الْكُرُوتَ وَابْحَثْ عَنِ الصُّوَرِ الْمُتَطَابِقَةِ! 🧩</p>
+                <h2>🌊 لُعْبَةُ تَرْتِيبِ خَطَوَاتِ الوُضُوءِ</h2>
+                <p>اضغط على الخطوة بالترتيب الصحيح لتكتمل طهارة البطل!</p>
             </div>
-            <div class="game-status-bar">
-                <span>الْمَحَاوَلَاتُ: <strong id="gameMoves">0</strong></span>
-                <button onclick="initMemoryGame()" class="restart-game-btn">🔄 لُعْبَةٌ جَدِيدَةٌ</button>
-            </div>
-            <div id="memoryBoard" class="memory-grid"></div>
+            <div id="wuduGameBox" class="puzzle-card"></div>
         </section>
 
-        <!-- 📻 5. راديو الأبطال -->
-        <section id="kidsContent_radio" class="kids-tab-content">
+        <!-- 3️⃣ 🎯 لعبة التوصيل (وصل النبي بالمعجزة/الحيوان) -->
+        <section id="kidsContent_match" class="kids-tab-content">
             <div class="section-title">
-                <h2>📻 رَادْيُوَ الْأَبْطَالِ وَأَغَانِي الإِيمَانِ</h2>
-                <p>اِسْتَمِعْ لِأَجْمَلِ الْقِصَصِ الإِيمَانِيَّةِ وَالْأَنَاشِيدِ الْعَذْبَةِ 🎧</p>
+                <h2>🎯 لُعْبَةُ التَّوْصِيلِ الذَّكِيِّ</h2>
+                <p>اختر النبي ثم اختر المعجزة أو الحيوان المرتبط به!</p>
             </div>
-            <div id="kidsRadioList" class="radio-list"></div>
+            <div id="matchGameBox" class="puzzle-card"></div>
         </section>
 
-        <!-- 🌟 6. كروت الأخلاق -->
-        <section id="kidsContent_manners" class="kids-tab-content">
+        <!-- 4️⃣ 👤 لعبة من هو؟ (Guess Who) -->
+        <section id="kidsContent_who" class="kids-tab-content">
             <div class="section-title">
-                <h2>🏆 أَوْسِمَةُ الْبَطَلِ الْخَلُوقِ</h2>
-                <p>طَبِّقِ الْأَخْلَاقَ فِي يَوْمِكَ وَاحْصُلْ عَلَى الأَوْسِمَةِ! ⭐</p>
+                <h2>👤 تَحَدِّي "مَنْ هُوَ؟"</h2>
+                <p>اكتشف الشخصية الإسلامية من خلال التلميحات المتتابعة!</p>
             </div>
-            <div id="kidsMannersContainer" class="manners-grid"></div>
+            <div id="whoGameBox" class="puzzle-card"></div>
         </section>
 
-        <!-- 🧩 7. مسابقة الذكاء -->
-        <section id="kidsContent_quiz" class="kids-tab-content">
+        <!-- 5️⃣ 🕵️‍♂️ لعبة المحقق الإسلامي -->
+        <section id="kidsContent_detective" class="kids-tab-content">
             <div class="section-title">
-                <h2>🧩 مَسَابَقَةُ الْبَطَلِ الصَّغِيرِ</h2>
-                <p>أَجِبْ عَنِ الْأَسْئِلَةِ السَّهْلَةِ وَاجْمَعِ النُّجُومَ! 🌟</p>
+                <h2>🕵️‍♂️ لُغْزُ المَحَقِّقِ الإِسْلَامِيِّ</h2>
+                <p>اقرأ القضية واكتشف الخطأ الشرعي لتفتح القفل!</p>
             </div>
-            <div id="kidsQuizBox" class="quiz-card"></div>
+            <div id="detectiveBox" class="puzzle-card"></div>
+        </section>
+
+        <!-- 6️⃣ 📖 لعبة أكمل الآية الكريمة -->
+        <section id="kidsContent_verse" class="kids-tab-content">
+            <div class="section-title">
+                <h2>📖 لُعْبَةُ "أَكْمِلِ الآيَةَ"</h2>
+                <p>اختر الكلمة الصحيحة التي تطابق الآية الكريمة!</p>
+            </div>
+            <div id="verseGameBox" class="puzzle-card"></div>
+        </section>
+
+        <!-- 7️⃣ 🎈 لعبة صيد وفرقعة بلالين الأذكار -->
+        <section id="kidsContent_balloons" class="kids-tab-content">
+            <div class="section-title">
+                <h2>🎈 فَرْقَعَةُ بَلَالِينِ الأَذْكَارِ</h2>
+                <p>فرقع البلالين الطائرة واجمع النقاط والنجوم!</p>
+            </div>
+            <div class="balloon-game-stage">
+                <div class="balloon-score">الرَّصِيدُ: <strong id="balloonScore">0</strong> ⭐</div>
+                <button onclick="startBalloonGame()" class="start-btn">▶ بَدْءُ اللَّعِبِ</button>
+                <div id="balloonArea" class="balloon-area"></div>
+            </div>
+        </section>
+
+        <!-- 8️⃣ ⚡ تحدي السرعة (60 ثانية) للكبار والصغار -->
+        <section id="kidsContent_speed" class="kids-tab-content">
+            <div class="section-title">
+                <h2>⚡ تَحَدِّي السُّرْعَةِ (60 ثَانِيَةً)</h2>
+                <p>أجب عن أكبر عدد من الأسئلة قبل أن ينتهي الوقت!</p>
+            </div>
+            <div id="speedGameBox" class="puzzle-card" style="text-align:center;">
+                <div style="font-size:24px; font-weight:bold; color:#d63031; margin-bottom:10px;">
+                    الوقت المتبقي: <span id="speedTimer">60</span>s | النقاط: <span id="speedScore">0</span>
+                </div>
+                <button onclick="startSpeedChallenge()" class="start-btn">🚀 ابدأ التحدي الآن!</button>
+                <div id="speedQuestionArea" style="margin-top:15px;"></div>
+            </div>
+        </section>
+
+        <!-- 9️⃣ 🐑 المزرعة الشجرة الإيمانية (تطور الخروف والشجرة) -->
+        <section id="kidsContent_farm" class="kids-tab-content">
+            <div class="section-title">
+                <h2>🐑 المَزْرَعَةُ وَالشَّجَرَةُ الإِيمَانِيَّةُ</h2>
+                <p>كلما أطعمت حيوانك وسقيت شجرتك بالعبادات نمت وزادت جمالاً!</p>
+            </div>
+            <div class="farm-container" style="display:flex; justify-content:space-around; flex-wrap:wrap; gap:15px;">
+                <div class="pet-card">
+                    <div id="petStage" class="pet-avatar">🐑</div>
+                    <h3 id="petName">الخروف الصغير</h3>
+                    <p id="petStatus">يحتاج لأعمال صالحة ليكبر!</p>
+                    <button onclick="feedPet()" class="feed-btn">🌱 إطعام عمل صالح</button>
+                </div>
+                <div class="pet-card">
+                    <div id="treeStage" class="pet-avatar">🌱</div>
+                    <h3>الشجرة الإيمانية</h3>
+                    <p id="treeStatus">برعم صغير ينمو بصلاتك!</p>
+                    <button onclick="waterTree()" class="feed-btn">💧 سقي الشجرة</button>
+                </div>
+            </div>
         </section>
 
     </div>
 
-    <!-- مشغل الصوتيات الخفي -->
-    <audio id="kidsAudioEngine" style="display: none;"></audio>
+    <!-- نافذة الصندوق اليومي -->
+    <div id="dailyBoxModal" class="modal-overlay" style="display:none;">
+        <div class="modal-card">
+            <h2>🎁 الصُّنْدُوقُ اليَوْمِيُّ</h2>
+            <div style="font-size: 60px; margin: 15px 0;">📦</div>
+            <p id="dailyBoxRewardText">اضغط لفتح هديتك اليومية!</p>
+            <button onclick="claimDailyReward()" class="start-btn" style="width:100%; margin-top:10px;">افتح الصندوق!</button>
+        </div>
+    </div>
 
     <script src="app.js"></script>
+    <script src="all-games.js"></script>
 </body>
 </html>
