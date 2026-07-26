@@ -3747,7 +3747,13 @@ function getSurahByPageNumber(pageNum) {
   } catch (e) {
     console.error('extendMushafPages error:', e);
   }
-  window._extendingPages = false;
+window._extendingPages = false;
+  if (window._extendPending) {
+    const pending = window._extendPending;
+    window._extendPending = null;
+    extendMushafPages(pending);
+  }
+  
 }
 
  function buildSinglePageHTML(pageNum, pagesDict, allVerses) {
@@ -3858,9 +3864,8 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
   }
 
 // 🎯 تحميل السورة الحالية + صفحات الأمان المجاورة (السورة السابقة والتالية) لتسهيل السحب والحرية الكاملة
- // 🎯 نطاق آمن ومضبوط: السورة الحالية كاملة + صفحة واحدة فقط كحد أقصى للأمان من الحواف بدون تداخل
-const minPage = Math.max(1, surahStartP - 1);
-  const maxPage = Math.min(604, surahEndP + 1);
+const minPage = Math.max(1, targetP - 2);
+  const maxPage = Math.min(604, targetP + 3);
 
   try {
     let allVerses = [];
@@ -4486,8 +4491,9 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
       }
-      if (physicalIdx >= window.currentSurahPages.length - 2) extendMushafPages(1);
-      if (physicalIdx <= 1) extendMushafPages(-1);
+if (physicalIdx >= window.currentSurahPages.length - 4) { extendMushafPages(1); extendMushafPages(1); }
+if (physicalIdx <= 3) { extendMushafPages(-1); extendMushafPages(-1); }
+     
     }, { passive: true });
   }
 
@@ -5646,30 +5652,43 @@ function setupMushafJumpSlider(pageNums, realPageNums) {
   const mushafSlider = document.getElementById('mushafSlider');
   if (!slider || !mushafSlider) return;
 
-  const rp = realPageNums || pageNums;
-  const offset = pageNums.indexOf(rp[0]);
-
-  slider.max = Math.max(0, rp.length - 1);
-  slider.value = 0;
+  slider.min = 1;
+  slider.max = 604;
+  const currentPageNum = pageNums[Math.round(getMushafPageIndex(mushafSlider))] || pageNums[0];
+  slider.value = currentPageNum;
 
   let isDraggingJumpSlider = false;
 
-  slider.oninput = () => {
-    isDraggingJumpSlider = true;
-    const targetPhysicalIndex = parseInt(slider.value) + offset;
-    window.scrollToMushafIndex(targetPhysicalIndex);
+  slider.oninput = () => { isDraggingJumpSlider = true; };
+
+  slider.onchange = async () => {
+    isDraggingJumpSlider = false;
+    const targetPage = parseInt(slider.value);
+    await jumpToAbsolutePage(targetPage);
   };
-  
-  slider.onchange = () => { isDraggingJumpSlider = false; };
 
   mushafSlider.onscroll = () => {
     if (isDraggingJumpSlider) return;
+    if (!window.currentSurahPages || window.currentSurahPages.length === 0) return;
     const pageWidth = mushafSlider.clientWidth || window.innerWidth;
     const physicalIdx = Math.round(Math.abs(mushafSlider.scrollLeft) / pageWidth);
-    const realIdx = physicalIdx - offset;
-    slider.value = Math.max(0, Math.min(rp.length - 1, realIdx));
+    const pageNum = window.currentSurahPages[physicalIdx];
+    if (pageNum) slider.value = pageNum;
   };
-}                           
+}
+
+// 🎯 القفز المباشر لأي صفحة في المصحف (بيعيد بناء نطاق الصفحات حول الهدف)
+async function jumpToAbsolutePage(targetPage) {
+  if (window.currentSurahPages && window.currentSurahPages.includes(targetPage)) {
+    const idx = window.currentSurahPages.indexOf(targetPage);
+    window.scrollToMushafIndex(idx);
+    return;
+  }
+  const targetSurah = getSurahByPageNumber(targetPage);
+  if (targetSurah) {
+    await openSurah(targetSurah.n, null, targetPage);
+  }
+}                          
                       
 window.scrollToMushafIndex = function(index) {
   const slider = document.getElementById('mushafSlider');
