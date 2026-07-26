@@ -24,15 +24,14 @@ window.initShareAppPage = function() {
 
       <div style="background: var(--card); border-radius: 20px; padding: 24px; border: 1px solid var(--border); border-right: 4px solid var(--green); box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
         <div style="font-size: 35px; margin-bottom: 10px; text-align: center;">💝</div>
-        <h3 style="color: var(--green); font-size: 18px; font-weight: bold; margin-bottom: 10px; text-align: center;">دعم وتطوير سـيرفرات الأثـر الطيب</h3>
+        <h3 style="color: var(--green); font-size: 18px; font-weight: bold; margin-bottom: 10px; text-align: center;">دعمكم لنا بالدعاء</h3>
         <p style="color: var(--text2); font-size: 14px; line-height: 1.8; margin-bottom: 15px; text-align: justify;">
-          الاستمرار في تطوير الميزات الإيمانية، والحفاظ على السيرفرات حية ومستقرة، ورفع جودة الصوتيات والمصحف الشريف يحتاج إلى دعمكم المادي. مساهمتك -مهما كانت بسيطة- تُشكل فارقاً كبيراً في استمرار هذا المشروع الدعوي وتحديثه دورياً وتوفيره للجميع بلا إعلانات مزعجة.
+          الاستمرار في تطوير الميزات الإيمانية، والحفاظ على السيرفرات حية ومستقرة، ورفع جودة الصوتيات والمصحف الشريف جهد مستمر نسأل الله أن يعيننا عليه، ونسعى دوماً لتحديث التطبيق دورياً وتوفيره للجميع بلا إعلانات مزعجة.
         </p>
 
         <div style="background: rgba(0,0,0,0.2); border: 1px dashed var(--green); padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 5px;">
-          <span style="font-size: 13px; color: var(--text2); display: block; margin-bottom: 4px;">يمكنك التبرع والمساهمة عبر فودافون كاش:</span>
-          <strong style="font-size: 20px; color: var(--green); font-family: monospace; letter-spacing: 1px; display: block; margin: 5px 0;">01069168725</strong>
-          <span style="font-size: 11px; color: var(--gold);">جعلها الله صدقة جارية مقبولة في صحيفتك 🌿</span>
+          <span style="font-size: 14px; color: var(--green); display: block; line-height: 1.8;">🤲 لا تنسونا من صالح دعائكم</span>
+          <span style="font-size: 11px; color: var(--gold); display: block; margin-top: 6px;">دعوة صادقة منكم لنا أغلى من أي عطاء، جعلها الله في ميزان حسناتكم 🌿</span>
         </div>
       </div>
 
