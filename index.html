@@ -8198,11 +8198,12 @@ function renderBookmarkHighlight() {
   highlightAyah(bm.index, 'bookmark');
 }
 // =========================================================================
-// 🔄 محرك التمرير التلقائي الرأسي المطور والآمن (حل الرعشة والرجوع للفاتحة)
+// 🔄 محرك التمرير التلقائي الرأسي المطور والآمن (بدون قفزات وبدون رجوع للفاتحة)
 // =========================================================================
-let mainScrollInterval = null;
+let mainScrollAnimationFrame = null;
 let isMainAutoScrolling = false;
-let mainScrollSpeed = 30;
+let mainScrollSpeed = 30; // القيمة من 5 إلى 90
+let lastScrollTimestamp = 0;
 
 window.toggleMainAutoScrollControls = function() {
   const bar = document.getElementById('mainAutoScrollControlBar');
@@ -8232,52 +8233,89 @@ function startMainAutoScroll() {
   if (playBtn) playBtn.textContent = '⏸';
   isMainAutoScrolling = true;
 
-  // 🎯 1. لو الشاشة مش في الوضع الرأسي أصلاً، نحدد الصفحة أفقياً الأول
   if (!slider.classList.contains('vscroll-mode')) {
     const pageWidth = slider.clientWidth || window.innerWidth;
     const currentIdx = Math.round(Math.abs(slider.scrollLeft) / pageWidth);
     const targetPageEl = slider.children[currentIdx] || slider.children[0];
 
-slider.style.scrollBehavior = 'auto'; // إلغاء السموث فورًا قبل الدخول في الوضع الرأسي
+    slider.style.scrollBehavior = 'auto';
     slider.classList.add('vscroll-mode');
-    // 🎯 مهلة 30 مللي ثانية لمنع الرعشة ولضمان اكتمال الرسم الرأسي قبل القفز
+    
     setTimeout(() => {
       if (targetPageEl) {
         slider.scrollTop = targetPageEl.offsetTop;
       }
-      runScrollTimer();
+      lastScrollTimestamp = performance.now();
+      runScrollAnimation();
     }, 30);
   } else {
-    // لو هي رأسي بالفعل (مثلاً كان موقّف ومحتاج يكمل)
-    runScrollTimer();
+    lastScrollTimestamp = performance.now();
+    runScrollAnimation();
   }
 }
 
-function runScrollTimer() {
-  clearInterval(mainScrollInterval);
+function runScrollAnimation(now) {
+  if (!isMainAutoScrolling) return;
+
   const slider = document.getElementById('mushafSlider');
   if (!slider) return;
 
-  mainScrollInterval = setInterval(() => {
+  if (!now) now = performance.now();
+  const delta = now - lastScrollTimestamp;
+
+  // تحويل السرعة (5 إلى 90) إلى معدل بكسل في الثانية بشكل انسيابي
+  // معامل السرعة: 5 تعطي ~15 بكسل/ثانية، و90 تعطي ~180 بكسل/ثانية
+  const pixelsPerSecond = 10 + (mainScrollSpeed * 2);
+  const moveStep = (pixelsPerSecond * delta) / 1000;
+
+  if (delta >= 16) { // تحديث كل إطار (تقريباً 60fps)
+    slider.scrollTop += moveStep;
+    lastScrollTimestamp = now;
+
+    // حفظ السورة والصفحة الحالية المحاذية لعين القارئ فورياً
+    const pages = Array.from(slider.children);
+    let closestPage = pages[0];
+    let minDistance = Infinity;
+    pages.forEach((p) => {
+      const dist = Math.abs(p.getBoundingClientRect().top);
+      if (dist < minDistance) {
+        minDistance = dist;
+        closestPage = p;
+      }
+    });
+
+    if (closestPage && closestPage.dataset.page) {
+      const pageNum = parseInt(closestPage.dataset.page);
+      const activeSurah = getSurahByPageNumber(pageNum);
+      if (activeSurah && currentSurah && currentSurah.n !== activeSurah.n) {
+        currentSurah = activeSurah;
+        localStorage.setItem('last_active_surah', activeSurah.n);
+        document.getElementById('surahScreenTitle').textContent = 'سورة ' + activeSurah.name;
+      }
+    }
+
     const maxScroll = slider.scrollHeight - slider.clientHeight;
     if (slider.scrollTop >= maxScroll - 2) {
       stopMainAutoScroll();
       return;
     }
-    slider.scrollTop += 1;
-  }, Math.max(10, 110 - mainScrollSpeed));
+  }
+
+  mainScrollAnimationFrame = requestAnimationFrame(runScrollAnimation);
 }
 
 function stopMainAutoScroll() {
   isMainAutoScrolling = false;
-  clearInterval(mainScrollInterval);
+  if (mainScrollAnimationFrame) {
+    cancelAnimationFrame(mainScrollAnimationFrame);
+    mainScrollAnimationFrame = null;
+  }
 
   const playBtn = document.getElementById('mainAutoScrollPlayBtn');
   if (playBtn) playBtn.textContent = '▶';
 
   const slider = document.getElementById('mushafSlider');
   if (slider && slider.children.length) {
-    // 🎯 1. تحديد أقرب كارت صفحة ظاهر قدام العين حالياً
     const pages = Array.from(slider.children);
     let closestPage = pages[0];
     let minDistance = Infinity;
@@ -8291,13 +8329,19 @@ function stopMainAutoScroll() {
       }
     });
 
-    // 🎯 2. إرجاع الشاشة للوضع الأفقي
-// 🎯 2. إرجاع الشاشة للوضع الأفقي
+    if (closestPage && closestPage.dataset.page) {
+      const pageNum = parseInt(closestPage.dataset.page);
+      const activeSurah = getSurahByPageNumber(pageNum);
+      if (activeSurah) {
+        currentSurah = activeSurah;
+        localStorage.setItem('last_active_surah', activeSurah.n);
+      }
+    }
+
     slider.classList.remove('vscroll-mode');
-    slider.style.scrollBehavior = ''; // إرجاع السموث للسحب الأفقي العادي بين الصفحات
+    slider.style.scrollBehavior = '';
     slider.scrollTop = 0;
 
-    // 🎯 3. التركيز المباشر على نفس الصفحة أفقياً
     if (closestPage) {
       setTimeout(() => {
         closestPage.scrollIntoView({ behavior: 'instant', inline: 'center', block: 'nearest' });
@@ -8310,11 +8354,6 @@ window.updateMainScrollSpeed = function(val) {
   mainScrollSpeed = Number(val);
   const label = document.getElementById('mainScrollSpeedLabel');
   if (label && typeof toAr === 'function') label.textContent = toAr(mainScrollSpeed);
-
-  // 🎯 السحر هنا: تغيير السرعة بيجدد التايمر فقط بدون إعادة حساب الصفحة أو الرجوع للفاتحة!
-  if (isMainAutoScrolling) {
-    runScrollTimer();
-  }
 };
 
 // إيقاف التمرير عند إغلاق السورة
@@ -8495,14 +8534,14 @@ window.triggerHeaderGoogleLogin = function() {
   };
 
   const _closeSurah = window.closeSurah;
-window.closeSurah = function(){
-  if (history.state && history.state.athrState === 'surah') {
-    // نسيب الـ popstate handler هو اللي يقفل الشاشة فعليًا، بدل ما نقفلها إحنا الأول ونعمل تعارض
-    history.back();
-  } else {
-    _closeSurah();
-  }
-};
+  window.closeSurah = function(){
+    stopMainAutoScroll(); // إيقاف التمرير وحفظ آخر صفحة وقف عندها القارئ
+    if (history.state && history.state.athrState === 'surah') {
+      history.back();
+    } else {
+      _closeSurah();
+    }
+  };
 
   window.addEventListener('popstate', () => {
     const insightModal = document.getElementById('insightModal');
@@ -8518,12 +8557,19 @@ window.closeSurah = function(){
     if (profileModal && profileModal.style.display === 'flex') { profileModal.style.display = 'none'; pushBackState(appState); return; }
     if (congratsModal) { congratsModal.remove(); pushBackState(appState); return; }
     if (veil) { closeVeilCurtain(); pushBackState(appState); return; }
-    if (surahScreen && surahScreen.classList.contains('open')) { closeSurah(); return; }
+    
+    if (surahScreen && surahScreen.classList.contains('open')) { 
+      stopMainAutoScroll();
+      document.getElementById('surahScreen').classList.remove('open');
+      localStorage.setItem('surah_screen_open', '0');
+      stopAudio();
+      return; 
+    }
+    
     if (menu && menu.classList.contains('open')) { toggleMenu(); return; }
 
     const activePage = document.querySelector('.page.active');
     if (activePage && activePage.id !== 'home') { showPage('home', null); return; }
-    // هنا يبقى إحنا فعلاً في الرئيسية بدون أي حاجة مفتوحة، السحب هيقفل التطبيق طبيعي
   });
 
   history.replaceState({ athrState: 'home' }, '', '');
