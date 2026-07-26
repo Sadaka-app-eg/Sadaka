@@ -154,10 +154,10 @@ function initMemoryGame() {
     // مضاعفة الصور وخلطها
     gameCards = [...gameIcons, ...gameIcons].sort(() => Math.random() - 0.5);
 
-    board.innerHTML = gameCards.map((icon, idx) => `
+    board.innerHTML = gameCards.map((imgSrc, idx) => `
         <div class="memory-card" id="mCard_${idx}" onclick="flipCard(${idx})">
-            <span style="display:none;" id="mIcon_${idx}">${icon}</span>
-            <span id="mCover_${idx}">❓</span>
+            <img src="${imgSrc}" id="mIcon_${idx}" style="display:none; width:70%; height:70%; object-fit:contain;" />
+            <span id="mCover_${idx}" style="font-size:30px;">❓</span>
         </div>
     `).join('');
 }
@@ -171,7 +171,7 @@ function flipCard(idx) {
         card.classList.add('flipped');
         icon.style.display = 'block';
         cover.style.display = 'none';
-        flippedCards.push({ idx, icon: icon.textContent });
+        flippedCards.push({ idx, src: icon.src });
 
         if (flippedCards.length === 2) {
             moves++;
@@ -183,17 +183,17 @@ function flipCard(idx) {
 
 function checkMatch() {
     const [c1, c2] = flippedCards;
-    if (c1.icon === c2.icon) {
+    if (c1.src === c2.src) {
         flippedCards = [];
     } else {
         setTimeout(() => {
             document.getElementById(`mCard_${c1.idx}`).classList.remove('flipped');
             document.getElementById(`mIcon_${c1.idx}`).style.display = 'none';
-            document.getElementById(`mCover_${c1.idx}`).style.display = 'block';
+            document.getElementById(`mCover_${c1.idx}`).style.display = 'inline';
 
             document.getElementById(`mCard_${c2.idx}`).classList.remove('flipped');
             document.getElementById(`mIcon_${c2.idx}`).style.display = 'none';
-            document.getElementById(`mCover_${c2.idx}`).style.display = 'block';
+            document.getElementById(`mCover_${c2.idx}`).style.display = 'inline';
             flippedCards = [];
         }, 800);
     }
