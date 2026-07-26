@@ -246,6 +246,8 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
   border-radius: 3px;
   transition: background 0.15s;
   line-height: 1.8;
+  font-weight: 700;
+  -webkit-text-stroke: 0.35px currentColor;
 }
 .qcf-word:active, .qcf-word.selected {
   background: rgba(76,175,80,0.25);
@@ -8294,28 +8296,23 @@ function stopMainAutoScroll() {
 
   const slider = document.getElementById('mushafSlider');
   if (slider && slider.children.length) {
-    const pages = Array.from(slider.children);
-    let closestIndex = 0;
-    let minDistance = Infinity;
-
-    pages.forEach((p, idx) => {
-      const rect = p.getBoundingClientRect();
-      const distance = Math.abs(rect.top);
-      if (distance < minDistance) {
-        minDistance = distance;
-        closestIndex = idx;
-      }
-    });
+    // تحديد الصفحة الظاهرة فعلياً تحت نقطة ثابتة من الشاشة (أسرع وأدق من الدوران على كل الصفحات)
+    const elAtPoint = document.elementFromPoint(window.innerWidth / 2, 120);
+    const pageEl = elAtPoint ? elAtPoint.closest('.mushaf-page') : null;
+    const closestIndex = pageEl ? Array.from(slider.children).indexOf(pageEl) : 0;
 
     slider.classList.remove('vscroll-mode');
     slider.style.scrollBehavior = '';
     slider.scrollTop = 0;
 
-    setTimeout(() => {
-      const pageWidth = slider.clientWidth || window.innerWidth;
-      const isRTL = window.getComputedStyle(slider).direction === 'rtl';
-      slider.scrollLeft = isRTL ? -(closestIndex * pageWidth) : (closestIndex * pageWidth);
-    }, 30);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const pageWidth = slider.clientWidth || window.innerWidth;
+        const isRTL = window.getComputedStyle(slider).direction === 'rtl';
+        const idx = closestIndex >= 0 ? closestIndex : 0;
+        slider.scrollLeft = isRTL ? -(idx * pageWidth) : (idx * pageWidth);
+      });
+    });
   }
 }
 
