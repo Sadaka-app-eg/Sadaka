@@ -52,6 +52,15 @@ function renderWuduGame() {
     `;
 }
 
+const gameIcons = [
+    'kaaba.png.jpg',
+    'quran.png.jpg',
+    'mosque.png.jpg',
+    'crescent.png.jpg',
+    'star.png.png',
+    'rosary.png.jpg'
+];
+
 function checkWuduStep(selectedStep) {
     if (selectedStep === wuduSteps[currentWuduIdx]) {
         currentWuduIdx++;
