@@ -4468,13 +4468,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 const slider = document.getElementById('mushafSlider');
   if (slider) {
-   let mushafTouchStartIdx = 0;
-   let mushafScrollSettleTimer = null;
-
-   slider.addEventListener('touchstart', () => {
-     const pw0 = slider.clientWidth || window.innerWidth;
-     mushafTouchStartIdx = Math.round(Math.abs(slider.scrollLeft) / pw0);
-   }, { passive: true });
+   let mushafExtendTimer = null;
 
    slider.addEventListener('scroll', () => {
       if (slider.classList.contains('vscroll-mode')) return;
@@ -4501,18 +4495,9 @@ const slider = document.getElementById('mushafSlider');
         }
       }
 
-      clearTimeout(mushafScrollSettleTimer);
-      mushafScrollSettleTimer = setTimeout(() => {
-        let settledIdx = Math.round(Math.abs(slider.scrollLeft) / pageWidth);
-
-        // 🛡️ منع القفز لأكتر من صفحة واحدة في السحبة الواحدة
-        if (Math.abs(settledIdx - mushafTouchStartIdx) > 1) {
-          const dir = settledIdx > mushafTouchStartIdx ? 1 : -1;
-          settledIdx = mushafTouchStartIdx + dir;
-          const isRTL = window.getComputedStyle(slider).direction === 'rtl';
-          slider.scrollTo({ left: isRTL ? -(settledIdx * pageWidth) : (settledIdx * pageWidth), behavior: 'smooth' });
-        }
-
+      clearTimeout(mushafExtendTimer);
+      mushafExtendTimer = setTimeout(() => {
+        const settledIdx = Math.round(Math.abs(slider.scrollLeft) / pageWidth);
         if (settledIdx >= window.currentSurahPages.length - 4) { extendMushafPages(1); }
         if (settledIdx <= 3) { extendMushafPages(-1); }
       }, 150);
