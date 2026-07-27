@@ -1009,7 +1009,19 @@ body.hide-controls #quran {
   font-size: 12px;
   cursor: pointer;
 }
-  
+  /* تنسيقات الوضع الليلي الثابت للمصحف بالكامل */
+#surahScreen.night-mode {
+  background: #0b120c !important;
+}
+
+#surahScreen.night-mode .mushaf-page {
+  background: #0b120c !important;
+  color: #f0d090 !important;
+}
+
+#surahScreen.night-mode .qcf-img {
+  filter: invert(0.93) hue-rotate(180deg) contrast(1.1) brightness(0.95) !important;
+}
 </style>  
 
  <link rel="stylesheet" href="community/community.css">
@@ -3965,7 +3977,7 @@ async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
 
   // 🎯 كسر وإيقاف أي صوت قديم فوراً وتصفير المشغل لعدم تداخل الفاتحة مع البقرة
   stopAudio();
-
+applyMushafNightState();
   // إلغاء أي نداء استرجاع تلقائي معلّق
   if (window._restoreTimeoutId) { clearTimeout(window._restoreTimeoutId); window._restoreTimeoutId = null; }
 
@@ -5100,49 +5112,28 @@ function actionBookmark() {
   if (btn) btn.style.display = 'flex';
 }
  let mushafNight = false;
-function toggleMushafNight() {
-  mushafNight = !mushafNight;
-  const pages = document.querySelectorAll('.mushaf-page');
+// 1. دالة تطبيق الوضع الليلي أوتوماتيكياً من الذاكرة
+function applyMushafNightState() {
+  const isNight = localStorage.getItem('mushaf_night_mode') === '1';
+  const screen = document.getElementById('surahScreen');
   const btn = document.getElementById('nightModeBtn');
-  const qcfImages = document.querySelectorAll('.qcf-img');
-  
-  if (mushafNight) {
-    // 🌙 وضع المصحف الداكن (أسود وذهبي فخم)
-    
-    // 1. إصلاح النص العثماني: خلفية داكنة + خط ذهبي فاتح مقروء
-    pages.forEach(p => {
-      p.style.background = '#0b120c'; 
-      p.style.color = '#f0d090'; // لون الخط العثماني في الوضع الليلي
-    });
-    
-    // 2. إصلاح المصحف المصور: عكس الألوان
-    qcfImages.forEach(img => {
-      img.style.filter = 'invert(1) hue-rotate(180deg) brightness(1.05) contrast(1.1)';
-    });
-    
-    // 3. إصلاح الحافة البيضاء السفلية: صبغ خلفية الشاشة بالكامل بالأسود
-    document.getElementById('surahScreen').style.background = '#0b120c';
-    
+
+  if (!screen) return;
+
+  if (isNight) {
+    screen.classList.add('night-mode');
     if (btn) btn.textContent = '☀️';
   } else {
-    // ☀️ وضع المصحف الفاتح (الأبيض الكلاسيكي الأصلي)
-    
-    // 1. إرجاع النص العثماني لطبيعته: خلفية عاجي + خط أسود
-    pages.forEach(p => {
-      p.style.background = '#fbf7ed'; 
-      p.style.color = '#1a1105'; // لون الخط العثماني في الوضع الفاتح
-    });
-    
-    // 2. إرجاع المصحف المصور لأصله
-    qcfImages.forEach(img => {
-      img.style.filter = 'none';
-    });
-    
-    // 3. إرجاع خلفية الشاشة الأساسية للون العاجي
-    document.getElementById('surahScreen').style.background = '#fbf7ed';
-    
+    screen.classList.remove('night-mode');
     if (btn) btn.textContent = '🌙';
   }
+}
+
+// 2. دالة الضغط على الزرار (تبديل وحفظ في الذاكرة)
+function toggleMushafNight() {
+  const isNightCurrent = localStorage.getItem('mushaf_night_mode') === '1';
+  localStorage.setItem('mushaf_night_mode', isNightCurrent ? '0' : '1');
+  applyMushafNightState();
 }
 
  function toggleControls() {
