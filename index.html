@@ -6326,10 +6326,11 @@ function applyPresetTheme(themeKey) {
     root.style.setProperty(`--${key}`, value);
   }
   
+  // 🎯 الحفظ في الذاكرة لثبات اللون
   localStorage.setItem('active_quran_theme', themeKey);
+  localStorage.setItem('athr_current_theme', themeKey);
   localStorage.removeItem('custom_user_theme');
   
-  // تحديث قيم الـ Inputs في الشاشة لتتطابق مع الثيم الجاهز
   const inputBg = document.getElementById('customBg');
   const inputBg2 = document.getElementById('customBg2');
   const inputText = document.getElementById('customText');
@@ -6342,7 +6343,12 @@ function applyPresetTheme(themeKey) {
   if (inputText) inputText.value = theme.text;
   if (inputText2) inputText2.value = theme.text2;
   if (inputGold) inputGold.value = theme.gold;
-  if (inputCard) inputCard.value = theme.bg2; // تقريب لوني للرسم
+  if (inputCard) inputCard.value = theme.bg2;
+
+  const savedName = localStorage.getItem('user_display_name');
+  if (savedName && typeof finishLogin === 'function') {
+    finishLogin(savedName);
+  }
 }
 
 // دالة تعديل لون مخصص حتة حتة وحفظه في ثيم المستخدم الخاص
