@@ -1,40 +1,18 @@
 // =========================================================================
-// الختمة الشاملة المدمجة - الحفظ + الختمة بالصفحات + الميزات الخرافية
+// محرك الختمات المتعددة والمركبة الشامل - المحرك الكامل (v3.0)
 // =========================================================================
 
 (function () {
   "use strict";
 
-  // 1. التعريفات الأساسية (محمية داخل نطاق مغلق لمنع أخطاء التكرار)
   var TOTAL_PAGES = 604;
+  var CHARS_PER_PAGE = 5250;
 
-  var surahStartPagesArray = [
-    1, 2, 50, 77, 106, 128, 151, 177, 187, 208, 221, 235, 249, 255, 262, 267,
-    282, 293, 305, 312, 322, 332, 342, 350, 359, 367, 377, 385, 396, 404, 411, 415,
-    418, 428, 434, 440, 446, 453, 458, 467, 477, 483, 489, 496, 499, 502, 507, 511,
-    515, 518, 523, 526, 528, 531, 534, 537, 542, 545, 549, 553, 554, 556, 558, 560,
-    562, 564, 566, 568, 570, 572, 574, 575, 577, 579, 582, 583, 585, 586, 587, 589,
-    590, 591, 592, 593, 594, 595, 596, 596, 597, 598, 598, 599, 599, 600, 600, 601,
-    601, 601, 602, 602, 602, 602, 603, 603, 603, 603, 604, 604, 604, 604, 604, 604, 604, 604
-  ];
-
-  var mutashabihatData = {
-    2: "💡 متشابهات البقرة: انتبه لفاصلة «وَاعْلَمُوا أَنَّ اللَّهَ...» مع «عَزِيزٌ حَكِيمٌ» أو «غَفُورٌ حَلِيمٌ».",
-    3: "💡 متشابهات آل عمران: تشابه بين نهايات آيات الاستغفار والجزاء مع سورة النساء.",
-    7: "💡 متشابهات الأعراف: انتبه لقصص الأنبياء وتباديل «قَالَ الْمَلَأُ» بين الأعراف وهود.",
-    18: "💡 سورة الكهف: «وَقُلِ الْحَقُّ مِن رَّبِّكُمْ...» تتشابه مع ختام الفواصل المرفوعة."
+  // مخزن البيانات الرئيسي
+  var storeData = JSON.parse(localStorage.getItem('multi_khatma_store_v3') || 'null') || {
+    activeId: null,
+    list: []
   };
-
-  var memoTipsAndVirtues = [
-    "💡 نصيحة للحفظ: خصص وقتاً ثابتاً كل يوم (مثل بعد الفجر) فالعقل يكون أصفى والبركة أعم، وثبت مصحفاً واحداً لترتبط ذاكرتك البصرية بأماكن الآيات.",
-    "✨ فضل القرآن: يُقال لصاحب القرآن اقرأ وارتقِ ورتل كما كنت ترتل في الدنيا، فإن منزلك عند آخر آية تقرؤها. (حديث صحيح)",
-    "💡 نصيحة للمراجعة: مقدار المراجعة يجب أن يكون أكبر من مقدار الحفظ الجديد حتى لا يتفلت ما حفظته.. المراجعة هي سر التثبيت.",
-    "✨ فضل القرآن: خيركم من تعلم القرآن وعلمه.. فكل حرف تحفظه وتتلوه لك به عشر حسنات.",
-    "💡 خطوة عملية: استمع للورد الذي ستحفظه بصوت قارئ متقن عدة مرات قبل البدء في الحفظ لتصحيح النطق وتسهيل الترديد.",
-    "✨ فضل القرآن: القرآن يشفع لأصحابه يوم القيامة، قال ﷺ: «اقرؤوا القرآن فإنه يأتي يوم القيامة شفيعاً لأصحابه»."
-  ];
-
-  var khatmaData = JSON.parse(localStorage.getItem('khatma_data_v2') || 'null');
 
   function toAr(num) {
     if (num === undefined || num === null) return '';
@@ -42,180 +20,371 @@
     return String(num).replace(/[0-9]/g, function (d) { return '٠١٢٣٤٥٦٧٨٩'[d]; });
   }
 
-  function saveKhatma() {
-    localStorage.setItem('khatma_data_v2', JSON.stringify(khatmaData));
+  function saveStore() {
+    localStorage.setItem('multi_khatma_store_v3', JSON.stringify(storeData));
+  }
+
+  function getActiveKhatma() {
+    if (!storeData.activeId && storeData.list.length > 0) {
+      storeData.activeId = storeData.list[0].id;
+    }
+    return storeData.list.find(function (k) { return k.id === storeData.activeId; }) || null;
   }
 
   // -------------------------------------------------------------------------
-  // 2. دوال الختمة الرئيسية المربوطة بـ window للأزرار
+  // 1. نظام المعالج (Wizard) لإنشاء ختمة مخصصة وعميقة
   // -------------------------------------------------------------------------
-  window.startKhatma = function (days) {
-    try {
-      var startDate = new Date();
-      var endDate = new Date();
-      endDate.setDate(startDate.getDate() + days);
-
-      var pagesPerDay = Math.ceil(TOTAL_PAGES / days);
-
-      khatmaData = {
-        startDate: startDate.toISOString(),
-        endDate: endDate.toISOString(),
-        totalDays: days,
-        pagesPerDay: pagesPerDay,
-        readPages: [],
-        completedPrayers: {},
-        insights: {},
-        lastUpdate: new Date().toISOString()
-      };
-
-      saveKhatma();
-      window.renderKhatma();
-      alert(`✅ تم إنشاء خطتك بنجاح!\nوردك اليومي: ${toAr(pagesPerDay)} صفحة\nتكتمل خلال: ${toAr(days)} يومًا`);
-    } catch (e) {
-      console.error("خطأ في بدء الختمة:", e);
-    }
+  window.showKhatmaWizard = function () {
+    document.getElementById('khatmaWizard').style.display = 'block';
+    document.getElementById('khatmaDisplay').style.display = 'none';
+    window.goToWizardStep(1);
   };
 
-  window.startCustomKhatma = function () {
-    var input = document.getElementById('customDaysInput');
-    if (!input) return;
-    var days = parseInt(input.value);
+  window.goToWizardStep = function (step) {
+    document.getElementById('wizardStep1').style.display = step === 1 ? 'block' : 'none';
+    document.getElementById('wizardStep2').style.display = step === 2 ? 'block' : 'none';
+  };
+
+  window.finishKhatmaWizard = function () {
+    var title = document.getElementById('khatmaTitleInput').value.trim();
+    var days = parseInt(document.getElementById('khatmaDaysInput').value);
+    var offDays = parseInt(document.getElementById('khatmaOffDaysInput')?.value || 0);
+
+    var types = [];
+    if (document.getElementById('chk_reading')?.checked) types.push('reading');
+    if (document.getElementById('chk_memo')?.checked) types.push('memo');
+    if (document.getElementById('chk_tadabbur')?.checked) types.push('tadabbur');
+    if (document.getElementById('chk_tafsir')?.checked) types.push('tafsir');
+    if (document.getElementById('chk_listening')?.checked) types.push('listening');
+
+    if (types.length === 0) {
+      alert('من فضلك اختر نوعاً واحداً على الأقل للختمة!');
+      return;
+    }
+    if (!title) title = 'ختمة قرآنية';
     if (!days || days < 1) {
       alert('من فضلك اكتب عدد أيام صحيح');
       return;
     }
-    window.startKhatma(days);
+
+    // حساب الأيام الفعلية مع خصم الإجازات
+    var totalWeeks = days / 7;
+    var totalOffDays = Math.floor(totalWeeks * offDays);
+    var activeDays = Math.max(1, days - totalOffDays);
+
+    var newKhatma = {
+      id: 'khatma_' + Date.now(),
+      title: title,
+      types: types,
+      totalDays: days,
+      offDaysPerWeek: offDays,
+      activeDays: activeDays,
+      startDate: new Date().toISOString(),
+      endDate: new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString(),
+      pagesPerDay: Math.ceil(TOTAL_PAGES / activeDays),
+      
+      // تقدم الأنواع المختلفة
+      readPages: [],
+      memoPages: [], // للحفظ
+      completedPrayers: {},
+      tafsirDonePages: [],
+      listeningDonePages: [],
+      insights: {}, // {pageNo: "نص التدبر"}
+      
+      streak: 0,
+      lastReadDate: null
+    };
+
+    storeData.list.push(newKhatma);
+    storeData.activeId = newKhatma.id;
+    saveStore();
+
+    document.getElementById('khatmaWizard').style.display = 'none';
+    window.renderKhatma();
+    alert(`🎉 تم إنشاء "${title}" بنجاح!`);
   };
 
-  window.togglePageRead = function (pageNo) {
-    if (!khatmaData) return;
-    var idx = khatmaData.readPages.indexOf(pageNo);
-    if (idx > -1) {
-      khatmaData.readPages.splice(idx, 1);
-    } else {
-      khatmaData.readPages.push(pageNo);
-      if (navigator.vibrate) navigator.vibrate(20);
-    }
-    saveKhatma();
+  // -------------------------------------------------------------------------
+  // 2. إدارة وتنقل الختمات
+  // -------------------------------------------------------------------------
+  window.switchKhatma = function (id) {
+    storeData.activeId = id;
+    saveStore();
     window.renderKhatma();
   };
+
+  window.deleteActiveKhatma = function () {
+    var active = getActiveKhatma();
+    if (!active) return;
+    if (confirm(`هل أنت متأكد من حذف "${active.title}"؟`)) {
+      storeData.list = storeData.list.filter(function (k) { return k.id !== active.id; });
+      storeData.activeId = storeData.list.length > 0 ? storeData.list[0].id : null;
+      saveStore();
+      window.renderKhatma();
+    }
+  };
+
+  // -------------------------------------------------------------------------
+  // 3. التفاعل مع الصفحات والسلسلة 🔥
+  // -------------------------------------------------------------------------
+  window.togglePageRead = function (pageNo) {
+    var active = getActiveKhatma();
+    if (!active) return;
+
+    var idx = active.readPages.indexOf(pageNo);
+    if (idx > -1) {
+      active.readPages.splice(idx, 1);
+    } else {
+      active.readPages.push(pageNo);
+      updateStreak(active);
+      if (navigator.vibrate) navigator.vibrate(25);
+    }
+    saveStore();
+    window.renderKhatma();
+  };
+
+  function updateStreak(active) {
+    var todayStr = new Date().toDateString();
+    if (active.lastReadDate !== todayStr) {
+      var yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      if (active.lastReadDate === yesterday.toDateString()) {
+        active.streak = (active.streak || 0) + 1;
+      } else if (!active.lastReadDate) {
+        active.streak = 1;
+      }
+      active.lastReadDate = todayStr;
+    }
+  }
 
   window.markPagesRange = function (startPage, endPage, isRead) {
     if (isRead === undefined) isRead = true;
-    if (!khatmaData) return;
+    var active = getActiveKhatma();
+    if (!active) return;
+
     for (var p = startPage; p <= endPage; p++) {
-      var idx = khatmaData.readPages.indexOf(p);
-      if (isRead && idx === -1) khatmaData.readPages.push(p);
-      else if (!isRead && idx > -1) khatmaData.readPages.splice(idx, 1);
+      var idx = active.readPages.indexOf(p);
+      if (isRead && idx === -1) {
+        active.readPages.push(p);
+        updateStreak(active);
+      } else if (!isRead && idx > -1) {
+        active.readPages.splice(idx, 1);
+      }
     }
-    saveKhatma();
+    saveStore();
     window.renderKhatma();
   };
 
+  // -------------------------------------------------------------------------
+  // 4. المحرك الرئيسي للعرض (Render Engine)
+  // -------------------------------------------------------------------------
   window.renderKhatma = function () {
-    try {
-      var setupEl = document.getElementById('khatmaSetup');
-      var displayEl = document.getElementById('khatmaDisplay');
-      if (!setupEl || !displayEl) return;
+    renderTabs();
 
-      if (!khatmaData) {
-        setupEl.style.display = 'block';
-        displayEl.style.display = 'none';
-        window.showRandomMemoTip();
-        return;
-      }
+    var active = getActiveKhatma();
+    var wizardEl = document.getElementById('khatmaWizard');
+    var displayEl = document.getElementById('khatmaDisplay');
 
-      setupEl.style.display = 'none';
-      displayEl.style.display = 'block';
-
-      var totalRead = khatmaData.readPages.length;
-      var progressPercent = Math.min(100, (totalRead / TOTAL_PAGES) * 100);
-
-      var txtEl = document.getElementById('khatmaProgressText');
-      var barEl = document.getElementById('khatmaProgressBar');
-      if (txtEl) txtEl.textContent = toAr(Math.round(progressPercent)) + '%';
-      if (barEl) barEl.style.width = progressPercent + '%';
-
-      var startDate = new Date(khatmaData.startDate);
-      var endDate = new Date(khatmaData.endDate);
-      var today = new Date();
-
-      var diffTime = endDate - today;
-      var daysLeft = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
-      var todayIndex = Math.max(0, Math.floor((today - startDate) / (1000 * 60 * 60 * 24)));
-
-      var statsEl = document.getElementById('khatmaStats');
-      if (statsEl) {
-        statsEl.innerHTML = `
-          📖 الصفحات المكتملة: <b>${toAr(totalRead)}</b> / ٦٠٤ صفحة<br>
-          ⏳ المتبقي: <b>${toAr(TOTAL_PAGES - totalRead)}</b> صفحة (${toAr(daysLeft)} يومًا)<br>
-          🎯 الورد اليومي المستهدف: <b>${toAr(khatmaData.pagesPerDay)}</b> صفحة
-        `;
-      }
-
-      renderTodayWird(todayIndex);
-      checkCatchupStatus(todayIndex);
-      renderVisualHeatmap();
-      checkSunnahMode();
-
-    } catch (err) {
-      console.error("خطأ أثناء رندرة الختمة:", err);
+    if (!active) {
+      if (wizardEl) wizardEl.style.display = 'block';
+      if (displayEl) displayEl.style.display = 'none';
+      return;
     }
+
+    if (wizardEl) wizardEl.style.display = 'none';
+    if (displayEl) displayEl.style.display = 'block';
+
+    // الإحصائيات العامة
+    document.getElementById('activeKhatmaTitle').textContent = active.title;
+    
+    var totalRead = active.readPages.length;
+    var progressPercent = Math.min(100, (totalRead / TOTAL_PAGES) * 100);
+
+    document.getElementById('khatmaProgressText').textContent = toAr(Math.round(progressPercent)) + '%';
+    document.getElementById('khatmaProgressBar').style.width = progressPercent + '%';
+    document.getElementById('khatmaStreak').textContent = `🔥 السلسلة: ${toAr(active.streak || 0)} يوم`;
+
+    var approxHasanat = totalRead * CHARS_PER_PAGE * 10;
+    var hasanatEl = document.getElementById('hasanatCounter');
+    if (hasanatEl) {
+      hasanatEl.innerHTML = `✨ الحسنات التقديرية: <b style="font-size:14px;color:var(--gold);">${toAr(approxHasanat.toLocaleString('ar-EG'))}</b> حسنة`;
+    }
+
+    var startDate = new Date(active.startDate);
+    var endDate = new Date(active.endDate);
+    var today = new Date();
+
+    var daysLeft = Math.max(0, Math.ceil((endDate - today) / (1000 * 60 * 60 * 24)));
+    var todayIndex = Math.max(0, Math.floor((today - startDate) / (1000 * 60 * 60 * 24)));
+
+    document.getElementById('khatmaStats').innerHTML = `
+      📖 الصفحات المكتملة: <b>${toAr(totalRead)}</b> / ٦٠٤ صفحة<br>
+      ⏳ المتبقي: <b>${toAr(TOTAL_PAGES - totalRead)}</b> صفحة (${toAr(daysLeft)} يومًا)<br>
+      🎯 الورد اليومي المستهدف: <b>${toAr(active.pagesPerDay)}</b> صفحة
+    `;
+
+    renderTodayWird(active, todayIndex);
+    renderVisualHeatmap(active);
   };
 
-  function renderTodayWird(todayIndex) {
+  function renderTabs() {
+    var tabsEl = document.getElementById('khatmaTabs');
+    if (!tabsEl) return;
+
+    if (storeData.list.length === 0) {
+      tabsEl.innerHTML = '<span style="font-size:12px; color:var(--text2);">لا توجد ختمات قائمة</span>';
+      return;
+    }
+
+    var html = storeData.list.map(function (k) {
+      var isActive = k.id === storeData.activeId;
+      return `<button onclick="switchKhatma('${k.id}')" class="cat-btn" style="padding:6px 12px; font-size:12px; border-radius:10px; background:${isActive ? 'var(--gold)' : 'var(--card)'}; color:${isActive ? '#111' : 'var(--text)'}; font-weight:${isActive ? 'bold' : 'normal'}; border:1px solid var(--border);">${k.title}</button>`;
+    }).join('');
+
+    tabsEl.innerHTML = html;
+  }
+
+  // -------------------------------------------------------------------------
+  // 5. بناء ورد اليوم الديناميكي بناءً على أنواع الختمة المحددة
+  // -------------------------------------------------------------------------
+  function renderTodayWird(active, todayIndex) {
     var wirdEl = document.getElementById('todayWird');
     if (!wirdEl) return;
 
-    var startPage = Math.min(604, (todayIndex * khatmaData.pagesPerDay) + 1);
-    var endPage = Math.min(604, (todayIndex + 1) * khatmaData.pagesPerDay);
+    var startPage = Math.min(604, (todayIndex * active.pagesPerDay) + 1);
+    var endPage = Math.min(604, (todayIndex + 1) * active.pagesPerDay);
     var totalWirdPages = (endPage - startPage) + 1;
 
-    var pagesPerSalat = Math.max(1, Math.ceil(totalWirdPages / 5));
     var todayKey = new Date().toISOString().split('T')[0];
-    var prayers = ['الفجر', 'الظهر', 'العصر', 'المغرب', 'العشاء'];
-    var pKeys = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
 
-    var salatHtml = prayers.map(function (pName, idx) {
-      var key = pKeys[idx];
-      var isDone = (khatmaData.completedPrayers[todayKey] || []).includes(key);
-      var pStart = Math.min(endPage, startPage + (idx * pagesPerSalat));
-      var pEnd = Math.min(endPage, pStart + pagesPerSalat - 1);
+    // أ) مكون موزع الصلوات الخمس (لختمة القراءة)
+    var salatHtml = '';
+    if (active.types.includes('reading')) {
+      var pagesPerSalat = Math.max(1, Math.ceil(totalWirdPages / 5));
+      var prayers = ['الفجر', 'الظهر', 'العصر', 'المغرب', 'العشاء'];
+      var pKeys = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
 
-      if (pStart > endPage) return '';
+      salatHtml = `<div style="margin:10px 0 6px 0; font-size:13px; font-weight:bold;">🕌 توزيع القراءة على الصلوات الخمس:</div>
+      <div class="salat-grid">` +
+        prayers.map(function (pName, idx) {
+          var key = pKeys[idx];
+          var isDone = (active.completedPrayers[todayKey] || []).includes(key);
+          var pStart = Math.min(endPage, startPage + (idx * pagesPerSalat));
+          var pEnd = Math.min(endPage, pStart + pagesPerSalat - 1);
 
-      return `
-        <div class="salat-box ${isDone ? 'done' : ''}" onclick="toggleSalat('${todayKey}', '${key}', ${pStart}, ${pEnd})">
-          <span>${isDone ? '✓' : '◯'} صلاة ${pName}</span>
-          <small>(ص ${toAr(pStart)} : ${toAr(pEnd)})</small>
+          if (pStart > endPage) return '';
+
+          return `
+            <div class="salat-box ${isDone ? 'done' : ''}" onclick="toggleSalat('${todayKey}', '${key}', ${pStart}, ${pEnd})">
+              <span>${isDone ? '✓' : '◯'} صلاة ${pName}</span>
+              <small>(ص ${toAr(pStart)} : ${toAr(pEnd)})</small>
+            </div>
+          `;
+        }).join('') + `</div>`;
+    }
+
+    // ب) مكون ختمة الحفظ والمراجعة (Hifz Module)
+    var hifzHtml = '';
+    if (active.types.includes('memo')) {
+      var revStart = Math.max(1, startPage - 20); // مراجعة جزء سابق
+      hifzHtml = `
+        <div style="margin-top:12px; padding:12px; background:rgba(46,125,50,0.1); border-right:4px solid var(--green); border-radius:10px; font-size:12px; line-height:1.8;">
+          🧠 <b>جدول الحفظ والمراجعة اليومي:</b><br>
+          🌱 <b>الحفظ الجديد:</b> الصفحات (${toAr(startPage)} إلى ${toAr(endPage)})<br>
+          🔄 <b>المراجعة القريبة:</b> الصفحات (${toAr(revStart)} إلى ${toAr(Math.max(1, startPage - 1))})
         </div>
       `;
-    }).join('');
+    }
+
+    // ج) مكون ختمة التدبر (Tadabbur Module)
+    var tadabburHtml = '';
+    if (active.types.includes('tadabbur')) {
+      var savedInsight = active.insights[startPage] || '';
+      tadabburHtml = `
+        <div style="margin-top:12px; padding:12px; background:rgba(212,175,55,0.1); border-right:4px solid var(--gold); border-radius:10px; font-size:12px;">
+          💡 <b>سجل تدبر ورد اليوم:</b>
+          <div style="margin-top:6px; display:flex; gap:6px;">
+            <input type="text" id="insightInput_${startPage}" value="${savedInsight}" placeholder="آية لمست قلبك اليوم في وردك..." style="flex:1; padding:8px; border-radius:8px; background:var(--bg2); color:var(--text); border:1px solid var(--border); font-size:12px;">
+            <button onclick="saveInsight(${startPage})" class="cat-btn" style="padding:8px 12px; background:var(--gold); color:#111; font-weight:bold;">حفظ 💾</button>
+          </div>
+        </div>
+      `;
+    }
+
+    // د) مكون ختمة الاستماع والتفسير
+    var audioTafsirHtml = '';
+    if (active.types.includes('listening') || active.types.includes('tafsir')) {
+      audioTafsirHtml = `
+        <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+          ${active.types.includes('listening') ? `<button onclick="startFocusTimer(${totalWirdPages * 2})" class="cat-btn" style="flex:1; padding:8px; font-size:12px; background:rgba(255,255,255,0.05); border:1px solid var(--border); color:var(--text);">🎧 بدء مؤقت الاستماع المركز (${toAr(totalWirdPages * 2)} دقيقة)</button>` : ''}
+          ${active.types.includes('tafsir') ? `<button onclick="toggleTafsirRange(${startPage}, ${endPage})" class="cat-btn" style="flex:1; padding:8px; font-size:12px; background:rgba(255,255,255,0.05); border:1px solid var(--border); color:var(--text);">📚 تأكيد قراءة تفسير الورد</button>` : ''}
+        </div>
+      `;
+    }
 
     wirdEl.innerHTML = `
-      <div class="wird-card">
-        <div class="wird-title">📖 ورد اليوم ${toAr(todayIndex + 1)} من ${toAr(khatmaData.totalDays)}</div>
-        <div class="wird-pages-range">من الصفحة <b>${toAr(startPage)}</b> إلى الصفحة <b>${toAr(endPage)}</b> (${toAr(totalWirdPages)} صفحة)</div>
+      <div class="wird-card" style="background:var(--card); padding:16px; border-radius:20px; border:1px solid var(--border); margin-top:10px;">
+        <div class="wird-title" style="color:var(--gold); font-weight:bold; margin-bottom:8px;">📖 ورد اليوم ${toAr(todayIndex + 1)} من ${toAr(active.totalDays)}</div>
+        <div class="wird-pages-range" style="margin-bottom:10px; font-size:13px;">المطالعة المقررة: من الصفحة <b>${toAr(startPage)}</b> إلى الصفحة <b>${toAr(endPage)}</b> (${toAr(totalWirdPages)} صفحة)</div>
         
-        <div class="salat-splitter-title">🕌 توزيع الورد على الصلوات الخمس:</div>
-        <div class="salat-grid">${salatHtml}</div>
+        ${salatHtml}
+        ${hifzHtml}
+        ${tadabburHtml}
+        ${audioTafsirHtml}
 
-        <button class="btn-mark-all" onclick="markPagesRange(${startPage}, ${endPage}, true)">✅ تعليم ورد اليوم كاملاً كمقروء</button>
-        
-        <div class="focus-timer-box" style="margin-top:10px;">
-          ⏱️ الوقت المقدر للقراءة: <b>${toAr(totalWirdPages * 2)}</b> دقيقة
-          <button onclick="startFocusTimer(${totalWirdPages * 2})">▶ بدء جلسة تركيز</button>
-        </div>
+        <button class="cat-btn" style="width:100%; margin-top:14px; padding:12px; background:var(--green); color:#fff; border-color:var(--green); border-radius:12px; font-weight:bold;" onclick="markPagesRange(${startPage}, ${endPage}, true)">✅ تعليم ورد اليوم كاملاً كمكتمَل</button>
       </div>
     `;
   }
 
-  window.toggleSalat = function (todayKey, salatKey, pStart, pEnd) {
-    if (!khatmaData.completedPrayers[todayKey]) {
-      khatmaData.completedPrayers[todayKey] = [];
+  // -------------------------------------------------------------------------
+  // 6. دوال مساعدة لحفظ التدبر والتفسير والمؤقت
+  // -------------------------------------------------------------------------
+  window.saveInsight = function (pageNo) {
+    var active = getActiveKhatma();
+    if (!active) return;
+    var input = document.getElementById('insightInput_' + pageNo);
+    if (input && input.value.trim()) {
+      active.insights[pageNo] = input.value.trim();
+      saveStore();
+      alert("✨ تم حفظ تدبرك بنجاح في سجل الختمة!");
     }
-    var arr = khatmaData.completedPrayers[todayKey];
+  };
+
+  window.toggleTafsirRange = function (startPage, endPage) {
+    var active = getActiveKhatma();
+    if (!active) return;
+    for (var p = startPage; p <= endPage; p++) {
+      if (!active.tafsirDonePages.includes(p)) active.tafsirDonePages.push(p);
+    }
+    saveStore();
+    alert("📚 تم تسجيل إتمام تفسير ورد اليوم!");
+  };
+
+  var timerInterval = null;
+  window.startFocusTimer = function (minutes) {
+    var seconds = minutes * 60;
+    alert(`⏱️ بدأت جلسة الاستماع والتركيز لمدة ${toAr(minutes)} دقيقة. استعن بالله وابدأ!`);
+
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(function () {
+      seconds--;
+      if (seconds <= 0) {
+        clearInterval(timerInterval);
+        alert("🎉 انتهت جلسة الاستماع والتركيز! تقبل الله منك.");
+      }
+    }, 1000);
+  };
+
+  window.toggleSalat = function (todayKey, salatKey, pStart, pEnd) {
+    var active = getActiveKhatma();
+    if (!active) return;
+
+    if (!active.completedPrayers[todayKey]) active.completedPrayers[todayKey] = [];
+    var arr = active.completedPrayers[todayKey];
     var idx = arr.indexOf(salatKey);
+
     if (idx > -1) {
       arr.splice(idx, 1);
       window.markPagesRange(pStart, pEnd, false);
@@ -223,209 +392,107 @@
       arr.push(salatKey);
       window.markPagesRange(pStart, pEnd, true);
     }
-    saveKhatma();
+    saveStore();
     window.renderKhatma();
   };
 
-  function checkCatchupStatus(todayIndex) {
-    var catchupEl = document.getElementById('catchupNotice');
-    if (!catchupEl) return;
-
-    var expectedRead = Math.min(604, (todayIndex + 1) * khatmaData.pagesPerDay);
-    var actualRead = khatmaData.readPages.length;
-
-    if (expectedRead - actualRead >= 10) {
-      var delayPages = expectedRead - actualRead;
-      var remainingDays = Math.max(1, khatmaData.totalDays - todayIndex);
-      var newDailyPages = Math.ceil((604 - actualRead) / remainingDays);
-
-      catchupEl.style.display = 'block';
-      catchupEl.innerHTML = `
-        <div class="catchup-card">
-          ⚠️ <b>متأخر بـ ${toAr(delayPages)} صفحة عن جدولك!</b>
-          <p style="margin:5px 0;">لا تقلق، يمكنك إعادة التوازن بسهولة:</p>
-          <button onclick="applyRescuePlan(${newDailyPages})">⚡ خيار الإنقاذ: تعديل الورد لـ ${toAr(newDailyPages)} صفحة/يوم</button>
-          <button onclick="extendKhatmaDays(${Math.ceil(delayPages / khatmaData.pagesPerDay)})">🗓️ خيار التمديد: إضافة أيام للخطة</button>
-        </div>
-      `;
-    } else {
-      catchupEl.style.display = 'none';
-    }
-  }
-
-  window.applyRescuePlan = function (newDaily) {
-    khatmaData.pagesPerDay = newDaily;
-    saveKhatma();
-    window.renderKhatma();
-    alert("✅ تم تعديل خطتك اليومية بنجاح لتناسب تقدمك الحقيقي!");
-  };
-
-  window.extendKhatmaDays = function (extraDays) {
-    var endDate = new Date(khatmaData.endDate);
-    endDate.setDate(endDate.getDate() + extraDays);
-    khatmaData.endDate = endDate.toISOString();
-    khatmaData.totalDays += extraDays;
-    saveKhatma();
-    window.renderKhatma();
-    alert(`✅ تم تمديد الخطة بـ ${toAr(extraDays)} أيام إضافية!`);
-  };
-
-  function renderVisualHeatmap() {
+  function renderVisualHeatmap(active) {
     var gridEl = document.getElementById('heatmapGrid');
     if (!gridEl) return;
 
     var gridHtml = '';
     for (var p = 1; p <= TOTAL_PAGES; p++) {
-      var isRead = khatmaData.readPages.includes(p);
+      var isRead = active.readPages.includes(p);
       gridHtml += `<div class="heatmap-page ${isRead ? 'read' : ''}" title="صفحة ${toAr(p)}" onclick="togglePageRead(${p})">${p % 10 === 0 ? toAr(p) : ''}</div>`;
     }
     gridEl.innerHTML = gridHtml;
   }
 
-  function checkSunnahMode() {
-    var sunnahEl = document.getElementById('sunnahNotice');
-    if (!sunnahEl) return;
-
-    var isFriday = new Date().getDay() === 5;
-    if (isFriday) {
-      sunnahEl.style.display = 'block';
-      sunnahEl.innerHTML = `
-        <div class="sunnah-card">
-          ✨ <b>اليوم الجمعة!</b> نور ما بين الجمعتين.
-          <br>📖 لا تنسَ قراءة سورة الكهف (الصفحات 293 - 304).
-          <button onclick="markPagesRange(293, 304, true)">✅ تعليم سورة الكهف كمقروءة</button>
-        </div>
-      `;
-    } else {
-      sunnahEl.style.display = 'none';
-    }
-  }
-
-  window.addInsight = function (pageNo) {
-    var text = prompt(`✍️ اكتب تدبراً أو آية أثرت فيك في الصفحة (${toAr(pageNo)}):`);
-    if (text) {
-      khatmaData.insights[pageNo] = text;
-      saveKhatma();
-      alert("✨ تم حفظ تدبرك بنجاح في دفترك القرآني!");
-    }
-  };
-
-  var timerInterval = null;
-  window.startFocusTimer = function (minutes) {
-    var seconds = minutes * 60;
-    alert(`⏱️ بدأت جلسة التلاوة والتركيز لمدة ${toAr(minutes)} دقيقة. استعن بالله وابدأ!`);
-
-    if (timerInterval) clearInterval(timerInterval);
-    timerInterval = setInterval(function () {
-      seconds--;
-      if (seconds <= 0) {
-        clearInterval(timerInterval);
-        alert("🎉 انتهت جلسة التركيز! تقبل الله منك.");
-      }
-    }, 1000);
-  };
-
-  window.generateGroupKhatmaShare = function () {
-    var text = `🤲 شارك معنا في الختمة الجماعية!\nاختر جزءاً لقرائته اليوم:\n` +
-      `https://wa.me/?text=${encodeURIComponent('نرجو المشاركة في ختم القرآن الكريم، اختر جزءك الآن!')}`;
-    window.open(text, '_blank');
-  };
-
-  // -------------------------------------------------------------------------
-  // 3. قسم خطة الحفظ والمراجعة + النصائح المتجددة (كامل بجمالياته)
-  // -------------------------------------------------------------------------
-  window.showRandomMemoTip = function () {
-    var tipEl = document.getElementById('memoTipText');
-    if (tipEl) {
-      var randomTip = memoTipsAndVirtues[Math.floor(Math.random() * memoTipsAndVirtues.length)];
-      tipEl.innerHTML = randomTip.replace(/^(.*?:)/, '<strong style="color:var(--gold)">$1</strong>');
-    }
-  };
-
-  window.calculateMemoPlan = function () {
-    try {
-      var totalDays = parseInt(document.getElementById('memoTotalDays').value);
-      var offDaysPerWeek = parseInt(document.getElementById('memoOffDays').value) || 0;
-
-      if (!totalDays || totalDays < 30) {
-        alert("يرجى إدخال مدة لا تقل عن شهر (30 يوم) لتوزيع الحفظ بشكل منطقي.");
-        return;
-      }
-      if (offDaysPerWeek >= 7) {
-        alert("عدد أيام الإجازة غير منطقي يا هندسة!");
-        return;
-      }
-
-      var weeks = totalDays / 7;
-      var totalOffDays = Math.floor(weeks * offDaysPerWeek);
-      var activeDays = totalDays - totalOffDays;
-      var pagesPerDay = (604 / activeDays);
-
-      var targetText = "";
-      if (pagesPerDay <= 0.5) targetText = "نصف صفحة يومياً";
-      else if (pagesPerDay <= 1) targetText = "صفحة واحدة يومياً";
-      else if (pagesPerDay <= 2) targetText = "صفحتين (وجهين) يومياً";
-      else if (pagesPerDay <= 5) targetText = "ربع حزب (5 صفحات) يومياً";
-      else if (pagesPerDay <= 10) targetText = "نصف جزء (10 صفحات) يومياً";
-      else if (pagesPerDay <= 20) targetText = "جزء كامل (20 صفحة) يومياً";
-      else targetText = Math.ceil(pagesPerDay) + " صفحات يومياً";
-
-      var setupForm = document.getElementById('memoSetupForm');
-      if (setupForm) setupForm.style.display = 'none';
-
-      var resultDiv = document.getElementById('memoPlanResult');
-      if (resultDiv) {
-        resultDiv.style.display = 'block';
-        resultDiv.innerHTML = `
-          <div style="color:var(--gold); font-weight:bold; font-size: 15px; margin-bottom: 12px;">✅ خطتك جاهزة للبدء!</div>
-          <div style="color:var(--text); font-size: 13px; line-height: 2.2; text-align: right; direction: rtl;">
-            ⏱️ المدة الكلية: <b>${totalDays}</b> يوم<br>
-            🏖️ إجمالي الإجازات: <b>${totalOffDays}</b> يوم<br>
-            📖 أيام الحفظ الفعلية: <b>${activeDays}</b> يوم<br>
-            🎯 هدفك اليومي للحفظ: <b style="color:var(--green); font-size:15px;">${targetText}</b>
-          </div>
-          <button onclick="resetMemoPlan()" class="cat-btn" style="margin-top: 14px; background:transparent; border: 1px solid #ff6b6b; color: #ff6b6b; padding: 8px 16px; border-radius: 12px; cursor: pointer; font-family:'Amiri',serif; width: 100%;">تعديل الخطة ↺</button>
-        `;
-      }
-    } catch (e) {
-      console.error("خطأ في حساب خطة الحفظ:", e);
-    }
-  };
-
-  window.resetMemoPlan = function () {
-    var setupForm = document.getElementById('memoSetupForm');
-    var resultDiv = document.getElementById('memoPlanResult');
-    if (setupForm) setupForm.style.display = 'block';
-    if (resultDiv) {
-      resultDiv.style.display = 'none';
-      resultDiv.innerHTML = '';
-    }
-  };
-
-  // -------------------------------------------------------------------------
-  // 4. التشغيل عند تحميل الصفحة
-  // -------------------------------------------------------------------------
+  // التحميل الأولي
   document.addEventListener('DOMContentLoaded', function () {
     window.renderKhatma();
-    window.showRandomMemoTip();
-
-    try {
-      var memoForm = document.getElementById('memoSetupForm');
-      if (memoForm) {
-        var row = memoForm.querySelector('div[style*="display:flex"]');
-        if (row) {
-          row.style.flexDirection = 'column';
-          row.style.gap = '10px';
-          var inputs = row.querySelectorAll('input');
-          inputs.forEach(function (input) {
-            input.style.width = '100%';
-            input.style.maxWidth = '100%';
-          });
-        }
-      }
-    } catch (e) {
-      console.error(e);
-    }
   });
 
+  // =========================================================================
+  // دوال الميزات الخرافية الإضافية (رادار المتشابهات، الأرشيف، النسخ الاحتياطي)
+  // =========================================================================
+
+  // 1. قاعدة بيانات المتشابهات البارزة حسب الصفحات والسور
+  var mutashabihatPageData = {
+    2: "💡 البقرة (ص 2): انتبه لفاصلة «وَاعْلَمُوا أَنَّ اللَّهَ عَزِيزٌ حَكِيمٌ» ومواضع «غَفُورٌ حَلِيمٌ».",
+    50: "💡 آل عمران (ص 50): تشابه بداية السورة مع ختام سورة البقرة في توحيد الإلهية والقيومية.",
+    293: "💡 الكهف (ص 293): بداية السورة تتشابه مع الفاتحة والإسراء في الحمد والتنزيل.",
+    582: "💡 النبأ (ص 582): انتبه لختام الفواصل المرفوعة «إِنَّ لِلْمُتَّقِينَ مَفَازًا»."
+  };
+
+  // 2. دالة رادار المتشابهات والتدبر للصفحة
+  window.showPageMutashabihat = function(pageNo) {
+    var active = getActiveKhatma();
+    var note = mutashabihatPageData[pageNo] || "💡 لا توجد ملاحظات متشابهات مسجلة لهذه الصفحة، ركز في ضبط الفواصل الأخيرة.";
+    var userInsight = (active && active.insights && active.insights[pageNo]) ? active.insights[pageNo] : "لم تدون تدبراً لهذه الصفحة بعد.";
+
+    alert(`📖 معومات الصفحة (${toAr(pageNo)}):\n\n${note}\n\n✍️ تدبرك الشخصي:\n"${userInsight}"`);
+  };
+
+  // 3. دالة استعراض أرشيف التدبرات كاملاً
+  window.showInsightsArchive = function() {
+    var active = getActiveKhatma();
+    if (!active || !active.insights || Object.keys(active.insights).length === 0) {
+      alert("✍️ لا توجد تدبرات مسجلة في هذه الختمة حتى الآن. اكتب خواطرك عند قراءة الورد!");
+      return;
+    }
+
+    var text = `📜 أرشيف تدبرات "${active.title}":\n\n`;
+    for (var page in active.insights) {
+      text += `• صفحة (${toAr(page)}): ${active.insights[page]}\n`;
+    }
+
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text);
+      alert(text + "\n\n✅ تم نسخ السجل إلى الحافظة بنجاح!");
+    } else {
+      alert(text);
+    }
+  };
+
+  // 4. دالة تصدير نسخة احتياطية من البيانات (Export)
+  window.exportKhatmaData = function() {
+    var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(localStorage.getItem('multi_khatma_store_v3') || '{}');
+    var downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", `khatma_backup_${Date.now()}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+  };
+
+  // 5. دالة استرجاع النسخة الاحتياطية (Import)
+  window.importKhatmaData = function() {
+    var input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = function(e) {
+      var file = e.target.files[0];
+      var reader = new FileReader();
+      reader.onload = function(event) {
+        try {
+          JSON.parse(event.target.result); // فحص الأمان
+          localStorage.setItem('multi_khatma_store_v3', event.target.result);
+          location.reload();
+        } catch(err) {
+          alert("❌ الملف غير صالح أو معطوب!");
+        }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  };
+
+  // 6. دالة إنشاء نص الختمة الجماعية للتواصل الاجتماعي
+  window.generateGroupKhatmaShare = function() {
+    var active = getActiveKhatma();
+    var title = active ? active.title : "الختمة الجماعية";
+    var shareText = `🤲 شارك معنا في ${title}!\n\nاختر جزءك اليوم وشاركه معنا لختم القرآن الكريم:\nhttps://wa.me/?text=${encodeURIComponent('انضم إلينا في ختم القرآن الكريم، شاركنا اليوم!')}`;
+    window.open(shareText, '_blank');
+  };
 })();
