@@ -3906,17 +3906,17 @@ window._extendingPages = false;
     </div>
   `;
 
-  html += `<div style="flex:1; display:flex; flex-direction:column; justify-content:${isSpecialPage ? 'center' : 'space-between'}; width:100%; overflow:hidden; padding-bottom:26px;">`;
-
+html += `<div style="flex:1; display:flex; flex-direction:column; justify-content:${isSpecialPage ? 'center' : 'space-between'}; width:100%; overflow:hidden; padding:2px 0;">`;
+  
   const lines = Object.keys(pagesDict[pageNum]).map(Number).sort((a, b) => a - b);
   let renderedSurahHeaders = new Set();
 
   lines.forEach(lineNum => {
     const lineWords = pagesDict[pageNum][lineNum];
     const lineJustify = isSpecialPage ? 'justify-content:center;gap:8px;' : 'justify-content:space-between;';
-    const fontSize = isSpecialPage
-      ? 'clamp(20px, 5.2vw, 30px)'
-      : `clamp(${16 - extraLines*2}px, ${4.0 - extraLines*0.4}vw, ${23 - extraLines*2.5}px)`;
+   const fontSize = isSpecialPage
+  ? 'clamp(18px, 4.8vw, 26px)'
+  : `clamp(${14 - extraLines*1.2}px, ${3.6 - extraLines*0.25}vw, ${20 - extraLines*1.5}px)`;
 
     const firstWord = lineWords[0];
     if (firstWord && firstWord.vAyah === 1 && !renderedSurahHeaders.has(firstWord.vSurah)) {
@@ -3933,11 +3933,12 @@ window._extendingPages = false;
       }
     }
 
-    html += `<div style="display:flex; flex-direction:row; ${lineJustify} align-items:center; width:100%; min-height: calc(100% / 15); overflow:visible; white-space:nowrap;">`;
+html += `<div style="display:flex; flex-direction:row; ${lineJustify} align-items:center; width:100%; overflow:visible; white-space:nowrap; flex:1;">`;
+   
     lineWords.forEach(w => {
       const ayahIndex = currentAyahsData.findIndex(a => a.surahNumber === w.vSurah && a.numberInSurah === w.vAyah);
       html += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}"
-        style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:1.9; display:inline-flex; align-items:center; user-select:none; white-space:nowrap;"
+style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:1.4; display:inline-flex; align-items:center; user-select:none; white-space:nowrap;"        
         ontouchstart="startPress(event, ${ayahIndex})"
         ontouchmove="cancelPress(event)"
         ontouchend="cancelPress(event); if(!isScrolling && window.isPickingEndAyah){ handleAyahClick(${ayahIndex}); }">
