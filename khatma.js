@@ -3,19 +3,24 @@
 // الختمة الاحترافية الشاملة - الميزات الخرافية (محسوبة بالصفحات 604)
 // =========================================================================
 
-const TOTAL_PAGES = 604;
+// =========================================================================
+// الختمة الاحترافية الشاملة - الميزات الخرافية
+// =========================================================================
 
-// بداية كل سورة في مصحف المدينة (114 سورة)
-const surahStartPages = [
-  1, 2, 50, 77, 106, 128, 151, 177, 187, 208, 221, 235, 249, 255, 262, 267,
-  282, 293, 305, 312, 322, 332, 342, 350, 359, 367, 377, 385, 396, 404, 411, 415,
-  418, 428, 434, 440, 446, 453, 458, 467, 477, 483, 489, 496, 499, 502, 507, 511,
-  515, 518, 523, 526, 528, 531, 534, 537, 542, 545, 549, 553, 554, 556, 558, 560,
-  562, 564, 566, 568, 570, 572, 574, 575, 577, 579, 582, 583, 585, 586, 587, 589,
-  590, 591, 592, 593, 594, 595, 596, 596, 597, 598, 598, 599, 599, 600, 600, 601,
-  601, 601, 602, 602, 602, 602, 603, 603, 603, 603, 604, 604, 604, 604, 604, 604, 604, 604
-];
+var TOTAL_PAGES = 604;
 
+// استخدام var بدلاً من const لتفادي خطأ التكرار إذا كان معرّفاً في ملف آخر
+if (typeof surahStartPages === 'undefined') {
+  var surahStartPages = [
+    1, 2, 50, 77, 106, 128, 151, 177, 187, 208, 221, 235, 249, 255, 262, 267,
+    282, 293, 305, 312, 322, 332, 342, 350, 359, 367, 377, 385, 396, 404, 411, 415,
+    418, 428, 434, 440, 446, 453, 458, 467, 477, 483, 489, 496, 499, 502, 507, 511,
+    515, 518, 523, 526, 528, 531, 534, 537, 542, 545, 549, 553, 554, 556, 558, 560,
+    562, 564, 566, 568, 570, 572, 574, 575, 577, 579, 582, 583, 585, 586, 587, 589,
+    590, 591, 592, 593, 594, 595, 596, 596, 597, 598, 598, 599, 599, 600, 600, 601,
+    601, 601, 602, 602, 602, 602, 603, 603, 603, 603, 604, 604, 604, 604, 604, 604, 604, 604
+  ];
+}
 // قاعدة بيانات المتشابهات البارزة للتنبيه الذكي
 const mutashabihatData = {
   2: "💡 متشابهات البقرة: انتبه لفاصلة «وَاعْلَمُوا أَنَّ اللَّهَ...» مع «عَزِيزٌ حَكِيمٌ» أو «غَفُورٌ حَلِيمٌ».",
@@ -351,3 +356,41 @@ function generateGroupKhatmaShare() {
 document.addEventListener('DOMContentLoaded', () => {
   renderKhatma();
 });
+function startCustomKhatma() {
+  const input = document.getElementById('customDaysInput');
+  if (!input) return;
+  const days = parseInt(input.value);
+  if (!days || days < 1) {
+    alert('من فضلك اكتب عدد أيام صحيح');
+    return;
+  }
+  startKhatma(days);
+}
+
+// إعادة إضافة دالة خطة الحفظ والمراجعة القديمة لكي لا يظهر خطأ calculateMemoPlan
+function calculateMemoPlan() {
+  try {
+    const totalDays = parseInt(document.getElementById('memoTotalDays').value);
+    const offDaysPerWeek = parseInt(document.getElementById('memoOffDays').value) || 0;
+
+    if (!totalDays || totalDays < 30) {
+      alert("يرجى إدخال مدة لا تقل عن شهر (30 يوم) لتوزيع الحفظ بشكل منطقي.");
+      return;
+    }
+    
+    const activeDays = totalDays - Math.floor((totalDays / 7) * offDaysPerWeek);
+    const pagesPerDay = (604 / activeDays);
+    
+    let targetText = pagesPerDay <= 1 ? "صفحة واحدة يومياً" : Math.ceil(pagesPerDay) + " صفحات يومياً";
+
+    document.getElementById('memoSetupForm').style.display = 'none';
+    const resultDiv = document.getElementById('memoPlanResult');
+    if(resultDiv) {
+      resultDiv.style.display = 'block';
+      resultDiv.innerHTML = `
+        <div style="color:var(--gold); font-weight:bold;">✅ خطتك جاهزة للبدء!</div>
+        <div>🎯 هدفك اليومي للحفظ: <b>${targetText}</b></div>
+      `;
+    }
+  } catch(e) { console.error(e); }
+}
