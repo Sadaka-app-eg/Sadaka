@@ -3910,8 +3910,7 @@ window._extendingPages = false;
   });
   const extraLines = (pageHasNewSurahStart ? 1 : 0) + (pageHasBismillah ? 1 : 0);
 
-  let html = `<div class="mushaf-page" id="mpage_${pageNum}" data-page="${pageNum}">`;
-  html += `
+let html = `<div class="mushaf-page" id="mpage_${pageNum}" data-page="${pageNum}" style="position:relative; width:100vw; height:100vh; display:flex; flex-direction:column; justify-content:space-between; padding:4px 8px 6px; box-sizing:border-box; overflow:hidden;">`;  html += `
     <div style="display:flex; justify-content:space-between; align-items:center; width:100%; padding:2px 6px; font-size:12px; font-weight:bold; color:var(--text2); border-bottom:1px solid rgba(212,175,55,0.12); margin-bottom:4px; font-family:'Amiri', serif; flex-shrink:0; white-space:nowrap; overflow:hidden;">
       <span style="overflow:hidden; text-overflow:ellipsis; max-width:65%;">${headerRightText}</span>
       <span style="flex-shrink:0;">سُورَةُ ${pageSurah ? pageSurah.name : ''}</span>
@@ -3938,7 +3937,7 @@ html += `<div style="flex:1; display:flex; flex-direction:column; justify-conten
       html += `<div class="surah-name-header" style="margin: 3px 0 2px; padding: 3px 10px; font-size: 15px;">سُورَةُ ${sName}</div>`;
       if (firstWord.vSurah !== 1 && firstWord.vSurah !== 9) {
         html += `
-          <div class="bismillah" style="font-family:'Amiri Quran', serif; font-size: clamp(16px, 4vw, 20px); margin: 2px 0 4px; text-align:center; color:#5a3e00;">
+          <div class="bismillah" style="font-family:'Amiri Quran', serif; font-size: clamp(16px, 4vw, 20px); margin: 0 0 2px;line-height: 1.1; text-align:center; color:#5a3e00;">
             بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ
           </div>
         `;
@@ -3951,7 +3950,7 @@ html += `<div style="display:flex; flex-direction:row; ${lineJustify} align-item
       const ayahIndex = currentAyahsData.findIndex(a => a.surahNumber === w.vSurah && a.numberInSurah === w.vAyah);
      
      html += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}"
-  style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:1.2; font-weight:bold; -webkit-text-stroke:0.3px currentColor; display:inline-flex; align-items:center; user-select:none; white-space:nowrap;"
+  style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:1.2; font-weight:bold; -webkit-text-stroke:0.4px currentColor; display:inline-flex; align-items:center; user-select:none; white-space:nowrap;"
    
         
  ontouchstart="startPress(event, ${ayahIndex})"
@@ -4123,7 +4122,7 @@ const lineJustify = isSpecialPage ? 'justify-content:center;gap:8px;' : 'justify
           const sObj = surahs.find(s => s.n === firstWord.vSurah);
           const sName = sObj ? sObj.name : '';
           
-          sliderHtml += `<div class="surah-name-header" style="margin: 4px 0 2px; padding: 4px 10px; font-size: 17px;">سُورَةُ ${sName}</div>`;
+          sliderHtml += `<div class="surah-name-header" style="margin: 1px 0; padding: 2px 8px; font-size: 15px; line-height: 1.1;">سُورَةُ ${sName}</div>`;
           
           if (firstWord.vSurah !== 1 && firstWord.vSurah !== 9) {
             sliderHtml += `
@@ -4198,6 +4197,7 @@ window.navSurah = function(direction) {
   }
 };
 
+
 // =========================================================================
 // 🚀 محرك التحميل الأوفلاين الشامل (بيانات الآيات + خطوط الـ 604 صفحة)
 // =========================================================================
@@ -4206,8 +4206,9 @@ function prefetchFullQuranData() {
     if (!('caches' in window)) return;
     
     try {
-      const fontCache = await caches.open('quran-fonts-v2');
-      console.log("🚀 جاري بدء التحميل الأوفلاين لخطوط وبيانات المصحف الشريف...");
+      // فتح الكاش الخاص بالخطوط المعتمد في الـ Service Worker
+      const fontCache = await caches.open('athr-audio-cache-v1'); 
+      console.log("🚀 جاري بدء التحميل الأوفلاين الشامل لخطوط وبيانات المصحف (604 صفحة)...");
 
       for (let p = 1; p <= 604; p++) {
         // 1. فحص وتخزين بيانات الآيات في IndexedDB
@@ -4222,19 +4223,24 @@ function prefetchFullQuranData() {
           } catch(e) {}
         }
 
-        // 2. 🎯 السحر هنا: فحص وتخزين ملف الخط العثماني (WOFF2) للصفحة لمنع الشفرات!
+        // 2. 🎯 تخزين ملف الخط العثماني (WOFF2) للصفحة في الكاش
         const fontUrl = `https://verses.quran.foundation/fonts/quran/hafs/v2/woff2/p${p}.woff2`;
         const fontMatch = await fontCache.match(fontUrl);
         if (!fontMatch) {
-          fontCache.add(fontUrl).catch(() => {});
+          try {
+            const fontRes = await fetch(fontUrl);
+            if (fontRes.ok) {
+              await fontCache.put(fontUrl, fontRes);
+            }
+          } catch(e) {}
         }
 
-        // مهلة بسيطة بين كل صفحة وصفحة حتى لا يسخن الهاتف
-        await new Promise(r => setTimeout(r, 40));
+        // مهلة بسيطة بين كل صفحة وصفحة حتى لا يسخن الموبايل
+        await new Promise(r => setTimeout(r, 35));
       }
       console.log("✅ تم حفظ خطوط وبيانات ٦٠٤ صفحة أوفلاين بنجاح! لن تظهر شفرات بعد اليوم.");
     } catch (e) {
-      console.error("خطأ التحميل الخلفي:", e);
+      console.error("خطأ التحميل الخلفي للمصحف:", e);
     }
   }, 3000);
 }
