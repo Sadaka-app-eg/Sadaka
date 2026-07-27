@@ -3949,9 +3949,12 @@ html += `<div style="display:flex; flex-direction:row; ${lineJustify} align-item
    
     lineWords.forEach(w => {
       const ayahIndex = currentAyahsData.findIndex(a => a.surahNumber === w.vSurah && a.numberInSurah === w.vAyah);
-      html += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}"
-style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:1.4; display:inline-flex; align-items:center; user-select:none; white-space:nowrap;"        
-        ontouchstart="startPress(event, ${ayahIndex})"
+     
+     html += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}"
+  style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:1.2; font-weight:bold; -webkit-text-stroke:0.3px currentColor; display:inline-flex; align-items:center; user-select:none; white-space:nowrap;"
+   
+        
+ ontouchstart="startPress(event, ${ayahIndex})"
         ontouchmove="cancelPress(event)"
         ontouchend="cancelPress(event); if(!isScrolling && window.isPickingEndAyah){ handleAyahClick(${ayahIndex}); }">
         ${w.code}
