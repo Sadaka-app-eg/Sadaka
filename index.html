@@ -8447,27 +8447,39 @@ function stopMainAutoScroll() {
   const slider = document.getElementById('mushafSlider');
   if (slider && slider.children.length) {
     const pages = Array.from(slider.children);
-    let closestIndex = 0;
+    let targetPageNum = null;
     let minDistance = Infinity;
 
-    pages.forEach((p, idx) => {
+    // 1. تحديد رقم الصفحة الفعلي (data-page) اللي عُينك واقفة عليها على الشاشة وقت الإيقاف
+    pages.forEach((p) => {
       const rect = p.getBoundingClientRect();
       const distance = Math.abs(rect.top);
       if (distance < minDistance) {
         minDistance = distance;
-        closestIndex = idx;
+        targetPageNum = parseInt(p.getAttribute('data-page'));
       }
     });
 
+    // 2. إيقاف الـ snap مؤقتاً لمنع أي قفزات عشوائية
+    slider.style.scrollSnapType = 'none';
     slider.classList.remove('vscroll-mode');
-    slider.style.scrollBehavior = '';
+    slider.style.scrollBehavior = 'auto';
     slider.scrollTop = 0;
 
+    // 3. التوجيه المباشر على نفس الصفحة الحقيقية بناءً على مصفوفة الصفحات المفتوحة
+    if (targetPageNum && window.currentSurahPages) {
+      const exactIndex = window.currentSurahPages.indexOf(targetPageNum);
+      if (exactIndex !== -1) {
+        const pageWidth = slider.clientWidth || window.innerWidth;
+        const isRTL = window.getComputedStyle(slider).direction === 'rtl';
+        slider.scrollLeft = isRTL ? -(exactIndex * pageWidth) : (exactIndex * pageWidth);
+      }
+    }
+
     setTimeout(() => {
-      const pageWidth = slider.clientWidth || window.innerWidth;
-      const isRTL = window.getComputedStyle(slider).direction === 'rtl';
-      slider.scrollLeft = isRTL ? -(closestIndex * pageWidth) : (closestIndex * pageWidth);
-    }, 30);
+      slider.style.scrollSnapType = 'x mandatory';
+      slider.style.scrollBehavior = '';
+    }, 50);
   }
 }
 
