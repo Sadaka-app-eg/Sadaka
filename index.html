@@ -240,12 +240,13 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
   margin: 1px 0;
 }
 .qcf-word {
-  display: inline-block;
+display: inline-flex;
+align-items: center; 
   cursor: pointer;
   padding: 0 1px;
   border-radius: 3px;
   transition: background 0.15s;
-  line-height: 1.25 !important;
+  line-height: 1.4 !important;
   font-weight: 700;
   -webkit-text-stroke: 0.5px currentColor;
 }
@@ -4152,7 +4153,7 @@ const lineJustify = isSpecialPage ? 'justify-content:center;gap:8px;' : 'justify
      lineWords.forEach(w => {
      const ayahIndex = currentAyahsData.findIndex(a => a.surahNumber === w.vSurah && a.numberInSurah === w.vAyah);
 sliderHtml += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}"
-  style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:1.2; font-weight:bold; -webkit-text-stroke:0.5px currentColor; display:inline-flex; align-items:center; user-select:none; white-space:nowrap;"
+  style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:1.4; font-weight:bold; -webkit-text-stroke:0.5px currentColor; display:inline-flex; align-items:center; user-select:none; white-space:nowrap;"
   ontouchstart="startPress(event, ${ayahIndex})"
   ontouchmove="cancelPress(event)"
   ontouchend="cancelPress(event); if(!isScrolling && window.isPickingEndAyah){ handleAyahClick(${ayahIndex}); }">
