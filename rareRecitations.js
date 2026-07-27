@@ -698,25 +698,53 @@ function rareBtnId(url) {
     return 'rare_dl_' + url.replace(/[^a-zA-Z0-9]/g, '_');
 }
 
-window.downloadRareAudio = function(url) {
-    if (!navigator.serviceWorker || !navigator.serviceWorker.controller) {
-        alert('⚠️ نظام التخزين لسه بيتجهز، جرب تاني بعد ثانية ');
-        return;
-    }
+window.downloadRareAudio = async function(url) {
+    let safeUrl = url === "audio/nasr_6.mp3" ? "audio/nast_6.mp3" : url;
+    const absUrl = new URL(safeUrl, window.location.href).href;
+
     const btn = document.getElementById(rareBtnId(url));
     if (btn) {
         btn.disabled = true;
         btn.textContent = '⏳';
     }
-    
-    let safeUrl = url === "audio/nasr_6.mp3" ? "audio/nast_6.mp3" : url;
-    const absUrl = new URL(safeUrl, window.location.href).href;
 
-    navigator.serviceWorker.controller.postMessage({
-        type: 'CACHE_AUDIO_URL',
-        url: absUrl,
-        label: 'rare_' + url
-    });
+    try {
+        // 1. المحاولة المباشرة عبر Service Worker لو شغال
+        if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage({
+                type: 'CACHE_AUDIO_URL',
+                url: absUrl,
+                label: 'rare_' + url
+            });
+        }
+
+        // 2. ضمان التحميل الفوري عبر الكاش البرمجي مباشرة (عشان ميعتمدش على انتظار الـ SW أبداً)
+        if ('caches' in window) {
+            const cache = await caches.open('athr-audio-cache-v1');
+            const response = await fetch(absUrl);
+            if (response.ok) {
+                await cache.put(absUrl, response);
+                
+                // تحديث شكل الزرار فوراً لعلامة صح ✅
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = '✅';
+                    btn.style.background = 'rgba(76,175,80,0.15)';
+                    btn.style.borderColor = '#4caf50';
+                    btn.style.color = '#4caf50';
+                }
+                return;
+            }
+        }
+        throw new Error("فشل التخزين");
+    } catch (err) {
+        console.error("خطأ التحميل:", err);
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = '⚠️';
+        }
+        alert('⚠️ حدث خطأ أثناء التحميل، تأكد من الاتصال بالإنترنت.');
+    }
 };
 
 navigator.serviceWorker.addEventListener('message', (event) => {
