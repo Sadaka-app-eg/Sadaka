@@ -6,7 +6,7 @@ const APP_VERSION = 'v14';
 const APP_SHELL_CACHE = `athr-app-shell-${APP_VERSION}`;
 const AUDIO_CACHE  = 'athr-audio-cache-v1';   // دائم — سور/تلاوات/أذان محمّلة يدويًا
 const MUSHAF_CACHE = 'athr-mushaf-cache-v1';  // دائم — صفحات المصحف المصوّر
-
+const FONTS_CACHE = 'athr-quran-fonts-v1'; // دائم — خطوط المصحف العثمانية WOFF2
 // ملفات قشرة التطبيق (خفيفة، تتحمّل تلقائيًا)
 const APP_SHELL_FILES = [
   './',
@@ -89,7 +89,9 @@ function isCacheableAudio(url) {
  if (url.pathname.includes('/audio/')) return true; // ملفات محلية (تلاوات خاشعة / أذان)
   return false;
 }
-
+function isQuranFont(url) {
+  return url.hostname === 'verses.quran.foundation' || url.pathname.endsWith('.woff2');
+}
 // ===========================================
 // الاعتراض (fetch)
 // ===========================================
@@ -100,19 +102,29 @@ self.addEventListener('fetch', (event) => {
   let url;
   try { url = new URL(req.url); } catch (e) { return; }
 
+  // 1. صور المصحف
   if (isMushafImage(url)) {
     event.respondWith(cacheFirst(req, MUSHAF_CACHE));
     return;
   }
+
+  // 2. 🎯 السحر هنا: كاش الخطوط العثمانية لمنع ظهور الشفرات أوفلاين!
+  if (isQuranFont(url)) {
+    event.respondWith(cacheFirst(req, FONTS_CACHE));
+    return;
+  }
+
+  // 3. الصوتيات والتلاوات
   if (isCacheableAudio(url)) {
     event.respondWith(cacheFirst(req, AUDIO_CACHE));
     return;
   }
+
+  // 4. ملفات قشرة التطبيق المحلية
   if (url.origin === self.location.origin) {
     event.respondWith(staleWhileRevalidate(req, APP_SHELL_CACHE));
     return;
   }
-  // أي حاجة تانية (APIs خارجية، إلخ) تسيبها تعدي عادي من غير كاش
 });
 async function cacheFirst(request, cacheName) {
   console.log('🔵 [SW] طلب جديد:', request.url, '| Range:', request.headers.get('range'));
