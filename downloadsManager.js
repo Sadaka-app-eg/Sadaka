@@ -3,8 +3,10 @@
 // ==========================================================
 
 const AUDIO_CACHE_NAME = 'athr-audio-cache-v1';
-const MUSHAF_CACHE_NAME = 'athr-mushaf-cache-v1';
-
+function getAbsUrl(url) {
+  if (!url) return '';
+  try { return new URL(url, window.location.href).href; } catch(e) { return url; }
+}
 const dmReciters = [
   { id: 'minsh',  label: 'المنشاوي',          urlFn: n => `https://server10.mp3quran.net/minsh/${n}.mp3` },
   { id: 'husary', label: 'الحصري',          urlFn: n => `https://server13.mp3quran.net/husr/${n}.mp3` },
@@ -32,26 +34,18 @@ async function dmRefreshCachedSet() {
   } catch (e) { dmCachedUrlsSet = new Set(); }
 }
 
-async function dmGetMushafCount() {
-  try {
-    const cache = await caches.open(MUSHAF_CACHE_NAME);
-    const keys = await cache.keys();
-    return keys.length;
-  } catch (e) { return 0; }
-}
 
-// ---------- الدخول للصفحة ----------
+
 window.initDownloadsManager = async function() {
   const container = document.getElementById('downloadsManagerContainer');
   if (!container) return;
   container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text2); font-family:'Amiri',serif;">⏳ جاري فحص الملفات المحفوظة على جهازك...</div>`;
 
   await dmRefreshCachedSet();
-  const mushafCount = await dmGetMushafCount();
-  renderDmMainUI(mushafCount);
+  renderDmMainUI();
 };
 
-function renderDmMainUI(mushafCount) {
+function renderDmMainUI() {
   const container = document.getElementById('downloadsManagerContainer');
   if (!container) return;
 
@@ -61,31 +55,12 @@ function renderDmMainUI(mushafCount) {
       <p style="color:var(--text2); font-size:12px;">اعرف إيه المتحمل على جهازك، وحمّل أو احذف بسهولة</p>
     </div>
 
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
+    <div style="display:grid; grid-template-columns:1fr ; gap:10px; margin-bottom:16px;">
       <div class="stat-card">
         <div class="stat-num" style="font-size:22px;" id="dmTotalAudioCount">${toAr(dmCachedUrlsSet.size)}</div>
         <div class="stat-label">ملف صوتي محفوظ</div>
       </div>
-      <div class="stat-card">
-        <div class="stat-num" style="font-size:22px;" id="dmMushafCountNum">${toAr(mushafCount)}<span style="font-size:12px;">/٦٠٤</span></div>
-        <div class="stat-label">صفحة مصحف محفوظة</div>
-      </div>
-    </div>
-
-    <!-- المصحف -->
-    <div style="background:var(--card); border-radius:16px; padding:16px; border:1px solid var(--border); margin-bottom:16px; border-right:4px solid var(--gold);">
-      <div style="font-size:14px; color:var(--gold); font-weight:700; margin-bottom:8px;">📖 المصحف المصوّر كامل</div>
-      <div id="dmMushafStatusText" style="font-size:12px; color:var(--text2); margin-bottom:10px;">${dmMushafStatusMsg(mushafCount)}</div>
-      <div style="display:flex; gap:8px;">
-        <button onclick="window.dmDownloadMushaf()" style="flex:1; background:var(--gold); color:#111; border:none; padding:10px; border-radius:10px; font-family:'Amiri',serif; font-weight:700; cursor:pointer; font-size:13px;">⬇️ تحميل المصحف</button>
-        <button onclick="window.dmDeleteMushaf()" style="background:transparent; border:1px solid rgba(255,100,100,0.4); color:#ff6b6b; padding:10px 16px; border-radius:10px; cursor:pointer; font-size:13px; font-family:'Amiri',serif; ${mushafCount === 0 ? 'display:none;' : ''}" id="dmDeleteMushafBtn">🗑️ حذف</button>
-      </div>
-      <div id="dmMushafProgressWrap" style="display:none; margin-top:10px;">
-        <div style="width:100%; height:6px; background:var(--border); border-radius:3px; overflow:hidden;">
-          <div id="dmMushafProgressBar" style="height:100%; width:0%; background:var(--gold); transition:width 0.2s;"></div>
-        </div>
-        <div id="dmMushafProgressText" style="font-size:11px; color:var(--text2); margin-top:6px; text-align:center;"></div>
-      </div>
+  
     </div>
 
     <!-- تلاوات السور -->
@@ -115,26 +90,21 @@ function renderDmMainUI(mushafCount) {
       <button onclick="window.dmDeleteAllRare()" style="width:100%; background:transparent; border:1px solid rgba(255,100,100,0.4); color:#ff6b6b; padding:9px; border-radius:10px; cursor:pointer; font-size:12px; font-family:'Amiri',serif;">🗑️ حذف كل التلاوات الخاشعة المحفوظة</button>
     </div>
 
-    <!-- الأذان -->
-    <div style="background:var(--card); border-radius:16px; padding:16px; border:1px solid var(--border); margin-bottom:16px; border-right:4px solid #e0a45c;">
-      <div style="font-size:14px; color:#e0a45c; font-weight:700; margin-bottom:8px;">🕌 أصوات الأذان</div>
-      <div id="dmAdhanSummary" style="font-size:12px; color:var(--text2); margin-bottom:10px;"></div>
-      <button onclick="window.dmDeleteAllAdhan()" style="width:100%; background:transparent; border:1px solid rgba(255,100,100,0.4); color:#ff6b6b; padding:9px; border-radius:10px; cursor:pointer; font-size:12px; font-family:'Amiri',serif;">🗑️ حذف كل أصوات الأذان المحفوظة</button>
-    </div>
+  <!-- المواعظ والدروس -->
+<div style="background:var(--card); border-radius:16px; padding:16px; border:1px solid var(--border); margin-bottom:16px; border-right:4px solid var(--gold);">
+  <div style="font-size:14px; color:var(--gold); font-weight:700; margin-bottom:8px;">🎙️ المواعظ والدروس العلمية</div>
+  <div id="dmLecturesSummary" style="font-size:12px; color:var(--text2); margin-bottom:10px;"></div>
+  <button onclick="window.dmDeleteAllLectures()" style="width:100%; background:transparent; border:1px solid rgba(255,100,100,0.4); color:#ff6b6b; padding:9px; border-radius:10px; cursor:pointer; font-size:12px; font-family:'Amiri',serif;">🗑️ حذف كل الدروس والمواعظ المحفوظة</button>
+</div>
 
     <button onclick="window.dmDeleteEverything()" style="width:100%; background:rgba(255,0,0,0.08); border:1px solid #ff4d4d; color:#ff4d4d; padding:13px; border-radius:14px; font-family:'Amiri',serif; font-weight:700; cursor:pointer; margin-top:6px;">🗑️ حذف كل التنزيلات نهائيًا (تفريغ المساحة)</button>
   `;
 
   renderDmSurahsList();
   renderDmRareSummary();
-  renderDmAdhanSummary();
+renderDmLecturesSummary(); // 👈 أضف هذا السطر هنا
 }
 
-function dmMushafStatusMsg(count) {
-  if (count >= 604) return '✅ محفوظ بالكامل ويعمل بدون إنترنت';
-  if (count > 0) return `تم حفظ ${toAr(count)} من ٦٠٤ صفحة فقط`;
-  return 'لم يتم حفظ أي صفحة بعد';
-}
 
 // ---------- قسم السور ----------
 window.dmSwitchReciter = function(id) {
@@ -243,57 +213,16 @@ window.dmDeleteAllRare = async function() {
   alert('تم الحذف ✅');
 };
 
-// ---------- الأذان ----------
-function dmAdhanUrls() {
-  const fajr = (typeof fajrAdhanOptions !== 'undefined') ? fajrAdhanOptions.map(o => o.file) : [];
-  const reg  = (typeof regularAdhanOptions !== 'undefined') ? regularAdhanOptions.map(o => o.file) : [];
-  return [...fajr, ...reg];
-}
 
-function renderDmAdhanSummary() {
-  const el = document.getElementById('dmAdhanSummary');
-  if (!el) return;
-  const urls = dmAdhanUrls();
-  const downloaded = urls.filter(u => dmCachedUrlsSet.has(u)).length;
-  el.textContent = `محمّل ${toAr(downloaded)} من ${toAr(urls.length)} صوت أذان`;
-}
 
-window.dmDeleteAllAdhan = async function() {
-  if (!confirm('متأكد إنك عايز تحذف كل أصوات الأذان المحفوظة؟')) return;
-  const cache = await caches.open(AUDIO_CACHE_NAME);
-  for (const u of dmAdhanUrls()) {
-    await cache.delete(u);
-    dmCachedUrlsSet.delete(u);
-  }
-  dmUpdateTotalAudioCount();
-  renderDmAdhanSummary();
-  alert('تم الحذف ✅');
-};
-
-// ---------- المصحف ----------
-window.dmDownloadMushaf = function() {
-  if (!navigator.serviceWorker.controller) { alert('استنى شوية وحاول تاني 🙏'); return; }
-  document.getElementById('dmMushafProgressWrap').style.display = 'block';
-  navigator.serviceWorker.controller.postMessage({ type: 'DOWNLOAD_MUSHAF' });
-};
-
-window.dmDeleteMushaf = async function() {
-  if (!confirm('متأكد إنك عايز تحذف المصحف المحفوظ بالكامل؟')) return;
-  if (!navigator.serviceWorker.controller) return;
-  navigator.serviceWorker.controller.postMessage({ type: 'DELETE_MUSHAF_CACHE' });
-};
-
-// ---------- حذف الكل ----------
 window.dmDeleteEverything = async function() {
-  if (!confirm('هيتم حذف كل الملفات الصوتية وصفحات المصحف المحفوظة نهائيًا، متأكد؟')) return;
+  if (!confirm('هيتم حذف كل الملفات الصوتية والدروس المحفوظة نهائيًا، متأكد؟')) return;
   if (navigator.serviceWorker.controller) {
     navigator.serviceWorker.controller.postMessage({ type: 'DELETE_ALL_AUDIO' });
-    navigator.serviceWorker.controller.postMessage({ type: 'DELETE_MUSHAF_CACHE' });
   }
   setTimeout(async () => {
     await dmRefreshCachedSet();
-    const mushafCount = await dmGetMushafCount();
-    renderDmMainUI(mushafCount);
+    renderDmMainUI();
     alert('تم حذف كل التنزيلات ✅');
   }, 600);
 };
@@ -334,36 +263,8 @@ navigator.serviceWorker.addEventListener('message', (event) => {
     alert(`✅ اكتمل تحميل ${toAr(d.done - d.failed)} سورة${d.failed > 0 ? ` (فشل ${toAr(d.failed)})` : ''}`);
   }
 
-  // المصحف
- if (d.type === 'MUSHAF_PROGRESS') {
-    const pct = Math.round((d.done / d.total) * 100);
-    const bar = document.getElementById('dmMushafProgressBar');
-    const text = document.getElementById('dmMushafProgressText');
-    if (bar) bar.style.width = pct + '%';
-    if (text) text.textContent = `جاري التحميل... ${toAr(d.done)} / ${toAr(d.total)} — ${dmFormatBytes(d.totalBytes)}`;
-  }
-  if (d.type === 'MUSHAF_DONE') {
-    const wrapEl = document.getElementById('dmMushafProgressWrap');
-    if (wrapEl) wrapEl.style.display = 'none';
-    dmGetMushafCount().then(count => {
-      const numEl = document.getElementById('dmMushafCountNum');
-      const statusEl = document.getElementById('dmMushafStatusText');
-      const delBtn = document.getElementById('dmDeleteMushafBtn');
-      if (numEl) numEl.innerHTML = `${toAr(count)}<span style="font-size:12px;">/٦٠٤</span>`;
-      if (statusEl) statusEl.textContent = dmMushafStatusMsg(count);
-      if (delBtn) delBtn.style.display = count > 0 ? 'block' : 'none';
-    });
-    alert(`✅ تم تحميل المصحف (فشل ${toAr(d.failed)} صفحة فقط)`);
-  }
-  if (d.type === 'MUSHAF_DELETED') {
-    const numEl = document.getElementById('dmMushafCountNum');
-    const statusEl = document.getElementById('dmMushafStatusText');
-    const delBtn = document.getElementById('dmDeleteMushafBtn');
-    if (numEl) numEl.innerHTML = `٠<span style="font-size:12px;">/٦٠٤</span>`;
-    if (statusEl) statusEl.textContent = dmMushafStatusMsg(0);
-    if (delBtn) delBtn.style.display = 'none';
-    alert('تم حذف المصحف المحفوظ ✅');
-  }
+
+
 
   // حذف كل الصوتيات
   if (d.type === 'AUDIO_CACHE_CLEARED') {
@@ -371,6 +272,30 @@ navigator.serviceWorker.addEventListener('message', (event) => {
     dmUpdateTotalAudioCount();
     renderDmSurahsList();
     renderDmRareSummary();
-    renderDmAdhanSummary();
+    renderDmLecturesSummary(); // 👈 أضف هذا السطر هنا
   }
 });
+// ---------- المواعظ والدروس ----------
+function dmLecturesUrls() {
+  return (window.lecturesData || []).map(l => l.src).filter(Boolean);
+}
+
+function renderDmLecturesSummary() {
+  const el = document.getElementById('dmLecturesSummary');
+  if (!el) return;
+  const urls = dmLecturesUrls();
+  const downloaded = urls.filter(u => dmCachedUrlsSet.has(u)).length;
+  el.textContent = urls.length === 0 ? 'لا توجد دروس حالياً' : `محمّل ${toAr(downloaded)} من ${toAr(urls.length)} درس وموعظة أوفلاين`;
+}
+
+window.dmDeleteAllLectures = async function() {
+  if (!confirm('متأكد إنك عايز تحذف كل المواعظ والدروس المحفوظة؟')) return;
+  const cache = await caches.open(AUDIO_CACHE_NAME);
+  for (const u of dmLecturesUrls()) {
+    await cache.delete(u);
+    dmCachedUrlsSet.delete(u);
+  }
+  dmUpdateTotalAudioCount();
+  renderDmLecturesSummary();
+  alert('تم حذف الدروس والمواعظ المحفوظة بنجاح ✅');
+};
