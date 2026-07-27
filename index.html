@@ -3876,10 +3876,25 @@ async function extendMushafPages(direction) {
     } else {
       const prevScrollLeft = slider.scrollLeft;
       const pageWidth = slider.clientWidth || window.innerWidth;
-      slider.insertBefore(pageEl, slider.firstChild);
-      window.currentSurahPages.unshift(newPageNum);
-      const isRTL = window.getComputedStyle(slider).direction === 'rtl';
-      slider.scrollLeft = isRTL ? prevScrollLeft - pageWidth : prevScrollLeft + pageWidth;
+
+     
+// إيقاف الـ snap والـ behavior لحماية الشاشة من القفز
+slider.style.scrollSnapType = 'none';
+slider.style.scrollBehavior = 'auto';
+
+slider.insertBefore(pageEl, slider.firstChild);
+window.currentSurahPages.unshift(newPageNum);
+
+const isRTL = window.getComputedStyle(slider).direction === 'rtl';
+slider.scrollLeft = isRTL ? prevScrollLeft - pageWidth : prevScrollLeft + pageWidth;
+
+// إرجاع الـ Snap بعد ما المتصفح يستقر
+setTimeout(() => {
+  slider.style.scrollSnapType = 'x mandatory';
+  slider.style.scrollBehavior = '';
+}, 50);
+
+     
     }
 
     if (typeof renderBookmarkHighlight === 'function') renderBookmarkHighlight();
@@ -4652,12 +4667,13 @@ const slider = document.getElementById('mushafSlider');
         }
       }
 
-      clearTimeout(mushafExtendTimer);
-      mushafExtendTimer = setTimeout(() => {
-        const settledIdx = Math.round(Math.abs(slider.scrollLeft) / pageWidth);
-        if (settledIdx >= window.currentSurahPages.length - 4) { extendMushafPages(1); }
-        if (settledIdx <= 3) { extendMushafPages(-1); }
-      }, 150);
+clearTimeout(mushafExtendTimer);
+mushafExtendTimer = setTimeout(() => {
+  const settledIdx = Math.round(Math.abs(slider.scrollLeft) / pageWidth);
+  // التعديل: التحميل فقط عند الوصول لأول أو آخر صفحة فعلياً
+  if (settledIdx >= window.currentSurahPages.length - 1) { extendMushafPages(1); }
+  if (settledIdx <= 0) { extendMushafPages(-1); }
+}, 200);
      
     }, { passive: true });
   }
