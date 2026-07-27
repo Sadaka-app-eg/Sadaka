@@ -539,11 +539,28 @@ window.tickSleepTimer = function () {
     }
 };
 
-window.playRare = function (url) {
+window.playRare = async function (url) {
     const player = window.rareAudioPlayer;
     ensureRareAudioEngine();
 
     let safeUrl = url === "audio/nasr_6.mp3" ? "audio/nast_6.mp3" : url;
+    const absUrl = new URL(safeUrl, window.location.href).href;
+
+    let finalPlayableSource = safeUrl;
+
+    if ('caches' in window) {
+        try {
+            const cache = await caches.open('athr-audio-cache-v1');
+            const cachedResponse = await cache.match(absUrl) || await cache.match(safeUrl);
+            
+            if (cachedResponse) {
+                const blob = await cachedResponse.blob();
+                finalPlayableSource = URL.createObjectURL(blob);
+            }
+        } catch (e) {
+            console.log("خطأ في فحص الكاش:", e);
+        }
+    }
 
     if (window.currentRareUrl === url) {
         if (!player.paused) {
@@ -552,7 +569,7 @@ window.playRare = function (url) {
             player.play().catch(e => console.log("Play error:", e));
         }
     } else {
-        player.src = safeUrl;
+        player.src = finalPlayableSource;
         window.currentRareUrl = url;
         player.play().catch(e => console.log("Play error:", e));
     }
