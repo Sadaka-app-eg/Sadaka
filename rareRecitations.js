@@ -697,30 +697,19 @@ window.renderRareRecitations = function () {
           ? `${window.formatTime(window.rareAudioPlayer.currentTime)} / ${window.formatTime(window.rareAudioPlayer.duration)}`
           : '0:00 / --:--';
 
-        return `
-          <div style="${cardBg} border-radius:15px; padding:15px; margin-bottom:12px; display:flex; flex-direction:column; gap:10px; transition:0.3s;">
-            <div style="display:flex; align-items:center; gap:15px; justify-content:space-between; width:100%;">
-              <div style="display:flex; align-items:center; gap:8px;">
-                <button onclick="window.currentRareGlobalId=${realIndex}; window.playRare('${item.url}')" style="background:var(--gold); border:none; width:42px; height:42px; border-radius:50%; color:#111; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.2s;">${icon}</button>
-                <button id="rare_dl_${item.url.replace(/[^a-zA-Z0-9]/g,'_')}" onclick="window.downloadRareAudio('${item.url}')" style="background:rgba(255,255,255,0.1); border:1px solid var(--border); width:42px; height:42px; border-radius:50%; color:var(--text); font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.2s;" title="تحميل للاستماع أوفلاين">📥</button>
-                <button onclick="window.shareRareAudio('${item.name.replace(/'/g, "\\'")}', '${item.url}', this)" style="background:rgba(212,175,55,0.15); border:1px solid var(--gold); width:42px; height:42px; border-radius:50%; color:var(--gold); font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.2s;" title="مشاركة التلاوة كصوت مباشر">🔗</button>
-              </div>
-              <div style="flex:1; text-align:right; direction:rtl; display:flex; align-items:center; gap:8px;">
-                <button onclick="window.togglePinRare('${item.url}')" style="background:none; border:none; font-size:18px; cursor:pointer; padding:4px;" title="${pinTitle}">${pinIcon}</button>
-                <div style="font-weight:bold; color:var(--text); font-family:'Amiri',serif; font-size:15px; line-height:1.4; flex:1;">${item.name}</div>
-              </div>
-            </div>
-            <div style="width:100%; display:flex; flex-direction:column; gap:4px;">
-              <input type="range"
-                     data-progress-id="${realIndex}"
-                     min="0" max="100"
-                     value="${currentProgress}"
-                     oninput="window.seekRare(this, '${item.url}')"
-                     style="width:100%; accent-color:var(--gold); cursor:pointer; height:4px; border-radius:2px; background:rgba(255,255,255,0.2); outline:none;" />
-              <span data-time-id="${realIndex}" style="font-size:12px; color:var(--text2); direction:ltr; text-align:left;">${timeLabel}</span>
-            </div>
-          </div>
-        `;
+      return `
+      <div style="background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 8px 12px; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+          <button onclick="window.currentRareGlobalId=${realIndex}; window.playRare('${item.url}')" style="background: var(--gold); border: none; width: 30px; height: 30px; border-radius: 50%; color: #111; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center;">${icon}</button>
+          <button id="rare_dl_${item.url.replace(/[^a-zA-Z0-9]/g,'_')}" onclick="window.downloadRareAudio('${item.url}')" style="background: rgba(255,255,255,0.1); border: 1px solid var(--border); width: 28px; height: 28px; border-radius: 50%; color: var(--text); font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="تحميل">📥</button>
+          <button onclick="window.shareRareAudio('${item.name.replace(/'/g, "\\'")}', '${item.url}', this)" style="background: rgba(212,175,55,0.15); border: 1px solid var(--gold); width: 28px; height: 28px; border-radius: 50%; color: var(--gold); font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="مشاركة">🔗</button>
+          <button onclick="window.togglePinRare('${item.url}')" style="background: none; border: none; font-size: 14px; cursor: pointer; padding: 2px;" title="${pinTitle}">${pinIcon}</button>
+        </div>
+        <div style="font-size: 13px; color: var(--text); font-family: 'Amiri', serif; font-weight: bold; flex: 1; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+          ${item.name}
+        </div>
+      </div>
+    `;
     }).join('');
 
     setTimeout(markAlreadyDownloadedRareButtons, 100);
