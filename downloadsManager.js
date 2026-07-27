@@ -83,26 +83,40 @@ function renderDmMainUI() {
       <div id="dmSurahsList" style="display:grid; gap:6px; max-height:400px; overflow-y:auto;"></div>
     </div>
 
-    <!-- التلاوات الخاشعة -->
+<!-- التلاوات الخاشعة -->
     <div style="background:var(--card); border-radius:16px; padding:16px; border:1px solid var(--border); margin-bottom:16px; border-right:4px solid #7a9a7d;">
-      <div style="font-size:14px; color:#8fbf92; font-weight:700; margin-bottom:8px;">🎙️ التلاوات الخاشعة</div>
+      <div style="font-size:14px; color:#8fbf92; font-weight:700; margin-bottom:10px;">🎙️ التلاوات الخاشعة</div>
+      <div class="azkar-cats" style="margin-bottom:12px;">
+        ${window.dmRareReciters.map(r => `<button class="cat-btn ${window.dmActiveRareReciter===r?'active':''}" onclick="window.dmSwitchRareReciter('${r}')">${r}</button>`).join('')}
+      </div>
       <div id="dmRareSummary" style="font-size:12px; color:var(--text2); margin-bottom:10px;"></div>
-      <button onclick="window.dmDeleteAllRare()" style="width:100%; background:transparent; border:1px solid rgba(255,100,100,0.4); color:#ff6b6b; padding:9px; border-radius:10px; cursor:pointer; font-size:12px; font-family:'Amiri',serif;">🗑️ حذف كل التلاوات الخاشعة المحفوظة</button>
+      <div style="display:flex; gap:8px; margin-bottom:12px;">
+        <button onclick="window.dmDownloadAllForRareReciter()" style="flex:1; background:var(--green); color:#fff; border:none; padding:9px; border-radius:10px; cursor:pointer; font-size:12px; font-family:'Amiri',serif; font-weight:700;">⬇️ تحميل تلاوات هذا القارئ</button>
+        <button onclick="window.dmDeleteAllForRareReciter()" style="flex:1; background:transparent; border:1px solid rgba(255,100,100,0.4); color:#ff6b6b; padding:9px; border-radius:10px; cursor:pointer; font-size:12px; font-family:'Amiri',serif;">🗑️ حذف تلاوات هذا القارئ</button>
+      </div>
+      <div id="dmRareList" style="display:grid; gap:6px; max-height:300px; overflow-y:auto;"></div>
     </div>
 
-  <!-- المواعظ والدروس -->
-<div style="background:var(--card); border-radius:16px; padding:16px; border:1px solid var(--border); margin-bottom:16px; border-right:4px solid var(--gold);">
-  <div style="font-size:14px; color:var(--gold); font-weight:700; margin-bottom:8px;">🎙️ المواعظ والدروس العلمية</div>
-  <div id="dmLecturesSummary" style="font-size:12px; color:var(--text2); margin-bottom:10px;"></div>
-  <button onclick="window.dmDeleteAllLectures()" style="width:100%; background:transparent; border:1px solid rgba(255,100,100,0.4); color:#ff6b6b; padding:9px; border-radius:10px; cursor:pointer; font-size:12px; font-family:'Amiri',serif;">🗑️ حذف كل الدروس والمواعظ المحفوظة</button>
-</div>
+<!-- المواعظ والدروس -->
+    <div style="background:var(--card); border-radius:16px; padding:16px; border:1px solid var(--border); margin-bottom:16px; border-right:4px solid var(--gold);">
+      <div style="font-size:14px; color:var(--gold); font-weight:700; margin-bottom:10px;">🎙️ المواعظ والدروس العلمية</div>
+      <div class="azkar-cats" style="margin-bottom:12px;">
+        ${window.dmLectureCats.map(c => `<button class="cat-btn ${window.dmActiveLectureCat===c?'active':''}" onclick="window.dmSwitchLectureCat('${c}')">${c}</button>`).join('')}
+      </div>
+      <div id="dmLecturesSummary" style="font-size:12px; color:var(--text2); margin-bottom:10px;"></div>
+      <div style="display:flex; gap:8px; margin-bottom:12px;">
+        <button onclick="window.dmDownloadAllForLectureCat()" style="flex:1; background:var(--gold); color:#111; border:none; padding:9px; border-radius:10px; cursor:pointer; font-size:12px; font-family:'Amiri',serif; font-weight:700;">⬇️ تحميل دروس هذا القسم</button>
+        <button onclick="window.dmDeleteAllForLectureCat()" style="flex:1; background:transparent; border:1px solid rgba(255,100,100,0.4); color:#ff6b6b; padding:9px; border-radius:10px; cursor:pointer; font-size:12px; font-family:'Amiri',serif;">🗑️ حذف دروس هذا القسم</button>
+      </div>
+      <div id="dmLecturesList" style="display:grid; gap:6px; max-height:300px; overflow-y:auto;"></div>
+    </div>
 
     <button onclick="window.dmDeleteEverything()" style="width:100%; background:rgba(255,0,0,0.08); border:1px solid #ff4d4d; color:#ff4d4d; padding:13px; border-radius:14px; font-family:'Amiri',serif; font-weight:700; cursor:pointer; margin-top:6px;">🗑️ حذف كل التنزيلات نهائيًا (تفريغ المساحة)</button>
   `;
 
   renderDmSurahsList();
-  renderDmRareSummary();
-renderDmLecturesSummary(); // 👈 أضف هذا السطر هنا
+ renderDmRareList();
+  renderDmLecturesList();
 }
 
 
@@ -297,4 +311,140 @@ window.dmDeleteAllLectures = async function() {
   dmUpdateTotalAudioCount();
   renderDmLecturesSummary();
   alert('تم حذف الدروس والمواعظ المحفوظة بنجاح ✅');
+};
+// ==================== التلاوات الخاشعة (بالقراء) ====================
+window.dmRareReciters = ["محمد عباده", "المنشاوي", "أحمد النفيس", "حسن فهمي", "أسامة عمران", "عبدالرحمن مسعد", "إسلام صبحي", "ياسر الدوسري", "محمود علي البنا", "شعبان الصياد", "أحمد كاسب", "أحمد عبدالرازق نصر", "أحمد بن طالب", "أدعية خاشعة", "أناشيد"];
+window.dmActiveRareReciter = "محمد عباده";
+
+window.dmSwitchRareReciter = function(sheikh) {
+  window.dmActiveRareReciter = sheikh;
+  renderDmMainUI();
+};
+
+function renderDmRareList() {
+  const listEl = document.getElementById('dmRareList');
+  const summaryEl = document.getElementById('dmRareSummary');
+  if (!listEl) return;
+
+  const allItems = window.rareRecitations || [];
+  const filtered = allItems.filter(r => r.tag === window.dmActiveRareReciter);
+  const downloadedCount = filtered.filter(i => dmCachedUrlsSet.has(getAbsUrl(i.url))).length;
+
+  if (summaryEl) summaryEl.textContent = `محمّل ${toAr(downloadedCount)} من ${toAr(filtered.length)} تلاوة لهذا القارئ`;
+
+  listEl.innerHTML = filtered.map((item, idx) => {
+    const abs = getAbsUrl(item.url);
+    const isDownloaded = dmCachedUrlsSet.has(abs);
+    return `
+      <div style="display:flex; align-items:center; justify-content:space-between; background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:8px 12px;">
+        <span style="font-size:12px; color:var(--text); font-family:'Amiri',serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:70%;">${item.name}</span>
+        <button onclick="window.dmToggleSingleItem('${item.url}')" style="font-size:11px; padding:4px 8px; border-radius:8px; cursor:pointer; font-family:'Amiri',serif; border:1px solid ${isDownloaded ? '#4caf50' : 'var(--border)'}; background:${isDownloaded ? 'rgba(76,175,80,0.12)' : 'var(--bg3)'}; color:${isDownloaded ? '#4caf50' : 'var(--gold)'};">
+          ${isDownloaded ? '✅ محمّل' : '⬇️ تحميل'}
+        </button>
+      </div>
+    `;
+  }).join('');
+}
+
+window.dmDownloadAllForRareReciter = async function() {
+  const filtered = (window.rareRecitations || []).filter(r => r.tag === window.dmActiveRareReciter && !dmCachedUrlsSet.has(getAbsUrl(r.url)));
+  if (filtered.length === 0) { alert('كل تلاوات هذا القارئ محمّلة بالفعل ✅'); return; }
+  for (const item of filtered) {
+    if (navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({ type: 'CACHE_AUDIO_URL', url: getAbsUrl(item.url), label: 'dm_rare' });
+    }
+  }
+  alert(`⏳ جاري تحميل ${toAr(filtered.length)} تلاوة في الخلفية...`);
+};
+
+window.dmDeleteAllForRareReciter = async function() {
+  if (!confirm(`متأكد إنك عايز تحذف تلاوات ${window.dmActiveRareReciter}؟`)) return;
+  const cache = await caches.open(AUDIO_CACHE_NAME);
+  const filtered = (window.rareRecitations || []).filter(r => r.tag === window.dmActiveRareReciter);
+  for (const i of filtered) {
+    const abs = getAbsUrl(i.url);
+    await cache.delete(abs);
+    dmCachedUrlsSet.delete(abs);
+  }
+  dmUpdateTotalAudioCount();
+  renderDmRareList();
+  alert('تم الحذف ✅');
+};
+
+
+// ==================== المواعظ والدروس (بالأقسام) ====================
+window.dmLectureCats = ["مواعظ متنوعة", "دورة التجويد", "السيرة النبوية", "الفقه الميسر", "رحلة إلى الدار الآخرة", "قصص الأنبياء", "سير الصحابة", "روائع التابعين", "مفسدات القلوب", "أصول الانحراف", "البيت المسلم", "أصول العقيدة", "محاضرات المشايخ"];
+window.dmActiveLectureCat = "مواعظ متنوعة";
+
+window.dmSwitchLectureCat = function(cat) {
+  window.dmActiveLectureCat = cat;
+  renderDmMainUI();
+};
+
+function renderDmLecturesList() {
+  const listEl = document.getElementById('dmLecturesList');
+  const summaryEl = document.getElementById('dmLecturesSummary');
+  if (!listEl) return;
+
+  const allItems = window.lecturesData || [];
+  const filtered = allItems.filter(l => l.category === window.dmActiveLectureCat);
+  const downloadedCount = filtered.filter(i => dmCachedUrlsSet.has(getAbsUrl(i.src))).length;
+
+  if (summaryEl) summaryEl.textContent = `محمّل ${toAr(downloadedCount)} من ${toAr(filtered.length)} درس/موعظة لهذا القسم`;
+
+  listEl.innerHTML = filtered.map(item => {
+    const abs = getAbsUrl(item.src);
+    const isDownloaded = dmCachedUrlsSet.has(abs);
+    return `
+      <div style="display:flex; align-items:center; justify-content:space-between; background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:8px 12px;">
+        <span style="font-size:12px; color:var(--text); font-family:'Amiri',serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:70%;">${item.title}</span>
+        <button onclick="window.dmToggleSingleItem('${item.src}')" style="font-size:11px; padding:4px 8px; border-radius:8px; cursor:pointer; font-family:'Amiri',serif; border:1px solid ${isDownloaded ? '#4caf50' : 'var(--border)'}; background:${isDownloaded ? 'rgba(76,175,80,0.12)' : 'var(--bg3)'}; color:${isDownloaded ? '#4caf50' : 'var(--gold)'};">
+          ${isDownloaded ? '✅ محمّل' : '⬇️ تحميل'}
+        </button>
+      </div>
+    `;
+  }).join('');
+}
+
+window.dmDownloadAllForLectureCat = async function() {
+  const filtered = (window.lecturesData || []).filter(l => l.category === window.dmActiveLectureCat && !dmCachedUrlsSet.has(getAbsUrl(l.src)));
+  if (filtered.length === 0) { alert('كل دروس هذا القسم محمّلة بالفعل ✅'); return; }
+  for (const item of filtered) {
+    if (navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({ type: 'CACHE_AUDIO_URL', url: getAbsUrl(item.src), label: 'dm_lecture' });
+    }
+  }
+  alert(`⏳ جاري تحميل ${toAr(filtered.length)} درس في الخلفية...`);
+};
+
+window.dmDeleteAllForLectureCat = async function() {
+  if (!confirm(`متأكد إنك عايز تحذف دروس قسم [${window.dmActiveLectureCat}]؟`)) return;
+  const cache = await caches.open(AUDIO_CACHE_NAME);
+  const filtered = (window.lecturesData || []).filter(l => l.category === window.dmActiveLectureCat);
+  for (const i of filtered) {
+    const abs = getAbsUrl(i.src);
+    await cache.delete(abs);
+    dmCachedUrlsSet.delete(abs);
+  }
+  dmUpdateTotalAudioCount();
+  renderDmLecturesList();
+  alert('تم الحذف ✅');
+};
+
+// دالة عامة لتبديل تحميل/حذف عنصر مفرد
+window.dmToggleSingleItem = async function(url) {
+  const abs = getAbsUrl(url);
+  const cache = await caches.open(AUDIO_CACHE_NAME);
+  if (dmCachedUrlsSet.has(abs)) {
+    await cache.delete(abs);
+    dmCachedUrlsSet.delete(abs);
+  } else {
+    if (navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({ type: 'CACHE_AUDIO_URL', url: abs, label: 'dm_single' });
+      dmCachedUrlsSet.add(abs);
+    }
+  }
+  dmUpdateTotalAudioCount();
+  renderDmRareList();
+  renderDmLecturesList();
 };
