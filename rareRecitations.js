@@ -671,7 +671,7 @@ function rareBtnId(url) {
 
 window.downloadRareAudio = function(url) {
     if (!navigator.serviceWorker || !navigator.serviceWorker.controller) {
-        alert('⚠️ نظام التخزين لسه بيتجهز، جرب تاني بعد ثانية 🙏');
+        alert('⚠️ نظام التخزين لسه بيتجهز، جرب تاني بعد ثانية ');
         return;
     }
     const btn = document.getElementById(rareBtnId(url));
@@ -681,10 +681,11 @@ window.downloadRareAudio = function(url) {
     }
     
     let safeUrl = url === "audio/nasr_6.mp3" ? "audio/nast_6.mp3" : url;
+    const absUrl = new URL(safeUrl, window.location.href).href;
 
     navigator.serviceWorker.controller.postMessage({
         type: 'CACHE_AUDIO_URL',
-        url: safeUrl,
+        url: absUrl,
         label: 'rare_' + url
     });
 };
@@ -716,7 +717,10 @@ async function markAlreadyDownloadedRareButtons() {
         for (const item of window.rareRecitations) {
             let safeUrl = item.url === "audio/nasr_6.mp3" ? "audio/nast_6.mp3" : item.url;
             
-            const match = await cache.match(safeUrl);
+            // تحويل الرابط إلى رابط كامل للتعرف عليه داخل الكاش
+            const absUrl = new URL(safeUrl, window.location.href).href;
+            const match = await cache.match(absUrl) || await cache.match(safeUrl);
+            
             const btn = document.getElementById(rareBtnId(item.url));
             if (match && btn) {
                 btn.textContent = '✅';
