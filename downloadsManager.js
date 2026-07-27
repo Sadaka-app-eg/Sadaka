@@ -313,7 +313,7 @@ window.dmDeleteAllLectures = async function() {
   alert('تم حذف الدروس والمواعظ المحفوظة بنجاح ✅');
 };
 // ==================== التلاوات الخاشعة (بالقراء) ====================
-window.dmRareReciters = ["محمد عباده", "المنشاوي", "أحمد النفيس", "حسن فهمي", "أسامة عمران", "عبدالرحمن مسعد", "إسلام صبحي", "ياسر الدوسري", "محمود علي البنا", "شعبان الصياد", "أحمد كاسب", "أحمد عبدالرازق نصر", "أحمد بن طالب", "أدعية خاشعة", "أناشيد"];
+window.dmRareReciters = ["محمد عباده", "منشاوي", "أحمد النفيس", "حسن فهمي", "أسامة عمران", "عبدالرحمن مسعد", "إسلام صبحي", "ياسر الدوسري", "محمود علي البنا", "شعبان الصياد", "أحمد كاسب", "أحمد عبدالرازق نصر", "أحمد بن طالب", "أدعية خاشعة", "أناشيد"];
 window.dmActiveRareReciter = "محمد عباده";
 
 window.dmSwitchRareReciter = function(sheikh) {
@@ -332,14 +332,14 @@ function renderDmRareList() {
 
   if (summaryEl) summaryEl.textContent = `محمّل ${toAr(downloadedCount)} من ${toAr(filtered.length)} تلاوة لهذا القارئ`;
 
-  listEl.innerHTML = filtered.map((item, idx) => {
+  listEl.innerHTML = filtered.map(item => {
     const abs = getAbsUrl(item.url);
     const isDownloaded = dmCachedUrlsSet.has(abs);
     return `
-      <div style="display:flex; align-items:center; justify-content:space-between; background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:8px 12px;">
-        <span style="font-size:12px; color:var(--text); font-family:'Amiri',serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:70%;">${item.name}</span>
-        <button onclick="window.dmToggleSingleItem('${item.url}')" style="font-size:11px; padding:4px 8px; border-radius:8px; cursor:pointer; font-family:'Amiri',serif; border:1px solid ${isDownloaded ? '#4caf50' : 'var(--border)'}; background:${isDownloaded ? 'rgba(76,175,80,0.12)' : 'var(--bg3)'}; color:${isDownloaded ? '#4caf50' : 'var(--gold)'};">
-          ${isDownloaded ? '✅ محمّل' : '⬇️ تحميل'}
+      <div style="display:flex; align-items:center; justify-content:space-between; background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:8px 12px; gap:8px;">
+        <span style="font-size:12px; color:var(--text); font-family:'Amiri',serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; text-align:right;">${item.name}</span>
+        <button onclick="window.dmToggleSingleItem('${item.url}')" style="font-size:11px; padding:5px 12px; border-radius:8px; cursor:pointer; font-family:'Amiri',serif; border:1px solid ${isDownloaded ? '#4caf50' : 'var(--border)'}; background:${isDownloaded ? 'rgba(76,175,80,0.12)' : 'var(--bg3)'}; color:${isDownloaded ? '#4caf50' : 'var(--gold)'}; white-space:nowrap;">
+          ${isDownloaded ? '✅ محمّل (حذف)' : '⬇️ تحميل'}
         </button>
       </div>
     `;
@@ -396,10 +396,10 @@ function renderDmLecturesList() {
     const abs = getAbsUrl(item.src);
     const isDownloaded = dmCachedUrlsSet.has(abs);
     return `
-      <div style="display:flex; align-items:center; justify-content:space-between; background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:8px 12px;">
-        <span style="font-size:12px; color:var(--text); font-family:'Amiri',serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:70%;">${item.title}</span>
-        <button onclick="window.dmToggleSingleItem('${item.src}')" style="font-size:11px; padding:4px 8px; border-radius:8px; cursor:pointer; font-family:'Amiri',serif; border:1px solid ${isDownloaded ? '#4caf50' : 'var(--border)'}; background:${isDownloaded ? 'rgba(76,175,80,0.12)' : 'var(--bg3)'}; color:${isDownloaded ? '#4caf50' : 'var(--gold)'};">
-          ${isDownloaded ? '✅ محمّل' : '⬇️ تحميل'}
+      <div style="display:flex; align-items:center; justify-content:space-between; background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:8px 12px; gap:8px;">
+        <span style="font-size:12px; color:var(--text); font-family:'Amiri',serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; text-align:right;">${item.title}</span>
+        <button onclick="window.dmToggleSingleItem('${item.src}')" style="font-size:11px; padding:5px 12px; border-radius:8px; cursor:pointer; font-family:'Amiri',serif; border:1px solid ${isDownloaded ? '#4caf50' : 'var(--border)'}; background:${isDownloaded ? 'rgba(76,175,80,0.12)' : 'var(--bg3)'}; color:${isDownloaded ? '#4caf50' : 'var(--gold)'}; white-space:nowrap;">
+          ${isDownloaded ? '✅ محمّل (حذف)' : '⬇️ تحميل'}
         </button>
       </div>
     `;
