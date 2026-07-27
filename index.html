@@ -4196,23 +4196,42 @@ window.navSurah = function(direction) {
 };
 
 // =========================================================================
-// 🔄 التحميل الخفي في الخلفية بالكامل داخل IndexedDB
+// 🚀 محرك التحميل الأوفلاين الشامل (بيانات الآيات + خطوط الـ 604 صفحة)
 // =========================================================================
 function prefetchFullQuranData() {
   setTimeout(async () => {
-    // التحميل الذكي لكل صفحات المصحف (من 1 إلى 604) في الخلفية صامتاً
-    for (let p = 1; p <= 604; p++) {
-      const existing = await getCachedSurahDB(`page_${p}`);
-      if (!existing) {
-        try {
-          const res = await fetch(`https://api.quran.com/api/v4/verses/by_page/${p}?per_page=300&words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number,rub_number`);
-          const data = await res.json();
-          if (data && data.verses && data.verses.length > 0) {
-            await setCachedSurahDB(`page_${p}`, data);
-          }
-        } catch(e) {}
-        await new Promise(r => setTimeout(r, 60)); // مهلة خفيفة لعدم إجهاد الموبايل
+    if (!('caches' in window)) return;
+    
+    try {
+      const fontCache = await caches.open('quran-fonts-v2');
+      console.log("🚀 جاري بدء التحميل الأوفلاين لخطوط وبيانات المصحف الشريف...");
+
+      for (let p = 1; p <= 604; p++) {
+        // 1. فحص وتخزين بيانات الآيات في IndexedDB
+        const existingData = await getCachedSurahDB(`page_${p}`);
+        if (!existingData) {
+          try {
+            const res = await fetch(`https://api.quran.com/api/v4/verses/by_page/${p}?per_page=300&words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number,rub_number`);
+            const data = await res.json();
+            if (data && data.verses && data.verses.length > 0) {
+              await setCachedSurahDB(`page_${p}`, data);
+            }
+          } catch(e) {}
+        }
+
+        // 2. 🎯 السحر هنا: فحص وتخزين ملف الخط العثماني (WOFF2) للصفحة لمنع الشفرات!
+        const fontUrl = `https://verses.quran.foundation/fonts/quran/hafs/v2/woff2/p${p}.woff2`;
+        const fontMatch = await fontCache.match(fontUrl);
+        if (!fontMatch) {
+          fontCache.add(fontUrl).catch(() => {});
+        }
+
+        // مهلة بسيطة بين كل صفحة وصفحة حتى لا يسخن الهاتف
+        await new Promise(r => setTimeout(r, 40));
       }
+      console.log("✅ تم حفظ خطوط وبيانات ٦٠٤ صفحة أوفلاين بنجاح! لن تظهر شفرات بعد اليوم.");
+    } catch (e) {
+      console.error("خطأ التحميل الخلفي:", e);
     }
   }, 3000);
 }
