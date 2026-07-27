@@ -51,7 +51,9 @@ const MUSHAF_IMAGE_HOST = 'cdn.myquran.com';
 const CACHEABLE_AUDIO_HOSTS = [
   'server10.mp3quran.net', 'server13.mp3quran.net', 'server8.mp3quran.net',
   'server7.mp3quran.net', 'server12.mp3quran.net', 'server11.mp3quran.net',
-  'server16.mp3quran.net', 'cdn.islamic.network', 'www.everyayah.com'
+  'server16.mp3quran.net', 'cdn.islamic.network', 'www.everyayah.com',
+  'verses.quran.foundation'
+  
 ];
 
 // ===========================================
