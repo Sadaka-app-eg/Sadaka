@@ -106,10 +106,9 @@ renderDmLecturesSummary(); // 👈 أضف هذا السطر هنا
 }
 
 
-// ---------- قسم السور ----------
 window.dmSwitchReciter = function(id) {
   dmActiveReciter = id;
-  renderDmMainUI(document.getElementById('dmMushafCountNum') ? parseInt(document.getElementById('dmMushafCountNum').textContent) || 0 : 0);
+  renderDmMainUI();
 };
 
 function dmReciterSurahUrls() {
@@ -127,11 +126,11 @@ function renderDmSurahsList() {
   if (!listEl) return;
 
   const items = dmReciterSurahUrls();
-  const downloadedCount = items.filter(i => dmCachedUrlsSet.has(i.url)).length;
+const downloadedCount = items.filter(i => dmCachedUrlsSet.has(getAbsUrl(i.url))).length;
   if (summaryEl) summaryEl.textContent = `محمّل ${toAr(downloadedCount)} من ١١٤ سورة`;
 
   listEl.innerHTML = items.map(i => {
-    const isDownloaded = dmCachedUrlsSet.has(i.url);
+const isDownloaded = dmCachedUrlsSet.has(getAbsUrl(i.url));
     return `
       <div style="display:flex; align-items:center; justify-content:space-between; background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:8px 12px;">
         <span style="font-size:13px; color:var(--text); font-family:'Amiri',serif;">${toAr(i.n)}. ${i.name}</span>
@@ -145,8 +144,7 @@ function renderDmSurahsList() {
 
 window.dmToggleSurah = async function(n, url) {
   const btn = document.getElementById('dm_surah_' + n);
-  const isDownloaded = dmCachedUrlsSet.has(url);
-
+const isDownloaded = dmCachedUrlsSet.has(getAbsUrl(url));
   if (isDownloaded) {
     const cache = await caches.open(AUDIO_CACHE_NAME);
     await cache.delete(url);
@@ -197,7 +195,7 @@ function renderDmRareSummary() {
   const el = document.getElementById('dmRareSummary');
   if (!el) return;
   const urls = dmRareUrls();
-  const downloaded = urls.filter(u => dmCachedUrlsSet.has(u)).length;
+const downloaded = urls.filter(u => dmCachedUrlsSet.has(getAbsUrl(u))).length;  
   el.textContent = urls.length === 0 ? 'جاري تحميل القائمة...' : `محمّل ${toAr(downloaded)} من ${toAr(urls.length)} تلاوة`;
 }
 
@@ -284,7 +282,7 @@ function renderDmLecturesSummary() {
   const el = document.getElementById('dmLecturesSummary');
   if (!el) return;
   const urls = dmLecturesUrls();
-  const downloaded = urls.filter(u => dmCachedUrlsSet.has(u)).length;
+const downloaded = urls.filter(u => dmCachedUrlsSet.has(getAbsUrl(u))).length;  
   el.textContent = urls.length === 0 ? 'لا توجد دروس حالياً' : `محمّل ${toAr(downloaded)} من ${toAr(urls.length)} درس وموعظة أوفلاين`;
 }
 
@@ -292,8 +290,9 @@ window.dmDeleteAllLectures = async function() {
   if (!confirm('متأكد إنك عايز تحذف كل المواعظ والدروس المحفوظة؟')) return;
   const cache = await caches.open(AUDIO_CACHE_NAME);
   for (const u of dmLecturesUrls()) {
-    await cache.delete(u);
-    dmCachedUrlsSet.delete(u);
+    const abs = getAbsUrl(u);
+    await cache.delete(abs);
+    dmCachedUrlsSet.delete(abs);
   }
   dmUpdateTotalAudioCount();
   renderDmLecturesSummary();
