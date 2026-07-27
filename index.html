@@ -245,9 +245,9 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
   padding: 0 1px;
   border-radius: 3px;
   transition: background 0.15s;
-  line-height: 1.8;
+  line-height: 1.25 !important;
   font-weight: 700;
-  -webkit-text-stroke: 0.35px currentColor;
+  -webkit-text-stroke: 0.5px currentColor;
 }
 .qcf-word:active, .qcf-word.selected {
   background: rgba(76,175,80,0.25);
@@ -3949,15 +3949,13 @@ html += `<div style="display:flex; flex-direction:row; ${lineJustify} align-item
     lineWords.forEach(w => {
       const ayahIndex = currentAyahsData.findIndex(a => a.surahNumber === w.vSurah && a.numberInSurah === w.vAyah);
      
-     html += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}"
-  style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:1.2; font-weight:bold; -webkit-text-stroke:0.4px currentColor; display:inline-flex; align-items:center; user-select:none; white-space:nowrap;"
-   
-        
- ontouchstart="startPress(event, ${ayahIndex})"
-        ontouchmove="cancelPress(event)"
-        ontouchend="cancelPress(event); if(!isScrolling && window.isPickingEndAyah){ handleAyahClick(${ayahIndex}); }">
-        ${w.code}
-      </span>`;
+html += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}"
+  style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:1.2; font-weight:bold; -webkit-text-stroke:0.5px currentColor; display:inline-flex; align-items:center; user-select:none; white-space:nowrap;"
+  ontouchstart="startPress(event, ${ayahIndex})"
+  ontouchmove="cancelPress(event)"
+  ontouchend="cancelPress(event); if(!isScrolling && window.isPickingEndAyah){ handleAyahClick(${ayahIndex}); }">
+  ${w.code}
+</span>`; 
     });
     html += `</div>`;
   });
@@ -4138,13 +4136,13 @@ const lineJustify = isSpecialPage ? 'justify-content:center;gap:8px;' : 'justify
         
      lineWords.forEach(w => {
      const ayahIndex = currentAyahsData.findIndex(a => a.surahNumber === w.vSurah && a.numberInSurah === w.vAyah);
-          sliderHtml += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}"
-            style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:1.9; display:inline-flex; align-items:center; user-select:none; white-space:nowrap;"
-            ontouchstart="startPress(event, ${ayahIndex})"
-            ontouchmove="cancelPress(event)"
-            ontouchend="cancelPress(event); if(!isScrolling && window.isPickingEndAyah){ handleAyahClick(${ayahIndex}); }">
-            ${w.code}
-          </span>`;
+sliderHtml += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}"
+  style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:1.2; font-weight:bold; -webkit-text-stroke:0.5px currentColor; display:inline-flex; align-items:center; user-select:none; white-space:nowrap;"
+  ontouchstart="startPress(event, ${ayahIndex})"
+  ontouchmove="cancelPress(event)"
+  ontouchend="cancelPress(event); if(!isScrolling && window.isPickingEndAyah){ handleAyahClick(${ayahIndex}); }">
+  ${w.code}
+</span>`;
         });
         sliderHtml += `</div>`;
       });
@@ -4583,13 +4581,8 @@ function formatAudioTime(seconds) {
 document.addEventListener('DOMContentLoaded', () => {
 
   // 1️⃣ إعداد الثيم والمظهر الخارجي فوراً
-  const savedTheme = localStorage.getItem('theme_choice');
-  if (savedTheme === 'light') {
-    isDark = false;
-    document.body.classList.add('light');
-    const themeBtn = document.getElementById('themeBtn');
-    if (themeBtn) themeBtn.textContent = '🌙';
-  }
+// 1️⃣ إعداد الثيم والمظهر الخارجي فوراً
+loadSavedThemeSystem();
 
   renderBgPicker();
   const savedBg = localStorage.getItem('home_bg_choice') || 'none';
