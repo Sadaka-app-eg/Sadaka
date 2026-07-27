@@ -1567,6 +1567,7 @@ body.hide-controls #quran {
       <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:16px;">
         <input type="text" id="khatmaTitleInput" placeholder="عنوان الختمة (مثال: ختمة القراءة والتدبر)" style="padding:12px; border-radius:12px; background:var(--bg2); color:var(--text); border:1px solid var(--border);">
         <input type="number" id="khatmaDaysInput" placeholder="مدة الختمة بالأيام (مثال: 30 أو 60)" min="1" max="365" style="padding:12px; border-radius:12px; background:var(--bg2); color:var(--text); border:1px solid var(--border);">
+       <input type="number" id="khatmaOffDaysInput" placeholder="أيام الإجازة الأسبوعية (مثال: 1 أو 2)" min="0" max="4" value="1" style="padding:12px; border-radius:12px; background:var(--bg2); color:var(--text); border:1px solid var(--border);">
       </div>
 
       <div style="display:flex; gap:10px;">
@@ -1617,7 +1618,12 @@ body.hide-controls #quran {
       </div>
       <div id="heatmapGrid"></div>
     </div>
-
+<!-- أزرار الميزات الإضافية والأرشيف -->
+<div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
+  <button onclick="showInsightsArchive()" class="cat-btn" style="flex:1; padding:8px; font-size:12px; background:rgba(212,175,55,0.1); color:var(--gold); border:1px solid var(--gold);">📜 أرشيف تدبراتي</button>
+  <button onclick="generateGroupKhatmaShare()" class="cat-btn" style="flex:1; padding:8px; font-size:12px; background:rgba(76,175,80,0.1); color:var(--green); border:1px solid var(--green);">🤲 مشاركة عائلية</button>
+  <button onclick="exportKhatmaData()" class="cat-btn" style="padding:8px 12px; font-size:12px; background:transparent; border:1px solid var(--border); color:var(--text);">💾 نسخ احتياطي</button>
+</div>
     <!-- خيار حذف/إعادة تعيين الختمة الحالية -->
     <button onclick="deleteActiveKhatma()" class="cat-btn" style="width:100%; margin-top:14px; background:transparent; border:1px solid #ff6b6b; color:#ff6b6b; padding:10px; border-radius:12px;">حذف هذه الختمة ↺</button>
   </div>
