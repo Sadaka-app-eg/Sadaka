@@ -6997,6 +6997,7 @@ window.changeDhikrSound = function(value) {
 };
 
 // تعديل دالة رفع ومعالجة نغمة الهاتف
+// دالة محمية تخزن نغمة الهاتف في IndexedDB بدلاً من localStorage
 window.uploadCustomDhikrSound = function(fileInput) {
   const file = fileInput.files[0];
   if (!file) return;
@@ -7006,30 +7007,25 @@ window.uploadCustomDhikrSound = function(fileInput) {
     return;
   }
 
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    try {
-      const audioData = e.target.result;
-      
-      // تخزين ملف الهاتف محلياً
-      localStorage.setItem('custom_user_dhikr_sound', audioData);
-      localStorage.setItem('selected_dhikr_sound', 'CUSTOM_USER_SOUND');
-      
-      // تحديث واجهة القائمة
-      const opt = document.getElementById('customSoundOption');
-      if (opt) opt.style.display = 'block';
-      const select = document.getElementById('dhikrSoundSelect');
-      if (select) select.value = 'CUSTOM_USER_SOUND';
+  // حفظ الملف الصوتي كـ Blob نقي جوه IndexedDB
+  openQuranDB().then(db => {
+    const tx = db.transaction("surahs", "readwrite");
+    const store = tx.objectStore("surahs");
+    store.put(file, 'custom_user_dhikr_audio_blob');
 
-      // تشغيل المعاينة فوراً ليسمع التجربة!
-      window.previewDhikrSound();
+    localStorage.setItem('selected_dhikr_sound', 'CUSTOM_USER_SOUND');
 
-      alert('✅ تم تحميل وتجربة نغمتك الخاصة بنجاح! اضغط زر التفعيل لحفظها بالنظام.');
-    } catch (error) {
-      alert('⚠️ حجم الملف كبير شوية، اختر مقطع تنبيه قصير لتفادي قيود الذاكرة.');
-    }
-  };
-  reader.readAsDataURL(file);
+    // تحديث الواجهة
+    const opt = document.getElementById('customSoundOption');
+    if (opt) opt.style.display = 'block';
+    const select = document.getElementById('dhikrSoundSelect');
+    if (select) select.value = 'CUSTOM_USER_SOUND';
+
+    alert('✅ تم حفظ ونقل نغمتك الخاصة إلى قاعدة البيانات المحلية بنجاح!');
+  }).catch(err => {
+    console.error("خطأ التخزين في IndexedDB:", err);
+    alert('⚠️ حدث خطأ أثناء حفظ الملف الصوتي.');
+  });
 };
 async function activateAnswerTimes() {
   const statusEl = document.getElementById('answerTimesStatus');
