@@ -3941,9 +3941,8 @@ html += `<div style="flex:1; display:flex; flex-direction:column; justify-conten
   lines.forEach(lineNum => {
     const lineWords = pagesDict[pageNum][lineNum];
     const lineJustify = isSpecialPage ? 'justify-content:center;gap:8px;' : 'justify-content:space-between;';
-   const fontSize = isSpecialPage
-  ? 'clamp(18px, 4.8vw, 26px)'
-  : `clamp(${14 - extraLines*1.2}px, ${3.6 - extraLines*0.25}vw, ${20 - extraLines*1.5}px)`;
+   
+  const fontSize = isSpecialPage ? 'clamp(22px, 5.5vw, 32px)' : 'clamp(20px, 4.8vw, 28px)';
 
     const firstWord = lineWords[0];
     if (firstWord && firstWord.vAyah === 1 && !renderedSurahHeaders.has(firstWord.vSurah)) {
@@ -4126,9 +4125,7 @@ sliderHtml += `<div style="flex:1; display:flex; flex-direction:column; justify-
       lines.forEach(lineNum => {
         const lineWords = pagesDict[pageNum][lineNum];
 const lineJustify = isSpecialPage ? 'justify-content:center;gap:8px;' : 'justify-content:space-between;';
-        const fontSize = isSpecialPage 
-          ? 'clamp(20px, 5.2vw, 30px)' 
-          : `clamp(${17 - extraLines*1.5}px, ${4.3 - extraLines*0.3}vw, ${25 - extraLines*2}px)`;
+        const fontSize = isSpecialPage ? 'clamp(22px, 5.5vw, 32px)' : 'clamp(20px, 4.8vw, 28px)';
 
         const firstWord = lineWords[0];
         if (firstWord && firstWord.vAyah === 1 && !renderedSurahHeaders.has(firstWord.vSurah)) {
