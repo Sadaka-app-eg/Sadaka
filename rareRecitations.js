@@ -325,13 +325,13 @@ window.rareRecitations = [
 
 // تلاوات الشيخ عمر بن ضياء الدين (8 تلاوات) من أرشيف الإنترنت
   { name: "تلاوة بصوت القارئ عمر ضياء الدين بدون مؤثرات 🎙️", url: "https://archive.org/download/omaar_8/omaar_1.mp3", desc: "", tag: "عمر بن ضياء الدين" },
-  { name: "سورة الإنسان بصوت القارئ عمر ضياء الدين 🎙️", url: "https://archive.org/download/omar_8/omaar_2.mp3", desc: "", tag: "عمر بن ضياء الدين" },
-  { name: "سورة الدخان بصوت القارئ عمر ضياء الدين 🎙️", url: "https://archive.org/download/omar_8/omaar_3.mp3", desc: "", tag: "عمر بن ضياء الدين" },
-  { name: "سورة الملك بدون مؤثرات - القارئ عمر ضياء الدين 🎙️", url: "https://archive.org/download/omar_8/omaar_4.mp3", desc: "", tag: "عمر بن ضياء الدين" },
-  { name: "سورة النجم بصوت القارئ عمر ضياء الدين 🎙️", url: "https://archive.org/download/omar_8/omaar_5.mp3", desc: "", tag: "عمر بن ضياء الدين" },
-  { name: "سورة الواقعة - عمر بن ضياء الدين بدون مؤثرات 🎙️", url: "https://archive.org/download/omar_8/omaar_6.mp3", desc: "", tag: "عمر بن ضياء الدين" },
-  { name: "سورة نوح 1443 هـ إصدار الروح بصوت القارئ عمر بن ضياء الدين 🎙️", url: "https://archive.org/download/omar_8/omaar_7.mp3", desc: "", tag: "عمر بن ضياء الدين" },
-  { name: "عمر ضياء الدين تلاوة بدون مؤثرات من سورة آل عمران 🎙️", url: "https://archive.org/download/omar_8/omaar_8.mp3", desc: "", tag: "عمر بن ضياء الدين" },
+  { name: "سورة الإنسان بصوت القارئ عمر ضياء الدين 🎙️", url: "https://archive.org/download/omaar_8/omaar_2.mp3", desc: "", tag: "عمر بن ضياء الدين" },
+  { name: "سورة الدخان بصوت القارئ عمر ضياء الدين 🎙️", url: "https://archive.org/download/omaar_8/omaar_3.mp3", desc: "", tag: "عمر بن ضياء الدين" },
+  { name: "سورة الملك بدون مؤثرات - القارئ عمر ضياء الدين 🎙️", url: "https://archive.org/download/omaar_8/omaar_4.mp3", desc: "", tag: "عمر بن ضياء الدين" },
+  { name: "سورة النجم بصوت القارئ عمر ضياء الدين 🎙️", url: "https://archive.org/download/omaar_8/omaar_5.mp3", desc: "", tag: "عمر بن ضياء الدين" },
+  { name: "سورة الواقعة - عمر بن ضياء الدين بدون مؤثرات 🎙️", url: "https://archive.org/download/omaar_8/omaar_6.mp3", desc: "", tag: "عمر بن ضياء الدين" },
+  { name: "سورة نوح 1443 هـ إصدار الروح بصوت القارئ عمر بن ضياء الدين 🎙️", url: "https://archive.org/download/omaar_8/omaar_7.mp3", desc: "", tag: "عمر بن ضياء الدين" },
+  { name: "عمر ضياء الدين تلاوة بدون مؤثرات من سورة آل عمران 🎙️", url: "https://archive.org/download/omaar_8/omaar_8.mp3", desc: "", tag: "عمر بن ضياء الدين" },
 
 // تلاوات الشيخ عبدالله الخلف (10 تلاوات) من أرشيف الإنترنت
   { name: "سورة طه - بصوت القارئ عبدالله الخلف 🎙️", url: "https://archive.org/download/abdallah_8/abdallah_1.mp3", desc: "", tag: "عبدالله الخلف" },
@@ -357,7 +357,7 @@ window.rareRecitations = [
   { name: "تلاوة خاشعة صلاة التهجد الإسكندرية رمضان 2023 - جابر القيطان 🎙️", url: "https://archive.org/download/httpsarchive.orgdetailsgaber_al_qytan_recitations/gaber_1.mp3", desc: "", tag: "جابر القيطان" },
   { name: "تلاوة خاشعة من سورة ق .. ولقد خلقنا الإنسان ونعلم ما توسوس به نفسه - جابر القيطان 🎙️", url: "https://archive.org/download/httpsarchive.orgdetailsgaber_al_qytan_recitations/gaber_2.mp3", desc: "", tag: "جابر القيطان" },
   { name: "تلاوة هادئة من سورة الفرقان - جابر القيطان 🎙️", url: "https://archive.org/download/httpsarchive.orgdetailsgaber_al_qytan_recitations/gaber_3.mp3", desc: "", tag: "جابر القيطان" },
-  { name: " تلاوات القارئ جابر القيطان صوت مريح للسمع 🎙️", url: "https://archive.org/download/httpsarchive.orgdetailsgaber_al_qytan_recitations/gaber_3.mp3", desc: "", tag: "جابر القيطان" },
+  { name: " تلاوات القارئ جابر القيطان صوت مريح للسمع 🎙️", url: "https://archive.org/download/httpsarchive.orgdetailsgaber_al_qytan_recitations/gaber_4.mp3", desc: "", tag: "جابر القيطان" },
   { name: "سورة النبا كاملة من جزء عم للقارئ جابر القيطان 🎙️", url: "https://archive.org/download/httpsarchive.orgdetailsgaber_al_qytan_recitations/gaber_5.mp3", desc: "", tag: "جابر القيطان" },
   { name: "ما تيسر من سورة الرحمن تريح القلب تسجيل جديد - جابر القيطان 🎙️", url: "https://archive.org/download/httpsarchive.orgdetailsgaber_al_qytan_recitations/gaber_6.mp3", desc: "", tag: "جابر القيطان" },
   // تلاوات الشيخ أحمد عبدالرازق نصر (7 تلاوات)
