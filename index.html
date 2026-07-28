@@ -3709,13 +3709,14 @@ function filterSurahs(q) {
 
 // تحميل الخط العثماني بصفحاته بدقة عالية بدون تاكل
 async function loadQcfPageFont(pageNum) {
+  if (qcfFontsLoaded[pageNum]) return true; // 🎯 لو اتحمّل قبل كده، منعملش حاجة تاني
   const fontName = `QCF_V2_P${pageNum}`;
   const fontUrl = `https://verses.quran.foundation/fonts/quran/hafs/v2/woff2/p${pageNum}.woff2`;
   try {
     const font = new FontFace(fontName, `url(${fontUrl})`);
     await font.load();
     document.fonts.add(font);
-    await document.fonts.ready;
+    qcfFontsLoaded[pageNum] = true; // 🎯 تسجيله كمحمّل نهائياً
     return true;
   } catch (e) {
     console.error("خطأ تحميل الخط العثماني:", e);
@@ -3743,8 +3744,7 @@ function getHeaderJuzText(pageNum, rawVerses) {
   const currentRub = currentVerse.rub_number;
 
   const prevPageVerses = rawVerses.filter(v => v.page_number === pageNum - 1);
-  const prevRub = (prevPageVerses && prevPageVerses.length > 0) ? prevPageVerses[0].rub_number : null;
-
+const prevRub = (prevPageVerses && prevPageVerses.length > 0) ? prevPageVerses[prevPageVerses.length - 1].rub_number : null;
 // لو مفيش ربع/حزب جديد اعرض اسم الجزء فقط بدون فاصلة
   if (prevRub && currentRub === prevRub) {
     return juzText;
@@ -4089,9 +4089,8 @@ const minPage = Math.max(1, targetP - 2);
 
     // 🎯 الضمان الأول: انتظار تمام تحميل الخطوط العثمانية لكل الصفحات قبل الرسم
  // 🎯 الضمان الأول: انتظار تمام تحميل الخطوط العثمانية لكل الصفحات قبل الرسم
-pageNums.forEach(p => loadQcfPageFont(p));
-    if (myOpenReqId !== window._openSurahReqId) return; // فحص تاني بعد الانتظار
-
+await Promise.all(pageNums.map(p => loadQcfPageFont(p))); // ننتظر فعلياً كل الخطوط تخلص
+if (myOpenReqId !== window._openSurahReqId) return;
     let sliderHtml = '';
 
     pageNums.forEach((pageNum) => {
@@ -8447,21 +8446,14 @@ function stopMainAutoScroll() {
   const playBtn = document.getElementById('mainAutoScrollPlayBtn');
   if (playBtn) playBtn.textContent = '▶';
 
-  const slider = document.getElementById('mushafSlider');
+const slider = document.getElementById('mushafSlider');
   if (slider && slider.children.length) {
-    const pages = Array.from(slider.children);
-    let targetPageNum = null;
-    let minDistance = Infinity;
-
-    // 1. تحديد رقم الصفحة الفعلي (data-page) اللي عُينك واقفة عليها على الشاشة وقت الإيقاف
-    pages.forEach((p) => {
-      const rect = p.getBoundingClientRect();
-      const distance = Math.abs(rect.top);
-      if (distance < minDistance) {
-        minDistance = distance;
-        targetPageNum = parseInt(p.getAttribute('data-page'));
-      }
-    });
+    // 1. نسأل المتصفح مباشرة: إيه الصفحة الظاهرة فعلياً في نص الشاشة دلوقتي؟
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2;
+    const elAtCenter = document.elementFromPoint(centerX, centerY);
+    const pageElAtCenter = elAtCenter ? elAtCenter.closest('.mushaf-page') : null;
+    const targetPageNum = pageElAtCenter ? parseInt(pageElAtCenter.getAttribute('data-page')) : null;
 
     // 2. إيقاف الـ snap مؤقتاً لمنع أي قفزات عشوائية
     slider.style.scrollSnapType = 'none';
