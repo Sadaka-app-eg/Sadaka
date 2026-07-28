@@ -323,37 +323,43 @@ window.rareRecitations = [
 { name: "شعبان الصياد: الإنسان والنازعات 🎙️", url: "https://archive.org/download/Chaaben_Sayad_uP_bY_mUSLEm/046-1-2227-41_up_by_muslem.mp3", desc: "", tag: "شعبان الصياد" }, // رقم 46 في القائمة (22:16)
 
 
-  // تلاوات الشيخ عمر بن ضياء الدين (8 تلاوات)
-  { name: "عمر بن ضياء الدين: تلاوة خاشعة 01 🎙️", url: "audio_2/omaar_1.mp3", desc: "", tag: "عمر بن ضياء الدين" },
-  { name: "عمر بن ضياء الدين: تلاوة خاشعة 02 🎙️", url: "audio_2/omaar_2.mp3", desc: "", tag: "عمر بن ضياء الدين" },
-  { name: "عمر بن ضياء الدين: تلاوة خاشعة 03 🎙️", url: "audio_2/omaar_3.mp3", desc: "", tag: "عمر بن ضياء الدين" },
-  { name: "عمر بن ضياء الدين: تلاوة خاشعة 04 🎙️", url: "audio_2/omaar_4.mp3", desc: "", tag: "عمر بن ضياء الدين" },
-  { name: "عمر بن ضياء الدين: تلاوة خاشعة 05 🎙️", url: "audio_2/omaar_5.mp3", desc: "", tag: "عمر بن ضياء الدين" },
-  { name: "عمر بن ضياء الدين: تلاوة خاشعة 06 🎙️", url: "audio_2/omaar_6.mp3", desc: "", tag: "عمر بن ضياء الدين" },
-  { name: "عمر بن ضياء الدين: تلاوة خاشعة 07 🎙️", url: "audio_2/omaar_7.mp3", desc: "", tag: "عمر بن ضياء الدين" },
-  { name: "عمر بن ضياء الدين: تلاوة خاشعة 08 🎙️", url: "audio_2/omaar_8.mp3", desc: "", tag: "عمر بن ضياء الدين" },
+// تلاوات الشيخ عمر بن ضياء الدين (8 تلاوات) من أرشيف الإنترنت
+  { name: "تلاوة بصوت القارئ عمر ضياء الدين بدون مؤثرات 🎙️", url: "https://archive.org/download/omaar_8/omaar_1.mp3", desc: "", tag: "عمر بن ضياء الدين" },
+  { name: "سورة الإنسان بصوت القارئ عمر ضياء الدين 🎙️", url: "https://archive.org/download/omar_8/omaar_2.mp3", desc: "", tag: "عمر بن ضياء الدين" },
+  { name: "سورة الدخان بصوت القارئ عمر ضياء الدين 🎙️", url: "https://archive.org/download/omar_8/omaar_3.mp3", desc: "", tag: "عمر بن ضياء الدين" },
+  { name: "سورة الملك بدون مؤثرات - القارئ عمر ضياء الدين 🎙️", url: "https://archive.org/download/omar_8/omaar_4.mp3", desc: "", tag: "عمر بن ضياء الدين" },
+  { name: "سورة النجم بصوت القارئ عمر ضياء الدين 🎙️", url: "https://archive.org/download/omar_8/omaar_5.mp3", desc: "", tag: "عمر بن ضياء الدين" },
+  { name: "سورة الواقعة - عمر بن ضياء الدين بدون مؤثرات 🎙️", url: "https://archive.org/download/omar_8/omaar_6.mp3", desc: "", tag: "عمر بن ضياء الدين" },
+  { name: "سورة نوح 1443 هـ إصدار الروح بصوت القارئ عمر بن ضياء الدين 🎙️", url: "https://archive.org/download/omar_8/omaar_7.mp3", desc: "", tag: "عمر بن ضياء الدين" },
+  { name: "عمر ضياء الدين تلاوة بدون مؤثرات من سورة آل عمران 🎙️", url: "https://archive.org/download/omar_8/omaar_8.mp3", desc: "", tag: "عمر بن ضياء الدين" },
 
-  // تلاوات الشيخ عبدالله الخلف (10 تلاوات)
-  { name: "عبدالله الخلف: تلاوة خاشعة 01 🎙️", url: "audio_2/abdallah_1.mp3", desc: "", tag: "عبدالله الخلف" },
-  { name: "عبدالله الخلف: تلاوة خاشعة 02 🎙️", url: "audio_2/abdallah_2.mp3", desc: "", tag: "عبدالله الخلف" },
-  { name: "عبدالله الخلف: تلاوة خاشعة 03 🎙️", url: "audio_2/abdallah_3.mp3", desc: "", tag: "عبدالله الخلف" },
-  { name: "عبدالله الخلف: تلاوة خاشعة 04 🎙️", url: "audio_2/abdallah_4.mp3", desc: "", tag: "عبدالله الخلف" },
-  { name: "عبدالله الخلف: تلاوة خاشعة 05 🎙️", url: "audio_2/abdallah_5.mp3", desc: "", tag: "عبدالله الخلف" },
-  { name: "عبدالله الخلف: تلاوة خاشعة 06 🎙️", url: "audio_2/abdallah_6.mp3", desc: "", tag: "عبدالله الخلف" },
-  { name: "عبدالله الخلف: تلاوة خاشعة 07 🎙️", url: "audio_2/abdallah_7.mp3", desc: "", tag: "عبدالله الخلف" },
-  { name: "عبدالله الخلف: تلاوة خاشعة 08 🎙️", url: "audio_2/abdallah_8.mp3", desc: "", tag: "عبدالله الخلف" },
-  { name: "عبدالله الخلف: تلاوة خاشعة 09 🎙️", url: "audio_2/abdallah_9.mp3", desc: "", tag: "عبدالله الخلف" },
-  { name: "عبدالله الخلف: تلاوة خاشعة 10 🎙️", url: "audio_2/abdallah_10.mp3", desc: "", tag: "عبدالله الخلف" },
+// تلاوات الشيخ عبدالله الخلف (10 تلاوات) من أرشيف الإنترنت
+  { name: "سورة طه - بصوت القارئ عبدالله الخلف 🎙️", url: "https://archive.org/download/abdallah_8/abdallah_1.mp3", desc: "", tag: "عبدالله الخلف" },
+  { name: "يا أيها المدثر - بصوت القارئ عبدالله الخلف 🎙️", url: "https://archive.org/download/abdallah_8/abdallah_10.mp3", desc: "", tag: "عبدالله الخلف" },
+  { name: "سورة الروم كاملة - القارئ عبدالله الخلف 🎙️", url: "https://archive.org/download/abdallah_8/abdallah_2.mp3", desc: "", tag: "عبدالله الخلف" },
+  { name: "سورة الشعراء كاملة - القارئ عبدالله الخلف 🎙️", url: "https://archive.org/download/abdallah_8/abdallah_3.mp3", desc: "", tag: "عبدالله الخلف" },
+  { name: "سورة الفتح - القارئ عبدالله الخلف 1443 هـ 🎙️", url: "https://archive.org/download/abdallah_8/abdallah_5.mp3", desc: "", tag: "عبدالله الخلف" },
+  { name: "سورة الكهف كاملة - القارئ عبدالله الخلف 🎙️", url: "https://archive.org/download/abdallah_8/abdallah_6.mp3", desc: "", tag: "عبدالله الخلف" },
+  { name: "سورة النجم - القارئ عبدالله الخلف 1440 هـ 🎙️", url: "https://archive.org/download/abdallah_8/abdallah_7.mp3", desc: "", tag: "عبدالله الخلف" },
+  { name: "سورة مريم - القارئ عبدالله الخلف 1440 هـ 🎙️", url: "https://archive.org/download/abdallah_8/abdallah_8.mp3", desc: "", tag: "عبدالله الخلف" },
+  { name: "من أجمل التلاوات - للقارئ عبدالله الخلف 🎙️", url: "https://archive.org/download/abdallah_8/abdallah_9.mp3", desc: "", tag: "عبدالله الخلف" },
 
-  // تلاوات القارئ جابر القيطان (8 تلاوات)
-  { name: "جابر القيطان: تلاوة خاشعة 01 🎙️", url: "audio_2/gaber_1.mp3", desc: "", tag: "جابر القيطان" },
-  { name: "جابر القيطان: تلاوة خاشعة 02 🎙️", url: "audio_2/gaber_2.mp3", desc: "", tag: "جابر القيطان" },
-  { name: "جابر القيطان: تلاوة خاشعة 03 🎙️", url: "audio_2/gaber_3.mp3", desc: "", tag: "جابر القيطان" },
-  { name: "جابر القيطان: تلاوة خاشعة 04 🎙️", url: "audio_2/gaber_4.mp3", desc: "", tag: "جابر القيطان" },
-  { name: "جابر القيطان: تلاوة خاشعة 05 🎙️", url: "audio_2/gaber_5.mp3", desc: "", tag: "جابر القيطان" },
-  { name: "جابر القيطان: تلاوة خاشعة 06 🎙️", url: "audio_2/gaber_6.mp3", desc: "", tag: "جابر القيطان" },
-  { name: "جابر القيطان: تلاوة خاشعة 07 🎙️", url: "audio_2/gaber_7.mp3", desc: "", tag: "جابر القيطان" },
-  { name: "جابر القيطان: تلاوة خاشعة 08 🎙️", url: "audio_2/gaber_8.mp3", desc: "", tag: "جابر القيطان" },
+  // تلاوات القارئ الشيخ باسل مؤنس رحمه الله (7 تلاوات) من أرشيف الإنترنت
+  { name: "الأخلاء يومئذ بعضهم لبعض عدو إلا المتقين - سورة الزخرف | باسل مؤنس 🎙️", url: "https://archive.org/download/basel_mounis_recitations/basel_1.mp3", desc: "", tag: "باسل مؤنس" },
+  { name: "ولنبلونكم بشيء من الخوف والجوع ..... 🎙️", url: "https://archive.org/download/basel_mounis_recitations/basel_2.mp3", desc: "", tag: "باسل مؤنس" },
+  { name: "ألم تر إلى الذين بدلوا نعمة الله كفرا - باسل محمد مؤنس 🎙️", url: "https://archive.org/download/basel_mounis_recitations/basel_3.mp3", desc: "", tag: "باسل مؤنس" },
+  { name: "إيه الخشوع دا _ رحمة الله عليك_ باسل مؤنس 🎙️", url: "https://archive.org/download/basel_mounis_recitations/basel_4.mp3", desc: "", tag: "باسل مؤنس" },
+  { name: "تلاوة سورة فاطر - باسل مؤنس رحمه الله 🎙️", url: "https://archive.org/download/basel_mounis_recitations/basel_5.mp3", desc: "", tag: "باسل مؤنس" },
+  { name: "تلاوة مؤثره من سورة لقمان الشيخ باسل مؤنس 🎙️", url: "https://archive.org/download/basel_mounis_recitations/basel_6.mp3", desc: "", tag: "باسل مؤنس" },
+  { name: "سورة إبراهيم آخر ما سجل لباسل مؤنس رحمه الله 🎙️", url: "https://archive.org/download/basel_mounis_recitations/basel_7.mp3", desc: "", tag: "باسل مؤنس" },
+// تلاوات القارئ جابر القيطان (7 تلاوات) من أرشيف الإنترنت
+   { name: "وَقَالَ الشَّيْطَانُ لَمَّا قُضِيَ الْأَمْرُ | تلاوة هادئة | القارئ جابر القيطان 🎙️", url: "https://archive.org/download/gaber_al_qytan_recitations/gaber_7.mp3", desc: "", tag: "جابر القيطان" },
+  { name: "تلاوة خاشعة صلاة التهجد الإسكندرية رمضان 2023 - جابر القيطان 🎙️", url: "https://archive.org/download/gaber_al_qytan_recitations/gaber_1.mp3", desc: "", tag: "جابر القيطان" },
+  { name: "تلاوة خاشعة من سورة ق .. ولقد خلقنا الإنسان ونعلم ما توسوس به نفسه - جابر القيطان 🎙️", url: "https://archive.org/download/gaber_al_qytan_recitations/gaber_2.mp3", desc: "", tag: "جابر القيطان" },
+  { name: "تلاوة هادئة من سورة الفرقان - جابر القيطان 🎙️", url: "https://archive.org/download/gaber_al_qytan_recitations/gaber_3.mp3", desc: "", tag: "جابر القيطان" },
+  { name: " تلاوات القارئ جابر القيطان صوت مريح للسمع 🎙️", url: "https://archive.org/download/gaber_al_qytan_recitations/gaber_4.mp3", desc: "", tag: "جابر القيطان" },
+  { name: "سورة النبا كاملة من جزء عم للقارئ جابر القيطان 🎙️", url: "https://archive.org/download/gaber_al_qytan_recitations/gaber_5.mp3", desc: "", tag: "جابر القيطان" },
+  { name: "ما تيسر من سورة الرحمن تريح القلب تسجيل جديد - جابر القيطان 🎙️", url: "https://archive.org/download/gaber_al_qytan_recitations/gaber_6.mp3", desc: "", tag: "جابر القيطان" },
   // تلاوات الشيخ أحمد عبدالرازق نصر (7 تلاوات)
   { name: "أحمد عبدالرازق نصر: مَن كَانَ يَرْجُو لِقَاءَ اللَّهِ فَإِنَّ أَجَلَ اللَّهِ لَآتٍ ۚ (سورة العنكبوت)🎙️", url: "audio/nasr_1.mp3", desc: "", tag: "أحمد عبدالرازق نصر" },
   { name: "أحمد عبدالرازق نصر: وَإِذْ قَالَ إِبْرَاهِيمُ رَبِّ اجْعَلْ هَٰذَا الْبَلَدَ آمِنًا (سورة إبراهيم) 🎙️", url: "audio/nasr_2.mp3", desc: "", tag: "أحمد عبدالرازق نصر" },
