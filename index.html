@@ -3741,10 +3741,10 @@ function getHeaderJuzText(pageNum, rawVerses) {
 
   const currentVerse = pageVerses[0];
   const juzText = JUZ_NAMES[currentVerse.juz_number] || `الجزء ${toAr(currentVerse.juz_number)}`;
-  const currentRub = currentVerse.rub_number;
-
+const currentRub = currentVerse.rub_el_hizb_number;
   const prevPageVerses = rawVerses.filter(v => v.page_number === pageNum - 1);
-const prevRub = (prevPageVerses && prevPageVerses.length > 0) ? prevPageVerses[prevPageVerses.length - 1].rub_number : null;
+const prevRub = (prevPageVerses && prevPageVerses.length > 0) ? prevPageVerses[prevPageVerses.length - 1].rub_el_hizb_number : null;
+ 
 // لو مفيش ربع/حزب جديد اعرض اسم الجزء فقط بدون فاصلة
   if (prevRub && currentRub === prevRub) {
     return juzText;
@@ -3842,7 +3842,7 @@ async function extendMushafPages(direction) {
   try {
     let pageData = await getCachedSurahDB(`page_${newPageNum}`);
     if (!pageData) {
-      const res = await fetch(`https://api.quran.com/api/v4/verses/by_page/${newPageNum}?per_page=300&words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number,rub_number`);
+      const res = await fetch(`https://api.quran.com/api/v4/verses/by_page/${newPageNum}?per_page=300&words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number,rub_el_hizb_number`);
       pageData = await res.json();
       if (pageData && pageData.verses) setCachedSurahDB(`page_${newPageNum}`, pageData);
     }
@@ -4036,7 +4036,7 @@ const minPage = Math.max(1, targetP - 2);
       let pageData = await getCachedSurahDB(`page_${p}`);
       if (!pageData) {
         try {
-          const res = await fetch(`https://api.quran.com/api/v4/verses/by_page/${p}?per_page=300&words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number,rub_number`);
+          const res = await fetch(`https://api.quran.com/api/v4/verses/by_page/${p}?per_page=300&words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number,rub_el_hizb_number`);
           pageData = await res.json();
           if (pageData && pageData.verses) {
             setCachedSurahDB(`page_${p}`, pageData); // حفظ صامت في الخلفية
@@ -4228,7 +4228,7 @@ function prefetchFullQuranData() {
         const existingData = await getCachedSurahDB(`page_${p}`);
         if (!existingData) {
           try {
-            const res = await fetch(`https://api.quran.com/api/v4/verses/by_page/${p}?per_page=300&words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number,rub_number`);
+            const res = await fetch(`https://api.quran.com/api/v4/verses/by_page/${p}?per_page=300&words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number,rub_el_hizb_number`);
             const data = await res.json();
             if (data && data.verses && data.verses.length > 0) {
               await setCachedSurahDB(`page_${p}`, data);
