@@ -772,51 +772,83 @@ function rareBtnId(url) {
 window.downloadRareAudio = async function(url) {
     let safeUrl = url === "audio/nasr_6.mp3" ? "audio/nast_6.mp3" : url;
     const absUrl = new URL(safeUrl, window.location.href).href;
-
     const btn = document.getElementById(rareBtnId(url));
+
     if (btn) {
         btn.disabled = true;
-        btn.textContent = '⏳';
+        btn.style.fontSize = '10px'; // تصغير الخط ليتناسب الرقم داخل الدائرة
+        btn.textContent = '0%';
     }
 
     try {
-        // 1. المحاولة المباشرة عبر Service Worker لو شغال
-        if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-            navigator.serviceWorker.controller.postMessage({
-                type: 'CACHE_AUDIO_URL',
-                url: absUrl,
-                label: 'rare_' + url
-            });
-        }
-
-        // 2. ضمان التحميل الفوري عبر الكاش البرمجي مباشرة (عشان ميعتمدش على انتظار الـ SW أبداً)
+        // فحص هل الملف موجود مسبقاً في الكاش
         if ('caches' in window) {
             const cache = await caches.open('athr-audio-cache-v1');
-            const response = await fetch(absUrl);
-            if (response.ok) {
-                await cache.put(absUrl, response);
-                
-                // تحديث شكل الزرار فوراً لعلامة صح ✅
-                if (btn) {
-                    btn.disabled = false;
-                    btn.textContent = '✅';
-                    btn.style.background = 'rgba(76,175,80,0.15)';
-                    btn.style.borderColor = '#4caf50';
-                    btn.style.color = '#4caf50';
-                }
+            const match = await cache.match(absUrl) || await cache.match(safeUrl);
+            if (match) {
+                markButtonSuccess(btn);
                 return;
             }
         }
-        throw new Error("فشل التخزين");
+
+        // تحميل الملف باستخدام XHR لحساب نسبة التقدم % بدقة
+        const blob = await new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', absUrl, true);
+            xhr.responseType = 'blob';
+
+            xhr.onprogress = (event) => {
+                if (event.lengthComputable && btn) {
+                    const percent = Math.round((event.loaded / event.total) * 100);
+                    btn.textContent = `${percent}%`;
+                }
+            };
+
+            xhr.onload = () => {
+                if (xhr.status === 200) {
+                    resolve(xhr.response);
+                } else {
+                    reject(new Error(`Server error: ${xhr.status}`));
+                }
+            };
+
+            xhr.onerror = () => reject(new Error("Network error"));
+            xhr.send();
+        });
+
+        // حفظ الملف المكتمل في Cache API للاستخدام الأوفلاين
+        if ('caches' in window && blob) {
+            const cache = await caches.open('athr-audio-cache-v1');
+            const responseToCache = new Response(blob, {
+                status: 200,
+                headers: { 'Content-Type': 'audio/mpeg' }
+            });
+            await cache.put(absUrl, responseToCache);
+        }
+
+        // تحديث شكل الزرار للنجاح
+        markButtonSuccess(btn);
+
     } catch (err) {
         console.error("خطأ التحميل:", err);
         if (btn) {
             btn.disabled = false;
+            btn.style.fontSize = '14px';
             btn.textContent = '⚠️';
         }
-        alert('⚠️ حدث خطأ أثناء التحميل، تأكد من الاتصال بالإنترنت.');
     }
 };
+
+// دالة مساعدة لتحديث شكل الزرار عند نجاح التحميل
+function markButtonSuccess(btn) {
+    if (!btn) return;
+    btn.disabled = false;
+    btn.style.fontSize = '14px';
+    btn.textContent = '✅';
+    btn.style.background = 'rgba(76,175,80,0.15)';
+    btn.style.borderColor = '#4caf50';
+    btn.style.color = '#4caf50';
+}
 
 navigator.serviceWorker.addEventListener('message', (event) => {
     const d = event.data;
