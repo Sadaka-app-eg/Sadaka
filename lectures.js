@@ -1660,7 +1660,7 @@ window.seekLectureAudio = function(index, value) {
 };
 
 // =========================================================================
-// 📥 دالة تحميل الدروس المحدثة (عداد مئوي حقيقي داخل الدائرة المتناسقة)
+// 📥 دالة تحميل الدروس والفيديوهات الشاملة (عداد مئوي حقيقي داخل الدائرة)
 // =========================================================================
 window.startLectureDownloadRing = async function(index) {
     const lecture = window.lecturesData[index];
@@ -1670,17 +1670,17 @@ window.startLectureDownloadRing = async function(index) {
     const statusEl = document.getElementById('lectureDlStatus_' + index);
 
     if (ringBtn) {
-        ringBtn.style.pointerEvents = 'none';
-        ringBtn.style.fontSize = '10px';
-        ringBtn.textContent = '⏳';
+        ringBtn.style.pointerEvents = 'none'; // منع الضغط المكرر
+        ringBtn.style.fontSize = '10px';      // تصغير الخط ليتناسب الرقم المئوي
+        ringBtn.textContent = '0%';
     }
+
     if (statusEl) statusEl.textContent = '⏳ جاري بدء التحميل...';
 
     const absUrl = new URL(lecture.src, window.location.href).href;
-    const isExternalOrVideo = lecture.type === 'video' || lecture.src.startsWith('http');
 
     try {
-        // 1. فحص إذا كان الملف موجود مسبقاً في الكاش
+        // 1. فحص هل الدرس محمّل مسبقاً في الكاش
         if ('caches' in window) {
             const cache = await caches.open('athr-audio-cache-v1');
             const match = await cache.match(absUrl) || await cache.match(lecture.src);
@@ -1690,77 +1690,62 @@ window.startLectureDownloadRing = async function(index) {
             }
         }
 
-        // 2. إذا كان فيديو أو ملف أرشيف خارجي، نرسله لـ Service Worker ليخزنه بأمان بدون خطأ CORS
-        if (isExternalOrVideo && navigator.serviceWorker && navigator.serviceWorker.controller) {
-            navigator.serviceWorker.controller.postMessage({
-                type: 'CACHE_AUDIO_URL',
-                url: absUrl,
-                label: 'lecture_' + index
-            });
-            if (statusEl) statusEl.textContent = '⏳ جاري التنزيل في الخلفية...';
-            return;
-        }
+        // 2. التحميل بـ Fetch Stream لحساب النسبة المئوية بدقة % للفيديوهات والصوتيات
+        const response = await fetch(absUrl);
+        if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
 
-        // 3. للملفات الصوتية المحلية: التحميل بـ XHR لحساب العداد المئوي %
-        const blob = await new Promise((resolve, reject) => {
-            const xhr = new XMLHttpRequest();
-            xhr.open('GET', absUrl, true);
-            xhr.responseType = 'blob';
+        const contentLength = response.headers.get('content-length');
+        const totalBytes = contentLength ? parseInt(contentLength, 10) : 0;
+        let loadedBytes = 0;
 
-            xhr.onprogress = (event) => {
-                if (event.lengthComputable && ringBtn) {
-                    const percent = Math.round((event.loaded / event.total) * 100);
-                    ringBtn.textContent = `${percent}%`;
-                }
-            };
+        const reader = response.body.getReader();
+        const chunks = [];
 
-            xhr.onload = () => {
-                if (xhr.status === 200) resolve(xhr.response);
-                else reject(new Error(`Server response: ${xhr.status}`));
-            };
-            xhr.onerror = () => reject(new Error("CORS/Network Error"));
-            xhr.send();
-        });
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
 
-        if ('caches' in window && blob) {
-            const cache = await caches.open('athr-audio-cache-v1');
-            const responseToCache = new Response(blob, {
-                status: 200,
-                headers: { 'Content-Type': lecture.type === 'video' ? 'video/mp4' : 'audio/mpeg' }
-            });
-            await cache.put(absUrl, responseToCache);
-            markLectureSuccess(index, responseToCache, blob.size);
-        }
+            chunks.push(value);
+            loadedBytes += value.length;
 
-    } catch (err) {
-        console.warn("XHR Fallback triggering for:", lecture.src);
-        
-        // محاولة طوارئ آمنة للملفات الخارجية لو فشلت XHR
-        if ('caches' in window) {
-            try {
-                const cache = await caches.open('athr-audio-cache-v1');
-                await cache.add(absUrl);
-                const match = await cache.match(absUrl);
-                if (match) {
-                    markLectureSuccess(index, match);
-                    return;
-                }
-            } catch (fallbackErr) {
-                console.error("Fallback Failed:", fallbackErr);
+            if (totalBytes > 0 && ringBtn) {
+                const percent = Math.round((loadedBytes / totalBytes) * 100);
+                ringBtn.textContent = `${percent}%`;
+            } else if (ringBtn) {
+                // في حالة عدم معرفة الحجم الإجمالي، يتم عرض الميجابايت المحملة
+                const loadedMB = (loadedBytes / (1024 * 1024)).toFixed(1);
+                ringBtn.textContent = `${loadedMB}M`;
             }
         }
 
+        // 3. دمج البيانات وتخزين الملف المكتمل في Cache API للاستخدام الأوفلاين
+        const blob = new Blob(chunks, { type: lecture.type === 'video' ? 'video/mp4' : 'audio/mpeg' });
+        
+        if ('caches' in window) {
+            const cache = await caches.open('athr-audio-cache-v1');
+            const cachedResponse = new Response(blob, {
+                status: 200,
+                headers: { 'Content-Type': lecture.type === 'video' ? 'video/mp4' : 'audio/mpeg' }
+            });
+            await cache.put(absUrl, cachedResponse);
+        }
+
+        // 4. تحديث شكل الزرار للنجاح
+        markLectureSuccess(index, null, blob.size);
+
+    } catch (err) {
+        console.error("خطأ تحميل الدرس:", err);
         if (ringBtn) {
             ringBtn.style.pointerEvents = 'auto';
             ringBtn.style.fontSize = '12px';
             ringBtn.textContent = '⚠️';
         }
-        if (statusEl) statusEl.textContent = '⚠️ تعذر التحميل المباشر لهذا الفيديو، جرب مشاهدته أولاً.';
+        if (statusEl) statusEl.textContent = '⚠️ تعذر التحميل، تحقق من الاتصال بالإنترنت.';
     }
 };
 
-// دالة مساعدة لتحديث الزرار وحجم الملف فور النجاح
-function markLectureSuccess(index, response, blobSize) {
+// دالة مساعدة لتحديث شكل الزرار وإضافة اهتزاز النجاح
+function markLectureSuccess(index, responseMatch, blobSize) {
     const ringBtn = document.getElementById('lectureDlRing_' + index);
     const statusEl = document.getElementById('lectureDlStatus_' + index);
 
@@ -1771,6 +1756,11 @@ function markLectureSuccess(index, response, blobSize) {
         ringBtn.style.background = 'rgba(76,175,80,0.15)';
         ringBtn.style.borderColor = '#4caf50';
         ringBtn.style.color = '#4caf50';
+
+        // إضافة حركة Pop خفيفة للصح
+        ringBtn.classList.remove('athr-pop-success');
+        void ringBtn.offsetWidth;
+        ringBtn.classList.add('athr-pop-success');
     }
 
     if (statusEl) {
