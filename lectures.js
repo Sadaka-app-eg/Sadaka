@@ -1659,15 +1659,107 @@ window.seekLectureAudio = function(index, value) {
     }
 };
 
-window.startLectureDownloadRing = function(index) {
+// =========================================================================
+// 📥 دالة تحميل الدروس المحدثة (عداد مئوي حقيقي داخل الدائرة المتناسقة)
+// =========================================================================
+window.startLectureDownloadRing = async function(index) {
     const lecture = window.lecturesData[index];
     if (!lecture) return;
-    if (typeof downloadWithProgress === 'function') {
-        downloadWithProgress(lecture.src, 'lectureDlRing_' + index);
-    } else {
-        window.downloadLectureAudio(index);
+
+    const ringBtn = document.getElementById('lectureDlRing_' + index);
+    const statusEl = document.getElementById('lectureDlStatus_' + index);
+
+    if (ringBtn) {
+        ringBtn.style.pointerEvents = 'none'; // منع التكرار أثناء التحميل
+        ringBtn.style.fontSize = '10px';      // تصغير الخط ليتناسب الرقم المئوي داخل الدائرة
+        ringBtn.textContent = '0%';
+    }
+
+    if (statusEl) statusEl.textContent = '⏳ جاري التحميل...';
+
+    try {
+        const absUrl = new URL(lecture.src, window.location.href).href;
+
+        // 1. فحص إذا كان الدرس محملاً مسبقاً في الكاش
+        if ('caches' in window) {
+            const cache = await caches.open('athr-audio-cache-v1');
+            const match = await cache.match(absUrl) || await cache.match(lecture.src);
+            if (match) {
+                markLectureSuccess(index, match);
+                return;
+            }
+        }
+
+        // 2. تحميل الملف بـ XMLHttpRequest لحساب النسبة المئوية بدقة %
+        const blob = await new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', absUrl, true);
+            xhr.responseType = 'blob';
+
+            xhr.onprogress = (event) => {
+                if (event.lengthComputable && ringBtn) {
+                    const percent = Math.round((event.loaded / event.total) * 100);
+                    ringBtn.textContent = `${percent}%`;
+                }
+            };
+
+            xhr.onload = () => {
+                if (xhr.status === 200) {
+                    resolve(xhr.response);
+                } else {
+                    reject(new Error(`Server response error: ${xhr.status}`));
+                }
+            };
+
+            xhr.onerror = () => reject(new Error("Network error"));
+            xhr.send();
+        });
+
+        // 3. تخزين الملف في الكاش للاستخدام الأوفلاين
+        if ('caches' in window && blob) {
+            const cache = await caches.open('athr-audio-cache-v1');
+            const responseToCache = new Response(blob, {
+                status: 200,
+                headers: { 'Content-Type': lecture.type === 'video' ? 'video/mp4' : 'audio/mpeg' }
+            });
+            await cache.put(absUrl, responseToCache);
+            markLectureSuccess(index, responseToCache, blob.size);
+        }
+
+    } catch (err) {
+        console.error("خطأ تحميل الدرس:", err);
+        if (ringBtn) {
+            ringBtn.style.pointerEvents = 'auto';
+            ringBtn.style.fontSize = '12px';
+            ringBtn.textContent = '⚠️';
+        }
+        if (statusEl) statusEl.textContent = '⚠️ تعذر التحميل، تحقق من الاتصال بالإنترنت.';
     }
 };
+
+// دالة مساعدة لتحديث الزرار وحجم الملف فور النجاح
+function markLectureSuccess(index, response, blobSize) {
+    const ringBtn = document.getElementById('lectureDlRing_' + index);
+    const statusEl = document.getElementById('lectureDlStatus_' + index);
+
+    if (ringBtn) {
+        ringBtn.style.pointerEvents = 'auto';
+        ringBtn.style.fontSize = '12px';
+        ringBtn.textContent = '✅';
+        ringBtn.style.background = 'rgba(76,175,80,0.15)';
+        ringBtn.style.borderColor = '#4caf50';
+        ringBtn.style.color = '#4caf50';
+    }
+
+    if (statusEl) {
+        if (blobSize) {
+            const sizeMB = (blobSize / (1024 * 1024)).toFixed(1);
+            statusEl.textContent = `✅ محمّل ومحفوظ (${sizeMB} MB)`;
+        } else {
+            statusEl.textContent = '✅ جاهز أوفلاين';
+        }
+    }
+}
 
 window.downloadLectureAudio = function(index) {
     const lecture = window.lecturesData[index];
