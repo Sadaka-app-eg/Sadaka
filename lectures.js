@@ -1670,17 +1670,17 @@ window.startLectureDownloadRing = async function(index) {
     const statusEl = document.getElementById('lectureDlStatus_' + index);
 
     if (ringBtn) {
-        ringBtn.style.pointerEvents = 'none'; // منع التكرار أثناء التحميل
-        ringBtn.style.fontSize = '10px';      // تصغير الخط ليتناسب الرقم المئوي داخل الدائرة
-        ringBtn.textContent = '0%';
+        ringBtn.style.pointerEvents = 'none';
+        ringBtn.style.fontSize = '10px';
+        ringBtn.textContent = '⏳';
     }
+    if (statusEl) statusEl.textContent = '⏳ جاري بدء التحميل...';
 
-    if (statusEl) statusEl.textContent = '⏳ جاري التحميل...';
+    const absUrl = new URL(lecture.src, window.location.href).href;
+    const isExternalOrVideo = lecture.type === 'video' || lecture.src.startsWith('http');
 
     try {
-        const absUrl = new URL(lecture.src, window.location.href).href;
-
-        // 1. فحص إذا كان الدرس محملاً مسبقاً في الكاش
+        // 1. فحص إذا كان الملف موجود مسبقاً في الكاش
         if ('caches' in window) {
             const cache = await caches.open('athr-audio-cache-v1');
             const match = await cache.match(absUrl) || await cache.match(lecture.src);
@@ -1690,7 +1690,18 @@ window.startLectureDownloadRing = async function(index) {
             }
         }
 
-        // 2. تحميل الملف بـ XMLHttpRequest لحساب النسبة المئوية بدقة %
+        // 2. إذا كان فيديو أو ملف أرشيف خارجي، نرسله لـ Service Worker ليخزنه بأمان بدون خطأ CORS
+        if (isExternalOrVideo && navigator.serviceWorker && navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage({
+                type: 'CACHE_AUDIO_URL',
+                url: absUrl,
+                label: 'lecture_' + index
+            });
+            if (statusEl) statusEl.textContent = '⏳ جاري التنزيل في الخلفية...';
+            return;
+        }
+
+        // 3. للملفات الصوتية المحلية: التحميل بـ XHR لحساب العداد المئوي %
         const blob = await new Promise((resolve, reject) => {
             const xhr = new XMLHttpRequest();
             xhr.open('GET', absUrl, true);
@@ -1704,18 +1715,13 @@ window.startLectureDownloadRing = async function(index) {
             };
 
             xhr.onload = () => {
-                if (xhr.status === 200) {
-                    resolve(xhr.response);
-                } else {
-                    reject(new Error(`Server response error: ${xhr.status}`));
-                }
+                if (xhr.status === 200) resolve(xhr.response);
+                else reject(new Error(`Server response: ${xhr.status}`));
             };
-
-            xhr.onerror = () => reject(new Error("Network error"));
+            xhr.onerror = () => reject(new Error("CORS/Network Error"));
             xhr.send();
         });
 
-        // 3. تخزين الملف في الكاش للاستخدام الأوفلاين
         if ('caches' in window && blob) {
             const cache = await caches.open('athr-audio-cache-v1');
             const responseToCache = new Response(blob, {
@@ -1727,13 +1733,29 @@ window.startLectureDownloadRing = async function(index) {
         }
 
     } catch (err) {
-        console.error("خطأ تحميل الدرس:", err);
+        console.warn("XHR Fallback triggering for:", lecture.src);
+        
+        // محاولة طوارئ آمنة للملفات الخارجية لو فشلت XHR
+        if ('caches' in window) {
+            try {
+                const cache = await caches.open('athr-audio-cache-v1');
+                await cache.add(absUrl);
+                const match = await cache.match(absUrl);
+                if (match) {
+                    markLectureSuccess(index, match);
+                    return;
+                }
+            } catch (fallbackErr) {
+                console.error("Fallback Failed:", fallbackErr);
+            }
+        }
+
         if (ringBtn) {
             ringBtn.style.pointerEvents = 'auto';
             ringBtn.style.fontSize = '12px';
             ringBtn.textContent = '⚠️';
         }
-        if (statusEl) statusEl.textContent = '⚠️ تعذر التحميل، تحقق من الاتصال بالإنترنت.';
+        if (statusEl) statusEl.textContent = '⚠️ تعذر التحميل المباشر لهذا الفيديو، جرب مشاهدته أولاً.';
     }
 };
 
