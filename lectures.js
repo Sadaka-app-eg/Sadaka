@@ -1619,7 +1619,7 @@ window.togglePinLecture = function(title) {
     renderLectures();
 };
 
-window.toggleLectureAudio = function(index) {
+window.toggleLectureAudio = async function(index) {
     const audio = ensureGlobalAudioEngine();
     const btn = document.getElementById('lectureBtn_' + index);
     if (!btn) return;
@@ -1632,8 +1632,25 @@ window.toggleLectureAudio = function(index) {
             const oldBtn = document.getElementById('lectureBtn_' + window.currentPlayingGlobalId);
             if (oldBtn) oldBtn.textContent = '▶';
         }
-        
-        audio.src = lecture.src;
+
+        let playableSrc = lecture.src;
+        const absUrl = new URL(lecture.src, window.location.href).href;
+
+        // 🛡️ فحص هل الدرس متسجل أوفلاين في الكاش؟
+        if ('caches' in window) {
+            try {
+                const cache = await caches.open('athr-audio-cache-v1');
+                const matched = await cache.match(absUrl) || await cache.match(lecture.src);
+                if (matched) {
+                    const blob = await matched.blob();
+                    playableSrc = URL.createObjectURL(blob); // تحويل الملف المحفوظ أوفلاين لرابط متاح بدون نت
+                }
+            } catch (e) {
+                console.log("خطأ قراءة الكاش أوفلاين:", e);
+            }
+        }
+
+        audio.src = playableSrc;
         audio.load(); 
         window.currentPlayingGlobalId = index;
         window.currentPlayingLectureAudio = audio;
