@@ -3357,6 +3357,19 @@ navigator.serviceWorker.addEventListener('message', (event) => {
 // ===========================
 // Utils
 // ===========================
+ // 🧹 تنظيف تلقائي لأي بيانات ضخمة قديمة كانت بتتخزن غلط في localStorage قبل التحديث
+function cleanupOldLocalStorageData() {
+  try {
+    if (localStorage.getItem('custom_user_dhikr_sound')) {
+      localStorage.removeItem('custom_user_dhikr_sound');
+      console.log("🧹 تم حذف نغمة مخصصة قديمة ضخمة (Base64) كانت بتاكل مساحة التخزين");
+    }
+  } catch (e) {
+    console.error("خطأ أثناء تنظيف الذاكرة:", e);
+  }
+}
+
+
 function toAr(n) {
   return n.toString().replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
 }
@@ -3776,16 +3789,46 @@ const prevRub = (prevPageVerses && prevPageVerses.length > 0) ? prevPageVerses[p
 // =========================================================================
 function openQuranDB() {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open("AthrQuranCacheDB", 1);
+    const request = indexedDB.open("AthrQuranCacheDB", 2); // 🎯 رفعنا رقم النسخة عشان نضيف مخزن جديد
     request.onupgradeneeded = (e) => {
       const db = e.target.result;
       if (!db.objectStoreNames.contains("surahs")) {
         db.createObjectStore("surahs");
       }
+      if (!db.objectStoreNames.contains("appData")) {
+        db.createObjectStore("appData"); // 🆕 مخزن عام لأي بيانات تانية (مواقيت، نغمات، إلخ)
+      }
     };
     request.onsuccess = (e) => resolve(e.target.result);
     request.onerror = (e) => reject(e);
   });
+}
+
+// 📦 دوال عامة للتعامل مع مخزن appData (مساحة أكبر بكتير من localStorage)
+async function getAppData(key) {
+  try {
+    const db = await openQuranDB();
+    return new Promise((resolve) => {
+      const tx = db.transaction("appData", "readonly");
+      const req = tx.objectStore("appData").get(key);
+      req.onsuccess = () => resolve(req.result !== undefined ? req.result : null);
+      req.onerror = () => resolve(null);
+    });
+  } catch (e) {
+    return null;
+  }
+}
+
+async function setAppData(key, value) {
+  try {
+    const db = await openQuranDB();
+    const tx = db.transaction("appData", "readwrite");
+    tx.objectStore("appData").put(value, key);
+    return true;
+  } catch (e) {
+    console.error("appData save error:", e);
+    return false;
+  }
 }
 
 async function getCachedSurahDB(key) {
@@ -4605,6 +4648,9 @@ function formatAudioTime(seconds) {
 // 🚀 كود البدء الموحد والنظيف للتطبيق بالكامل (مرة واحدة فقط)
 // =========================================================================
 document.addEventListener('DOMContentLoaded', () => {
+
+  // 0️⃣ تنظيف أي بقايا قديمة ضخمة من localStorage أول ما التطبيق يفتح (مرة واحدة تلقائية)
+  cleanupOldLocalStorageData();
 
   // 1️⃣ إعداد الثيم والمظهر الخارجي فوراً
 // 1️⃣ إعداد الثيم والمظهر الخارجي فوراً
@@ -5506,21 +5552,19 @@ async function executePrayerTimesFetch(lat, lng) {
       const timings = data.data.timings;
       
       // حفظ مواقيت اليوم في الكاش المحلي للأوفلاين
-      localStorage.setItem(`prayer_timings_${d}_${m}`, JSON.stringify(timings));
-      localStorage.setItem(`hijri_date_${d}_${m}`, JSON.stringify(data.data.date.hijri));
+    // 💾 حفظ مواقيت اليوم في IndexedDB (مساحة أكبر بكتير، مفيش قلق من الامتلاء)
+      setAppData(`prayer_timings_${d}_${m}`, timings);
+      setAppData(`hijri_date_${d}_${m}`, data.data.date.hijri);
       
       renderCalculatedPrayers(timings, data.data.date.hijri);
     } else {
       throw new Error("Invalid API Data");
     }
 
-  } catch (e) {
-console.error("🔴 سبب فشل الأذان الحقيقي:", e.message || e);
-alert("خطأ حقيقي: " + (e.message || e));
-   
-    const cachedTimings = JSON.parse(localStorage.getItem(`prayer_timings_${d}_${m}`));
-    const cachedHijri = JSON.parse(localStorage.getItem(`hijri_date_${d}_${m}`));
-    
+} catch (e) {
+    console.warn("جاري استخدام المواقيت المحفوظة محلياً (IndexedDB)...", e);
+    const cachedTimings = await getAppData(`prayer_timings_${d}_${m}`);
+    const cachedHijri = await getAppData(`hijri_date_${d}_${m}`);    
     if (cachedTimings) {
       renderCalculatedPrayers(cachedTimings, cachedHijri);
     } else {
@@ -7074,68 +7118,35 @@ function clearAnswerTimesTimers() {
   answerTimesTimers = [];
 }
 // دالة لجلب النغمة المحددة حالياً (سواء جاهزة أو مخصصة)
-function getSelectedDhikrSound() {
+// دالة لجلب النغمة المحددة حالياً (من IndexedDB لو مخصصة، أو مسار جاهز)
+async function getSelectedDhikrSound() {
   const saved = localStorage.getItem('selected_dhikr_sound');
   if (saved === 'CUSTOM_USER_SOUND') {
-    return localStorage.getItem('custom_user_dhikr_sound') || 'audio/sound_quiet.mp3';
+    const blob = await getAppData('custom_user_dhikr_audio_blob');
+    if (blob) return URL.createObjectURL(blob);
+    return 'audio/sound_quiet.mp3';
   }
   return saved || 'audio/sound_quiet.mp3';
 }
 
-// دالة لحفظ النغمة المختارة من القائمة وتشغيل معاينة ليها
-// دالة لتشغيل تجربة صوتية (معاينة) للنغمة الحالية
-// دالة ذكية لتشغيل تجربة صوتية ومعاينة بدون قيود المتصفح الأمنية
-window.previewDhikrSound = function() {
-  const saved = localStorage.getItem('selected_dhikr_sound');
-  let soundPath = saved || 'audio/sound_quiet.mp3';
-  
-  if (saved === 'CUSTOM_USER_SOUND') {
-    const base64Data = localStorage.getItem('custom_user_dhikr_sound');
-    if (!base64Data) {
-      alert("⚠️ مفيش نغمة مخصصة مسجلة حالياً، يرجى اختيار ملف أولاً.");
-      return;
-    }
-    
-    // 🌟 السر الهندسي: تحويل الـ Base64 الثقيل لـ Blob و Object URL خفيف لتخطي حماية المتصفح
-    try {
-      const parts = base64Data.split(';base64,');
-      const contentType = parts[0].split(':')[1];
-      const raw = window.atob(parts[1]);
-      const rawLength = raw.length;
-      const uInt8Array = new Uint8Array(rawLength);
-      
-      for (let i = 0; i < rawLength; ++i) {
-        uInt8Array[i] = raw.charCodeAt(i);
-      }
-      
-      const blob = new Blob([uInt8Array], { type: contentType });
-      soundPath = URL.createObjectURL(blob); // تحويله لرابط وهمي سريع جداً
-    } catch (e) {
-      console.error("خطأ في معالجة ملف الصوت:", e);
-      soundPath = 'audio/sound_quiet.mp3'; // العودة للافتراضي في حال الخطأ
-    }
+window.previewDhikrSound = async function() {
+  const soundPath = await getSelectedDhikrSound();
+
+  if (window.currentDhikrAudio) {
+    window.currentDhikrAudio.pause();
+    window.currentDhikrAudio.currentTime = 0;
   }
 
-  // تشغيل الصوت بأمان
-  if (soundPath) {
-    if (window.currentDhikrAudio) { 
-      window.currentDhikrAudio.pause(); 
-      window.currentDhikrAudio.currentTime = 0;
-    }
-    
-    window.currentDhikrAudio = new Audio(soundPath);
-    window.currentDhikrAudio.volume = 0.8;
-    
-    // محاولة التشغيل مع صيد الخطأ بذكاء بدون إزعاج المستخدم بالـ Alert
-    window.currentDhikrAudio.play()
-      .then(() => console.log("🔊 النغمة اشتغلت بنجاح تام!"))
-      .catch(e => {
-        console.log("قيود الأوتوبلاي:", e);
-        // محاولة إعادة التشغيل بعد تفاعل صريح
-        alert("🎵 اضغط 'OK' وسيقوم التطبيق بتشغيل النغمة فوراً لتجربتها.");
-        window.currentDhikrAudio.play().catch(err => console.log(err));
-      });
-  }
+  window.currentDhikrAudio = new Audio(soundPath);
+  window.currentDhikrAudio.volume = 0.8;
+
+  window.currentDhikrAudio.play()
+    .then(() => console.log("🔊 النغمة اشتغلت بنجاح تام!"))
+    .catch(e => {
+      console.log("قيود الأوتوبلاي:", e);
+      alert("🎵 اضغط 'OK' وسيقوم التطبيق بتشغيل النغمة فوراً لتجربتها.");
+      window.currentDhikrAudio.play().catch(err => console.log(err));
+    });
 };
 
 // تعديل دالة تغيير النغمة من القائمة المنسدلة
@@ -7210,8 +7221,8 @@ async function activateAnswerTimes() {
       statusEl.style.color = 'var(--text2)';
       statusEl.textContent = 'مفيش أوقات متبقية النهاردة، هتتفعل تلقائي بكرة 🌙';
    } else {
-    // 🌟 جلب النغمة الذكية (الجاهزة الـ 4 أصوات أو المرفوعة من تليفونه)
-    const chosenSound = getSelectedDhikrSound();
+// 🌟 جلب النغمة الذكية (الجاهزة الـ 4 أصوات أو المرفوعة من تليفونه)
+    const chosenSound = await getSelectedDhikrSound();
 
     if (navigator.serviceWorker && navigator.serviceWorker.controller) {
       targets.forEach(t => {
