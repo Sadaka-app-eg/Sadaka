@@ -3815,13 +3815,16 @@ async function setCachedSurahDB(key, data) {
 }
 
 // =========================================================================
-// 🚀 دالة فتح السورة الفورية بـ 0 تأخير وبدون شاشة بيضاء
+// 🎯 دالة تحديد اسم السورة الصحيحة الدقيقة بناءً على رقم الصفحة
 // =========================================================================
-// 2. دالة معرفة السورة من رقم الصفحة
 function getSurahByPageNumber(pageNum) {
+  if (!pageNum || pageNum < 1) return surahs[0];
+  if (pageNum > 604) return surahs[113];
+
+  // البحث عن السورة الصحيحة التي تقع الصفحة ضمن نطاقها
   for (let i = surahStartPages.length - 1; i >= 0; i--) {
     if (pageNum >= surahStartPages[i]) {
-      return surahs[i];
+      return surahs[i]; // إرجاع السورة الصحيحة المباشرة بدون تشفير أو إزاحة
     }
   }
   return surahs[0];
@@ -5364,6 +5367,8 @@ function startQiblaCompass() {
   }
 }
 
+let smoothedHeading = 0; // متغير عالمي لتخزين الاتجاه المنعم
+
 function updateQiblaDisplay() {
   if (qiblaAngle === null) return;
 
@@ -5373,26 +5378,42 @@ function updateQiblaDisplay() {
   const degreeText = document.getElementById('qiblaDegreeText');
   const statusText = document.getElementById('qiblaStatusText');
 
-  // دوران الخلفية عكس اتجاه الجهاز (يحاكي بوصلة حقيقية)
-  compassBg.style.transform = `rotate(${-deviceHeading}deg)`;
+  // 🌟 معادلة التنعيم الفلكية (Low-pass filter): تمنع الاهتزاز والرعشة السريعة
+  let diffHeading = deviceHeading - smoothedHeading;
+  
+  // معالجة الانقلاب بين 0 و 360 درجة
+  if (diffHeading > 180) diffHeading -= 360;
+  if (diffHeading < -180) diffHeading += 360;
+  
+  // نسبة تنعيم 15% تضمن استقرار البوصلة وسلاستها
+  smoothedHeading += diffHeading * 0.15;
 
-  // اتجاه القبلة بالنسبة للشمال الحقيقي، مطروح منه اتجاه الجهاز
-  const relativeAngle = (qiblaAngle - deviceHeading + 360) % 360;
-  kaabaIcon.style.transform = `translateX(-50%) rotate(${relativeAngle}deg) translateY(0)`;
-  kaabaIcon.style.transformOrigin = '50% 124px';
-  arrow.style.transform = `translate(-50%,-100%) rotate(${relativeAngle}deg)`;
+  if (compassBg) compassBg.style.transform = `rotate(${-smoothedHeading}deg)`;
 
-  degreeText.textContent = Math.round(qiblaAngle) + '°';
+  const relativeAngle = (qiblaAngle - smoothedHeading + 360) % 360;
+  
+  if (kaabaIcon) {
+    kaabaIcon.style.transform = `translateX(-50%) rotate(${relativeAngle}deg) translateY(0)`;
+    kaabaIcon.style.transformOrigin = '50% 124px';
+  }
+  
+  if (arrow) {
+    arrow.style.transform = `translate(-50%,-100%) rotate(${relativeAngle}deg)`;
+  }
+
+  if (degreeText) degreeText.textContent = Math.round(qiblaAngle) + '°';
 
   const diff = Math.abs(relativeAngle > 180 ? 360 - relativeAngle : relativeAngle);
-  if (diff < 8) {
-    statusText.textContent = '✅ أنت متجه الآن نحو القبلة';
-    statusText.style.color = '#4caf50';
-  } else {
-    statusText.textContent = 'وجّه موبايلك حتى يستقر السهم لأعلى';
-    statusText.style.color = 'var(--text2)';
+  if (statusText) {
+    if (diff < 6) {
+      statusText.textContent = '✅ أنت متجه الآن نحو القبلة';
+      statusText.style.color = '#4caf50';
+    } else {
+      statusText.textContent = 'وجّه الموبايل حتى يستقر السهم للأعلى';
+      statusText.style.color = 'var(--text2)';
+    }
   }
- }
+}
   let prayerCountdownInterval = null;
 let globalPrayerTimings = null;
 
@@ -5470,34 +5491,37 @@ async function loadPrayerTimes() {
   }
 }
 
-// دالة التنفيذ والحساب الفلكي الذكي للمواقيت
 async function executePrayerTimesFetch(lat, lng) {
   const today = new Date();
   const d = today.getDate(), m = today.getMonth() + 1, y = today.getFullYear();
   
   try {
-    // جلب البيانات من الـ API (لو أونلاين عشان نحدث الكاش)
-    const r = await fetch(`https://api.aladhan.com/v1/timingsByCity/${d}-${m}-${y}?city=${lat}&country=${lng}&method=5`);
+    // جلب المواقيت بإحداثيات الجغرافيا الصحيحة (latitude & longitude)
+    const r = await fetch(`https://api.aladhan.com/v1/timings/${d}-${m}-${y}?latitude=${lat}&longitude=${lng}&method=5`);
     const data = await r.json();
-    const timings = data.data.timings;
     
-    // حفظ مواقيت اليوم كاملة في الكاش المحلي كخط دفاع أخير
-    localStorage.setItem(`prayer_timings_${d}_${m}`, JSON.stringify(timings));
-    localStorage.setItem(`hijri_date_${d}_${m}`, JSON.stringify(data.data.date.hijri));
-    
-    renderCalculatedPrayers(timings, data.data.date.hijri);
+    if (data && data.data && data.data.timings) {
+      const timings = data.data.timings;
+      
+      // حفظ مواقيت اليوم في الكاش المحلي للأوفلاين
+      localStorage.setItem(`prayer_timings_${d}_${m}`, JSON.stringify(timings));
+      localStorage.setItem(`hijri_date_${d}_${m}`, JSON.stringify(data.data.date.hijri));
+      
+      renderCalculatedPrayers(timings, data.data.date.hijri);
+    } else {
+      throw new Error("Invalid API Data");
+    }
 
   } catch (e) {
-    // 3. 🛡️ السحر هنا: لو العميل أوفلاين 100%، اسحب مواقيت اليوم المحفوظة من الـ localStorage فوراً!
+    console.warn("جاري استخدام المواقيت المحفوظة محلياً...", e);
     const cachedTimings = JSON.parse(localStorage.getItem(`prayer_timings_${d}_${m}`));
     const cachedHijri = JSON.parse(localStorage.getItem(`hijri_date_${d}_${m}`));
     
     if (cachedTimings) {
       renderCalculatedPrayers(cachedTimings, cachedHijri);
     } else {
-      // لو مسح كاش المتصفح بالكامل ومعندوش أي داتا قديمة لليوم ده
       const grid = document.getElementById('prayerTimes');
-      if (grid) grid.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text2); font-size:13px;">يجب الاتصال بالإنترنت لأول مرة لتوليد المواقيت 🌐</div>';
+      if (grid) grid.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text2); font-size:13px;">تأكد من الاتصال بالإنترنت لتوليد المواقيت لأول مرة 🌐</div>';
     }
   }
 }
@@ -6131,38 +6155,56 @@ function updateStats() {
 
 // تعديل دالة زيادة التسبيح لتسجل بالتاريخ
 const oldIncrementTasbeh = incrementTasbeh;
+// =========================================================================
+// 📿 دالة السبحة المصلحة (تعد فوراً للجميع بدون قفل أو تعليق)
+// =========================================================================
 incrementTasbeh = function() {
-  const savedName = localStorage.getItem('user_display_name');
-  if (!savedName) { alert('⚠️ عذراً، يجب تسجيل الدخول أولاً لحفظ وإظهار إحصائياتك الصالحة!'); return; }
-
-  const today = getTodayDateKey();
-  let log = getHistoryLog();
-  if (!log[today]) log[today] = { tasbeh: 0, azkar: 0 };
-  
-  log[today].tasbeh++;
-  localStorage.setItem('athr_history_log', JSON.stringify(log));
-
-  // زيادة العدادات العامة لضمان ثبات بقية وظائف التطبيق
+  // 1. زيادة العدادات المباشرة للشاشة
   tasbehCount++;
   tasbehTotal++;
+  
   localStorage.setItem('tasbehCount', tasbehCount);
   localStorage.setItem('tasbehTotal', tasbehTotal);
   
+  // 2. تحديث رقم الشاشة الكبيرة فوراً
   const el = document.getElementById('tasbehCount');
-  if(el) {
+  if (el) {
     el.textContent = tasbehCount;
     el.classList.add('bump');
-    setTimeout(()=>el.classList.remove('bump'),150);
+    setTimeout(() => el.classList.remove('bump'), 150);
   }
-  const typeEl = document.getElementById('tasbehType');
-  if(typeEl) document.getElementById('tasbehLabel').textContent = typeEl.value;
-  const barEl = document.getElementById('tasbehBar');
-  if(barEl) barEl.style.width = Math.min((tasbehCount%33)/33*100,100)+'%';
-  const totalEl = document.getElementById('tasbehTotal');
-  if(totalEl) totalEl.textContent = 'الإجمالي الكلي: '+tasbehTotal+' تسبيحة';
   
-  updateStats();
-  boostFlame(0.5);
+  // 3. تحديث اسم الذكر المختار والشريط
+  const typeEl = document.getElementById('tasbehType');
+  if (typeEl) {
+    const labelEl = document.getElementById('tasbehLabel');
+    if (labelEl) labelEl.textContent = typeEl.value;
+  }
+  
+  const barEl = document.getElementById('tasbehBar');
+  if (barEl) {
+    barEl.style.width = Math.min((tasbehCount % 33) / 33 * 100, 100) + '%';
+  }
+  
+  const totalEl = document.getElementById('tasbehTotal');
+  if (totalEl) {
+    totalEl.textContent = 'الإجمالي الكلي: ' + tasbehTotal + ' تسبيحة';
+  }
+
+  // 4. حفظ الإحصائية اليومية بأمان (سواء بوجود اسم أو بدون)
+  try {
+    const today = getTodayDateKey();
+    let log = getHistoryLog();
+    if (!log[today]) log[today] = { tasbeh: 0, azkar: 0 };
+    log[today].tasbeh++;
+    localStorage.setItem('athr_history_log', JSON.stringify(log));
+  } catch (e) {
+    console.log("خطأ حفظ السجل اليومي:", e);
+  }
+
+  // 5. تحديث الشاشة الرئيسية وشعلة الأثر
+  if (typeof updateStats === 'function') updateStats();
+  if (typeof boostFlame === 'function') boostFlame(0.5);
 };
 
 // تعديل دالة زيادة الذكر لتسجل بالتاريخ
