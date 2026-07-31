@@ -3357,17 +3357,7 @@ navigator.serviceWorker.addEventListener('message', (event) => {
 // ===========================
 // Utils
 // ===========================
- // 🧹 تنظيف تلقائي لأي بيانات ضخمة قديمة كانت بتتخزن غلط في localStorage قبل التحديث
-function cleanupOldLocalStorageData() {
-  try {
-    if (localStorage.getItem('custom_user_dhikr_sound')) {
-      localStorage.removeItem('custom_user_dhikr_sound');
-      console.log("🧹 تم حذف نغمة مخصصة قديمة ضخمة (Base64) كانت بتاكل مساحة التخزين");
-    }
-  } catch (e) {
-    console.error("خطأ أثناء تنظيف الذاكرة:", e);
-  }
-}
+
 
 
 function toAr(n) {
