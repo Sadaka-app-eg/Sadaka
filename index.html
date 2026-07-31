@@ -8640,41 +8640,51 @@ window.closeSurah = function() {
   window.finishLogin = function(name) { if(typeof window.realFinishLogin === 'function') window.realFinishLogin(name); };
 
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
-    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  import { getFirestore, doc, setDoc, getDoc }
-    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { 
+  getAuth, 
+  GoogleAuthProvider, 
+  signInWithPopup, 
+  signInWithRedirect, 
+  getRedirectResult, 
+  signOut, 
+  onAuthStateChanged 
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc } 
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyCULaDRVQ9SWS07zs2WL3D-ANj-wHeoYWg",
-    authDomain: "sadaka-app-6637e.firebaseapp.com",
-    projectId: "sadaka-app-6637e",
-    storageBucket: "sadaka-app-6637e.firebasestorage.app",
-    messagingSenderId: "425677494061",
-    appId: "1:425677494061:web:0aacb04e72f767ad8925a4",
-    measurementId: "G-WE16D4JC8F"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-
-  window.firebaseAuth = auth;
-  window.firebaseDb = db;
-  window.GoogleAuthProvider = GoogleAuthProvider;
-  window.signInWithPopup = signInWithPopup;
-  window.signOut = signOut;
-
-  // =========================================================================
-// 🔒 نظام إدارة الجلسات المطور والآمن - معالجة الطرد والتعليق 2026
+// =========================================================================
+// 🔒 نظام إدارة الجلسات وتسجيل الدخول المطور - دعم PWA والموبايل 2026
 // =========================================================================
 
-// فحص حالة المستخدم وجلب الاسم وعرضه فوراً بدون تداخل أو Loop لا نهائي
+// معالجة عودة المستخدم من توجيه صفحة جوجل للموبايل (Redirect Result)
+getRedirectResult(auth)
+  .then((result) => {
+    if (result && result.user) {
+      const user = result.user;
+      const firstName = user.displayName ? user.displayName.split(' ')[0] : 'المستخدم';
+      localStorage.setItem('user_display_name', firstName);
+      
+      if (window.firebaseDb) {
+        setDoc(doc(window.firebaseDb, "users", user.uid), {
+          name: firstName,
+          email: user.email,
+          lastSeen: new Date().toISOString()
+        }, { merge: true });
+      }
+      
+      if (typeof window.realFinishLogin === 'function') {
+        window.realFinishLogin(firstName);
+      }
+    }
+  })
+  .catch((error) => {
+    console.error("خطأ في استرجاع نتيجة التوجيه:", error);
+  });
+
+// فحص حالة الجلسة والتسجيل التلقائي
 onAuthStateChanged(auth, (user) => {
   if (user) {
-    // تحقق أمان إضافي: لو السيستم طرد المستخدم بسبب الـ Version، لا تقم بإعادة تسجيله تلقائياً
     if (localStorage.getItem('athr_app_version') === "v2_profile_update" && !localStorage.getItem('athr_user_name')) {
-      // مستخدم قديم تم تصفيره، ننتظر أن يقوم بإعداد بروفايله الجديد ولا نعمل Auto-Login
       const overlay = document.getElementById('authOverlay');
       if (overlay) overlay.remove();
       return;
@@ -8696,33 +8706,29 @@ onAuthStateChanged(auth, (user) => {
       });
     }
   } else {
-    // تنظيف كامل شامل في حالة عدم وجود مستخدم نشط معتمد من سيرفر الفايرباز
     localStorage.removeItem('user_display_name');
     localStorage.removeItem('athr_user_name');
     localStorage.removeItem('athr_user_gender');
     const overlay = document.getElementById('authOverlay');
     if (overlay) overlay.remove();
     
-    // تحديث الواجهة فوراً لوضع الزائر
     if (typeof updateSettingsAccountBox === 'function') updateSettingsAccountBox();
   }
 });
 
-// دالة تشغيل الدخول / الخروج بجوجل من زرار الهيدر والإعدادات بشكل قاطع
+// دالة تسجيل الدخول الذكية (تكتشف PWA والموبايل والكمبيوتر)
 window.triggerHeaderGoogleLogin = function() {
   const savedName = localStorage.getItem('user_display_name');
-  
+
   if (savedName || auth.currentUser) {
     if (confirm('هل ترغب في تسجيل الخروج من الحساب وتطهير الجلسة الحالية؟')) {
-      // 1. مسح كل الكاش والبيانات المحلية فوراً لمنع الـ Auto-Login
       localStorage.removeItem('user_display_name');
       localStorage.removeItem('athr_user_name');
       localStorage.removeItem('athr_user_gender');
-      
-      // 2. أمر خروج رسمي وقاطع لسيرفرات الفايرباز
+
       signOut(auth).then(() => {
         alert("🔒 تم تسجيل الخروج وتطهير الجلسة بنجاح.");
-        window.location.reload(); // ريفريش نظيف لإعادة تهيئة واجهة الزائر
+        window.location.reload();
       }).catch(err => {
         console.error('حدث خطأ أثناء سحب الجلسة:', err);
         window.location.reload();
@@ -8731,18 +8737,27 @@ window.triggerHeaderGoogleLogin = function() {
     return;
   }
 
-  // نظام تسجيل الدخول الآمن (Popup)
-  if (GoogleAuthProvider && signInWithPopup) {
-    const provider = new GoogleAuthProvider();
+  // فحص هل العميل يفتح الموبايل أو تطبيق PWA مثبت
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.matchMedia('(display-mode: standalone)').matches;
+  const provider = new GoogleAuthProvider();
+
+  if (isMobile) {
+    // 📱 على الموبايل و PWA: نستخدم التوجيه المباشر لمنع الحظر
+    signInWithRedirect(auth, provider).catch(err => {
+      console.error('خطأ تسجيل دخول الموبايل:', err);
+      alert("⚠️ تعذر الاتصال بجوجل، تأكد من جودة الإنترنت لديك.");
+    });
+  } else {
+    // 💻 على الكمبيوتر: نستخدم النافذة المنبثقة
     signInWithPopup(auth, provider)
       .then((result) => {
         const user = result.user;
         const firstName = user.displayName ? user.displayName.split(' ')[0] : 'المستخدم';
         localStorage.setItem('user_display_name', firstName);
-        window.location.reload(); // إنعاش كامل للسيستم لربط شاشات مجتمع أثر فوراً
+        window.location.reload();
       })
       .catch(err => {
-        console.error('خطأ تسجيل دخول الهيدر:', err);
+        console.error('خطأ تسجيل دخول الكمبيوتر:', err);
         alert("⚠️ فشل الاتصال بالسيرفر، تأكد من جودة الإنترنت لديك.");
       });
   }
