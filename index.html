@@ -8635,136 +8635,151 @@ window.closeSurah = function() {
  <!-- مكتبة موزيلا الرسمية لقراءة ملفات الـ PDF داخلياً -->
 
  
- <script type="module">
-  // الغاء مفعول دالة الـ load القديمة تماماً لكسر حلقة إعادة تسجيل الدخول
-  window.finishLogin = function(name) { if(typeof window.realFinishLogin === 'function') window.realFinishLogin(name); };
+<script type="module">
+  // 1️⃣ إلغاء مفعول دالة الـ load القديمة لكسر حلقة التكرار
+  window.finishLogin = function(name) { 
+    if (typeof window.realFinishLogin === 'function') window.realFinishLogin(name); 
+  };
 
+  // 2️⃣ استيراد دوال الفايربيز
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { 
-  getAuth, 
-  GoogleAuthProvider, 
-  signInWithPopup, 
-  signInWithRedirect, 
-  getRedirectResult, 
-  signOut, 
-  onAuthStateChanged 
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc } 
-  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { 
+    getAuth, 
+    GoogleAuthProvider, 
+    signInWithPopup, 
+    signInWithRedirect, 
+    getRedirectResult, 
+    signOut, 
+    onAuthStateChanged 
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getFirestore, doc, setDoc, getDoc } 
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// =========================================================================
-// 🔒 نظام إدارة الجلسات وتسجيل الدخول المطور - دعم PWA والموبايل 2026
-// =========================================================================
+  // 3️⃣ إعدادات الفايربيز
+  const firebaseConfig = {
+    apiKey: "AIzaSyCULaDRVQ9SWS07zs2WL3D-ANj-wHeoYWg",
+    authDomain: "sadaka-app-6637e.firebaseapp.com",
+    projectId: "sadaka-app-6637e",
+    storageBucket: "sadaka-app-6637e.firebasestorage.app",
+    messagingSenderId: "425677494061",
+    appId: "1:425677494061:web:0aacb04e72f767ad8925a4",
+    measurementId: "G-WE16D4JC8F"
+  };
 
-// معالجة عودة المستخدم من توجيه صفحة جوجل للموبايل (Redirect Result)
-getRedirectResult(auth)
-  .then((result) => {
-    if (result && result.user) {
-      const user = result.user;
-      const firstName = user.displayName ? user.displayName.split(' ')[0] : 'المستخدم';
-      localStorage.setItem('user_display_name', firstName);
-      
-      if (window.firebaseDb) {
-        setDoc(doc(window.firebaseDb, "users", user.uid), {
-          name: firstName,
-          email: user.email,
-          lastSeen: new Date().toISOString()
-        }, { merge: true });
-      }
-      
-      if (typeof window.realFinishLogin === 'function') {
-        window.realFinishLogin(firstName);
-      }
-    }
-  })
-  .catch((error) => {
-    console.error("خطأ في استرجاع نتيجة التوجيه:", error);
-  });
+  // 4️⃣ تهيئة تطبيق الفايربيز وتجهيز المتغيرات (قبل استخدام auth لمنع خطأ ReferenceError)
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-// فحص حالة الجلسة والتسجيل التلقائي
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    if (localStorage.getItem('athr_app_version') === "v2_profile_update" && !localStorage.getItem('athr_user_name')) {
-      const overlay = document.getElementById('authOverlay');
-      if (overlay) overlay.remove();
-      return;
-    }
+  window.firebaseAuth = auth;
+  window.firebaseDb = db;
+  window.GoogleAuthProvider = GoogleAuthProvider;
+  window.signInWithPopup = signInWithPopup;
+  window.signOut = signOut;
 
-    const savedName = localStorage.getItem('user_display_name');
-    if (savedName) {
-      if (typeof window.realFinishLogin === 'function') window.realFinishLogin(savedName);
-    } else {
-      getDoc(doc(db, "users", user.uid)).then(snap => {
-        if (snap.exists() && snap.data().name) {
-          localStorage.setItem('user_display_name', snap.data().name);
-          if (typeof window.realFinishLogin === 'function') window.realFinishLogin(snap.data().name);
-        } else {
-          const firstName = user.displayName ? user.displayName.split(' ')[0] : 'المستخدم';
-          localStorage.setItem('user_display_name', firstName);
-          if (typeof window.realFinishLogin === 'function') window.realFinishLogin(firstName);
-        }
-      });
-    }
-  } else {
-    localStorage.removeItem('user_display_name');
-    localStorage.removeItem('athr_user_name');
-    localStorage.removeItem('athr_user_gender');
-    const overlay = document.getElementById('authOverlay');
-    if (overlay) overlay.remove();
-    
-    if (typeof updateSettingsAccountBox === 'function') updateSettingsAccountBox();
-  }
-});
-
-// دالة تسجيل الدخول الذكية (تكتشف PWA والموبايل والكمبيوتر)
-window.triggerHeaderGoogleLogin = function() {
-  const savedName = localStorage.getItem('user_display_name');
-
-  if (savedName || auth.currentUser) {
-    if (confirm('هل ترغب في تسجيل الخروج من الحساب وتطهير الجلسة الحالية؟')) {
-      localStorage.removeItem('user_display_name');
-      localStorage.removeItem('athr_user_name');
-      localStorage.removeItem('athr_user_gender');
-
-      signOut(auth).then(() => {
-        alert("🔒 تم تسجيل الخروج وتطهير الجلسة بنجاح.");
-        window.location.reload();
-      }).catch(err => {
-        console.error('حدث خطأ أثناء سحب الجلسة:', err);
-        window.location.reload();
-      });
-    }
-    return;
-  }
-
-  // فحص هل العميل يفتح الموبايل أو تطبيق PWA مثبت
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.matchMedia('(display-mode: standalone)').matches;
-  const provider = new GoogleAuthProvider();
-
-  if (isMobile) {
-    // 📱 على الموبايل و PWA: نستخدم التوجيه المباشر لمنع الحظر
-    signInWithRedirect(auth, provider).catch(err => {
-      console.error('خطأ تسجيل دخول الموبايل:', err);
-      alert("⚠️ تعذر الاتصال بجوجل، تأكد من جودة الإنترنت لديك.");
-    });
-  } else {
-    // 💻 على الكمبيوتر: نستخدم النافذة المنبثقة
-    signInWithPopup(auth, provider)
-      .then((result) => {
+  // 5️⃣ معالجة عودة المستخدم من توجيه صفحة جوجل للموبايل (Redirect Result)
+  getRedirectResult(auth)
+    .then((result) => {
+      if (result && result.user) {
         const user = result.user;
         const firstName = user.displayName ? user.displayName.split(' ')[0] : 'المستخدم';
         localStorage.setItem('user_display_name', firstName);
-        window.location.reload();
-      })
-      .catch(err => {
-        console.error('خطأ تسجيل دخول الكمبيوتر:', err);
-        alert("⚠️ فشل الاتصال بالسيرفر، تأكد من جودة الإنترنت لديك.");
-      });
-  }
-};
+        
+        if (window.firebaseDb) {
+          setDoc(doc(window.firebaseDb, "users", user.uid), {
+            name: firstName,
+            email: user.email,
+            lastSeen: new Date().toISOString()
+          }, { merge: true });
+        }
+        
+        if (typeof window.realFinishLogin === 'function') {
+          window.realFinishLogin(firstName);
+        }
+      }
+    })
+    .catch((error) => {
+      console.error("خطأ في استرجاع نتيجة التوجيه:", error);
+    });
 
-   
-  
+  // 6️⃣ الاستماع لحالة الجلسة (onAuthStateChanged)
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      if (localStorage.getItem('athr_app_version') === "v2_profile_update" && !localStorage.getItem('athr_user_name')) {
+        const overlay = document.getElementById('authOverlay');
+        if (overlay) overlay.remove();
+        return;
+      }
+
+      const savedName = localStorage.getItem('user_display_name');
+      if (savedName) {
+        if (typeof window.realFinishLogin === 'function') window.realFinishLogin(savedName);
+      } else {
+        getDoc(doc(db, "users", user.uid)).then(snap => {
+          if (snap.exists() && snap.data().name) {
+            localStorage.setItem('user_display_name', snap.data().name);
+            if (typeof window.realFinishLogin === 'function') window.realFinishLogin(snap.data().name);
+          } else {
+            const firstName = user.displayName ? user.displayName.split(' ')[0] : 'المستخدم';
+            localStorage.setItem('user_display_name', firstName);
+            if (typeof window.realFinishLogin === 'function') window.realFinishLogin(firstName);
+          }
+        });
+      }
+    } else {
+      localStorage.removeItem('user_display_name');
+      localStorage.removeItem('athr_user_name');
+      localStorage.removeItem('athr_user_gender');
+      const overlay = document.getElementById('authOverlay');
+      if (overlay) overlay.remove();
+      
+      if (typeof updateSettingsAccountBox === 'function') updateSettingsAccountBox();
+    }
+  });
+
+  // 7️⃣ دالة تسجيل الدخول العالمية الشاملة (للموبايل والكمبيوتر و PWA)
+  window.triggerHeaderGoogleLogin = function() {
+    const savedName = localStorage.getItem('user_display_name');
+
+    if (savedName || auth.currentUser) {
+      if (confirm('هل ترغب في تسجيل الخروج من الحساب وتطهير الجلسة الحالية؟')) {
+        localStorage.removeItem('user_display_name');
+        localStorage.removeItem('athr_user_name');
+        localStorage.removeItem('athr_user_gender');
+
+        signOut(auth).then(() => {
+          alert("🔒 تم تسجيل الخروج وتطهير الجلسة بنجاح.");
+          window.location.reload();
+        }).catch(err => {
+          console.error('حدث خطأ أثناء سحب الجلسة:', err);
+          window.location.reload();
+        });
+      }
+      return;
+    }
+
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.matchMedia('(display-mode: standalone)').matches;
+    const provider = new GoogleAuthProvider();
+
+    if (isMobile) {
+      signInWithRedirect(auth, provider).catch(err => {
+        console.error('خطأ تسجيل دخول الموبايل:', err);
+        alert("⚠️ تعذر الاتصال بجوجل، تأكد من جودة الإنترنت لديك.");
+      });
+    } else {
+      signInWithPopup(auth, provider)
+        .then((result) => {
+          const user = result.user;
+          const firstName = user.displayName ? user.displayName.split(' ')[0] : 'المستخدم';
+          localStorage.setItem('user_display_name', firstName);
+          window.location.reload();
+        })
+        .catch(err => {
+          console.error('خطأ تسجيل دخول الكمبيوتر:', err);
+          alert("⚠️ فشل الاتصال بالسيرفر، تأكد من جودة الإنترنت لديك.");
+        });
+    }
+  };
 </script>
 <script>
 (function(){
