@@ -8637,12 +8637,12 @@ window.closeSurah = function() {
 
  
 <script type="module">
-  // 1️⃣ إلغاء مفعول دالة الـ load القديمة لكسر حلقة التكرار
+  // 1️⃣ إلغاء مفعول دالة الـ load القديمة
   window.finishLogin = function(name) { 
     if (typeof window.realFinishLogin === 'function') window.realFinishLogin(name); 
   };
 
-  // 2️⃣ استيراد دوال الفايربيز الشاملة مع Persistence
+  // 2️⃣ استيراد دوال الفايربيز الشاملة
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { 
     getAuth, 
@@ -8680,20 +8680,21 @@ window.closeSurah = function() {
   window.signInWithPopup = signInWithPopup;
   window.signOut = signOut;
 
-  // 5️⃣ تثبيت الجلسة محلياً لحفظ الدخول أوفلاين وعبر الـ Redirect على الموبايل
+  // 5️⃣ تثبيت الجلسة أوفلاين وللأبد في الموبايل والـ PWA
   setPersistence(auth, browserLocalPersistence).catch(err => console.error("Persistence Error:", err));
 
-  // 6️⃣ الاستماع المباشر لنتائج الـ Redirect على الموبايل فور العودة للتطبيق
+  // 6️⃣ التقاط نتيجة التوجيه على الموبايل فور فتح التطبيق
   getRedirectResult(auth)
     .then((result) => {
       if (result && result.user) {
         const user = result.user;
         const firstName = user.displayName ? user.displayName.split(' ')[0] : 'المستخدم';
         
-        // حفظ أوتوماتيكي فوري في الـ Storage
-        localStorage.setItem('user_display_name', firstName);
-        localStorage.setItem('athr_user_name', firstName);
-        
+        try {
+          localStorage.setItem('user_display_name', firstName);
+          localStorage.setItem('athr_user_name', firstName);
+        } catch(e) {}
+
         if (window.firebaseDb) {
           setDoc(doc(window.firebaseDb, "users", user.uid), {
             name: firstName,
@@ -8706,73 +8707,64 @@ window.closeSurah = function() {
           window.realFinishLogin(firstName);
         }
         
-        // إعادة تهيئة الواجهة بدون إظهار "دخول" مجدداً
         if (typeof updateSettingsAccountBox === 'function') updateSettingsAccountBox();
       }
     })
     .catch((error) => {
-      console.error("خطأ استرجاع نتيجة الـ Redirect:", error);
+      console.error("خطأ استرجع نتيجة الـ Redirect:", error);
     });
 
-// =========================================================================
-// 🔒 فحص حالة الجلسة الذكي (استخراج الاسم فوراً من حساب جوجل بدون تعليق)
-// =========================================================================
-onAuthStateChanged(auth, async (user) => {
-  if (user) {
-    // 1️⃣ استخراج الاسم الأول فوراً وبشكل مباشر من بيانات حساب جوجل
-    let displayName = user.displayName ? user.displayName.split(' ')[0] : 'المستخدم';
-
-    // 2️⃣ التأكد من الـ LocalStorage
-    const savedName = localStorage.getItem('user_display_name');
-    if (savedName) {
-      displayName = savedName;
-    } else {
-      localStorage.setItem('user_display_name', displayName);
-      localStorage.setItem('athr_user_name', displayName);
-    }
-
-    // 3️⃣ تنفيذ دخول الواجهة فوراً ودون انتظار أي سيرفرات
-    if (typeof window.realFinishLogin === 'function') {
-      window.realFinishLogin(displayName);
-    }
-    
-    if (typeof updateSettingsAccountBox === 'function') {
-      updateSettingsAccountBox();
-    }
-
-    // 4️⃣ تحديث الحساب في الفايرستور في الخلفية بصمت صامت (Background Sync)
-    try {
-      if (window.firebaseDb) {
-        setDoc(doc(window.firebaseDb, "users", user.uid), {
-          name: displayName,
-          email: user.email || "",
-          lastSeen: new Date().toISOString()
-        }, { merge: true });
+  // 7️⃣ فحص الجلسة اللحظي (onAuthStateChanged)
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      let displayName = user.displayName ? user.displayName.split(' ')[0] : 'المستخدم';
+      const savedName = localStorage.getItem('user_display_name');
+      
+      if (savedName) {
+        displayName = savedName;
+      } else {
+        try {
+          localStorage.setItem('user_display_name', displayName);
+          localStorage.setItem('athr_user_name', displayName);
+        } catch(e) {}
       }
-    } catch(e) {
-      console.log("صامت - تحديث السيرفر الخلفي:", e);
+
+      if (typeof window.realFinishLogin === 'function') {
+        window.realFinishLogin(displayName);
+      }
+      
+      if (typeof updateSettingsAccountBox === 'function') {
+        updateSettingsAccountBox();
+      }
+
+      try {
+        if (window.firebaseDb) {
+          setDoc(doc(window.firebaseDb, "users", user.uid), {
+            name: displayName,
+            email: user.email || "",
+            lastSeen: new Date().toISOString()
+          }, { merge: true });
+        }
+      } catch(e) {}
+
+    } else {
+      localStorage.removeItem('user_display_name');
+      localStorage.removeItem('athr_user_name');
+      localStorage.removeItem('athr_user_gender');
+      
+      const overlay = document.getElementById('authOverlay');
+      if (overlay) overlay.remove();
+
+      if (typeof updateSettingsAccountBox === 'function') {
+        updateSettingsAccountBox();
+      }
     }
+  });
 
-  } else {
-    // حالة عدم وجود مستخدم مسجل
-    localStorage.removeItem('user_display_name');
-    localStorage.removeItem('athr_user_name');
-    localStorage.removeItem('athr_user_gender');
-    
-    const overlay = document.getElementById('authOverlay');
-    if (overlay) overlay.remove();
-
-    if (typeof updateSettingsAccountBox === 'function') {
-      updateSettingsAccountBox();
-    }
-  }
-});
-
-  // 8️⃣ دالة تسجيل الدخول العالمية الشاملة والذكية
+  // 8️⃣ دالة تسجيل الدخول الهجينة (Popup للأجهزة والـ PWA مع fallback)
   window.triggerHeaderGoogleLogin = function() {
     const savedName = localStorage.getItem('user_display_name');
 
-    // إذا كان مسجل دخول بالفعل -> خروج وتطهير
     if (savedName || auth.currentUser) {
       if (confirm('هل ترغب في تسجيل الخروج من الحساب وتطهير الجلسة الحالية؟')) {
         localStorage.removeItem('user_display_name');
@@ -8790,29 +8782,28 @@ onAuthStateChanged(auth, async (user) => {
       return;
     }
 
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.matchMedia('(display-mode: standalone)').matches;
     const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
 
-    if (isMobile) {
-      // 📱 استخدام التوجيه المباشر الآمن على الموبايل
-      signInWithRedirect(auth, provider).catch(err => {
-        console.error('خطأ تسجيل دخول الموبايل:', err);
-        alert("⚠️ تعذر الاتصال بجوجل، تأكد من وجود اتصال بالإنترنت.");
-      });
-    } else {
-      // 💻 النافذة المنبثقة للكمبيوتر
-      signInWithPopup(auth, provider)
-        .then((result) => {
-          const user = result.user;
-          const firstName = user.displayName ? user.displayName.split(' ')[0] : 'المستخدم';
+    // تجربة الـ Popup أولاً لأنها أنجح 100% في أجهزة PWA والموبايل الحديثة
+    signInWithPopup(auth, provider)
+      .then((result) => {
+        const user = result.user;
+        const firstName = user.displayName ? user.displayName.split(' ')[0] : 'المستخدم';
+        try {
           localStorage.setItem('user_display_name', firstName);
-          window.location.reload();
-        })
-        .catch(err => {
-          console.error('خطأ تسجيل دخول الكمبيوتر:', err);
-          alert("⚠️ فشل الاتصال بالسيرفر، تأكد من جودة الإنترنت.");
+          localStorage.setItem('athr_user_name', firstName);
+        } catch(e) {}
+        window.location.reload();
+      })
+      .catch((err) => {
+        console.warn("Popup blocked or failed, trying redirect...", err);
+        // إذا حظر المتصفح Popup نستخدم Redirect كخيار بديل
+        signInWithRedirect(auth, provider).catch(rErr => {
+          console.error("Redirect Error:", rErr);
+          alert("⚠️ تعذر الاتصال بجوجل، تحقق من شبكة الإنترنت لديك.");
         });
-    }
+      });
   };
 </script>
 <script>
