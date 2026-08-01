@@ -268,9 +268,24 @@ window.processCommunitySubmit = async function() {
       createdAt: serverTimestamp()
     });
 
-    localStorage.setItem('athr_user_name', trimmedName);
-    localStorage.setItem('athr_user_gender', window.selectedSetupGender);
-    
+// =========================================================================
+// 🛡️ حفظ تلقائي ومُؤمّن يفرغ المساحة بنفسه أوتوماتيكياً بدون أي تدخل يدوي
+// =========================================================================
+try {
+  localStorage.setItem('athr_user_name', trimmedName);
+  localStorage.setItem('athr_user_gender', window.selectedSetupGender);
+} catch (storageErr) {
+  console.warn("المساحة امتلأت، جاري التنظيف أوتوماتيكياً والحفظ الفوري...", storageErr);
+  
+  // 1️⃣ تنظيف التخزين أوتوماتيكياً
+  localStorage.clear();
+  
+  // 2️⃣ إعادة حفظ البيانات الأساسية فوراً
+  localStorage.setItem('user_display_name', trimmedName);
+  localStorage.setItem('athr_user_name', trimmedName);
+  localStorage.setItem('athr_user_gender', window.selectedSetupGender);
+  localStorage.setItem('athr_app_version', "v2_profile_update");
+}
     window.triggerSparksEffect();
     window.renderCommunityBody();
   } catch(e) {
