@@ -18,7 +18,8 @@ const db = getFirestore(app);
 
 const IMGBB_API_KEY = "3b0e9c0cb3ddf5475324fa1a126a4e3e";
 const WOMEN_SECRET_CODE = "Athr2026"; 
-
+const FAJR_VOLUNTEER_CODE = "Fajr2026"; // 🔑 الكود السري لتفعيل لوحة التطوع
+const MANAGER_WHATSAPP = "201069168725"; // 📞 رقم واتس مشرف التطبيق
 window.currentCommunityTab = 'feed'; 
 window.activePrivateRoomId = null; 
 let unsubscribePosts = null; 
@@ -414,11 +415,19 @@ const accBtn = window.ensureMyAccountButton();
         </div>
       </div>
 
-      <div class="comm-card" style="text-align: right; margin-bottom:15px; border: 1px dashed var(--gold);">
-        <h4 style="color:var(--gold); margin-bottom:5px;">🧔 هل تود أن تكون متطوع اليوم؟</h4>
-        <p style="color:var(--text2); font-size:12px; margin-bottom:10px;">الدال على الخير كفاعله، سجل كمتطوع لتظهر لك أرقام الأخوة لإيقاظهم.</p>
-        <button onclick="window.becomeFajrVolunteer()" style="background:transparent; color:var(--gold); border:1px solid var(--gold); padding:8px 15px; border-radius:50px; font-weight:bold; cursor:pointer; font-size:12px;">تفعيل لوحة المتطوع 🔑</button>
-      </div>
+<div class="comm-card" style="text-align: right; margin-bottom:15px; border: 1px dashed var(--gold);">
+  <h4 style="color:var(--gold); margin-bottom:5px;">🧔 هل تود أن تكون متطوع اليوم؟</h4>
+  <p style="color:var(--text2); font-size:12px; margin-bottom:10px;">الدال على الخير كفاعله، أدخل كود التطوع السري لتظهر لك أرقام الأخوة لإيقاظهم صوناً للخصوصية.</p>
+  
+  <div id="fajrCodeBox" style="display:flex; flex-direction:column; gap:8px; margin-bottom:10px;">
+    <input id="fajrVolunteerCodeInp" type="password" placeholder="أدخل كود التطوع السري هنا..." style="width:100%; padding:10px; background:#000; border:1px solid var(--gold); color:var(--text); border-radius:8px; outline:none; text-align:center;" />
+    <button onclick="window.verifyFajrVolunteerCode()" style="background:var(--gold); color:#111; border:none; padding:10px; border-radius:8px; font-weight:bold; cursor:pointer; font-family:'Amiri', serif;">🔑 تفعيل لوحة المتطوع</button>
+  </div>
+
+  <button type="button" onclick="window.sendWhatsAppToVolunteerManager()" style="display: block; width: 100%; background: #25D366; color: #fff; border: none; padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; font-family: 'Amiri', serif; box-shadow: 0 4px 12px rgba(37,211,102,0.3); transition: 0.2s; text-align: center;">
+    💬 لمعرفة الكود يرجى التواصل مع مشرف التطبيق عبر الواتساب
+  </button>
+</div>
 
       <div id="fajrVolunteersSection" style="display:none;">
         <div style="color: var(--text); font-size: 13px; text-align: right; margin-bottom: 8px; font-weight:bold;">📋 قائمة طالبي الإيقاظ للفجر اليوم:</div>
@@ -2406,4 +2415,31 @@ window.exitFamilyRoom = function() {
   if(unsubscribeFamilyRoom) unsubscribeFamilyRoom();
   localStorage.removeItem('athr_family_room_code');
   window.renderFamilyChallengeTab();
+};
+// =========================================================================
+// 💬 دالة توجيه المتطوع للواتساب الخاص بمشرف التطبيق
+// =========================================================================
+window.sendWhatsAppToVolunteerManager = function() {
+  const myName = localStorage.getItem('athr_user_name') || 'متطوع جديد';
+  const baseMsg = `✨ *السلام عليكم ورحمة الله وبركاته* ✨\n\n🕊️ *أخوكم المتطوع:* (${myName})\nأرغب في المشاركة المباركة لإيقاظ إخواني لصلاة الفجر في تطبيق أثر.\n\n🌱 *فضلاً، أرجو إرسال كود تفعيل لوحة المتطوعين الموحد لحماية الخصوصية.*\n\nجزاكم الله خيراً ونفع بكم 🤍`;
+  window.open(`https://wa.me/${MANAGER_WHATSAPP}?text=` + encodeURIComponent(baseMsg), '_blank');
+};
+
+// =========================================================================
+// 🔑 دالة التحقق من كود التطوع وفتح القائمة
+// =========================================================================
+window.verifyFajrVolunteerCode = function() {
+  const codeInp = document.getElementById('fajrVolunteerCodeInp');
+  if (!codeInp || !codeInp.value.trim()) {
+    alert("⚠️ يرجى كتابة كود التطوع السري أولاً.");
+    return;
+  }
+
+  if (codeInp.value.trim() !== FAJR_VOLUNTEER_CODE) {
+    alert("❌ كود التطوع غير صحيح! يرجى التواصل مع مشرف التطبيق عبر الواتساب للحصول على الكود.");
+    return;
+  }
+
+  alert("✅ تم تفعيل لوحة المتطوعين بنجاح! تقبل الله طاعتك وزادك حرصاً علي الخير ✨");
+  window.becomeFajrVolunteer();
 };
