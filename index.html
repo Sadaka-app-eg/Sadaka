@@ -13,7 +13,8 @@
  <link rel="icon" href="./icon.png">
 <link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></scr
+ 
 <script src="https://cdn.jsdelivr.net/npm/fix-webm-duration@1.0.1/fix-webm-duration.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mp4-muxer@5/build/mp4-muxer.js"></script>
  
@@ -8713,26 +8714,59 @@ window.closeSurah = function() {
       console.error("خطأ استرجاع نتيجة الـ Redirect:", error);
     });
 
-  // 7️⃣ فحص أوتوماتيكي دائم لحالة المستخدم المسجل (onAuthStateChanged)
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      const firstName = user.displayName ? user.displayName.split(' ')[0] : 'المستخدم';
-      const savedName = localStorage.getItem('user_display_name') || firstName;
-      
-      localStorage.setItem('user_display_name', savedName);
-      
-      if (typeof window.realFinishLogin === 'function') {
-        window.realFinishLogin(savedName);
-      }
-      
-      if (typeof updateSettingsAccountBox === 'function') {
-        updateSettingsAccountBox();
-      }
+// =========================================================================
+// 🔒 فحص حالة الجلسة الذكي (استخراج الاسم فوراً من حساب جوجل بدون تعليق)
+// =========================================================================
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    // 1️⃣ استخراج الاسم الأول فوراً وبشكل مباشر من بيانات حساب جوجل
+    let displayName = user.displayName ? user.displayName.split(' ')[0] : 'المستخدم';
+
+    // 2️⃣ التأكد من الـ LocalStorage
+    const savedName = localStorage.getItem('user_display_name');
+    if (savedName) {
+      displayName = savedName;
     } else {
-      // حالة عدم تسجيل الدخول
-      if (typeof updateSettingsAccountBox === 'function') updateSettingsAccountBox();
+      localStorage.setItem('user_display_name', displayName);
+      localStorage.setItem('athr_user_name', displayName);
     }
-  });
+
+    // 3️⃣ تنفيذ دخول الواجهة فوراً ودون انتظار أي سيرفرات
+    if (typeof window.realFinishLogin === 'function') {
+      window.realFinishLogin(displayName);
+    }
+    
+    if (typeof updateSettingsAccountBox === 'function') {
+      updateSettingsAccountBox();
+    }
+
+    // 4️⃣ تحديث الحساب في الفايرستور في الخلفية بصمت صامت (Background Sync)
+    try {
+      if (window.firebaseDb) {
+        setDoc(doc(window.firebaseDb, "users", user.uid), {
+          name: displayName,
+          email: user.email || "",
+          lastSeen: new Date().toISOString()
+        }, { merge: true });
+      }
+    } catch(e) {
+      console.log("صامت - تحديث السيرفر الخلفي:", e);
+    }
+
+  } else {
+    // حالة عدم وجود مستخدم مسجل
+    localStorage.removeItem('user_display_name');
+    localStorage.removeItem('athr_user_name');
+    localStorage.removeItem('athr_user_gender');
+    
+    const overlay = document.getElementById('authOverlay');
+    if (overlay) overlay.remove();
+
+    if (typeof updateSettingsAccountBox === 'function') {
+      updateSettingsAccountBox();
+    }
+  }
+});
 
   // 8️⃣ دالة تسجيل الدخول العالمية الشاملة والذكية
   window.triggerHeaderGoogleLogin = function() {
