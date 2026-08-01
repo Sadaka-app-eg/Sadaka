@@ -244,7 +244,6 @@ window.processCommunitySubmit = async function() {
     submitBtn.disabled = true;
     submitBtn.textContent = "جاري إنشاء وتوثيق الحساب... ⏳";
     
-    // تصحيح الرابط الافتراضي بإزالة المسافة الفارغة الكارثية
     let avatarUrl = "https://www.gstatic.com/firebasejs/ui/2.0.0/images/temporary-avatar.png"; 
     if (selectedProfileFile) {
       const formData = new FormData();
@@ -255,12 +254,14 @@ window.processCommunitySubmit = async function() {
     }
 
     const myEmail = localStorage.getItem('user_email') || trimmedName;
+    const userBio = bioInp.value.trim() || "ذاكر لله ومحب للأثر الطيب";
     
+    // 1️⃣ حفظ الملف الأساسي في السيرفر (Firestore)
     await setDoc(doc(db, "users_profiles", trimmedName), {
       name: trimmedName,
       email: myEmail,
-      bio: bioInp.value.trim() || "ذاكر لله ومحب للأثر الطيب",
-      avatar: avatarUrl, // الرفع والربط يعملان الآن بشكل سليم تماماً
+      bio: userBio,
+      avatar: avatarUrl,
       gender: window.selectedSetupGender,
       points: 10, 
       friends: [],
@@ -269,24 +270,26 @@ window.processCommunitySubmit = async function() {
       createdAt: serverTimestamp()
     });
 
-// =========================================================================
-// 🛡️ حفظ تلقائي ومُؤمّن يفرغ المساحة بنفسه أوتوماتيكياً بدون أي تدخل يدوي
-// =========================================================================
-try {
-  localStorage.setItem('athr_user_name', trimmedName);
-  localStorage.setItem('athr_user_gender', window.selectedSetupGender);
-} catch (storageErr) {
-  console.warn("المساحة امتلأت، جاري التنظيف أوتوماتيكياً والحفظ الفوري...", storageErr);
-  
-  // 1️⃣ تنظيف التخزين أوتوماتيكياً
-  localStorage.clear();
-  
-  // 2️⃣ إعادة حفظ البيانات الأساسية فوراً
-  localStorage.setItem('user_display_name', trimmedName);
-  localStorage.setItem('athr_user_name', trimmedName);
-  localStorage.setItem('athr_user_gender', window.selectedSetupGender);
-  localStorage.setItem('athr_app_version', "v2_profile_update");
-}
+    // 2️⃣ الاعتماد على IndexedDB لتخزين البيانات الثقيلة والصورة أوفلاين (بدون لمس الـ 5MB)
+    if (typeof setAppData === 'function') {
+      await setAppData('athr_user_avatar', avatarUrl);
+      await setAppData('athr_user_bio', userBio);
+    }
+
+    // 3️⃣ حفظ النصوص القصيرة جداً فقط في LocalStorage (تكلفة أقل من 1KB)
+    try {
+      localStorage.setItem('user_display_name', trimmedName);
+      localStorage.setItem('athr_user_name', trimmedName);
+      localStorage.setItem('athr_user_gender', window.selectedSetupGender);
+      localStorage.setItem('athr_app_version', "v2_profile_update");
+      
+      // مسح أي صور قديمة كانت محشورة في LocalStorage بالخطأ
+      localStorage.removeItem('athr_user_avatar');
+      localStorage.removeItem('user_photo_url');
+    } catch(err) {
+      console.warn("Storage warning:", err);
+    }
+
     window.triggerSparksEffect();
     window.renderCommunityBody();
   } catch(e) {
@@ -821,7 +824,8 @@ window.saveAccountChanges = async function(nameLocked) {
     saveBtn.disabled = true;
     saveBtn.textContent = "جاري الحفظ... ⏳";
 
-    const updates = { bio: bioInp.value.trim() };
+    const newBio = bioInp.value.trim();
+    const updates = { bio: newBio };
 
     if (selectedAccountAvatarFile) {
       const formData = new FormData();
@@ -839,8 +843,19 @@ window.saveAccountChanges = async function(nameLocked) {
 
     await updateDoc(doc(db, "users_profiles", myName), updates);
 
+    // 🚀 تحديث الـ IndexedDB أوفلاين
+    if (typeof setAppData === 'function') {
+      if (updates.avatar) await setAppData('athr_user_avatar', updates.avatar);
+      await setAppData('athr_user_bio', newBio);
+    }
+
+    if (!nameLocked && newName !== myName) {
+      localStorage.setItem('user_display_name', newName);
+      localStorage.setItem('athr_user_name', newName);
+    }
+
     alert(updates.name 
-      ? "✅ تم تحديث اسمك. ملحوظة: بروفايلك وبوستاتك (القديمة والجديدة) هتظهر بالاسم الجديد، بس رسائل الشات القديمة هتفضل باسمك القديم." 
+      ? "✅ تم تحديث اسمك بنجاح." 
       : "✅ تم حفظ التعديلات بنجاح.");
 
     selectedAccountAvatarFile = null;
