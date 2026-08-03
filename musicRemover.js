@@ -567,6 +567,7 @@ window.renderStudioUI = function() {
             <button onclick="window.selectParticleType('rain', this)" class="particle-type-btn" style="background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 8px; border-radius: 8px; font-size: 11px; cursor: pointer;">🌧️ مطر خفيف</button>
             <button onclick="window.selectParticleType('leaves', this)" class="particle-type-btn" style="background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 8px; border-radius: 8px; font-size: 11px; cursor: pointer;">🍃 ورق متطاير</button>
             <button onclick="window.selectParticleType('sparks', this)" class="particle-type-btn" style="background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 8px; border-radius: 8px; font-size: 11px; cursor: pointer;">🔥 شرر متصاعد</button>
+            <button onclick="window.selectParticleType('cameraShake', this)" class="particle-type-btn" style="background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 8px; border-radius: 8px; font-size: 11px; cursor: pointer;">🎥 حركة كاميرا انسيابية (Camera Float)</button>
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 10px;">
@@ -1719,7 +1720,21 @@ window.updateStudioLayoutConfig = function() {
 
     const canvas = e.renderCanvas;
     if (!canvas) return;
+// 🎥 ميزة حركة الكاميرا الانسيابية (Camera Float / Shake Effect)
+        if (e.particleSystem && e.particleSystem.type === 'cameraShake') {
+            const time = Date.now() * 0.001 * (e.particleSystem.speed || 1.0);
+            const intensity = (e.particleSystem.size || 1.0) * 12; // مدى الحركة يمين وشمال
+            
+            // حساب الإزاحة والدوران الانسيابي (Sine Waves)
+            const offsetX = Math.sin(time * 1.5) * intensity;
+            const offsetY = Math.cos(time * 2.0) * (intensity * 0.6);
+            const rotation = Math.sin(time * 0.8) * 0.015 * (e.particleSystem.size || 1.0);
 
+            ctx.translate(canvas.width / 2 + offsetX, canvas.height / 2 + offsetY);
+            ctx.rotate(rotation);
+            ctx.scale(1.05, 1.05); // زوم خفيف جداً لمنع ظهور حواف سوداء أثناء العوم
+            ctx.translate(-canvas.width / 2, -canvas.height / 2);
+        }
     if (e.aspectRatio === "9:16") {
         canvas.width = 720;
         canvas.height = 1280;
@@ -3645,9 +3660,11 @@ window.selectParticleType = function(type, btnEl) {
     const canvas = e.renderCanvas;
     if (canvas) e.particleSystem.init(canvas.width, canvas.height);
 
-    document.getElementById('studioStatusLog').textContent = type === 'none'
-        ? '🚫 تم إيقاف تأثيرات الجو'
-        : '✨ تم تفعيل التأثير! يمكنك التحكم في كميته وسرعته من السلايدرات تحت.';
+document.getElementById('studioStatusLog').textContent = type === 'none'
+    ? '🚫 تم إيقاف تأثيرات الجو'
+    : type === 'cameraShake'
+    ? '🎥 تم تفعيل حركة الكاميرا الانسيابية! انتحكم في السرعة والمدى من السلايدرات بالأسفل.'
+    : '✨ تم تفعيل التأثير! يمكنك التحكم في كميته وسرعته من السلايدرات تحت.';
 };
 
 window.updateParticleEffect = function() {
