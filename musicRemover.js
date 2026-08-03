@@ -3651,3 +3651,91 @@ window.updateParticleEffect = function() {
     if (sLabel) sLabel.textContent = speed.toFixed(1) + 'x';
     if (zLabel) zLabel.textContent = size.toFixed(1) + 'x';
 };
+// ===============================================
+// 🎙️ محرك التسجيل المباشر داخل الاستوديو (Direct Studio Recorder)
+// ===============================================
+
+let studioMediaRecorder = null;
+let studioAudioChunks = [];
+let isStudioRecording = false;
+let studioRecTimer = null;
+let studioRecSeconds = 0;
+
+window.toggleStudioDirectRecord = async function() {
+  const btn = document.getElementById('studioRecBtn');
+  const statusText = document.getElementById('studioRecStatusText');
+
+  if (!isStudioRecording) {
+    // 🔴 1. بدء التسجيل من المايك
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      studioMediaRecorder = new MediaRecorder(stream);
+      studioAudioChunks = [];
+
+      studioMediaRecorder.ondataavailable = e => {
+        if (e.data.size > 0) studioAudioChunks.push(e.data);
+      };
+
+      studioMediaRecorder.onstop = async () => {
+        clearInterval(studioRecTimer);
+        const audioBlob = new Blob(studioAudioChunks, { type: 'audio/mp3' });
+        const audioUrl = URL.createObjectURL(audioBlob);
+
+        // 🎯 تحويل التسجيل إلى ملف وتغذية محرك الاستوديو به فوراً
+        const recordedFile = new File([audioBlob], `تسجيل_استوديو_${Date.now()}.mp3`, { type: 'audio/mp3' });
+        
+        // تجهيز وعرض الصوت في الفيديو والمحرك
+        if (window.handleStudioFileUpload) {
+          const dummyEvent = { target: { files: [recordedFile] } };
+          window.handleStudioFileUpload(dummyEvent);
+        }
+
+        if (statusText) {
+          statusText.textContent = "✅ تم تحميل التسجيل بنجاح! يمكنك الآن تعديل الفلاتر والـ LUFS براحتك.";
+          statusText.style.color = "var(--green)";
+        }
+        if (btn) {
+          btn.textContent = "🔴 ابدأ تسجيل جديد";
+          btn.style.background = "var(--gold)";
+          btn.style.color = "#111";
+        }
+
+        // إيقاف استخدام المايك
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      studioMediaRecorder.start();
+      isStudioRecording = true;
+      studioRecSeconds = 0;
+
+      // ⏱️ عداد الوقت اللحظي أثناء التسجيل
+      studioRecTimer = setInterval(() => {
+        studioRecSeconds++;
+        const mins = Math.floor(studioRecSeconds / 60);
+        const secs = studioRecSeconds % 60;
+        const timeStr = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        
+        if (btn) btn.textContent = `🛑 إنهاء وتسجيل (${timeStr})`;
+        if (statusText) {
+          statusText.textContent = "جاري التسجيل المباشر الآن... اتكلم بوضوح 🎙️";
+          statusText.style.color = "#ff6b6b";
+        }
+      }, 1000);
+
+      if (btn) {
+        btn.style.background = "#ff4d4d";
+        btn.style.color = "#fff";
+      }
+
+    } catch (err) {
+      alert("⚠️ يرجى السماح بالوصول للميكروفون لبدء التسجيل المباشر!");
+      console.error("Microphone error:", err);
+    }
+  } else {
+    // 🛑 2. إيقاف التسجيل وتحميله فوراً
+    if (studioMediaRecorder && studioMediaRecorder.state !== 'inactive') {
+      studioMediaRecorder.stop();
+      isStudioRecording = false;
+    }
+  }
+};
