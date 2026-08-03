@@ -394,20 +394,32 @@ window.renderStudioUI = function() {
     <div class="comm-card" style="background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; direction: rtl; text-align: right;">
         
         <!-- 📁 منطقة رفع الفيديو -->
-        <div style="border: 2px dashed var(--gold); border-radius: 14px; padding: 25px; text-align: center; background: var(--bg2); margin-bottom: 20px;">
-            <span style="font-size: 45px; display: block; margin-bottom: 10px;">🎥</span>
-            <label for="videoStudioInput" style="background: var(--gold); color: #111; padding: 12px 24px; border-radius: 10px; font-weight: bold; cursor: pointer; font-family: 'Amiri', serif; font-size: 15px; display: inline-block; box-shadow: 0 4px 15px rgba(212,175,55,0.25);">
-                اختر مقطع فيديو / موعظة لمعالجته
-            </label>
-            <input type="file" id="videoStudioInput" accept="video/*,audio/*" onchange="window.handleStudioFileUpload(event)" style="display: none;" />
-            <span id="studioFileName" style="display: block; color: var(--text2); font-size: 12px; margin-top: 10px;">لم يتم اختيار مقطع بعد</span>
+<div style="border: 2px dashed var(--gold); border-radius: 14px; padding: 25px; text-align: center; background: var(--bg2); margin-bottom: 20px;">
+            <span style="font-size: 45px; display: block; margin-bottom: 10px;">🎬</span>
+            
+            <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 12px;">
+                <label for="videoStudioInput" style="background: var(--gold); color: #111; padding: 10px 18px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 13px;">
+                    📹 اختر مقطع فيديو
+                </label>
+                <input type="file" id="videoStudioInput" accept="video/*,audio/*" onchange="window.handleStudioFileUpload(event)" style="display: none;" />
+
+                <button id="studioRecBtn" onclick="window.toggleStudioDirectRecord()" style="background: var(--card); color: var(--gold); border: 1px solid var(--gold); padding: 10px 18px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 13px;">
+                    🎙️ سجل صوت حقيقي
+                </button>
+
+                <label for="imageStudioInput" style="background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 10px 18px; border-radius: 10px; cursor: pointer; font-size: 13px;">
+                    🖼️ اختر صورة خلفية
+                </label>
+                <input type="file" id="imageStudioInput" accept="image/*" onchange="window.convertImageToStudioVideo(event)" style="display: none;" />
+            </div>
+
+            <span id="studioFileName" style="display: block; color: var(--text2); font-size: 12px; margin-top: 5px;">اختر مقطعاً أو سجّل صوتك أو اختر صورة للبدء</span>
+            <div id="studioRecStatusText" style="font-size: 11px; margin-top: 5px; color: var(--gold);"></div>
         </div>
 
-        <!-- 📺 مسرح العمل والمعاينة الحية -->
         <div id="studioWorkArea" style="display: none;">
             
-            <video id="studioVideoPlayer" controls style="width: 100%; margin-top: 10px; border-radius: 8px;"></video>
-
+            <video id="studioVideoPlayer" style="display: none;"></video>
             <!-- الكانفاس الموحد -->
             <div style="position: relative; text-align: center; margin-top: 15px; margin-bottom: 15px; background: #000; border-radius: 12px; overflow: hidden; border: 1px solid var(--border);">
                 <canvas id="studioCanvas" style="max-width: 100%; max-height: 480px; display: block; margin: 0 auto; cursor: move;"></canvas>
@@ -1178,18 +1190,21 @@ window.setTransition = function(clipIdx, type) {
 
 // 📂 معالجة رفع الفيديو
 // 📂 معالجة رفع الفيديو
-// 📂 معالجة رفع الفيديو بضمان قراءة المدة الحقيقية (Reliable Duration Handling)
+// 📂 معالجة رفع الفيديو والصور بضمان قراءة المدة الحقيقية وتفادي التعليق عند 0
 window.handleStudioFileUpload = function(event) {
-    const file = event.target.files[0];
+    const file = event.target ? event.target.files[0] : event;
     if (!file) return;
 
-    window.studioEngine.originalFileSize = file.size;
-    document.getElementById('studioFileName').textContent = `📹 الملف المختار: ${file.name} (${(file.size / (1024 * 1024)).toFixed(1)} MB)`;
+    window.studioEngine.originalFileSize = file.size || 0;
+    const fileNameEl = document.getElementById('studioFileName');
+    if (fileNameEl) {
+        fileNameEl.textContent = `📹 الملف المختار: ${file.name || 'ملف مخصص'} (${((file.size || 0) / (1024 * 1024)).toFixed(1)} MB)`;
+    }
     
     const video = document.getElementById('studioVideoPlayer');
     const videoURL = URL.createObjectURL(file);
     video.src = videoURL;
-    video.loop = false; // 🚫 إيقاف التكرار التلقائي للفيديو
+    video.loop = false;
     
     window.studioEngine.videoElement = video;
     window.studioEngine.renderCanvas = document.getElementById('studioCanvas');
@@ -1198,8 +1213,10 @@ window.handleStudioFileUpload = function(event) {
     document.getElementById('studioWorkArea').style.display = 'block';
 
     const finalizeClip = (dur) => {
-        if (!dur || isNaN(dur) || !isFinite(dur)) return;
-        window.studioEngine.clips = [{ id: 1, start: 0, end: dur }];
+        // إذا كانت المدة غير محددة أو غير منتهية (كما يحدث مع صور WebM)، نحدد مدة افتراضية 15 ثانية
+        const validDuration = (dur && isFinite(dur) && dur > 0) ? dur : (window.studioEngine.customImageDuration || 15);
+        
+        window.studioEngine.clips = [{ id: 1, start: 0, end: validDuration }];
 
         window.studioEngine.renderCanvas.width = video.videoWidth || 1280;
         window.studioEngine.renderCanvas.height = video.videoHeight || 720;
@@ -1216,58 +1233,37 @@ window.handleStudioFileUpload = function(event) {
         window.drawSingleStudioFrame();
     };
 
-    video.onloadeddata = () => {
-        if (isFinite(video.duration) && video.duration > 0) {
-            finalizeClip(video.duration);
-            return;
-        }
-        const onDurationChange = () => {
-            if (isFinite(video.duration) && video.duration > 0) {
-                video.removeEventListener('durationchange', onDurationChange);
-                finalizeClip(video.duration);
-            }
-        };
-        video.addEventListener('durationchange', onDurationChange);
-
-        if (!isFinite(video.duration)) {
-            video.currentTime = 1e10;
-            video.ontimeupdate = () => {
-                video.ontimeupdate = null;
-                video.currentTime = 0;
-                if (isFinite(video.duration) && video.duration > 0) {
-                    finalizeClip(video.duration);
-                }
-            };
-        }
+    video.onloadedmetadata = () => {
+        finalizeClip(video.duration);
     };
 
-    // 🎵 عند تشغيل الفيديو: تشغيل المؤثر الصوتي
-video.onplay = () => {
-    const e = window.studioEngine;
-    const curClip = e.clips[e.selectedClipIndex];
-    const endT = curClip ? curClip.end : video.duration;
-    
-    // 👈 السطر ده: لو واقف عند النهاية أو قريبه منها، يرجع للبداية فوراً قبل التشغيل
-    if (video.currentTime >= endT - 0.1 || video.ended) {
-        video.currentTime = curClip ? curClip.start : 0;
-    }
+    video.onloadeddata = () => {
+        finalizeClip(video.duration);
+    };
 
-    window.initStudioAudioEngine();
-    if (e.ambientAudioEl) {
-        e.ambientAudioEl.play();
-    }
-    window.startCanvasRenderLoop();
-    if (typeof window.drawAudioWaveform === 'function') window.drawAudioWaveform();
-};
+    video.onplay = () => {
+        const e = window.studioEngine;
+        const curClip = e.clips[e.selectedClipIndex];
+        const endT = curClip ? curClip.end : (isFinite(video.duration) ? video.duration : 15);
+        
+        if (video.currentTime >= endT - 0.1 || video.ended) {
+            video.currentTime = curClip ? curClip.start : 0;
+        }
 
-    // 🛑 عند إيقاف الفيديو: إيقاف المؤثر الصوتي فوراً
+        window.initStudioAudioEngine();
+        if (e.ambientAudioEl) {
+            e.ambientAudioEl.play();
+        }
+        window.startCanvasRenderLoop();
+        if (typeof window.drawAudioWaveform === 'function') window.drawAudioWaveform();
+    };
+
     video.onpause = () => {
         if (window.studioEngine.ambientAudioEl) {
             window.studioEngine.ambientAudioEl.pause();
         }
     };
 
-    // 🏁 عند انتهاء الفيديو: الوقوف تماماً وعدم الإعادة
     video.onended = () => {
         if (window.studioEngine.ambientAudioEl) {
             window.studioEngine.ambientAudioEl.pause();
@@ -1654,10 +1650,16 @@ function startSpectrumAndLoudnessVisualizer() {
     draw();
 }
 
+// 🎛️ تحديث فلاتر الصوت المباشرة وتربيط المربعات التشغيلية فعلياً
 window.updateStudioAudioFilters = function() {
     const e = window.studioEngine;
     if (!e.audioCtx) return;
 
+    // 1. قراءة حالة المربعات (Checkboxes)
+    const enableDynamics = document.getElementById('chkDynamicsProcessor')?.checked ?? true;
+    const enableNoiseDereverb = document.getElementById('chkNoiseDereverb')?.checked ?? true;
+
+    // 2. قراءة قيم السلايدرات
     const masterGain = parseFloat(document.getElementById('sliderMasterGain')?.value || 100);
     const presence = parseFloat(document.getElementById('sliderPresence')?.value || 0);
     const warmth = parseFloat(document.getElementById('sliderWarmth')?.value || 0);
@@ -1667,6 +1669,7 @@ window.updateStudioAudioFilters = function() {
     const reverb = parseFloat(document.getElementById('sliderReverb')?.value || 0);
     const noise = parseFloat(document.getElementById('sliderNoise')?.value || 0);
 
+    // تحديث النصوص الرقمية في الواجهة
     if (document.getElementById('valMasterGain')) document.getElementById('valMasterGain').textContent = `${masterGain}%`;
     if (document.getElementById('valPresence')) document.getElementById('valPresence').textContent = `${presence}%`;
     if (document.getElementById('valWarmth')) document.getElementById('valWarmth').textContent = `${warmth}%`;
@@ -1677,14 +1680,37 @@ window.updateStudioAudioFilters = function() {
     if (document.getElementById('valNoise')) document.getElementById('valNoise').textContent = noise > 0 ? `${noise}%` : 'إيقاف';
 
     if (!e.isOriginal) {
+        // 📢 مضاعف الصوت
         if (e.masterGainNode) e.masterGainNode.gain.value = masterGain / 100;
-        if (e.presenceFilter) e.presenceFilter.gain.value = (presence / 100) * 12; // رفعة تصل لـ +12dB
-        if (e.warmthFilter) e.warmthFilter.gain.value = (warmth / 100) * 10;     // رفعة تصل لـ +10dB
+        
+        // 🗣️ التجسيم والوضوح
+        if (e.presenceFilter) e.presenceFilter.gain.value = (presence / 100) * 12;
+        if (e.warmthFilter) e.warmthFilter.gain.value = (warmth / 100) * 10;
         if (e.voiceFilter) e.voiceFilter.gain.value = (voice - 100) / 10;
         if (e.trebleFilter) e.trebleFilter.gain.value = -(treble / 2.5);
         if (e.bassFilter) e.bassFilter.gain.value = -(bass / 2.5);
-        if (e.reverbGain) e.reverbGain.gain.value = (reverb / 100) * 0.6;
-        if (e.noiseFilter) e.noiseFilter.Q.value = noise > 0 ? (noise / 10) : 0.001;
+
+        // 🛡️ تفعيل / إيقاف ثبات الصوت والـ Limiter فعلياً
+        if (e.compressorNode) {
+            if (enableDynamics) {
+                e.compressorNode.threshold.value = -24;
+                e.compressorNode.ratio.value = 12;
+            } else {
+                e.compressorNode.threshold.value = 0;
+                e.compressorNode.ratio.value = 1;
+            }
+        }
+
+        // ✨ تفعيل / إيقاف عزل الضوضاء والصدى فعلياً
+        if (e.noiseFilter) {
+            if (enableNoiseDereverb) {
+                e.noiseFilter.Q.value = noise > 0 ? (noise / 10) : 0.5;
+                if (e.reverbGain) e.reverbGain.gain.value = (reverb / 100) * 0.6;
+            } else {
+                e.noiseFilter.Q.value = 0.001;
+                if (e.reverbGain) e.reverbGain.gain.value = 0;
+            }
+        }
     }
 };
 
@@ -3775,13 +3801,14 @@ window.toggleStudioDirectRecord = async function() {
     }
   }
 };
-// 🖼️ تحويل صورة ثابته إلى فيديو بالمدة المحددة
+// 🖼️ تحويل صورة ثابته إلى فيديو بالمدة المحددة بدون تعليق العداد
 window.convertImageToStudioVideo = function(event) {
   const file = event.target.files[0];
   if (!file) return;
 
   const img = new Image();
   img.onload = () => {
+    window.studioEngine.bgCustomImage = img;
     const canvas = document.createElement('canvas');
     canvas.width = 1280;
     canvas.height = 720;
@@ -3797,10 +3824,12 @@ window.convertImageToStudioVideo = function(event) {
       const blob = new Blob(chunks, { type: 'video/webm' });
       const videoFile = new File([blob], `صورة_فيديو_${Date.now()}.webm`, { type: 'video/webm' });
       
-      // تغذية الاستوديو بالفيديو المولد
-      window.handleStudioFileUpload({ target: { files: [videoFile] } });
+      // حفظ مدة افتراضية 15 ثانية
+      window.studioEngine.customImageDuration = 15;
       
-      // إظهار تحكم مدة الفيديو
+      // تغذية الاستوديو بالفيديو المولد
+      window.handleStudioFileUpload(videoFile);
+      
       const durationBox = document.getElementById('imageDurationControl');
       if (durationBox) durationBox.style.display = 'block';
     };
@@ -3808,7 +3837,7 @@ window.convertImageToStudioVideo = function(event) {
     mediaRecorder.start();
     setTimeout(() => {
       mediaRecorder.stop();
-    }, 1000); // توليد فيديو أولي سريع
+    }, 800);
   };
 
   img.src = URL.createObjectURL(file);
