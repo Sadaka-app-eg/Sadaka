@@ -662,7 +662,7 @@ window.renderStudioUI = function() {
 
 
 
-            <!-- 🎙️ 1. تبويب الصوت -->
+<!-- 🎙️ 1. تبويب الصوت -->
             <div id="tabContent_audioTab" class="studio-tab-content">
                 <div style="margin-bottom: 15px;">
                     <strong style="color: var(--gold); font-size: 13px; display: block; margin-bottom: 8px;">⚡ البريسيتس السريعة بنقرة واحدة:</strong>
@@ -676,68 +676,26 @@ window.renderStudioUI = function() {
 
                 <div style="background: var(--bg2); padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 15px;">
                     <strong style="color: var(--gold); font-size: 14px; display: block; margin-bottom: 12px;">🎛️ معادل الصوت والصدى والترميم:</strong>
-<div style="display: flex; flex-direction: column; gap: 10px; font-size: 12px; color: var(--text);">
-    <div>
-        <div style="display:flex; justify-content:space-between;"><span>📢 مضاعف الصوت الفائق (Master Gain):</span> <span id="valMasterGain" style="color:var(--gold); font-weight:bold;">100%</span></div>
-        <input type="range" id="sliderMasterGain" min="50" max="400" value="100" oninput="window.updateStudioAudioFilters()" style="width:100%; accent-color:var(--gold);">
-        <span style="font-size:10px; color:var(--text2);">يرفع مستوى الميكروفون والصوت حتى 4 أضعاف قوته الأصلية.</span>
-    </div>
-    <div>
-        <div style="display:flex; justify-content:space-between;"><span>💎 الوضوح والتجسيم البلوري (Presence):</span> <span id="valPresence">0%</span></div>
-        <input type="range" id="sliderPresence" min="0" max="100" value="0" oninput="window.updateStudioAudioFilters()" style="width:100%; accent-color:var(--gold);">
-        <span style="font-size:10px; color:var(--text2);">إبراز نبرة الصوت البشري وتفاصيل الهمس والآيات بشكل سينمائي.</span>
-    </div>
-    <div>
-        <div style="display:flex; justify-content:space-between;"><span>🎙️ الدفء والعمق الإذاعي (Radio Warmth):</span> <span id="valWarmth">0%</span></div>
-        <input type="range" id="sliderWarmth" min="0" max="100" value="0" oninput="window.updateStudioAudioFilters()" style="width:100%; accent-color:var(--gold);">
-        <span style="font-size:10px; color:var(--text2);">إعطاء فخامة ورنين دافئ للصوت يشبه ميكروفونات الاستوديو.</span>
-    </div>
-    <div>
-        <div style="display:flex; justify-content:space-between;"><span>🗣️ تضخيم الصوت البشري (Voice Boost):</span> <span id="valVoice">100%</span></div>
-        <input type="range" id="sliderVoice" min="0" max="200" value="100" oninput="window.updateStudioAudioFilters()" style="width:100%; accent-color:var(--gold);">
-    </div>
-<div style="display: flex; flex-direction: column; gap: 10px; font-size: 12px; color: var(--text);">
-    <div>
-        <div style="display:flex; justify-content:space-between;"><span>📢 مضاعف الصوت الفائق (Master Gain):</span> <span id="valMasterGain" style="color:var(--gold); font-weight:bold;">100%</span></div>
-        <input type="range" id="sliderMasterGain" min="50" max="400" value="100" oninput="window.updateStudioAudioFilters()" style="width:100%; accent-color:var(--gold);">
-        <span style="font-size:10px; color:var(--text2);">يرفع مستوى الميكروفون والصوت حتى 4 أضعاف قوته الأصلية.</span>
-    </div>
-    <div>
-        <div style="display:flex; justify-content:space-between;"><span>💎 الوضوح والتجسيم البلوري (Presence):</span> <span id="valPresence">0%</span></div>
-        <input type="range" id="sliderPresence" min="0" max="100" value="0" oninput="window.updateStudioAudioFilters()" style="width:100%; accent-color:var(--gold);">
-        <span style="font-size:10px; color:var(--text2);">إبراز نبرة الصوت البشري وتفاصيل الهمس والآيات بشكل سينمائي.</span>
-    </div>
-    <div>
-        <div style="display:flex; justify-content:space-between;"><span>🎙️ الدفء والعمق الإذاعي (Radio Warmth):</span> <span id="valWarmth">0%</span></div>
-        <input type="range" id="sliderWarmth" min="0" max="100" value="0" oninput="window.updateStudioAudioFilters()" style="width:100%; accent-color:var(--gold);">
-        <span style="font-size:10px; color:var(--text2);">إعطاء فخامة ورنين دافئ للصوت يشبه ميكروفونات الاستوديو.</span>
-    </div>
-    <div>
-        <div style="display:flex; justify-content:space-between;"><span>🗣️ تضخيم الصوت البشري (Voice Boost):</span> <span id="valVoice">100%</span></div>
-        <input type="range" id="sliderVoice" min="0" max="200" value="100" oninput="window.updateStudioAudioFilters()" style="width:100%; accent-color:var(--gold);">
-    </div>
-    <div>
-        <div style="display:flex; justify-content:space-between;"><span>🎼 كتم الترددات الحادة:</span> <span id="valTreble">0%</span></div>
-        <input type="range" id="sliderTreble" min="0" max="100" value="0" oninput="window.updateStudioAudioFilters()" style="width:100%; accent-color:var(--gold);">
-    </div>
-    <div>
-        <div style="display:flex; justify-content:space-between;"><span>🥁 كتم الإيقاعات والبيس:</span> <span id="valBass">0%</span></div>
-        <input type="range" id="sliderBass" min="0" max="100" value="0" oninput="window.updateStudioAudioFilters()" style="width:100%; accent-color:var(--gold);">
-    </div>
-    <div>
-        <div style="display:flex; justify-content:space-between;"><span>🕌 صدى الصوت المسجدي (Reverb Delay):</span> <span id="valReverb">إيقاف</span></div>
-        <input type="range" id="sliderReverb" min="0" max="100" value="0" oninput="window.updateStudioAudioFilters()" style="width:100%; accent-color:var(--gold);">
-    </div>
-    <div>
-        <div style="display:flex; justify-content:space-between;"><span>💨 إزالة النويز والوش:</span> <span id="valNoise">إيقاف</span></div>
-        <input type="range" id="sliderNoise" min="0" max="100" value="0" oninput="window.updateStudioAudioFilters()" style="width:100%; accent-color:var(--gold);">
-    </div>
-    <div>
-        <div style="display:flex; justify-content:space-between;"><span>⚡ سرعة المقطع بدون تغيير النبرة:</span> <span id="valSpeed">1.0x</span></div>
-        <input type="range" id="sliderSpeed" min="0.75" max="2.0" step="0.05" value="1.0" oninput="window.updateStudioSpeed()" style="width:100%; accent-color:var(--gold);">
-    </div>
-</div>
-</div>
+                    <div style="display: flex; flex-direction: column; gap: 10px; font-size: 12px; color: var(--text);">
+                        <div>
+                            <div style="display:flex; justify-content:space-between;"><span>📢 مضاعف الصوت الفائق (Master Gain):</span> <span id="valMasterGain" style="color:var(--gold); font-weight:bold;">100%</span></div>
+                            <input type="range" id="sliderMasterGain" min="50" max="400" value="100" oninput="window.updateStudioAudioFilters()" style="width:100%; accent-color:var(--gold);">
+                            <span style="font-size:10px; color:var(--text2);">يرفع مستوى الميكروفون والصوت حتى 4 أضعاف قوته الأصلية.</span>
+                        </div>
+                        <div>
+                            <div style="display:flex; justify-content:space-between;"><span>💎 الوضوح والتجسيم البلوري (Presence):</span> <span id="valPresence">0%</span></div>
+                            <input type="range" id="sliderPresence" min="0" max="100" value="0" oninput="window.updateStudioAudioFilters()" style="width:100%; accent-color:var(--gold);">
+                            <span style="font-size:10px; color:var(--text2);">إبراز نبرة الصوت البشري وتفاصيل الهمس والآيات بشكل سينمائي.</span>
+                        </div>
+                        <div>
+                            <div style="display:flex; justify-content:space-between;"><span>🎙️ الدفء والعمق الإذاعي (Radio Warmth):</span> <span id="valWarmth">0%</span></div>
+                            <input type="range" id="sliderWarmth" min="0" max="100" value="0" oninput="window.updateStudioAudioFilters()" style="width:100%; accent-color:var(--gold);">
+                            <span style="font-size:10px; color:var(--text2);">إعطاء فخامة ورنين دافئ للصوت يشبه ميكروفونات الاستوديو.</span>
+                        </div>
+                        <div>
+                            <div style="display:flex; justify-content:space-between;"><span>🗣️ تضخيم الصوت البشري (Voice Boost):</span> <span id="valVoice">100%</span></div>
+                            <input type="range" id="sliderVoice" min="0" max="200" value="100" oninput="window.updateStudioAudioFilters()" style="width:100%; accent-color:var(--gold);">
+                        </div>
                         <div>
                             <div style="display:flex; justify-content:space-between;"><span>🎼 كتم الترددات الحادة:</span> <span id="valTreble">0%</span></div>
                             <input type="range" id="sliderTreble" min="0" max="100" value="0" oninput="window.updateStudioAudioFilters()" style="width:100%; accent-color:var(--gold);">
@@ -747,7 +705,7 @@ window.renderStudioUI = function() {
                             <input type="range" id="sliderBass" min="0" max="100" value="0" oninput="window.updateStudioAudioFilters()" style="width:100%; accent-color:var(--gold);">
                         </div>
                         <div>
-                            <div style="display:flex; justify-content:space-between;"><span>🕌 صدى الصوت المسجدي:</span> <span id="valReverb">إيقاف</span></div>
+                            <div style="display:flex; justify-content:space-between;"><span>🕌 صدى الصوت المسجدي (Reverb Delay):</span> <span id="valReverb">إيقاف</span></div>
                             <input type="range" id="sliderReverb" min="0" max="100" value="0" oninput="window.updateStudioAudioFilters()" style="width:100%; accent-color:var(--gold);">
                         </div>
                         <div>
@@ -777,7 +735,7 @@ window.renderStudioUI = function() {
                         <input type="file" accept="audio/*" onchange="window.handleUserAmbientAudio(event)" style="font-size:11px; color:var(--text);" />
                     </div>
 
-                    <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; pt: 10px; border-top: 1px solid var(--border);">
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border);">
                         <button id="toggleCompareBtn" onclick="window.toggleStudioLiveCompare()" style="flex: 1; background: rgba(212,175,55,0.15); color: var(--gold); border: 1px solid var(--gold); padding: 8px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer;">
                             🔄 المقارنة الحية: (الصوت المنقى)
                         </button>
@@ -787,8 +745,6 @@ window.renderStudioUI = function() {
                     </div>
                 </div>
             </div>
-
-            <!-- ✍️ 2. تبويب النصوص -->
             <div id="tabContent_textTab" class="studio-tab-content" style="display: none;">
                 <div style="background: var(--bg2); padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 15px;">
                     <strong style="color: var(--gold); font-size: 14px; display: block; margin-bottom: 8px;">✍️ كتابة النصوص والآيات للشاشة:</strong>
