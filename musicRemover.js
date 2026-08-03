@@ -218,15 +218,19 @@ class AthrKeyframeEngine {
 
 window.studioEngine = {
     
-    audioCtx: null,
+audioCtx: null,
     sourceNode: null,
+    masterGainNode: null,     // 📢 مضاعف الصوت الفائق
     voiceFilter: null,
+    presenceFilter: null,   // 💎 فلتر الوضوح البلوري
+    warmthFilter: null,     // 🎙️ فلتر الدفء الاستوديوي
     bassFilter: null,
     trebleFilter: null,
     noiseFilter: null,
     reverbDelay: null,
     reverbFeedback: null,
     reverbGain: null,
+    compressorNode: null,   // 🎜 الضاغط الديناميكي
     gainNode: null,
     analyserNode: null,
     isOriginal: false,
@@ -672,11 +676,47 @@ window.renderStudioUI = function() {
 
                 <div style="background: var(--bg2); padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 15px;">
                     <strong style="color: var(--gold); font-size: 14px; display: block; margin-bottom: 12px;">🎛️ معادل الصوت والصدى والترميم:</strong>
-                    <div style="display: flex; flex-direction: column; gap: 10px; font-size: 12px; color: var(--text);">
-                        <div>
-                            <div style="display:flex; justify-content:space-between;"><span>🗣️ تضخيم الصوت البشري:</span> <span id="valVoice">100%</span></div>
-                            <input type="range" id="sliderVoice" min="0" max="200" value="100" oninput="window.updateStudioAudioFilters()" style="width:100%; accent-color:var(--gold);">
-                        </div>
+<div style="display: flex; flex-direction: column; gap: 10px; font-size: 12px; color: var(--text);">
+    <div>
+        <div style="display:flex; justify-content:space-between;"><span>📢 مضاعف الصوت الفائق (Master Gain):</span> <span id="valMasterGain" style="color:var(--gold); font-weight:bold;">100%</span></div>
+        <input type="range" id="sliderMasterGain" min="50" max="400" value="100" oninput="window.updateStudioAudioFilters()" style="width:100%; accent-color:var(--gold);">
+        <span style="font-size:10px; color:var(--text2);">يرفع مستوى الميكروفون والصوت حتى 4 أضعاف قوته الأصلية.</span>
+    </div>
+    <div>
+        <div style="display:flex; justify-content:space-between;"><span>💎 الوضوح والتجسيم البلوري (Presence):</span> <span id="valPresence">0%</span></div>
+        <input type="range" id="sliderPresence" min="0" max="100" value="0" oninput="window.updateStudioAudioFilters()" style="width:100%; accent-color:var(--gold);">
+        <span style="font-size:10px; color:var(--text2);">إبراز نبرة الصوت البشري وتفاصيل الهمس والآيات بشكل سينمائي.</span>
+    </div>
+    <div>
+        <div style="display:flex; justify-content:space-between;"><span>🎙️ الدفء والعمق الإذاعي (Radio Warmth):</span> <span id="valWarmth">0%</span></div>
+        <input type="range" id="sliderWarmth" min="0" max="100" value="0" oninput="window.updateStudioAudioFilters()" style="width:100%; accent-color:var(--gold);">
+        <span style="font-size:10px; color:var(--text2);">إعطاء فخامة ورنين دافئ للصوت يشبه ميكروفونات الاستوديو.</span>
+    </div>
+    <div>
+        <div style="display:flex; justify-content:space-between;"><span>🗣️ تضخيم الصوت البشري (Voice Boost):</span> <span id="valVoice">100%</span></div>
+        <input type="range" id="sliderVoice" min="0" max="200" value="100" oninput="window.updateStudioAudioFilters()" style="width:100%; accent-color:var(--gold);">
+    </div>
+    <div>
+        <div style="display:flex; justify-content:space-between;"><span>🎼 كتم الترددات الحادة:</span> <span id="valTreble">0%</span></div>
+        <input type="range" id="sliderTreble" min="0" max="100" value="0" oninput="window.updateStudioAudioFilters()" style="width:100%; accent-color:var(--gold);">
+    </div>
+    <div>
+        <div style="display:flex; justify-content:space-between;"><span>🥁 كتم الإيقاعات والبيس:</span> <span id="valBass">0%</span></div>
+        <input type="range" id="sliderBass" min="0" max="100" value="0" oninput="window.updateStudioAudioFilters()" style="width:100%; accent-color:var(--gold);">
+    </div>
+    <div>
+        <div style="display:flex; justify-content:space-between;"><span>🕌 صدى الصوت المسجدي (Reverb Delay):</span> <span id="valReverb">إيقاف</span></div>
+        <input type="range" id="sliderReverb" min="0" max="100" value="0" oninput="window.updateStudioAudioFilters()" style="width:100%; accent-color:var(--gold);">
+    </div>
+    <div>
+        <div style="display:flex; justify-content:space-between;"><span>💨 إزالة النويز والوش:</span> <span id="valNoise">إيقاف</span></div>
+        <input type="range" id="sliderNoise" min="0" max="100" value="0" oninput="window.updateStudioAudioFilters()" style="width:100%; accent-color:var(--gold);">
+    </div>
+    <div>
+        <div style="display:flex; justify-content:space-between;"><span>⚡ سرعة المقطع بدون تغيير النبرة:</span> <span id="valSpeed">1.0x</span></div>
+        <input type="range" id="sliderSpeed" min="0.75" max="2.0" step="0.05" value="1.0" oninput="window.updateStudioSpeed()" style="width:100%; accent-color:var(--gold);">
+    </div>
+</div>
                         <div>
                             <div style="display:flex; justify-content:space-between;"><span>🎼 كتم الترددات الحادة:</span> <span id="valTreble">0%</span></div>
                             <input type="range" id="sliderTreble" min="0" max="100" value="0" oninput="window.updateStudioAudioFilters()" style="width:100%; accent-color:var(--gold);">
@@ -1458,6 +1498,7 @@ window.updateAmbientSound = function() {
 };
 
 // ⚙️ محرك الصوت
+// ⚙️ محرك الصوت الاحترافي العالمي (Global Audio Pipeline)
 window.initStudioAudioEngine = function() {
     if (window.studioEngine.audioCtx) return;
 
@@ -1467,22 +1508,43 @@ window.initStudioAudioEngine = function() {
 
     const source = ctx.createMediaElementSource(video);
 
+    // 📢 1. مضاعف الصوت الفائق (Master Gain Node)
+    const masterGainNode = ctx.createGain();
+    masterGainNode.gain.value = 1.0;
+
+    // 🗣️ 2. فلتر تضخيم الصوت البشري (Peaking Filter)
     const voiceFilter = ctx.createBiquadFilter();
     voiceFilter.type = 'peaking';
     voiceFilter.frequency.value = 1200;
 
+    // 💎 3. فلتر الوضوح البلوري (Presence / Air Filter)
+    const presenceFilter = ctx.createBiquadFilter();
+    presenceFilter.type = 'peaking';
+    presenceFilter.frequency.value = 4500;
+    presenceFilter.Q.value = 1.0;
+
+    // 🎙️ 4. فلتر الدفء الاستوديوي (Warmth Filter)
+    const warmthFilter = ctx.createBiquadFilter();
+    warmthFilter.type = 'peaking';
+    warmthFilter.frequency.value = 180;
+    warmthFilter.Q.value = 0.9;
+
+    // 🎼 5. فلتر كتم الترددات الحادة
     const trebleFilter = ctx.createBiquadFilter();
     trebleFilter.type = 'highshelf';
     trebleFilter.frequency.value = 3200;
 
+    // 🥁 6. فلتر البيس
     const bassFilter = ctx.createBiquadFilter();
     bassFilter.type = 'lowshelf';
     bassFilter.frequency.value = 250;
 
+    // 💨 7. فلتر عزل النويز والوش
     const noiseFilter = ctx.createBiquadFilter();
     noiseFilter.type = 'notch';
     noiseFilter.frequency.value = 60;
 
+    // 🕌 8. دائرة صدى المساجد
     const reverbDelay = ctx.createDelay();
     reverbDelay.delayTime.value = 0.08;
     const reverbFeedback = ctx.createGain();
@@ -1494,14 +1556,23 @@ window.initStudioAudioEngine = function() {
     reverbFeedback.connect(reverbDelay);
     reverbDelay.connect(reverbGain);
 
+    // 🎜 9. ضاغط الصوت الديناميكي (Compressor)
     const compressor = ctx.createDynamicsCompressor();
-    compressor.threshold.value = -24;
+    compressor.threshold.value = -20;
+    compressor.knee.value = 10;
+    compressor.ratio.value = 4;
+    compressor.attack.value = 0.003;
+    compressor.release.value = 0.25;
 
     const gainNode = ctx.createGain();
     const analyser = ctx.createAnalyser();
 
-    source.connect(voiceFilter);
-    voiceFilter.connect(trebleFilter);
+    // 🔗 ربط السلسلة الصوتية بالكامل بالترتيب
+    source.connect(masterGainNode);
+    masterGainNode.connect(voiceFilter);
+    voiceFilter.connect(presenceFilter);
+    presenceFilter.connect(warmthFilter);
+    warmthFilter.connect(trebleFilter);
     trebleFilter.connect(bassFilter);
     bassFilter.connect(noiseFilter);
 
@@ -1517,13 +1588,17 @@ window.initStudioAudioEngine = function() {
         ...window.studioEngine,
         audioCtx: ctx,
         sourceNode: source,
+        masterGainNode,
         voiceFilter,
+        presenceFilter,
+        warmthFilter,
         trebleFilter,
         bassFilter,
         noiseFilter,
         reverbDelay,
         reverbFeedback,
         reverbGain,
+        compressorNode: compressor,
         gainNode,
         analyserNode: analyser
     };
@@ -1535,24 +1610,33 @@ window.updateStudioAudioFilters = function() {
     const e = window.studioEngine;
     if (!e.audioCtx) return;
 
-    const voice = parseFloat(document.getElementById('sliderVoice').value);
-    const treble = parseFloat(document.getElementById('sliderTreble').value);
-    const bass = parseFloat(document.getElementById('sliderBass').value);
-    const reverb = parseFloat(document.getElementById('sliderReverb').value);
-    const noise = parseFloat(document.getElementById('sliderNoise').value);
+    const masterGain = parseFloat(document.getElementById('sliderMasterGain')?.value || 100);
+    const presence = parseFloat(document.getElementById('sliderPresence')?.value || 0);
+    const warmth = parseFloat(document.getElementById('sliderWarmth')?.value || 0);
+    const voice = parseFloat(document.getElementById('sliderVoice')?.value || 100);
+    const treble = parseFloat(document.getElementById('sliderTreble')?.value || 0);
+    const bass = parseFloat(document.getElementById('sliderBass')?.value || 0);
+    const reverb = parseFloat(document.getElementById('sliderReverb')?.value || 0);
+    const noise = parseFloat(document.getElementById('sliderNoise')?.value || 0);
 
-    document.getElementById('valVoice').textContent = `${voice}%`;
-    document.getElementById('valTreble').textContent = `${treble}%`;
-    document.getElementById('valBass').textContent = `${bass}%`;
-    document.getElementById('valReverb').textContent = reverb > 0 ? `${reverb}%` : 'إيقاف';
-    document.getElementById('valNoise').textContent = noise > 0 ? `${noise}%` : 'إيقاف';
+    if (document.getElementById('valMasterGain')) document.getElementById('valMasterGain').textContent = `${masterGain}%`;
+    if (document.getElementById('valPresence')) document.getElementById('valPresence').textContent = `${presence}%`;
+    if (document.getElementById('valWarmth')) document.getElementById('valWarmth').textContent = `${warmth}%`;
+    if (document.getElementById('valVoice')) document.getElementById('valVoice').textContent = `${voice}%`;
+    if (document.getElementById('valTreble')) document.getElementById('valTreble').textContent = `${treble}%`;
+    if (document.getElementById('valBass')) document.getElementById('valBass').textContent = `${bass}%`;
+    if (document.getElementById('valReverb')) document.getElementById('valReverb').textContent = reverb > 0 ? `${reverb}%` : 'إيقاف';
+    if (document.getElementById('valNoise')) document.getElementById('valNoise').textContent = noise > 0 ? `${noise}%` : 'إيقاف';
 
     if (!e.isOriginal) {
-        e.voiceFilter.gain.value = (voice - 100) / 10;
-        e.trebleFilter.gain.value = -(treble / 2.5);
-        e.bassFilter.gain.value = -(bass / 2.5);
-        e.reverbGain.gain.value = (reverb / 100) * 0.6;
-        e.noiseFilter.Q.value = noise > 0 ? (noise / 10) : 0.001;
+        if (e.masterGainNode) e.masterGainNode.gain.value = masterGain / 100;
+        if (e.presenceFilter) e.presenceFilter.gain.value = (presence / 100) * 12; // رفعة تصل لـ +12dB
+        if (e.warmthFilter) e.warmthFilter.gain.value = (warmth / 100) * 10;     // رفعة تصل لـ +10dB
+        if (e.voiceFilter) e.voiceFilter.gain.value = (voice - 100) / 10;
+        if (e.trebleFilter) e.trebleFilter.gain.value = -(treble / 2.5);
+        if (e.bassFilter) e.bassFilter.gain.value = -(bass / 2.5);
+        if (e.reverbGain) e.reverbGain.gain.value = (reverb / 100) * 0.6;
+        if (e.noiseFilter) e.noiseFilter.Q.value = noise > 0 ? (noise / 10) : 0.001;
     }
 };
 
@@ -1628,24 +1712,36 @@ window.updateStudioCinematicConfig = function() {
 
 window.applyStudioPreset = function(type) {
     if (type === 'music') {
+        document.getElementById('sliderMasterGain').value = 130;
+        document.getElementById('sliderPresence').value = 60;
+        document.getElementById('sliderWarmth').value = 40;
         document.getElementById('sliderVoice').value = 140;
         document.getElementById('sliderTreble').value = 85;
         document.getElementById('sliderBass').value = 90;
         document.getElementById('sliderReverb').value = 15;
         document.getElementById('sliderNoise').value = 30;
     } else if (type === 'mosque') {
+        document.getElementById('sliderMasterGain').value = 120;
+        document.getElementById('sliderPresence').value = 50;
+        document.getElementById('sliderWarmth').value = 70;
         document.getElementById('sliderVoice').value = 120;
         document.getElementById('sliderTreble').value = 30;
         document.getElementById('sliderBass').value = 50;
         document.getElementById('sliderReverb').value = 65;
         document.getElementById('sliderNoise').value = 50;
     } else if (type === 'mic') {
+        document.getElementById('sliderMasterGain').value = 220; // رفع المايك لأكثر من الضعف!
+        document.getElementById('sliderPresence').value = 85;  // وضوح عالي جداً
+        document.getElementById('sliderWarmth').value = 60;   // عمق إذاعي
         document.getElementById('sliderVoice').value = 180;
         document.getElementById('sliderTreble').value = 10;
         document.getElementById('sliderBass').value = 20;
         document.getElementById('sliderReverb').value = 0;
         document.getElementById('sliderNoise').value = 40;
     } else {
+        document.getElementById('sliderMasterGain').value = 100;
+        document.getElementById('sliderPresence').value = 0;
+        document.getElementById('sliderWarmth').value = 0;
         document.getElementById('sliderVoice').value = 100;
         document.getElementById('sliderTreble').value = 0;
         document.getElementById('sliderBass').value = 0;
