@@ -696,6 +696,26 @@ window.renderStudioUI = function() {
         <div style="display:flex; justify-content:space-between;"><span>🗣️ تضخيم الصوت البشري (Voice Boost):</span> <span id="valVoice">100%</span></div>
         <input type="range" id="sliderVoice" min="0" max="200" value="100" oninput="window.updateStudioAudioFilters()" style="width:100%; accent-color:var(--gold);">
     </div>
+<div style="display: flex; flex-direction: column; gap: 10px; font-size: 12px; color: var(--text);">
+    <div>
+        <div style="display:flex; justify-content:space-between;"><span>📢 مضاعف الصوت الفائق (Master Gain):</span> <span id="valMasterGain" style="color:var(--gold); font-weight:bold;">100%</span></div>
+        <input type="range" id="sliderMasterGain" min="50" max="400" value="100" oninput="window.updateStudioAudioFilters()" style="width:100%; accent-color:var(--gold);">
+        <span style="font-size:10px; color:var(--text2);">يرفع مستوى الميكروفون والصوت حتى 4 أضعاف قوته الأصلية.</span>
+    </div>
+    <div>
+        <div style="display:flex; justify-content:space-between;"><span>💎 الوضوح والتجسيم البلوري (Presence):</span> <span id="valPresence">0%</span></div>
+        <input type="range" id="sliderPresence" min="0" max="100" value="0" oninput="window.updateStudioAudioFilters()" style="width:100%; accent-color:var(--gold);">
+        <span style="font-size:10px; color:var(--text2);">إبراز نبرة الصوت البشري وتفاصيل الهمس والآيات بشكل سينمائي.</span>
+    </div>
+    <div>
+        <div style="display:flex; justify-content:space-between;"><span>🎙️ الدفء والعمق الإذاعي (Radio Warmth):</span> <span id="valWarmth">0%</span></div>
+        <input type="range" id="sliderWarmth" min="0" max="100" value="0" oninput="window.updateStudioAudioFilters()" style="width:100%; accent-color:var(--gold);">
+        <span style="font-size:10px; color:var(--text2);">إعطاء فخامة ورنين دافئ للصوت يشبه ميكروفونات الاستوديو.</span>
+    </div>
+    <div>
+        <div style="display:flex; justify-content:space-between;"><span>🗣️ تضخيم الصوت البشري (Voice Boost):</span> <span id="valVoice">100%</span></div>
+        <input type="range" id="sliderVoice" min="0" max="200" value="100" oninput="window.updateStudioAudioFilters()" style="width:100%; accent-color:var(--gold);">
+    </div>
     <div>
         <div style="display:flex; justify-content:space-between;"><span>🎼 كتم الترددات الحادة:</span> <span id="valTreble">0%</span></div>
         <input type="range" id="sliderTreble" min="0" max="100" value="0" oninput="window.updateStudioAudioFilters()" style="width:100%; accent-color:var(--gold);">
@@ -716,6 +736,7 @@ window.renderStudioUI = function() {
         <div style="display:flex; justify-content:space-between;"><span>⚡ سرعة المقطع بدون تغيير النبرة:</span> <span id="valSpeed">1.0x</span></div>
         <input type="range" id="sliderSpeed" min="0.75" max="2.0" step="0.05" value="1.0" oninput="window.updateStudioSpeed()" style="width:100%; accent-color:var(--gold);">
     </div>
+</div>
 </div>
                         <div>
                             <div style="display:flex; justify-content:space-between;"><span>🎼 كتم الترددات الحادة:</span> <span id="valTreble">0%</span></div>
