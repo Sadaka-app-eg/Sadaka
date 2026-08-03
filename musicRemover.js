@@ -664,6 +664,25 @@ window.renderStudioUI = function() {
 
 <!-- 🎙️ 1. تبويب الصوت -->
             <div id="tabContent_audioTab" class="studio-tab-content">
+            <!-- 📊 الشاشة اللحظية وخيارات الضوضاء والثبات (مدمجة جوة تبويب الصوت) -->
+  <div style="background: rgba(0,0,0,0.5); border: 1px solid var(--gold); border-radius: 14px; padding: 12px; margin-bottom: 15px;">
+    <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text2); margin-bottom: 6px; font-family: 'Amiri', serif;">
+      <span>📊 طيف الترددات الحية (Spectrum Analyzer)</span>
+      <span>مستوى العلو: <b id="loudnessValText" style="color:var(--gold); font-family: monospace;">-60 LUFS</b></span>
+    </div>
+    <canvas id="audioSpectrumCanvas" style="width: 100%; height: 70px; border-radius: 6px; display: block; margin-bottom: 10px;"></canvas>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+      <label style="display: flex; align-items: center; gap: 6px; background: var(--bg2); padding: 8px; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; font-size: 11px;">
+        <input type="checkbox" id="chkDynamicsProcessor" checked onchange="window.updateStudioAudioFilters()" style="accent-color: var(--gold);">
+        <span>🛡️ ثبات الصوت والـ Limiter</span>
+      </label>
+      <label style="display: flex; align-items: center; gap: 6px; background: var(--bg2); padding: 8px; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; font-size: 11px;">
+        <input type="checkbox" id="chkNoiseDereverb" checked onchange="window.updateStudioAudioFilters()" style="accent-color: var(--gold);">
+        <span>✨ عزل الضوضاء والصدى</span>
+      </label>
+    </div>
+  </div>
                 <div style="margin-bottom: 15px;">
                     <strong style="color: var(--gold); font-size: 13px; display: block; margin-bottom: 8px;">⚡ البريسيتس السريعة بنقرة واحدة:</strong>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px;">
@@ -3737,5 +3756,57 @@ window.toggleStudioDirectRecord = async function() {
       studioMediaRecorder.stop();
       isStudioRecording = false;
     }
+  }
+};
+// 🖼️ تحويل صورة ثابته إلى فيديو بالمدة المحددة
+window.convertImageToStudioVideo = function(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const img = new Image();
+  img.onload = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1280;
+    canvas.height = 720;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, 1280, 720);
+
+    const stream = canvas.captureStream(25);
+    const mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+    const chunks = [];
+
+    mediaRecorder.ondataavailable = e => chunks.push(e.data);
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(chunks, { type: 'video/webm' });
+      const videoFile = new File([blob], `صورة_فيديو_${Date.now()}.webm`, { type: 'video/webm' });
+      
+      // تغذية الاستوديو بالفيديو المولد
+      window.handleStudioFileUpload({ target: { files: [videoFile] } });
+      
+      // إظهار تحكم مدة الفيديو
+      const durationBox = document.getElementById('imageDurationControl');
+      if (durationBox) durationBox.style.display = 'block';
+    };
+
+    mediaRecorder.start();
+    setTimeout(() => {
+      mediaRecorder.stop();
+    }, 1000); // توليد فيديو أولي سريع
+  };
+
+  img.src = URL.createObjectURL(file);
+};
+
+// ⏱️ تحديث مدة فيديو الصورة على التايم لاين حسب رغبة المستخدم
+window.updateImageVideoDuration = function(secondsVal) {
+  const secs = parseFloat(secondsVal) || 15;
+  const e = window.studioEngine;
+  if (e.clips && e.clips.length > 0) {
+    e.clips[0].end = secs;
+    if (e.videoElement) {
+      e.videoElement.duration = secs;
+    }
+    window.renderTimelineUI();
+    document.getElementById('studioStatusLog').textContent = `⏱️ تم تعديل مدة عرض الصورة إلى ${secs} ثانية بنجاح!`;
   }
 };
