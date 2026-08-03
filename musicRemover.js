@@ -474,48 +474,7 @@ window.renderStudioUI = function() {
             
             </div>
 
-<!-- ⚙️ إعدادات التصدير والجودة والـ FPS -->
-<div style="background: var(--bg2); padding: 15px; border-radius: 12px; border: 1px solid var(--gold); margin-bottom: 15px;">
-    <strong style="color: var(--gold); font-size: 14px; display: block; margin-bottom: 10px;">⚙️ إعدادات الجودة والتصدير السريع:</strong>
-    
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 12px;">
-        <!-- اختيار الجودة / الأبعاد -->
-        <div>
-            <label style="display:block; color:var(--text2); font-size:11px; margin-bottom:4px;">🎯 جودة الدقة (Resolution):</label>
-            <select id="exportQualitySelect" onchange="window.updateExportEstimates()" style="width:100%; padding:6px; border-radius:6px; background:var(--card); color:var(--text); border:1px solid var(--border); font-size:12px;">
-                <option value="1080">Full HD (1080p) - جودة عالية</option>
-                <option value="720" selected>HD (720p) - متوازنة (موصى بها)</option>
-                <option value="480">SD (480p) - جودة منخفضة (حجم صغير)</option>
-            </select>
-        </div>
 
-        <!-- اختيار الـ FPS -->
-        <div>
-            <label style="display:block; color:var(--text2); font-size:11px; margin-bottom:4px;">🎞️ معدل الفريمات (FPS):</label>
-            <select id="exportFpsSelect" onchange="window.updateExportEstimates()" style="width:100%; padding:6px; border-radius:6px; background:var(--card); color:var(--text); border:1px solid var(--border); font-size:12px;">
-                <option value="60">60 FPS (سلاسة فائقة - حجم أكبر)</option>
-                <option value="30" selected>30 FPS (قياسي - متوازن)</option>
-                <option value="24">24 FPS (سينمائي - توفير مساحة)</option>
-            </select>
-        </div>
-
-        <!-- اختيار المعدل البت / الضغط (Bitrate) -->
-        <div>
-            <label style="display:block; color:var(--text2); font-size:11px; margin-bottom:4px;">🗜️ ضغط الحجم (Bitrate):</label>
-            <select id="exportBitrateSelect" onchange="window.updateExportEstimates()" style="width:100%; padding:6px; border-radius:6px; background:var(--card); color:var(--text); border:1px solid var(--border); font-size:12px;">
-                <option value="5000000">عالي (5 Mbps)</option>
-                <option value="2500000" selected>متوسط (2.5 Mbps)</option>
-                <option value="1000000">منخفض جداً (1 Mbps) - لتصغير الحجم</option>
-            </select>
-        </div>
-    </div>
-
-    <!-- 📊 شريط الحجم التقديري المطور -->
-    <div style="background: #000; padding: 10px; border-radius: 8px; border: 1px solid var(--border); text-align: center; font-size: 13px;">
-        📊 الحجم التقديري المتوقع عند التصدير: 
-        <span id="finalEstSizeMB" style="color: var(--gold); font-weight: bold; font-size: 15px;">-- MB</span>
-    </div>
-</div>
 
 <!-- 🎨 6. تبويب الملصقات والـ Picture-in-Picture -->
 <div id="tabContent_stickersTab" class="studio-tab-content" style="display: none;">
@@ -952,27 +911,59 @@ window.renderStudioUI = function() {
                 </div>
             </div>
 
-            <!-- ⚙️ إعدادات التصدير -->
-            <div style="background: var(--bg2); padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 15px; font-size: 12px;">
-                <strong style="color: var(--gold); font-size: 13px; display: block; margin-bottom: 8px;">⚙️ إعدادات دقة التصدير والجودة:</strong>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
+</div>
+
+            <!-- ⚙️ إعدادات دقة التصدير والجودة النهائية -->
+            <div style="background: var(--bg2); padding: 15px; border-radius: 12px; border: 1px solid var(--gold); margin-top: 20px; margin-bottom: 15px;">
+                <strong style="color: var(--gold); font-size: 13px; display: block; margin-bottom: 10px;">⚙️ إعدادات دقة التصدير والجودة النهائية:</strong>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 10px;">
                     <div>
-                        <label style="display:block; color:var(--text2); margin-bottom:2px;">جودة الفيديو (Bitrate):</label>
-                        <select id="exportBitrate" onchange="window.updateEstimatedSize()" style="width:100%; padding:6px; border-radius:6px; background:var(--card); color:var(--text); border:1px solid var(--border);">
-                            <option value="1200000">منخفضة / واتساب (1.2 Mbps)</option>
-                            <option value="2500000" selected>متوسطة HD (2.5 Mbps)</option>
-                            <option value="4500000">عالية Full HD (4.5 Mbps)</option>
+                        <label style="display:block; color:var(--text2); font-size:11px; margin-bottom:4px;">🎯 جودة الدقة (Resolution):</label>
+                        <select id="exportQualitySelect" onchange="window.updateExportEstimates()" style="width:100%; padding:6px; border-radius:6px; background:var(--card); color:var(--text); border:1px solid var(--border); font-size:12px;">
+                            <option value="1080">Full HD (1080p)</option>
+                            <option value="720" selected>HD (720p) - متوازنة</option>
+                            <option value="480">SD (480p) - حجم صغير</option>
                         </select>
                     </div>
+
                     <div>
-                        <label style="display:block; color:var(--text2); margin-bottom:2px;">سلاسة الحركة (FPS):</label>
-                        <select id="exportFPS" style="width:100%; padding:6px; border-radius:6px; background:var(--card); color:var(--text); border:1px solid var(--border);">
-                            <option value="30" selected>30 إطار/ثانية</option>
-                            <option value="60">60 إطار/ثانية (سلاسة فائقة)</option>
+                        <label style="display:block; color:var(--text2); font-size:11px; margin-bottom:4px;">🎞️ معدل الفريمات (FPS):</label>
+                        <select id="exportFpsSelect" onchange="window.updateExportEstimates()" style="width:100%; padding:6px; border-radius:6px; background:var(--card); color:var(--text); border:1px solid var(--border); font-size:12px;">
+                            <option value="60">60 FPS (سلاسة فائقة)</option>
+                            <option value="30" selected>30 FPS (قياسي - متوازن)</option>
+                            <option value="24">24 FPS (سينمائي)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label style="display:block; color:var(--text2); font-size:11px; margin-bottom:4px;">🗜️ ضغط الحجم (Bitrate):</label>
+                        <select id="exportBitrateSelect" onchange="window.updateExportEstimates()" style="width:100%; padding:6px; border-radius:6px; background:var(--card); color:var(--text); border:1px solid var(--border); font-size:12px;">
+                            <option value="5000000">عالي (5 Mbps)</option>
+                            <option value="2500000" selected>متوسط (2.5 Mbps)</option>
+                            <option value="1000000">منخفض جداً (1 Mbps)</option>
                         </select>
                     </div>
                 </div>
+
+                <div style="background: #000; padding: 8px; border-radius: 6px; border: 1px solid var(--border); text-align: center; font-size: 12px; color: var(--text2);">
+                    📊 الحجم التقديري المتوقع عند التصدير: <span id="finalEstSizeMB" style="color: var(--gold); font-weight: bold;">-- MB</span>
+                </div>
             </div>
+
+            <!-- 📥 أزرار التصدير والتنزيل -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button onclick="window.exportStudioPureAudio()" style="background: #005485; color: #fff; border: none; padding: 12px; border-radius: 10px; font-weight: bold; font-family: 'Amiri', serif; font-size: 14px; cursor: pointer;">
+                    🎵 استخراج الصوت المنقى (MP3)
+                </button>
+                <button onclick="window.exportStudioOffline()" style="background: #4caf50; color: #fff; border: none; padding: 12px; border-radius: 10px; font-weight: bold; font-family: 'Amiri', serif; font-size: 14px; cursor: pointer;">
+                    🎬 تصدير الفيديو المعدل بالكامل
+                </button>
+            </div>
+
+            <div id="studioStatusLog" style="text-align: center; color: var(--gold); font-size: 13px; font-weight: bold; margin-top: 15px; font-family: sans-serif;"></div>
+        </div>
+    </div>`;
 
             <!-- 📥 أزرار التصدير والتنزيل -->
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
@@ -1746,21 +1737,7 @@ window.updateStudioLayoutConfig = function() {
 
     const canvas = e.renderCanvas;
     if (!canvas) return;
-// 🎥 ميزة حركة الكاميرا الانسيابية (Camera Float / Shake Effect)
-        if (e.particleSystem && e.particleSystem.type === 'cameraShake') {
-            const time = Date.now() * 0.001 * (e.particleSystem.speed || 1.0);
-            const intensity = (e.particleSystem.size || 1.0) * 12; // مدى الحركة يمين وشمال
-            
-            // حساب الإزاحة والدوران الانسيابي (Sine Waves)
-            const offsetX = Math.sin(time * 1.5) * intensity;
-            const offsetY = Math.cos(time * 2.0) * (intensity * 0.6);
-            const rotation = Math.sin(time * 0.8) * 0.015 * (e.particleSystem.size || 1.0);
 
-            ctx.translate(canvas.width / 2 + offsetX, canvas.height / 2 + offsetY);
-            ctx.rotate(rotation);
-            ctx.scale(1.05, 1.05); // زوم خفيف جداً لمنع ظهور حواف سوداء أثناء العوم
-            ctx.translate(-canvas.width / 2, -canvas.height / 2);
-        }
     if (e.aspectRatio === "9:16") {
         canvas.width = 720;
         canvas.height = 1280;
@@ -2974,7 +2951,20 @@ window.drawStudioCanvas = function () {
     
     if (isVideoVisible) {
         ctx.save();
+// 🎥 تفعيل حركة الكاميرا الانسيابية الحية أثناء الرسم (Camera Float)
+            if (e.particleSystem && e.particleSystem.type === 'cameraShake') {
+                const time = Date.now() * 0.001 * (e.particleSystem.speed || 1.0);
+                const intensity = (e.particleSystem.size || 1.0) * 12;
+                
+                const offsetX = Math.sin(time * 1.5) * intensity;
+                const offsetY = Math.cos(time * 2.0) * (intensity * 0.6);
+                const rotation = Math.sin(time * 0.8) * 0.015 * (e.particleSystem.size || 1.0);
 
+                ctx.translate(canvas.width / 2 + offsetX, canvas.height / 2 + offsetY);
+                ctx.rotate(rotation);
+                ctx.scale(1.05, 1.05);
+                ctx.translate(-canvas.width / 2, -canvas.height / 2);
+            }
         if (e.enableMirrorFlip) {
             ctx.translate(canvas.width, 0);
             ctx.scale(-1, 1);
