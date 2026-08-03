@@ -1474,8 +1474,7 @@ window.updateAmbientSound = function() {
     document.getElementById('studioStatusLog').textContent = `🍃 تم تشغيل مؤثر (${type}) أوفلاين بنجاح!`;
 };
 
-// ⚙️ محرك الصوت
-// ⚙️ محرك الصوت الاحترافي العالمي (Global Audio Pipeline)
+// ⚙️ محرك الصوت الاحترافي المطور الشامل (Global Audio Pipeline)
 window.initStudioAudioEngine = function() {
     if (window.studioEngine.audioCtx) return;
 
@@ -1485,43 +1484,40 @@ window.initStudioAudioEngine = function() {
 
     const source = ctx.createMediaElementSource(video);
 
-    // 📢 1. مضاعف الصوت الفائق (Master Gain Node)
+    // 📢 1. مضاعف الصوت الفائق
     const masterGainNode = ctx.createGain();
     masterGainNode.gain.value = 1.0;
 
-    // 🗣️ 2. فلتر تضخيم الصوت البشري (Peaking Filter)
+    // 🗣️ 2. فلاتر التجسيم والوضوح
     const voiceFilter = ctx.createBiquadFilter();
     voiceFilter.type = 'peaking';
     voiceFilter.frequency.value = 1200;
 
-    // 💎 3. فلتر الوضوح البلوري (Presence / Air Filter)
     const presenceFilter = ctx.createBiquadFilter();
     presenceFilter.type = 'peaking';
     presenceFilter.frequency.value = 4500;
     presenceFilter.Q.value = 1.0;
 
-    // 🎙️ 4. فلتر الدفء الاستوديوي (Warmth Filter)
     const warmthFilter = ctx.createBiquadFilter();
     warmthFilter.type = 'peaking';
     warmthFilter.frequency.value = 180;
     warmthFilter.Q.value = 0.9;
 
-    // 🎼 5. فلتر كتم الترددات الحادة
     const trebleFilter = ctx.createBiquadFilter();
     trebleFilter.type = 'highshelf';
     trebleFilter.frequency.value = 3200;
 
-    // 🥁 6. فلتر البيس
     const bassFilter = ctx.createBiquadFilter();
     bassFilter.type = 'lowshelf';
     bassFilter.frequency.value = 250;
 
-    // 💨 7. فلتر عزل النويز والوش
+    // 🧹 3. Dereverb & Noise Reduction (عزل الضوضاء والترددات المزعجة)
     const noiseFilter = ctx.createBiquadFilter();
-    noiseFilter.type = 'notch';
-    noiseFilter.frequency.value = 60;
+    noiseFilter.type = 'bandpass';
+    noiseFilter.frequency.value = 1000;
+    noiseFilter.Q.value = 0.5;
 
-    // 🕌 8. دائرة صدى المساجد
+    // 🕌 4. صدى المساجد
     const reverbDelay = ctx.createDelay();
     reverbDelay.delayTime.value = 0.08;
     const reverbFeedback = ctx.createGain();
@@ -1533,18 +1529,21 @@ window.initStudioAudioEngine = function() {
     reverbFeedback.connect(reverbDelay);
     reverbDelay.connect(reverbGain);
 
-    // 🎜 9. ضاغط الصوت الديناميكي (Compressor)
+    // 🛡️ 5. Compressor + Limiter (منع التشويه وثبات الصوت الاحترافي)
     const compressor = ctx.createDynamicsCompressor();
-    compressor.threshold.value = -20;
-    compressor.knee.value = 10;
-    compressor.ratio.value = 4;
+    compressor.threshold.value = -24;
+    compressor.knee.value = 30;
+    compressor.ratio.value = 12;
     compressor.attack.value = 0.003;
     compressor.release.value = 0.25;
 
     const gainNode = ctx.createGain();
+    
+    // 📊 6. Spectrum Analyzer + Loudness Meter
     const analyser = ctx.createAnalyser();
+    analyser.fftSize = 64;
 
-    // 🔗 ربط السلسلة الصوتية بالكامل بالترتيب
+    // 🔗 ربط السلسلة
     source.connect(masterGainNode);
     masterGainNode.connect(voiceFilter);
     voiceFilter.connect(presenceFilter);
@@ -1581,7 +1580,59 @@ window.initStudioAudioEngine = function() {
     };
 
     window.updateStudioAudioFilters();
+    
+    // 📊 تشغيل رسم طيف الصوت ورادار العلو LUFS
+    if (typeof startSpectrumAndLoudnessVisualizer === 'function') {
+        startSpectrumAndLoudnessVisualizer();
+    }
 };
+
+// 📊 دالة رسم الطيف وتحليل مستوى العلو LUFS اللحظي
+function startSpectrumAndLoudnessVisualizer() {
+    const canvas = document.getElementById('audioSpectrumCanvas');
+    const e = window.studioEngine;
+    if (!canvas || !e.analyserNode) return;
+    const ctx = canvas.getContext('2d');
+
+    const bufferLength = e.analyserNode.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+
+    function draw() {
+        if (e.videoElement && !e.videoElement.paused) {
+            requestAnimationFrame(draw);
+            e.analyserNode.getByteFrequencyData(dataArray);
+
+            let sum = 0;
+            for (let i = 0; i < bufferLength; i++) sum += dataArray[i];
+            let average = sum / bufferLength;
+            let lufsApprox = Math.round((average / 255) * 60 - 60);
+
+            const loudnessText = document.getElementById('loudnessValText');
+            if (loudnessText) {
+                loudnessText.textContent = `${lufsApprox} LUFS`;
+                loudnessText.style.color = lufsApprox > -3 ? '#ff6b6b' : 'var(--gold)';
+            }
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const barWidth = (canvas.width / bufferLength) * 2.2;
+            let x = 0;
+
+            for (let i = 0; i < bufferLength; i++) {
+                const barHeight = (dataArray[i] / 255) * canvas.height;
+                const gradient = ctx.createLinearGradient(0, canvas.height, 0, 0);
+                gradient.addColorStop(0, '#6fbf73');
+                gradient.addColorStop(1, '#d4af37');
+
+                ctx.fillStyle = gradient;
+                ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+                x += barWidth + 2;
+            }
+        } else {
+            requestAnimationFrame(draw);
+        }
+    }
+    draw();
+}
 
 window.updateStudioAudioFilters = function() {
     const e = window.studioEngine;
