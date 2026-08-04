@@ -927,20 +927,30 @@ let mediaUrl = ""; let mediaType = "none";
       const isVideo = selectedMediaFile.type.startsWith('video/');
       try {
         if (isVideo) {
-          // رفع الفيديو عبر سيرفر pixeldrain المباشر والمجاني
+          // 🚀 الرفع المباشر عبر حسابك في Cloudinary
+          const CLOUD_NAME = "ktya2tgk";
+          const UPLOAD_PRESET = "athr_preset";
+
           const formData = new FormData();
           formData.append("file", selectedMediaFile);
-          const response = await fetch("https://pixeldrain.com/api/file", { method: "POST", body: formData });
+          formData.append("upload_preset", UPLOAD_PRESET);
+
+          const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`, {
+            method: "POST",
+            body: formData
+          });
+
           const resData = await response.json();
-          
-          if (resData.success && resData.id) {
-            mediaUrl = `https://pixeldrain.com/api/file/${resData.id}?download`;
+
+          if (resData.secure_url) {
+            mediaUrl = resData.secure_url; // رابط مباشر صريح وآمن .mp4
             mediaType = "video";
           } else {
-            alert("⚠️ تعذر رفع الفيديو، يرجى التأكد من حجم الملف وحاول مرة أخرى.");
+            console.error("Cloudinary error:", resData);
+            alert("⚠️ تعذر رفع الفيديو، يرجى المحاولة مرة أخرى.");
           }
         } else {
-          // رفع الصورة عبر ImgBB
+          // رفع الصور عبر ImgBB كما هي
           const formData = new FormData();
           formData.append("image", selectedMediaFile);
           const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: formData });
@@ -954,7 +964,7 @@ let mediaUrl = ""; let mediaType = "none";
         }
       } catch (uploadErr) {
         console.error("Media upload error:", uploadErr);
-        alert("⚠️ خطأ في الاتصال أثناء الرفع، تأكد من سرعة الإنترنت.");
+        alert("⚠️ خطأ في الاتصال أثناء الرفع: " + uploadErr.message);
       }
     }
     await addDoc(collection(db, "posts"), {
