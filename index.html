@@ -2365,46 +2365,14 @@ body.hide-controls #quran {
 
 <!-- 🎬 صفحة استوديو أثر الشامل لمعالجة الفيديوهات -->
 <div class="page" id="studioPage">
-<div style="text-align: center; margin-bottom: 16px; direction: rtl;">
+  <div style="text-align: center; margin-bottom: 16px; direction: rtl;">
     <h2 style="color: var(--gold); font-family: 'Amiri', serif; font-size: 22px;">🎬 اسْتُودْيُو أثَرٍ الشَّامِلُ لِتَنْقِيَةِ وَإِنْتَاجِ المَقَاطِعِ</h2>
     <p style="color: var(--text2); font-size: 12px;">سجّل صوتك، رفع فيديو أو صورة خلفية، وعالج الصوت والأنيميشن أوفلاين</p>
   </div> 
 
-  <!-- 📁 منطقة الإدخال الموحدة الثلاثية (فيديو / تسجيل صوتي / صورة خلفية) -->
-  <div class="comm-card" style="border: 2px dashed var(--gold); border-radius: 16px; padding: 20px; text-align: center; background: var(--bg2); margin-bottom: 20px; direction: rtl;">
-    <span style="font-size: 40px; display: block; margin-bottom: 12px;">🎬</span>
-    
-    <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 12px;">
-      <!-- 1. رفع فيديو -->
-      <label for="videoStudioInput" style="background: var(--gold); color: #111; padding: 10px 18px; border-radius: 12px; font-weight: bold; cursor: pointer; font-family: 'Amiri', serif; font-size: 13px; display: flex; align-items: center; gap: 6px;">
-        🎥 اختر مقطع فيديو
-      </label>
-      <input type="file" id="videoStudioInput" accept="video/*,audio/*" onchange="window.handleStudioFileUpload(event)" style="display: none;" />
-
-      <!-- 2. تسجيل صوت مباشر -->
-      <button id="studioRecBtn" onclick="if(window.toggleStudioDirectRecord) window.toggleStudioDirectRecord()" style="background: var(--card); color: var(--gold); border: 1px solid var(--gold); padding: 10px 18px; border-radius: 12px; font-weight: bold; font-family: 'Amiri', serif; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-        🎙️ سجل صوت حقيقي
-      </button>
-
-      <!-- 3. تحويل صورة لفيديو -->
-      <label for="imageToVideoInput" style="background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 10px 18px; border-radius: 12px; font-weight: bold; cursor: pointer; font-family: 'Amiri', serif; font-size: 13px; display: flex; align-items: center; gap: 6px;">
-        🖼️ اختر صورة خلفية
-      </label>
-      <input type="file" id="imageToVideoInput" accept="image/*" onchange="window.convertImageToStudioVideo(event)" style="display: none;" />
-    </div>
-
-    <!-- التحكم بمدة الفيديو عند اختيار صورة -->
-    <div id="imageDurationControl" style="display: none; background: rgba(0,0,0,0.3); padding: 8px 14px; border-radius: 10px; border: 1px solid var(--border); width: fit-content; margin: 8px auto 0;">
-      <span style="font-size: 12px; color: var(--gold);">⏱️ مدة الفيديو للصورة (بالثواني): </span>
-      <input type="number" id="imageDurationSeconds" value="15" min="3" max="3600" onchange="window.updateImageVideoDuration(this.value)" style="width: 70px; padding: 4px; border-radius: 6px; background: var(--bg2); color: var(--text); border: 1px solid var(--border); text-align: center; font-weight: bold;">
-    </div>
-
-    <span id="studioFileName" style="display: block; color: var(--text2); font-size: 12px; margin-top: 8px;">اختر مقطعاً أو سجّل صوتك أو اختر صورة للبدء</span>
-  </div>
-  
+  <!-- الوعاء الوحيد والأساسي لرسم الاستوديو بالكامل -->
   <div id="studioContainer"></div>
 </div>
-
 
 
  
@@ -3532,7 +3500,9 @@ if(id === 'heartMirrorPage' && typeof window.initHeartMirrorPage === 'function')
  if(id === 'moreAppsTab') {
         // صفحة مزيد من تطبيقاتنا جاهزة وتعمل بنجاح
     }
-
+if (id === 'studioPage') {
+    window.renderStudioUI();
+}
  
   updateStats();
 
