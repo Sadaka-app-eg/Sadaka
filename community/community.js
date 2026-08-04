@@ -457,7 +457,7 @@ const accBtn = window.ensureMyAccountButton();
   else if (window.currentCommunityTab === 'family') {
     window.renderFamilyChallengeTab();
   }
-  } else if (window.currentCommunityTab === 'reels') {
+   else if (window.currentCommunityTab === 'reels') {
     contentArea.innerHTML = `
       ${window.getSharedTabsHTML('reels')}
       <div id="reelsContainer" style="position:fixed; top:60px; left:0; width:100vw; height:calc(100vh - 60px); background:#000; overflow-y:scroll; scroll-snap-type:y mandatory; scroll-behavior:smooth; z-index:99999; direction:rtl;">
