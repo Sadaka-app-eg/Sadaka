@@ -473,12 +473,11 @@ const accBtn = window.ensureMyAccountButton();
 window.getSharedTabsHTML = function(activeTab) {
   const tabs = [
     { id: 'feed', label: '📝 ساحة الأثر' },
-    { id: 'reels', label: '🎥 ريلز أثر' }, // 👈 التبويب الجديد للريلز
+    { id: 'reels', label: '🎥 ريلز أثر' }, // 👈 ثابت دائماً بعد الساحة
     { id: 'chat', label: '💬 مجلس الذكر' },
-
     { id: 'fajr', label: '🕌 استيقاظ الفجر' },
-        { id: 'family', label: '🏡 التنافس العائلي' },
-    { id: 'weekly', label: '🌟 حلقة الأسبوع' }, // 👈 تم تصحيح حرف الـ h هنا
+    { id: 'family', label: '🏡 التنافس العائلي' },
+    { id: 'weekly', label: '🌟 حلقة الأسبوع' },
     { id: 'leaderboard', label: '🏆 لوحة الشرف' },
     { id: 'dua', label: '🤲 اطلب دعاء' },
     { id: 'featured', label: '✨ الأكثر تأثيراً' },
