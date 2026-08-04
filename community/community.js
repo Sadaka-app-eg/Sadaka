@@ -457,6 +457,15 @@ const accBtn = window.ensureMyAccountButton();
   else if (window.currentCommunityTab === 'family') {
     window.renderFamilyChallengeTab();
   }
+  } else if (window.currentCommunityTab === 'reels') {
+    contentArea.innerHTML = `
+      ${window.getSharedTabsHTML('reels')}
+      <div id="reelsContainer" style="position:fixed; top:60px; left:0; width:100vw; height:calc(100vh - 60px); background:#000; overflow-y:scroll; scroll-snap-type:y mandatory; scroll-behavior:smooth; z-index:99999; direction:rtl;">
+        <div style="color:var(--text2); text-align:center; padding-top:40px;">جاري تحميل ريلز الأثر... 🎬</div>
+      </div>
+    `;
+    window.listenToReelsFeed(userGender);
+  }
 
 };
 
@@ -464,6 +473,7 @@ const accBtn = window.ensureMyAccountButton();
 window.getSharedTabsHTML = function(activeTab) {
   const tabs = [
     { id: 'feed', label: '📝 ساحة الأثر' },
+    { id: 'reels', label: '🎥 ريلز أثر' }, // 👈 التبويب الجديد للريلز
     { id: 'chat', label: '💬 مجلس الذكر' },
 
     { id: 'fajr', label: '🕌 استيقاظ الفجر' },
@@ -2561,5 +2571,87 @@ window.downloadCommunityVideo = function(videoUrl, fileName = 'فيديو_أثر
     document.body.removeChild(a);
   } catch (err) {
     window.open(videoUrl, '_blank');
+  }
+};
+window.listenToReelsFeed = function(gender) {
+  const q = query(collection(db, "posts"), where("mediaType", "==", "video"), orderBy("createdAt", "desc"), limit(30));
+  const myName = localStorage.getItem('athr_user_name');
+
+  onSnapshot(q, (snapshot) => {
+    const container = document.getElementById('reelsContainer');
+    if (!container) return;
+
+    let html = "";
+    snapshot.docs.forEach((docSnap) => {
+      const data = docSnap.data();
+      const docId = docSnap.id;
+      if (data.gender !== gender || !data.mediaUrl) return;
+
+      const likesArr = data.likes || [];
+      const hasLiked = myName && likesArr.includes(myName);
+
+      html += `
+        <div class="reel-item" style="position:relative; width:100vw; height:calc(100vh - 60px); scroll-snap-align:start; scroll-snap-stop:always; background:#000; display:flex; align-items:center; justify-content:center;">
+          
+          <video src="${data.mediaUrl}" loop playsinline onclick="this.paused ? this.play() : this.pause();" style="width:100%; height:100%; object-fit:contain; display:block;"></video>
+
+          <div style="position:absolute; bottom:30px; right:15px; left:80px; z-index:10; text-align:right; text-shadow:0 2px 6px rgba(0,0,0,0.8); pointer-events:none;">
+            <strong style="color:var(--gold); font-size:16px; font-family:'Amiri', serif; display:block; margin-bottom:6px;">✨ ${data.name}</strong>
+            <p style="color:#fff; font-size:14px; font-family:'Amiri', serif; line-height:1.5; margin:0; max-height:80px; overflow:hidden;">${data.text || ''}</p>
+          </div>
+
+          <div style="position:absolute; bottom:40px; left:15px; z-index:20; display:flex; flex-direction:column; align-items:center; gap:20px;">
+            
+            <div onclick="window.togglePostLike(event, '${docId}', ${hasLiked}, '❤️')" style="text-align:center; cursor:pointer;">
+              <div style="background:rgba(0,0,0,0.5); backdrop-filter:blur(6px); width:46px; height:46px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:22px; border:1px solid rgba(255,255,255,0.15);">
+                ${hasLiked ? '❤️' : '🤍'}
+              </div>
+              <span style="color:#fff; font-size:11px; font-weight:bold; margin-top:4px; display:block; text-shadow:0 1px 3px rgba(0,0,0,0.8);">${likesArr.length}</span>
+            </div>
+
+            <div onclick="window.toggleCommunityReelComments('${docId}')" style="text-align:center; cursor:pointer;">
+              <div style="background:rgba(0,0,0,0.5); backdrop-filter:blur(6px); width:46px; height:46px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; border:1px solid rgba(255,255,255,0.15);">
+                💬
+              </div>
+              <span style="color:#fff; font-size:11px; font-weight:bold; margin-top:4px; display:block; text-shadow:0 1px 3px rgba(0,0,0,0.8);">${data.commentsCount || 0}</span>
+            </div>
+
+            <div onclick="window.downloadCommunityVideo('${data.mediaUrl}', 'ريل_أثر_${data.name}')" style="text-align:center; cursor:pointer;" title="تنزيل الفيديو">
+              <div style="background:rgba(0,0,0,0.5); backdrop-filter:blur(6px); width:46px; height:46px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; border:1px solid rgba(255,255,255,0.15);">
+                📥
+              </div>
+              <span style="color:#fff; font-size:11px; font-weight:bold; margin-top:4px; display:block; text-shadow:0 1px 3px rgba(0,0,0,0.8);">تنزيل</span>
+            </div>
+
+          </div>
+
+          <div id="reelComments-${docId}" style="display:none; position:absolute; bottom:0; left:0; width:100%; height:50vh; background:rgba(15,20,16,0.95); backdrop-filter:blur(15px); border-radius:20px 20px 0 0; z-index:50; padding:15px; direction:rtl; flex-direction:column;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:8px;">
+              <strong style="color:var(--gold);">التعليقات</strong>
+              <button onclick="document.getElementById('reelComments-${docId}').style.display='none'" style="background:none; border:none; color:#ff4d4d; font-size:18px; cursor:pointer;">✕</button>
+            </div>
+            <div id="commentsList-${docId}" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:6px; margin-bottom:8px;"></div>
+            <div style="display:flex; gap:6px;">
+              <input id="commentInput-${docId}" type="text5" placeholder="اكتب تعليقاً..." style="flex:1; padding:10px; background:#000; border:1px solid var(--border); color:#fff; border-radius:20px; outline:none; font-size:13px;" onkeypress="if(event.key==='Enter') window.sendComment('${docId}')" />
+              <button onclick="window.sendComment('${docId}')" style="background:var(--gold); color:#111; border:none; padding:0 18px; border-radius:20px; font-weight:bold; cursor:pointer;">إرسال</button>
+            </div>
+          </div>
+
+        </div>
+      `;
+    });
+
+    container.innerHTML = html || `<div style="color:#fff; text-align:center; padding-top:100px; font-family:'Amiri',serif; font-size:18px;">لا توجد مقاطع ريلز منشورة في هذا المجلس بعد 🎬</div>`;
+  });
+};
+
+window.toggleCommunityReelComments = function(docId) {
+  const box = document.getElementById(`reelComments-${docId}`);
+  if (!box) return;
+  if (box.style.display === 'flex') {
+    box.style.display = 'none';
+  } else {
+    box.style.display = 'flex';
+    window.listenToComments(docId, 'posts');
   }
 };
