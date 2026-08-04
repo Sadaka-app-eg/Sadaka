@@ -12,7 +12,44 @@
 <title>كن ذا أثر</title>
  <link rel="icon" href="./icon.png">
 <link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
-
+<!-- 🧹 حط كود منظف الذاكرة هنا -->
+<script>
+(function() {
+  try {
+    let totalSize = 0;
+    for (let key in localStorage) {
+      if (localStorage.hasOwnProperty(key)) {
+        totalSize += (localStorage[key].length + key.length) * 2;
+      }
+    }
+    
+    if (totalSize > 4 * 1024 * 1024) {
+      const keysToKeep = [
+        'user_display_name', 
+        'athr_user_name', 
+        'athr_user_gender', 
+        'theme_choice', 
+        'athr_current_theme', 
+        'active_quran_theme',
+        'quran_bookmark'
+      ];
+      
+      const backupData = {};
+      keysToKeep.forEach(k => {
+        if (localStorage.getItem(k)) backupData[k] = localStorage.getItem(k);
+      });
+      
+      localStorage.clear();
+      
+      for (const [k, v] of Object.entries(backupData)) {
+        localStorage.setItem(k, v);
+      }
+    }
+  } catch (err) {
+    console.error("خطأ في منظف الذاكرة التلقائي:", err);
+  }
+})();
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></scr
  
 <script src="https://cdn.jsdelivr.net/npm/fix-webm-duration@1.0.1/fix-webm-duration.js"></script>
