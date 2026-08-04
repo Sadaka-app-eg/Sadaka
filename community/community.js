@@ -926,26 +926,20 @@ let mediaUrl = ""; let mediaType = "none";
     if (selectedMediaFile) {
       const isVideo = selectedMediaFile.type.startsWith('video/');
       try {
-if (isVideo) {
-  // رفع الفيديو عبر سيرفر Catbox المباشر للفيديوهات
-  const formData = new FormData();
-  formData.append("reqtype", "fileupload");
-  formData.append("fileToUpload", selectedMediaFile);
-  
-  const response = await fetch("https://catbox.moe/user/api.php", {
-    method: "POST",
-    body: formData
-  });
-  
-  const videoDirectUrl = await response.text();
-  if (videoDirectUrl && videoDirectUrl.startsWith("http")) {
-    mediaUrl = videoDirectUrl.trim();
-    mediaType = "video";
-  } else {
-    alert("⚠️ تعذر رفع الفيديو، يرجى التأكد من حجم الفيديو وحاول مرة أخرى.");
-  }
-}
-        else {
+        if (isVideo) {
+          // رفع الفيديو عبر سيرفر pixeldrain المباشر والمجاني
+          const formData = new FormData();
+          formData.append("file", selectedMediaFile);
+          const response = await fetch("https://pixeldrain.com/api/file", { method: "POST", body: formData });
+          const resData = await response.json();
+          
+          if (resData.success && resData.id) {
+            mediaUrl = `https://pixeldrain.com/api/file/${resData.id}?download`;
+            mediaType = "video";
+          } else {
+            alert("⚠️ تعذر رفع الفيديو، يرجى التأكد من حجم الملف وحاول مرة أخرى.");
+          }
+        } else {
           // رفع الصورة عبر ImgBB
           const formData = new FormData();
           formData.append("image", selectedMediaFile);
@@ -960,7 +954,7 @@ if (isVideo) {
         }
       } catch (uploadErr) {
         console.error("Media upload error:", uploadErr);
-        alert("⚠️ خطأ في الاتصال أثناء الرفع: " + uploadErr.message);
+        alert("⚠️ خطأ في الاتصال أثناء الرفع، تأكد من سرعة الإنترنت.");
       }
     }
     await addDoc(collection(db, "posts"), {
@@ -1006,27 +1000,23 @@ window.listenToPosts = function(gender) {
 
 let mediaHtml = "";
 if (data.mediaUrl) {
-if (data.mediaType === 'video') {
-  mediaHtml = `
-    <div style="position:relative; margin-top:10px; border-radius:8px; overflow:hidden; background:#000; border:1px solid var(--gold);">
-      <!-- زر التنزيل المباشر العصري الهادئ -->
-      <button 
-        onclick="window.downloadCommunityVideo('${data.mediaUrl}', 'فيديو_أثر_${data.name}')" 
-        style="position:absolute; top:10px; left:10px; z-index:10; background:rgba(0,0,0,0.65); backdrop-filter:blur(4px); color:var(--gold, #d4af37); border:1px solid var(--gold, #d4af37); padding:6px 12px; border-radius:20px; font-size:12px; font-weight:bold; cursor:pointer; display:flex; align-items:center; gap:5px; transition:0.2s;"
-        title="تنزيل الفيديو إلى ملفات الجهاز"
-      >
-        <span>📥 تنزيل الفيديو</span>
-      </button>
-
-      <!-- مشغل الفيديو المباشر -->
-      <video controls style="width:100%; max-height:380px; display:block;" preload="auto" playsinline>
-        <source src="${data.mediaUrl}" type="video/mp4">
-        <source src="${data.mediaUrl}" type="video/webm">
-        متصفحك لا يدعم تشغيل هذا الفيديو.
-      </video>
-    </div>`;
-}
-  else if (data.mediaType === 'image') {
+  if (data.mediaType === 'video') {
+    mediaHtml = `
+      <div style="position:relative; margin-top:10px; border-radius:8px; overflow:hidden; background:#000; border:1px solid var(--gold);">
+        <button 
+          onclick="window.downloadCommunityVideo('${data.mediaUrl}', 'فيديو_أثر_${data.name}')" 
+          style="position:absolute; top:10px; left:10px; z-index:10; background:rgba(0,0,0,0.7); backdrop-filter:blur(4px); color:var(--gold, #d4af37); border:1px solid var(--gold, #d4af37); padding:6px 12px; border-radius:20px; font-size:12px; font-weight:bold; cursor:pointer; display:flex; align-items:center; gap:5px;"
+          title="تنزيل الفيديو إلى جهازك"
+        >
+          <span>📥 تنزيل الفيديو</span>
+        </button>
+        <video controls style="width:100%; max-height:380px; display:block;" preload="metadata" playsinline>
+          <source src="${data.mediaUrl}" type="video/mp4">
+          <source src="${data.mediaUrl}" type="video/webm">
+          متصفحك لا يدعم تشغيل هذا الفيديو.
+        </video>
+      </div>`;
+  } else if (data.mediaType === 'image') {
     mediaHtml = `<img src="${data.mediaUrl}" onclick="window.openImageLightbox('${data.mediaUrl}')" style="width:100%; border-radius:8px; margin-top:10px; max-height:300px; object-fit:contain; background:#000; cursor:pointer;" />`;
   }
 }
@@ -2549,39 +2539,17 @@ window.verifyFajrVolunteerCode = function() {
   window.becomeFajrVolunteer();
 };
 // 📥 دالة التنزيل المباشر للفيديو إلى ملفات الجهاز
-window.downloadCommunityVideo = async function(videoUrl, fileName = 'فيديو_أثر') {
+// 📥 دالة التنزيل المباشر للفيديو إلى ملفات الجهاز
+window.downloadCommunityVideo = function(videoUrl, fileName = 'فيديو_أثر') {
   try {
-    // إظهار تنبيه بسيط للمستخدم بأن التنزيل بدأ
-    const btn = event?.currentTarget;
-    const oldText = btn ? btn.innerHTML : '';
-    if (btn) btn.innerHTML = '⏳ جاري التنزيل...';
-
-    // جلب ملف الفيديو برمجياً كـ Blob لضمان تحويله لملف قابل للتنزيل
-    const response = await fetch(videoUrl);
-    const blob = await response.blob();
-    
-    // إنشاء رابط وهمي مؤقت للتنزيل المباشر
-    const blobUrl = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = blobUrl;
-    a.download = `${fileName}_${Date.now()}.mp4`; // اسم الملف الذي ينزل في جهازك
-    document.body.appendChild(a);
-    a.click();
-    
-    // تنظيف الذاكرة بعد اكتمال التحميل
-    document.body.removeChild(a);
-    URL.revokeObjectURL(blobUrl);
-
-    if (btn) btn.innerHTML = '✅ تم التنزيل';
-    setTimeout(() => { if (btn) btn.innerHTML = oldText; }, 2000);
-
-  } catch (err) {
-    console.error("خطأ التنزيل المباشر:", err);
-    // حل بديل في حال رفض المتصفح الـ Blob
     const a = document.createElement('a');
     a.href = videoUrl;
     a.target = '_blank';
-    a.download = `${fileName}.mp4`;
+    a.download = `${fileName}_${Date.now()}.mp4`;
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
+  } catch (err) {
+    window.open(videoUrl, '_blank');
   }
 };
