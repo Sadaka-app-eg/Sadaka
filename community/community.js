@@ -457,9 +457,15 @@ const accBtn = window.ensureMyAccountButton();
   else if (window.currentCommunityTab === 'family') {
     window.renderFamilyChallengeTab();
   }
-   else if (window.currentCommunityTab === 'reels') {
+ else if (window.currentCommunityTab === 'reels') {
     contentArea.innerHTML = `
       ${window.getSharedTabsHTML('reels')}
+      
+      <!-- ⬅️ زر عائم فخم للرجوع السريع لساحة الأثر -->
+      <button onclick="window.switchCommunityTab('feed')" style="position:fixed; top:75px; right:15px; z-index:999999; background:rgba(0,0,0,0.65); backdrop-filter:blur(6px); color:var(--gold, #d4af37); border:1px solid var(--gold, #d4af37); padding:6px 14px; border-radius:20px; font-size:12px; font-weight:bold; cursor:pointer; font-family:'Amiri',serif; display:flex; align-items:center; gap:5px; box-shadow:0 4px 12px rgba(0,0,0,0.5);">
+        <span>⬅️ رجوع للمجتمع</span>
+      </button>
+
       <div id="reelsContainer" style="position:fixed; top:60px; left:0; width:100vw; height:calc(100vh - 60px); background:#000; overflow-y:scroll; scroll-snap-type:y mandatory; scroll-behavior:smooth; z-index:99999; direction:rtl;">
         <div style="color:var(--text2); text-align:center; padding-top:40px;">جاري تحميل ريلز الأثر... 🎬</div>
       </div>
@@ -2604,22 +2610,28 @@ window.listenToReelsFeed = function(gender) {
       const likesArr = data.likes || [];
       const hasLiked = myName && likesArr.includes(myName);
 
-      html += `
+     html += `
         <div class="reel-item" style="position:relative; width:100vw; height:calc(100vh - 60px); scroll-snap-align:start; scroll-snap-stop:always; background:#000; display:flex; align-items:center; justify-content:center;">
           
-          <!-- فيديو الريل بملء الشاشة مع كلاس مخصص للتعرف عليه -->
-          <video class="athr-reel-video" src="${data.mediaUrl}" loop playsinline onclick="this.paused ? this.play() : this.pause();" style="width:100%; height:100%; object-fit:contain; display:block;"></video>
+          <!-- فيديو الريل بملء الشاشة -->
+          <video class="athr-reel-video" src="${data.mediaUrl}" loop playsinline onclick="this.paused ? this.play() : this.pause();" ontimeupdate="window.updateReelProgress(this)" style="width:100%; height:100%; object-fit:contain; display:block;"></video>
+
+          <!-- 📊 شريط التقدم (Progress Bar) والتوقيت أسفل الفيديو مباشرة فوق الشريط العائم -->
+          <div style="position:absolute; bottom:12px; left:15px; right:15px; z-index:25; display:flex; align-items:center; gap:8px;">
+            <span class="reel-time-current" style="color:#fff; font-size:11px; font-family:monospace; min-width:35px; text-align:left;">0:00</span>
+            <input type="range" class="reel-progress-slider" value="0" min="0" max="100" step="0.1" oninput="window.seekReelVideo(this)" style="flex:1; height:4px; -webkit-appearance:none; background:rgba(255,255,255,0.3); border-radius:2px; outline:none; cursor:pointer;" />
+            <span class="reel-time-duration" style="color:#fff; font-size:11px; font-family:monospace; min-width:35px; text-align:right;">0:00</span>
+          </div>
 
           <!-- تفاصيل الكاتب والنص فوق الفيديو من الأسفل -->
-          <div style="position:absolute; bottom:30px; right:15px; left:80px; z-index:10; text-align:right; text-shadow:0 2px 6px rgba(0,0,0,0.8); pointer-events:none;">
+          <div style="position:absolute; bottom:35px; right:15px; left:80px; z-index:10; text-align:right; text-shadow:0 2px 6px rgba(0,0,0,0.8); pointer-events:none;">
             <strong style="color:var(--gold); font-size:16px; font-family:'Amiri', serif; display:block; margin-bottom:6px;">✨ ${data.name}</strong>
             <p style="color:#fff; font-size:14px; font-family:'Amiri', serif; line-height:1.5; margin:0; max-height:80px; overflow:hidden;">${data.text || ''}</p>
           </div>
 
-          <!-- الأزرار الجانبية (شبه تيك توك) على الشمال -->
-          <div style="position:absolute; bottom:40px; left:15px; z-index:20; display:flex; flex-direction:column; align-items:center; gap:20px;">
+          <!-- الأزرار الجانبية على الشمال -->
+          <div style="position:absolute; bottom:55px; left:15px; z-index:20; display:flex; flex-direction:column; align-items:center; gap:20px;">
             
-            <!-- زر التفاعل/القلب -->
             <div onclick="window.togglePostLike(event, '${docId}', ${hasLiked}, '❤️')" style="text-align:center; cursor:pointer;">
               <div style="background:rgba(0,0,0,0.5); backdrop-filter:blur(6px); width:46px; height:46px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:22px; border:1px solid rgba(255,255,255,0.15);">
                 ${hasLiked ? '❤️' : '🤍'}
@@ -2627,7 +2639,6 @@ window.listenToReelsFeed = function(gender) {
               <span style="color:#fff; font-size:11px; font-weight:bold; margin-top:4px; display:block; text-shadow:0 1px 3px rgba(0,0,0,0.8);">${likesArr.length}</span>
             </div>
 
-            <!-- زر التعليقات -->
             <div onclick="window.toggleCommunityReelComments('${docId}')" style="text-align:center; cursor:pointer;">
               <div style="background:rgba(0,0,0,0.5); backdrop-filter:blur(6px); width:46px; height:46px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; border:1px solid rgba(255,255,255,0.15);">
                 💬
@@ -2635,7 +2646,6 @@ window.listenToReelsFeed = function(gender) {
               <span style="color:#fff; font-size:11px; font-weight:bold; margin-top:4px; display:block; text-shadow:0 1px 3px rgba(0,0,0,0.8);">${data.commentsCount || 0}</span>
             </div>
 
-            <!-- زر التنزيل المباشر -->
             <div onclick="window.downloadCommunityVideo('${data.mediaUrl}', 'ريل_أثر_${data.name}')" style="text-align:center; cursor:pointer;" title="تنزيل الفيديو">
               <div style="background:rgba(0,0,0,0.5); backdrop-filter:blur(6px); width:46px; height:46px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; border:1px solid rgba(255,255,255,0.15);">
                 📥
@@ -2645,7 +2655,7 @@ window.listenToReelsFeed = function(gender) {
 
           </div>
 
-          <!-- نافذة التعليقات الجانبية المنبثقة للريلز -->
+          <!-- نافذة التعليقات الجانبية -->
           <div id="reelComments-${docId}" style="display:none; position:absolute; bottom:0; left:0; width:100%; height:50vh; background:rgba(15,20,16,0.95); backdrop-filter:blur(15px); border-radius:20px 20px 0 0; z-index:50; padding:15px; direction:rtl; flex-direction:column;">
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:8px;">
               <strong style="color:var(--gold);">التعليقات</strong>
@@ -2696,5 +2706,41 @@ window.toggleCommunityReelComments = function(docId) {
   } else {
     box.style.display = 'flex';
     window.listenToComments(docId, 'posts');
+  }
+};
+// دالة لتنسيق الوقت (تحويل الثواني إلى صيغة مريحة مثلاً 1:20)
+window.formatVideoTime = function(seconds) {
+  if (isNaN(seconds)) return "0:00";
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+};
+
+// دالة لتحديث شريط التقدم والوقت أثناء تشغيل الفيديو
+window.updateReelProgress = function(videoElem) {
+  const container = videoElem.closest('.reel-item');
+  if (!container) return;
+  
+  const slider = container.querySelector('.reel-progress-slider');
+  const currentTxt = container.querySelector('.reel-time-current');
+  const durationTxt = container.querySelector('.reel-time-duration');
+
+  if (videoElem.duration) {
+    const percent = (videoElem.currentTime / videoElem.duration) * 100;
+    if (slider) slider.value = percent;
+    if (currentTxt) currentTxt.textContent = window.formatVideoTime(videoElem.currentTime);
+    if (durationTxt) durationTxt.textContent = window.formatVideoTime(videoElem.duration);
+  }
+};
+
+// دالة لتحريك الفيديو عند سحب أو النقر على شريط التقدم
+window.seekReelVideo = function(sliderElem) {
+  const container = sliderElem.closest('.reel-item');
+  if (!container) return;
+  const videoElem = container.querySelector('.athr-reel-video');
+  
+  if (videoElem && videoElem.duration) {
+    const seekTime = (sliderElem.value / 100) * videoElem.duration;
+    videoElem.currentTime = seekTime;
   }
 };
