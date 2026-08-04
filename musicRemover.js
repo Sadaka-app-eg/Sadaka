@@ -1212,9 +1212,18 @@ window.handleStudioFileUpload = function(event) {
         finalizeClip(video.duration);
     };
 
-    video.onloadeddata = () => {
-        finalizeClip(video.duration);
-    };
+// استبدال الجزء الخاطئ في handleStudioFileUpload بهذا المنطق:
+video.onloadeddata = () => {
+    finalizeClip(video.duration);
+    
+    // تشغيل حلقة الرسم الشاملة فوراً
+    if (typeof window.startRenderLoop === 'function') {
+        window.startRenderLoop();
+    }
+    
+    // إجبار الفيديو على القفز لأول جزء من الثانية لعرض أول فريم
+    video.currentTime = 0.01;
+};
 
     video.onplay = () => {
         const e = window.studioEngine;
@@ -3135,7 +3144,8 @@ window.startRenderLoop = function () {
     }
 
     function renderFrame() {
-        if (engine.videoElement && (!engine.videoElement.paused || engine.isExporting)) {
+        // الرسم المستمر سواء كان الفيديو يعمل أو متوقفاً لرؤية التعديلات المباشرة
+        if (engine.videoElement) {
             window.drawStudioCanvas();
         }
         engine.animFrameId = requestAnimationFrame(renderFrame);
