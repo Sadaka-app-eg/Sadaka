@@ -1009,56 +1009,91 @@ if (data.mediaUrl) {
   }
 }
 
-        html += `
-          <div class="comm-card" style="border-right: 3px solid var(--gold); text-align: right; margin-bottom: 15px;">
-            <div style="display:flex; justify-content:space-between; margin-bottom:10px; align-items:center;">
-              
-              <div style="display:flex; align-items:center; gap:8px; cursor:pointer;" onclick="window.openUserProfileCard('${data.name}')">
-                <img src="${userAvatar}" id="avatar-post-${docId}" style="width:35px; height:35px; border-radius:50%; border:1px solid var(--gold); object-fit:cover;" />
-                <strong class="${nameClass}" id="name-post-${docId}" style="font-size:14px; text-decoration:underline;">✨ ${data.name}</strong>
-              </div>
-              
-              <small style="color:var(--text2); font-size:11px;">${data.createdAt ? window.formatPostTime(data.createdAt) : 'الآن ✨'}</small>
-            </div>
-            
-            ${data.text ? `<p style="color:var(--text); font-family:'Amiri', serif; font-size:15px; line-height:1.5; white-space: pre-wrap;">${data.text}</p>` : ''}
-            ${mediaHtml}
-            
-            <div class="post-actions" style="display:flex; gap:10px; margin-top:10px; border-bottom:1px dashed var(--border); padding-bottom:8px;">
-              <div style="position: relative; display: inline-block;">
-                <button 
-                  onmousedown="window.startReactionPress(event, '${docId}')" 
-                  onmouseup="window.endReactionPress(event, '${docId}', ${hasLiked})" 
-                  ontouchstart="window.startReactionPress(event, '${docId}')" 
-                  ontouchend="window.endReactionPress(event, '${docId}', ${hasLiked})"
-                  onclick="if(!window.isLongPress) window.togglePostLike(event, '${docId}', ${hasLiked})"
-                  class="action-item-btn"
-                >
-                  ✨ تفاعل (${likesArr.length})
-                </button>
-                <div id="reactionMenu-${docId}" style="display:none; position: absolute; bottom: 40px; right: 0; background: #111; border: 1px solid var(--gold); border-radius: 30px; padding: 5px 10px; gap: 8px; z-index: 99999; box-shadow: 0 4px 15px rgba(0,0,0,0.5); animation: fadeIn 0.2s;">
-                  <span onclick="window.selectCustomReaction(event, '${docId}', '👍')" style="cursor:pointer; font-size:20px;">👍</span>
-                  <span onclick="window.selectCustomReaction(event, '${docId}', '❤️')" style="cursor:pointer; font-size:20px;">❤️</span>
-                  <span onclick="window.selectCustomReaction(event, '${docId}', '🤝')" style="cursor:pointer; font-size:20px;">🤝</span>
-                  <span onclick="window.selectCustomReaction(event, '${docId}', '😮')" style="cursor:pointer; font-size:20px;">😮</span>
-                  <span onclick="window.selectCustomReaction(event, '${docId}', '😢')" style="cursor:pointer; font-size:20px;">😢</span>
-                  <span onclick="window.selectCustomReaction(event, '${docId}', '😡')" style="cursor:pointer; font-size:20px;">😡</span>
-                </div>
-              </div>
-              <button onclick="window.toggleCommentsSection('${docId}')" class="action-item-btn">💬 التعليقات (${data.commentsCount || 0})</button>
-              <button onclick="window.openCommShareSheet(\`${data.text ? data.text.replace(/"/g, '&quot;') : 'أثر طيب'}\`, '${data.name}')" class="action-item-btn">🔗 مشاركة</button>
-              ${data.name === myName ? `<button onclick="window.deletePost('${docId}')" class="action-item-btn" style="color:#ff6b6b;">🗑️ حذف</button>` : ''}
-              </div>
+// استبدل بناء الكارت الداخلي بهذا الهيكل العصري:
+html += `
+  <div class="comm-card">
+    <!-- 1. رأس المنشور (البروفايل، الاسم، الوقت) -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+      <div style="display: flex; align-items: center; gap: 10px; cursor: pointer;" onclick="window.openUserProfileCard('${data.name}')">
+        <img src="${userAvatar}" id="avatar-post-${docId}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--gold, #d4af37);" />
+        <div>
+          <strong class="${nameClass}" id="name-post-${docId}" style="font-size: 14px; display: block; line-height: 1.2;">
+            ${data.name} ${data.gender === 'female' ? '🧕' : ''}
+          </strong>
+          <small style="color: var(--text2); font-size: 11px; margin-top: 2px; display: block;">
+            ${data.createdAt ? window.formatPostTime(data.createdAt) : 'الآن ✨'} • 🌐
+          </small>
+        </div>
+      </div>
+      
+      ${data.name === myName ? `
+        <button onclick="window.deletePost('${docId}')" style="background:none; border:none; color:#ff4d4d; font-size:14px; cursor:pointer; opacity:0.7; padding:4px;" title="حذف المنشور">🗑️</button>
+      ` : ''}
+    </div>
+    
+    <!-- 2. نص المنشور -->
+    ${data.text ? `<p style="color: var(--text); font-family: 'Amiri', serif; font-size: 16px; line-height: 1.6; white-space: pre-wrap; margin: 0 0 10px 0;">${data.text}</p>` : ''}
+    
+    <!-- 3. ميديا المنشور (صور أو فيديو) -->
+    ${mediaHtml}
+    
+    <!-- 4. شريط العدادات (عدد التفاعلات والتعليقات) -->
+    <div class="post-stats-counter">
+      <div>
+        ${likesArr.length > 0 ? `<span style="background: var(--gold); color: #111; border-radius: 50%; padding: 2px 5px; font-size: 10px; margin-left: 4px;">✨</span> ${likesArr.length}` : ''}
+      </div>
+      <div>
+        <span>${data.commentsCount || 0} تعليق</span>
+      </div>
+    </div>
+    
+    <!-- 5. شريط الأزرار الفيس بوكي (تفاعل - تعليق - مشاركة) -->
+    <div class="post-actions-fb">
+      <div style="position: relative; flex: 1; display: flex;">
+        <button 
+          onmousedown="window.startReactionPress(event, '${docId}')" 
+          onmouseup="window.endReactionPress(event, '${docId}', ${hasLiked})" 
+          ontouchstart="window.startReactionPress(event, '${docId}')" 
+          ontouchend="window.endReactionPress(event, '${docId}', ${hasLiked})"
+          onclick="if(!window.isLongPress) window.togglePostLike(event, '${docId}', ${hasLiked})"
+          class="fb-action-btn"
+          style="${hasLiked ? 'color: var(--gold, #d4af37) !important; font-weight: bold;' : ''}"
+        >
+          <span>${hasLiked ? '✨' : '👍'}</span>
+          <span>${hasLiked ? 'متفاعل' : 'تفاعل'}</span>
+        </button>
 
-            <div id="commentsWrapper-${docId}" style="display:none; padding-top:10px;">
-              <div id="commentsList-${docId}" style="max-height:200px; overflow-y:auto; display:flex; flex-direction:column; gap:6px; margin-bottom:8px;"></div>
-              <div style="display:flex; gap:6px;">
-                <input id="commentInput-${docId}" type="text" placeholder="اكتب تعليقاً طيباً..." style="flex:1; padding:8px 12px; background:#000; border:1px solid var(--border); color:var(--text); border-radius:20px; font-size:13px; outline:none;" onkeypress="if(event.key==='Enter') window.sendComment('${docId}')" />
-                <button onclick="window.sendComment('${docId}')" style="background:var(--gold); color:#111; border:none; padding:0 15px; border-radius:20px; font-size:13px; font-weight:bold; cursor:pointer;">إرسال</button>
-              </div>
-            </div>
-          </div>
-        `;
+        <!-- قائمة الإيموجيز عند الضغط المطول -->
+        <div id="reactionMenu-${docId}" style="display:none; position: absolute; bottom: 42px; right: 0; background: #1c1d1e; border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; padding: 6px 12px; gap: 10px; z-index: 99999; box-shadow: 0 8px 24px rgba(0,0,0,0.5);">
+          <span onclick="window.selectCustomReaction(event, '${docId}', '👍')" style="cursor:pointer; font-size:22px; transition: transform 0.1s;" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">👍</span>
+          <span onclick="window.selectCustomReaction(event, '${docId}', '❤️')" style="cursor:pointer; font-size:22px; transition: transform 0.1s;" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">❤️</span>
+          <span onclick="window.selectCustomReaction(event, '${docId}', '🤝')" style="cursor:pointer; font-size:22px; transition: transform 0.1s;" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">🤝</span>
+          <span onclick="window.selectCustomReaction(event, '${docId}', '😮')" style="cursor:pointer; font-size:22px; transition: transform 0.1s;" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">😮</span>
+          <span onclick="window.selectCustomReaction(event, '${docId}', '😢')" style="cursor:pointer; font-size:22px; transition: transform 0.1s;" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">😢</span>
+        </div>
+      </div>
+
+      <button onclick="window.toggleCommentsSection('${docId}')" class="fb-action-btn">
+        <span>💬</span>
+        <span>تعليق</span>
+      </button>
+
+      <button onclick="window.openCommShareSheet(\`${data.text ? data.text.replace(/"/g, '&quot;') : 'أثر طيب'}\`, '${data.name}')" class="fb-action-btn">
+        <span>🔗</span>
+        <span>مشاركة</span>
+      </button>
+    </div>
+
+    <!-- 6. قسم التعليقات (مخفي ويظهر عند الضغط) -->
+    <div id="commentsWrapper-${docId}" style="display:none; padding-top:12px; border-top: 1px solid rgba(0,0,0,0.05); margin-top: 8px;">
+      <div id="commentsList-${docId}" style="max-height:220px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; margin-bottom:10px;"></div>
+      <div style="display:flex; gap:8px; align-items: center;">
+        <input id="commentInput-${docId}" type="text" placeholder="اكتب تعليقاً طيباً..." style="flex:1; padding:8px 14px; background: rgba(0,0,0,0.05); border:1px solid var(--border); color:var(--text); border-radius:20px; font-size:13px; outline:none;" onkeypress="if(event.key==='Enter') window.sendComment('${docId}')" />
+        <button onclick="window.sendComment('${docId}')" style="background:var(--gold); color:#111; border:none; padding:6px 16px; border-radius:20px; font-size:12px; font-weight:bold; cursor:pointer;">إرسال</button>
+      </div>
+    </div>
+  </div>
+`;
         
         // إصلاح تحديث الصورة والاسم الحقيقي للكاتب بداخل الـ Feed
         getDoc(doc(db, "users_profiles", data.name)).then(userDoc => {
