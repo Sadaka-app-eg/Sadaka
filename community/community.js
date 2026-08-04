@@ -2574,17 +2574,32 @@ window.downloadCommunityVideo = function(videoUrl, fileName = 'فيديو_أثر
   }
 };
 window.listenToReelsFeed = function(gender) {
-  const q = query(collection(db, "posts"), where("mediaType", "==", "video"), orderBy("createdAt", "desc"), limit(30));
+  // 🚀 استعلام بسيط بدون orderBy مركب لمنع طلب الـ Index تماماً
+  const q = query(
+    collection(db, "posts"), 
+    where("mediaType", "==", "video"), 
+    limit(50)
+  );
+  
   const myName = localStorage.getItem('athr_user_name');
 
   unsubscribePosts = onSnapshot(q, (snapshot) => {
     const container = document.getElementById('reelsContainer');
     if (!container) return;
 
+    // جلب الوثائق وترتيبها محلياً بالأحدث أولاً لتفادي أي أخطاء في الـ Index
+    const docs = [];
+    snapshot.forEach(docSnap => docs.push({ id: docSnap.id, ...docSnap.data() }));
+    
+    docs.sort((a, b) => {
+      const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+      const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+      return timeB - timeA;
+    });
+
     let html = "";
-    snapshot.docs.forEach((docSnap) => {
-      const data = docSnap.data();
-      const docId = docSnap.id;
+    docs.forEach((data) => {
+      const docId = data.id;
       if (data.gender !== gender || !data.mediaUrl) return;
 
       const likesArr = data.likes || [];
@@ -2650,27 +2665,24 @@ window.listenToReelsFeed = function(gender) {
 
     container.innerHTML = html || `<div style="color:#fff; text-align:center; padding-top:100px; font-family:'Amiri',serif; font-size:18px;">لا توجد مقاطع ريلز منشورة في هذا المجلس بعد 🎬</div>`;
 
-    // 🚀 تفعيل المراقب الذكي (IntersectionObserver) لإيقاف وتشغيل الفيديو الفعّال فقط
+    // 🚀 تفعيل المراقب الذكي (IntersectionObserver)
     const observerOptions = {
       root: container,
-      threshold: 0.6 // يعني لازم الفيديو يظهر بنسبة 60% على الأقل عشان يشتغل
+      threshold: 0.6
     };
 
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         const video = entry.target;
         if (entry.isIntersecting) {
-          // الفيديو دخل الشاشة بالكامل تقريباً -> شغله
           video.play().catch(err => console.log("Auto-play prevented:", err));
         } else {
-          // الفيديو خرج من الشاشة -> وقفه وصفره
           video.pause();
           video.currentTime = 0;
         }
       });
     }, observerOptions);
 
-    // ربط المراقب بكل فيديوهات الريلز الموجودة في الصفحة
     container.querySelectorAll('.athr-reel-video').forEach(video => {
       observer.observe(video);
     });
