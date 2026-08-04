@@ -467,7 +467,7 @@ const accBtn = window.ensureMyAccountButton();
     window.listenToReelsFeed(userGender);
   }
 
-};
+}; 
 
 // دالة مشتركة لعمل شريط التابات (نفس الشكل في كل الأقسام الجديدة)
 window.getSharedTabsHTML = function(activeTab) {
