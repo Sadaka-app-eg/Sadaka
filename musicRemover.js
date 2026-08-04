@@ -894,7 +894,7 @@ window.renderStudioUI = function() {
                         </div>
                     </div>
 
-                    <div style="display: flex; flex-wrap: wrap; gap: 15px; color: var(--text); margin-top: 10px;">
+                  <div style="display: flex; flex-wrap: wrap; gap: 15px; color: var(--text); margin-top: 10px;">
                         <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                             <input type="checkbox" id="islamicFrameCheck" onchange="window.updateStudioCinematicConfig()" style="accent-color:var(--gold);" />
                             🖼️ الإطار الذهبي الإسلامي
@@ -910,8 +910,6 @@ window.renderStudioUI = function() {
                     </div>
                 </div>
             </div>
-
-</div>
 
             <!-- ⚙️ إعدادات دقة التصدير والجودة النهائية -->
             <div style="background: var(--bg2); padding: 15px; border-radius: 12px; border: 1px solid var(--gold); margin-top: 20px; margin-bottom: 15px;">
@@ -951,16 +949,14 @@ window.renderStudioUI = function() {
                 </div>
             </div>
 
-
-
             <!-- 📥 أزرار التصدير والتنزيل -->
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                 <button onclick="window.exportStudioPureAudio()" style="background: #005485; color: #fff; border: none; padding: 12px; border-radius: 10px; font-weight: bold; font-family: 'Amiri', serif; font-size: 14px; cursor: pointer;">
                     🎵 استخراج الصوت المنقى (MP3)
                 </button>
-               <button onclick="window.exportStudioOffline()" style="background: #4caf50; color: #fff; border: none; padding: 12px; border-radius: 10px; font-weight: bold; font-family: 'Amiri', serif; font-size: 14px; cursor: pointer;">
-    🎬 تصدير الفيديو المعدل بالكامل
-</button>
+                <button onclick="window.exportStudioOffline()" style="background: #4caf50; color: #fff; border: none; padding: 12px; border-radius: 10px; font-weight: bold; font-family: 'Amiri', serif; font-size: 14px; cursor: pointer;">
+                    🎬 تصدير الفيديو المعدل بالكامل
+                </button>
             </div>
 
             <div id="studioStatusLog" style="text-align: center; color: var(--gold); font-size: 13px; font-weight: bold; margin-top: 15px; font-family: sans-serif;"></div>
