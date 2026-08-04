@@ -341,10 +341,10 @@ const accBtn = window.ensureMyAccountButton();
         <textarea id="postInput" placeholder="اكتب فائدة قرآنية أو تذكير بالخير يا ${userName}..." style="width:100%; height:80px; background:transparent; color:var(--text); border:1px solid var(--border); border-radius:8px; padding:10px; resize:none; outline:none; font-family:'Amiri',serif;"></textarea>
         <div id="mediaPreviewBox" style="margin-top:10px; position:relative; text-align:center;"></div>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:5px;">
-          <label style="background:rgba(255,255,255,0.04); border:1px solid var(--border); color:var(--text); padding:8px 15px; border-radius:20px; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px;">
-            🖼️ إضافة صورة للفائدة
-            <input type="file" id="postMediaInput" accept="image/*" style="display:none;" onchange="window.handleMediaSelection(this)" />
-          </label>
+<label style="background:rgba(255,255,255,0.04); border:1px solid var(--border); color:var(--text); padding:8px 15px; border-radius:20px; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+  🎬 إضافة صورة أو فيديو
+  <input type="file" id="postMediaInput" accept="image/*,video/*" style="display:none;" onchange="window.handleMediaSelection(this)" />
+</label>
           <button id="submitPostBtn" onclick="window.sendPostToFirebase()" style="background:var(--gold); color:#111; border:none; padding:8px 25px; border-radius:20px; font-weight:bold; cursor:pointer;">نشر الفائدة ✨</button>
         </div>
       </div>` : `<p style="color:var(--text2); font-size:12px; text-align:center; margin-bottom:15px;">🔒 سجل حسابك لتتمكن من مشاركة الفوائد الشرعية معنا.</p>`}
@@ -879,13 +879,23 @@ window.handleMediaSelection = function(input) {
   const previewBox = document.getElementById('mediaPreviewBox');
   if(!previewBox) return;
 
+  const isVideo = file.type.startsWith('video/');
   const reader = new FileReader();
+  
   reader.onload = function(e) {
-    previewBox.innerHTML = `
-      <div style="position:relative; display:inline-block; max-width:100%; margin-bottom:10px;">
-        <img src="${e.target.result}" style="max-height:150px; border-radius:8px; border:1px solid var(--gold);" />
-        <button onclick="window.clearSelectedMedia()" style="position:absolute; top:-8px; left:-8px; background:#ff4d4d; color:white; border:none; width:24px; height:24px; border-radius:50%; font-weight:bold; cursor:pointer; font-size:12px;">✕</button>
-      </div>`;
+    if (isVideo) {
+      previewBox.innerHTML = `
+        <div style="position:relative; display:inline-block; max-width:100%; margin-bottom:10px;">
+          <video src="${e.target.result}" controls style="max-height:180px; border-radius:8px; border:1px solid var(--gold); background:#000;"></video>
+          <button onclick="window.clearSelectedMedia()" style="position:absolute; top:-8px; left:-8px; background:#ff4d4d; color:white; border:none; width:24px; height:24px; border-radius:50%; font-weight:bold; cursor:pointer; font-size:12px;">✕</button>
+        </div>`;
+    } else {
+      previewBox.innerHTML = `
+        <div style="position:relative; display:inline-block; max-width:100%; margin-bottom:10px;">
+          <img src="${e.target.result}" style="max-height:150px; border-radius:8px; border:1px solid var(--gold);" />
+          <button onclick="window.clearSelectedMedia()" style="position:absolute; top:-8px; left:-8px; background:#ff4d4d; color:white; border:none; width:24px; height:24px; border-radius:50%; font-weight:bold; cursor:pointer; font-size:12px;">✕</button>
+        </div>`;
+    }
   };
   reader.readAsDataURL(file);
 };
@@ -911,23 +921,39 @@ window.sendPostToFirebase = async function() {
     submitBtn.disabled = true;
     submitBtn.textContent = "جاري النشر... ⏳";
 
-    let mediaUrl = ""; let mediaType = "none";
+let mediaUrl = ""; let mediaType = "none";
     if (selectedMediaFile) {
+      const isVideo = selectedMediaFile.type.startsWith('video/');
       try {
-        const formData = new FormData();
-        formData.append("image", selectedMediaFile);
-        const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: formData });
-        const resData = await response.json();
-        if (resData.success) { 
-          mediaUrl = resData.data.url; 
-          mediaType = "image"; 
+        if (isVideo) {
+          // رفع الفيديو عبر سيرفر ميديا مجاني ومباشر
+          const formData = new FormData();
+          formData.append("file", selectedMediaFile);
+          const response = await fetch("https://tmpfiles.org/api/v1/upload", { method: "POST", body: formData });
+          const resData = await response.json();
+          if (resData.status === "success" && resData.data && resData.data.url) {
+            // تحويل الرابط لرابط مباشر للتشغيل
+            mediaUrl = resData.data.url.replace("tmpfiles.org/", "tmpfiles.org/dl/");
+            mediaType = "video";
+          } else {
+            alert("⚠️ تعذر رفع الفيديو، يرجى التأكد من حجم الفيديو وحاول مرة أخرى.");
+          }
         } else {
-          console.error("imgbb upload failed:", resData);
-          alert("⚠️ فشل رفع الصورة:\n" + (resData.error?.message || JSON.stringify(resData)));
+          // رفع الصورة عبر ImgBB
+          const formData = new FormData();
+          formData.append("image", selectedMediaFile);
+          const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: formData });
+          const resData = await response.json();
+          if (resData.success) { 
+            mediaUrl = resData.data.url; 
+            mediaType = "image"; 
+          } else {
+            alert("⚠️ فشل رفع الصورة: " + (resData.error?.message || "خطأ غير معروف"));
+          }
         }
       } catch (uploadErr) {
-        console.error("imgbb network error:", uploadErr);
-        alert("⚠️ خطأ في الاتصال أثناء رفع الصورة:\n" + uploadErr.message);
+        console.error("Media upload error:", uploadErr);
+        alert("⚠️ خطأ في الاتصال أثناء الرفع: " + uploadErr.message);
       }
     }
     await addDoc(collection(db, "posts"), {
@@ -971,10 +997,17 @@ window.listenToPosts = function(gender) {
         let userAvatar = "https://www.gstatic.com/firebasejs/ui/2.0.0/images/temporary-avatar.png";
         let nameClass = "regular-user-text";
 
-        let mediaHtml = "";
-        if (data.mediaUrl && data.mediaType === 'image') {
-          mediaHtml = `<img src="${data.mediaUrl}" onclick="window.openImageLightbox('${data.mediaUrl}')" style="width:100%; border-radius:8px; margin-top:10px; max-height:300px; object-fit:contain; background:#000; cursor:pointer;" />`;
-        }
+let mediaHtml = "";
+if (data.mediaUrl) {
+  if (data.mediaType === 'video') {
+    mediaHtml = `
+      <div style="margin-top:10px; border-radius:8px; overflow:hidden; background:#000; border:1px solid var(--gold);">
+        <video src="${data.mediaUrl}" controls style="width:100%; max-height:380px; display:block;" preload="metadata"></video>
+      </div>`;
+  } else if (data.mediaType === 'image') {
+    mediaHtml = `<img src="${data.mediaUrl}" onclick="window.openImageLightbox('${data.mediaUrl}')" style="width:100%; border-radius:8px; margin-top:10px; max-height:300px; object-fit:contain; background:#000; cursor:pointer;" />`;
+  }
+}
 
         html += `
           <div class="comm-card" style="border-right: 3px solid var(--gold); text-align: right; margin-bottom: 15px;">
