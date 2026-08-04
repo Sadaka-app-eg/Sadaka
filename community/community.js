@@ -2577,7 +2577,7 @@ window.listenToReelsFeed = function(gender) {
   const q = query(collection(db, "posts"), where("mediaType", "==", "video"), orderBy("createdAt", "desc"), limit(30));
   const myName = localStorage.getItem('athr_user_name');
 
-  onSnapshot(q, (snapshot) => {
+  unsubscribePosts = onSnapshot(q, (snapshot) => {
     const container = document.getElementById('reelsContainer');
     if (!container) return;
 
@@ -2593,15 +2593,19 @@ window.listenToReelsFeed = function(gender) {
       html += `
         <div class="reel-item" style="position:relative; width:100vw; height:calc(100vh - 60px); scroll-snap-align:start; scroll-snap-stop:always; background:#000; display:flex; align-items:center; justify-content:center;">
           
-          <video src="${data.mediaUrl}" loop playsinline onclick="this.paused ? this.play() : this.pause();" style="width:100%; height:100%; object-fit:contain; display:block;"></video>
+          <!-- فيديو الريل بملء الشاشة مع كلاس مخصص للتعرف عليه -->
+          <video class="athr-reel-video" src="${data.mediaUrl}" loop playsinline onclick="this.paused ? this.play() : this.pause();" style="width:100%; height:100%; object-fit:contain; display:block;"></video>
 
+          <!-- تفاصيل الكاتب والنص فوق الفيديو من الأسفل -->
           <div style="position:absolute; bottom:30px; right:15px; left:80px; z-index:10; text-align:right; text-shadow:0 2px 6px rgba(0,0,0,0.8); pointer-events:none;">
             <strong style="color:var(--gold); font-size:16px; font-family:'Amiri', serif; display:block; margin-bottom:6px;">✨ ${data.name}</strong>
             <p style="color:#fff; font-size:14px; font-family:'Amiri', serif; line-height:1.5; margin:0; max-height:80px; overflow:hidden;">${data.text || ''}</p>
           </div>
 
+          <!-- الأزرار الجانبية (شبه تيك توك) على الشمال -->
           <div style="position:absolute; bottom:40px; left:15px; z-index:20; display:flex; flex-direction:column; align-items:center; gap:20px;">
             
+            <!-- زر التفاعل/القلب -->
             <div onclick="window.togglePostLike(event, '${docId}', ${hasLiked}, '❤️')" style="text-align:center; cursor:pointer;">
               <div style="background:rgba(0,0,0,0.5); backdrop-filter:blur(6px); width:46px; height:46px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:22px; border:1px solid rgba(255,255,255,0.15);">
                 ${hasLiked ? '❤️' : '🤍'}
@@ -2609,6 +2613,7 @@ window.listenToReelsFeed = function(gender) {
               <span style="color:#fff; font-size:11px; font-weight:bold; margin-top:4px; display:block; text-shadow:0 1px 3px rgba(0,0,0,0.8);">${likesArr.length}</span>
             </div>
 
+            <!-- زر التعليقات -->
             <div onclick="window.toggleCommunityReelComments('${docId}')" style="text-align:center; cursor:pointer;">
               <div style="background:rgba(0,0,0,0.5); backdrop-filter:blur(6px); width:46px; height:46px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; border:1px solid rgba(255,255,255,0.15);">
                 💬
@@ -2616,6 +2621,7 @@ window.listenToReelsFeed = function(gender) {
               <span style="color:#fff; font-size:11px; font-weight:bold; margin-top:4px; display:block; text-shadow:0 1px 3px rgba(0,0,0,0.8);">${data.commentsCount || 0}</span>
             </div>
 
+            <!-- زر التنزيل المباشر -->
             <div onclick="window.downloadCommunityVideo('${data.mediaUrl}', 'ريل_أثر_${data.name}')" style="text-align:center; cursor:pointer;" title="تنزيل الفيديو">
               <div style="background:rgba(0,0,0,0.5); backdrop-filter:blur(6px); width:46px; height:46px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; border:1px solid rgba(255,255,255,0.15);">
                 📥
@@ -2625,6 +2631,7 @@ window.listenToReelsFeed = function(gender) {
 
           </div>
 
+          <!-- نافذة التعليقات الجانبية المنبثقة للريلز -->
           <div id="reelComments-${docId}" style="display:none; position:absolute; bottom:0; left:0; width:100%; height:50vh; background:rgba(15,20,16,0.95); backdrop-filter:blur(15px); border-radius:20px 20px 0 0; z-index:50; padding:15px; direction:rtl; flex-direction:column;">
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:8px;">
               <strong style="color:var(--gold);">التعليقات</strong>
@@ -2632,7 +2639,7 @@ window.listenToReelsFeed = function(gender) {
             </div>
             <div id="commentsList-${docId}" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:6px; margin-bottom:8px;"></div>
             <div style="display:flex; gap:6px;">
-              <input id="commentInput-${docId}" type="text5" placeholder="اكتب تعليقاً..." style="flex:1; padding:10px; background:#000; border:1px solid var(--border); color:#fff; border-radius:20px; outline:none; font-size:13px;" onkeypress="if(event.key==='Enter') window.sendComment('${docId}')" />
+              <input id="commentInput-${docId}" type="text" placeholder="اكتب تعليقاً..." style="flex:1; padding:10px; background:#000; border:1px solid var(--border); color:#fff; border-radius:20px; outline:none; font-size:13px;" onkeypress="if(event.key==='Enter') window.sendComment('${docId}')" />
               <button onclick="window.sendComment('${docId}')" style="background:var(--gold); color:#111; border:none; padding:0 18px; border-radius:20px; font-weight:bold; cursor:pointer;">إرسال</button>
             </div>
           </div>
@@ -2642,6 +2649,31 @@ window.listenToReelsFeed = function(gender) {
     });
 
     container.innerHTML = html || `<div style="color:#fff; text-align:center; padding-top:100px; font-family:'Amiri',serif; font-size:18px;">لا توجد مقاطع ريلز منشورة في هذا المجلس بعد 🎬</div>`;
+
+    // 🚀 تفعيل المراقب الذكي (IntersectionObserver) لإيقاف وتشغيل الفيديو الفعّال فقط
+    const observerOptions = {
+      root: container,
+      threshold: 0.6 // يعني لازم الفيديو يظهر بنسبة 60% على الأقل عشان يشتغل
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const video = entry.target;
+        if (entry.isIntersecting) {
+          // الفيديو دخل الشاشة بالكامل تقريباً -> شغله
+          video.play().catch(err => console.log("Auto-play prevented:", err));
+        } else {
+          // الفيديو خرج من الشاشة -> وقفه وصفره
+          video.pause();
+          video.currentTime = 0;
+        }
+      });
+    }, observerOptions);
+
+    // ربط المراقب بكل فيديوهات الريلز الموجودة في الصفحة
+    container.querySelectorAll('.athr-reel-video').forEach(video => {
+      observer.observe(video);
+    });
   });
 };
 
