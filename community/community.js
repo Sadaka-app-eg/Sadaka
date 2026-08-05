@@ -1236,7 +1236,7 @@ window.listenToPosts = function(gender) {
         const data = docSnap.data();
         const docId = docSnap.id;
         if (!isAllowed(data)) return;
-html = window.buildPostCardHtml(data, docId, myName) + html;
+html += window.buildPostCardHtml(data, docId, myName);        
         renderedIds.add(docId);
       });
       listArea.innerHTML = html || `<div class="comm-card"><p style="color:var(--text2); text-align:center;">الساحة فارغة، انشر أثرك الطيب الحين...</p></div>`;
