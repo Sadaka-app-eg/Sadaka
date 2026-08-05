@@ -1105,7 +1105,7 @@ html += `
         <span>تعليق</span>
       </button>
 
-      <button onclick="window.openCommShareSheet(\`${data.text ? data.text.replace(/"/g, '&quot;') : 'أثر طيب'}\`, '${data.name}')" class="fb-action-btn">
+<button onclick="window.openCommShareSheet(\`${data.text ? data.text.replace(/"/g, '&quot;') : 'أثر طيب'}\`, '${data.name}', '${data.mediaUrl || ''}', '${data.mediaType || ''}')" class="fb-action-btn">      
         <span>🔗</span>
         <span>مشاركة</span>
       </button>
@@ -2796,11 +2796,28 @@ window.seekReelVideo = function(sliderElem) {
 // =========================================================
 
 // دالة فتح نافذة المشاركة المنبثقة
-window.openCommShareSheet = function(postText, authorName) {
+window.openCommShareSheet = function(postText, authorName, mediaUrl = '', mediaType = '') {
   window.currentSharePostText = postText || "فائدة طيبة من تطبيق أثر";
   window.currentSharePostAuthor = authorName || "صاحب الأثر";
 
-  // إنشـاء عناصر النافذة ديناميكياً لو مش موجودة في الصفحة
+  const fullMessage = `✨ *فائدة فيديو من ${authorName}* ✨\n\n${postText ? postText + '\n\n' : ''}${mediaUrl ? '🎬 شاهد المقطع: ' + mediaUrl + '\n\n' : ''}• من شبكة مجتمع أثر المباركة •`;
+
+  // 🚀 لو البوست فيديو، شارك الرابط المباشر فوراً وبدون ما تسأل عن تصميم صورة!
+  if (mediaType === 'video' || (mediaUrl && (mediaUrl.includes('.mp4') || mediaUrl.includes('cloudinary')))) {
+    if (navigator.share) {
+      navigator.share({
+        title: `فيديو من ${authorName}`,
+        text: fullMessage,
+        url: mediaUrl || window.location.href
+      }).catch(err => console.log("تم إلغاء المشاركة:", err));
+    } else {
+      navigator.clipboard.writeText(fullMessage);
+      alert("✅ تم نسخ رابط ونص الفيديو إلى الحافظة بنجاح!");
+    }
+    return; // إنهاء الدالة هنا وعدم فتح النافذة المنبثقة
+  }
+
+  // 📝 لو البوست نصي عادي، افتح نافذة الخيارات العادية
   let dimmer = document.getElementById('commShareDimmer');
   let sheet = document.getElementById('commShareSheet');
 
@@ -2811,7 +2828,7 @@ window.openCommShareSheet = function(postText, authorName) {
         <div class="action-title">👥 خيارات مشاركة فائدة الأثر</div>
         <div style="padding: 10px 0; display:flex; flex-direction:column; gap:8px;">
           <button class="action-btn" onclick="window.executeCommShare('text')"><span>📝</span> مشاركة كنص مبرمج جاهز</button>
-          <button class="action-btn" onclick="window.executeCommShare('copy')"><span>📋</span> نسخ النص إلى الحافظة</button>
+          <button class="action-btn" onclick="window.executeCommShare('image')"><span>🖼️</span> تصميم ومشاركة كبطاقة فخمة</button>
           <button class="action-btn action-cancel" onclick="window.closeCommShareSheet()"><span>✕</span> إلغاء</button>
         </div>
       </div>
