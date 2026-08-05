@@ -2664,7 +2664,7 @@ window.listenToReelsFeed = function(gender) {
     }
 
     // إذا كانت الشاشة مبنية بالفعل، لا نعيد رسم الـ HTML لتجنب التقطيع
-    if (container.querySelector('.reel-item')) return;
+   // if (container.querySelector('.reel-item')) return;
 
     let html = "";
     window.cachedReelsList.forEach((data) => {
