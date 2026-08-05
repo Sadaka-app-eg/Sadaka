@@ -2791,3 +2791,69 @@ window.seekReelVideo = function(sliderElem) {
     videoElem.currentTime = seekTime;
   }
 };
+// =========================================================
+// 🔗 محرك مشاركة منشورات المجتمع (نص / رابط / نسخ)
+// =========================================================
+
+// دالة فتح نافذة المشاركة المنبثقة
+window.openCommShareSheet = function(postText, authorName) {
+  window.currentSharePostText = postText || "فائدة طيبة من تطبيق أثر";
+  window.currentSharePostAuthor = authorName || "صاحب الأثر";
+
+  // إنشـاء عناصر النافذة ديناميكياً لو مش موجودة في الصفحة
+  let dimmer = document.getElementById('commShareDimmer');
+  let sheet = document.getElementById('commShareSheet');
+
+  if (!dimmer || !sheet) {
+    const sheetHTML = `
+      <div class="overlay-dimmer" id="commShareDimmer" onclick="window.closeCommShareSheet()"></div>
+      <div class="action-sheet" id="commShareSheet" style="z-index: 99999999; direction: rtl;">
+        <div class="action-title">👥 خيارات مشاركة فائدة الأثر</div>
+        <div style="padding: 10px 0; display:flex; flex-direction:column; gap:8px;">
+          <button class="action-btn" onclick="window.executeCommShare('text')"><span>📝</span> مشاركة كنص مبرمج جاهز</button>
+          <button class="action-btn" onclick="window.executeCommShare('copy')"><span>📋</span> نسخ النص إلى الحافظة</button>
+          <button class="action-btn action-cancel" onclick="window.closeCommShareSheet()"><span>✕</span> إلغاء</button>
+        </div>
+      </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', sheetHTML);
+    dimmer = document.getElementById('commShareDimmer');
+    sheet = document.getElementById('commShareSheet');
+  }
+
+  if (dimmer) dimmer.classList.add('show');
+  if (sheet) sheet.classList.add('show');
+};
+
+// دالة إغلاق نافذة المشاركة
+window.closeCommShareSheet = function() {
+  const dimmer = document.getElementById('commShareDimmer');
+  const sheet = document.getElementById('commShareSheet');
+  if (dimmer) dimmer.classList.remove('show');
+  if (sheet) sheet.classList.remove('show');
+};
+
+// دالة تنفيذ المشاركة الفعلية
+window.executeCommShare = function(type) {
+  const text = window.currentSharePostText || "";
+  const author = window.currentSharePostAuthor || "";
+  const fullMessage = `✨ *فائدة إيمانية من ${author}* ✨\n\n${text}\n\n• من شبكة مجتمع أثر المباركة •`;
+
+  if (type === 'text') {
+    if (navigator.share) {
+      navigator.share({
+        title: `فائدة من ${author}`,
+        text: fullMessage
+      }).then(() => window.closeCommShareSheet())
+        .catch(err => console.log("تم إلغاء المشاركة:", err));
+    } else {
+      navigator.clipboard.writeText(fullMessage);
+      alert("✅ تم نسخ نص المنشور إلى الحافظة بنجاح!");
+      window.closeCommShareSheet();
+    }
+  } else if (type === 'copy') {
+    navigator.clipboard.writeText(fullMessage);
+    alert("✅ تم نسخ النص بنجاح!");
+    window.closeCommShareSheet();
+  }
+};
