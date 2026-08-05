@@ -573,8 +573,8 @@ window.openUserProfileCard = async function(userName) {
     const friendStatus = window.getFriendStatus(myDataForFriend, userName);
 
 const isMeAdmin = window.isAdminUser();
-  const isUserAdmin = u.email && u.email.toLowerCase() === window.ADMIN_EMAIL.toLowerCase();
-
+const userEmailClean = (u.email || "").toLowerCase();
+const isUserAdmin = window.ADMIN_EMAILS.some(e => e.toLowerCase() === userEmailClean);
   modal.innerHTML = `
     <div class="comm-card" style="width:100%; max-width:360px; text-align:center; border:1px solid var(--gold); padding:25px 15px; background:#070c07; position:relative; animation:fadeIn 0.3s;">
       <button onclick="document.getElementById('athrProfileModal').style.display='none'" style="position:absolute; top:12px; left:12px; background:transparent; color:#ff4d4d; border:none; font-size:18px; cursor:pointer; font-weight:bold;">✕</button>
@@ -584,7 +584,7 @@ const isMeAdmin = window.isAdminUser();
       <h3 class="${styleInfo.class}" style="font-family:'Amiri', serif; font-size:20px; margin-bottom:4px; display:flex; align-items:center; justify-content:center; gap:6px;">
         ${u.name} ${online ? '<span class="online-dot"></span>' : ''}
       </h3>
-${window.ADMIN_EMAILS.includes(u.email ? u.email.toLowerCase() : "") ? `
+${isUserAdmin ? `
   <div style="margin-bottom:10px;">
     <span style="color:#111; background:var(--gold); font-size:12px; font-weight:bold; padding:4px 12px; border-radius:15px; box-shadow:0 0 10px rgba(212,175,55,0.5); display:inline-block;">👑 المشرف العام</span>
   </div>
@@ -1105,9 +1105,10 @@ html += `
       <div style="display: flex; align-items: center; gap: 10px; cursor: pointer;" onclick="window.openUserProfileCard('${data.name}')">
         <img src="${userAvatar}" id="avatar-post-${docId}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--gold, #d4af37);" />
         <div>
-          <strong class="${nameClass}" id="name-post-${docId}" style="font-size: 14px; display: block; line-height: 1.2;">
-            ${data.name} ${data.gender === 'female' ? '🧕' : ''}
-          </strong>
+<strong class="${nameClass}" id="name-post-${docId}" style="font-size: 14px; display: block; line-height: 1.2;">
+  ${data.name} ${data.email && window.ADMIN_EMAILS.includes(data.email.toLowerCase()) ? '<span style="color:#d4af37; font-size:11px; background:rgba(212,175,55,0.15); padding:1px 6px; border-radius:10px; border:1px solid #d4af37; margin-right:4px;">👑 مشرف</span>' : ''} ${data.gender === 'female' ? '🧕' : ''}
+</strong>
+          
           <small style="color: var(--text2); font-size: 11px; margin-top: 2px; display: block;">
             ${data.createdAt ? window.formatPostTime(data.createdAt) : 'الآن ✨'} • 🌐
           </small>
