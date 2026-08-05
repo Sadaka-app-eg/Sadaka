@@ -986,6 +986,8 @@ let mediaUrl = ""; let mediaType = "none";
     textInput.value = "";
     window.clearSelectedMedia();
     window.triggerSparksEffect();
+    // 🎲 تصفير كاش الريلز عشان الفيديو الجديد ينزل في القائمة فوراً!
+    window.cachedReelsList = null;
     window.awardPoints(userName, 15);
     window.updateUserStreak(userName);
   } catch (e) { console.error(e); } finally { submitBtn.disabled = false; if(submitBtn) submitBtn.textContent = "نشر الفائدة ✨"; }
@@ -2636,26 +2638,32 @@ window.listenToReelsFeed = function(gender) {
     const container = document.getElementById('reelsContainer');
     if (!container) return;
 
-    // 1. جلب البيانات
+    // 1. جلب كل الفيديوهات من السيرفر
     const docs = [];
     snapshot.forEach(docSnap => docs.push({ id: docSnap.id, ...docSnap.data() }));
 
-    // 🎯 السحر هنا: نخلط الفيديوهات عشوائياً في أول مرة فقط عند فتح الشاشة، ولا نعيد خلطها عند التفاعل!
+    // 🎯 2. الترتيب الزمني الأساسي: الجديد فوق خالص والقديم تحت!
+    docs.sort((a, b) => {
+      const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+      const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+      return timeB - timeA; // الأحدث (الجديد) أولاً
+    });
+
+    // 🎲 3. عشوائية ذكية: نخلط الفيديوهات في مجموعات بسيطة عشان الترتيب ميبقاش صلب، مع الحفاظ على إن الجديد فوق والقديم تحت
     if (!window.cachedReelsList || window.cachedReelsList.length === 0) {
-      for (let i = docs.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [docs[i], docs[j]] = [docs[j], docs[i]];
+      // نخلط عشوائياً بين كل 3 أو 4 فيديوهات متقاربة زمنياً فقط
+      for (let i = 0; i < docs.length - 1; i += 2) {
+        if (Math.random() > 0.5) {
+          [docs[i], docs[i + 1]] = [docs[i + 1], docs[i]];
+        }
       }
       window.cachedReelsList = docs;
     } else {
-      // تحديث البيانات فقط مع الحفاظ على الترتيب العشوائي الأصلي
-      window.cachedReelsList = window.cachedReelsList.map(cachedItem => {
-        const updated = docs.find(d => d.id === cachedItem.id);
-        return updated || cachedItem;
-      });
+      // تحديث القائمة بالجديد فوراً بدون كسر تجربة المستخدم
+      window.cachedReelsList = docs;
     }
 
-    // إذا كانت الشاشة مبنية بالفعل، لا نعيد رسم الـ HTML عشان الفيديو متقطعش أو تقلب!
+    // إذا كانت الشاشة مبنية بالفعل، لا نعيد رسم الـ HTML لتجنب التقطيع
     if (container.querySelector('.reel-item')) return;
 
     let html = "";
@@ -2685,10 +2693,9 @@ window.listenToReelsFeed = function(gender) {
             <p style="color:#fff; font-size:14px; font-family:'Amiri', serif; line-height:1.5; margin:0; max-height:80px; overflow:hidden;">${data.text || ''}</p>
           </div>
 
-          <!-- الأزرار الجانبية على الشمال -->
+          <!-- الأزرار الجانبية -->
           <div style="position:absolute; bottom:55px; left:15px; z-index:20; display:flex; flex-direction:column; align-items:center; gap:20px;">
             
-            <!-- زر التفاعل/القلب -->
             <div id="reelLikeBtn-${docId}" onclick="window.togglePostLike(event, '${docId}', ${hasLiked}, '❤️')" style="text-align:center; cursor:pointer;">
               <div class="like-icon-box" style="background:rgba(0,0,0,0.5); backdrop-filter:blur(6px); width:46px; height:46px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:22px; border:1px solid rgba(255,255,255,0.15);">
                 ${hasLiked ? '❤️' : '🤍'}
