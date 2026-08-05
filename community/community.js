@@ -322,17 +322,7 @@ const accBtn = window.ensureMyAccountButton();
 
   if (window.currentCommunityTab === 'feed') {
     contentArea.innerHTML = `
-      <div class="community-tabs" style="margin-bottom: 15px; display:flex; gap:6px; overflow-x:auto; padding-bottom:4px;">
-        <button id="tabFeedBtn" class="comm-tab-btn active" onclick="window.switchCommunityTab('feed')">📝 ساحة الأثر</button>
-        <button id="tabChatBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('chat')">💬 مجلس الذكر</button>
-        <button id="tabFajrBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('fajr')">🕌 استيقاظ الفجر</button>
-        <button id="tabFamilyBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('family')">🏡 التنافس العائلي</button>
-        <button id="tabWeeklyBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('weekly')">🌟 حلقة الأسبوع</button>
-        <button id="tabLeaderBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('leaderboard')">🏆 لوحة الشرف</button>
-        <button id="tabDuaBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('dua')">🤲 اطلب دعاء</button>
-        <button id="tabFeaturedBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('featured')">✨ الأكثر تأثيراً</button>
-        <button id="tabPrivateBtn" class="comm-tab-btn" onclick="window.switchCommunityTab('private')">📥 الرسائل الخاصة</button>
-      </div>
+${window.getSharedTabsHTML('feed')}
 
       <div style="color: var(--gold); font-family: 'Amiri', serif; margin-bottom: 10px; font-size: 14px; text-align: right; font-weight: bold;">📍 ${communityLabel}</div>
       
@@ -2596,11 +2586,11 @@ window.listenToReelsFeed = function(gender) {
     const docs = [];
     snapshot.forEach(docSnap => docs.push({ id: docSnap.id, ...docSnap.data() }));
     
-    docs.sort((a, b) => {
-      const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
-      const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
-      return timeB - timeA;
-    });
+// 🎲 خلط الفيديوهات بشكل عشوائي تماماً في كل مرة لعدم إملال المستخدم
+    for (let i = docs.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [docs[i], docs[j]] = [docs[j], docs[i]];
+    }
 
     let html = "";
     docs.forEach((data) => {
