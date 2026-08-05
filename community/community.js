@@ -2994,4 +2994,4 @@ window.adminDeleteUserAccount = async function(userName) {
     console.error(e);
     alert("حدث خطأ أثناء حذف الحساب.");
   }
-}; متبعتش الكود كامل قولي عدل دا او ضيف دا !
+};
