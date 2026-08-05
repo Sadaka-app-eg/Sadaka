@@ -2688,9 +2688,11 @@ window.downloadCommunityVideo = function(videoUrl, fileName = 'فيديو_أثر
   }
 };
 window.listenToReelsFeed = function(gender) {
+  // 🚀 جلب الفيديوهات مرتبة زمنياً من الأحدث للأقدم مباشرة
   const q = query(
     collection(db, "posts"), 
     where("mediaType", "==", "video"), 
+    orderBy("createdAt", "desc"), 
     limit(50)
   );
   
@@ -2704,51 +2706,26 @@ window.listenToReelsFeed = function(gender) {
     const docs = [];
     snapshot.forEach(docSnap => docs.push({ id: docSnap.id, ...docSnap.data() }));
 
-    // 🎯 2. الترتيب الزمني الأساسي: الجديد فوق خالص والقديم تحت!
+    // 🎯 2. الترتيب الزمني النقي: الجديد فوق خالص والقديم تحت!
     docs.sort((a, b) => {
       const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
       const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
       return timeB - timeA; // الأحدث (الجديد) أولاً
     });
 
-// 🚀 محرك ترتيب الريلز الاحترافي (Smart Bucket Shuffle)
-    if (!window.cachedReelsList || window.cachedReelsList.length === 0) {
-
-      // 1. تقسيم الفيديوهات لثلاث طبقات بحسب الأقدمية
-      const freshReels = docs.slice(0, 6);   // أحدث 6 فيديوهات اتنشرت مؤخراً
-      const recentReels = docs.slice(6, 20); // الفيديوهات المتوسطة (الرائجة)
-      const archiveReels = docs.slice(20);   // باقي الأرشيف القديم
-
-      // 2. دالة خلط عشوائي كاملة ومحترفة (Fisher-Yates Shuffle)
-      const shuffleArray = (arr) => {
-        for (let i = arr.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [arr[i], arr[j]] = [arr[j], arr[i]];
-        }
-        return arr;
-      };
-
-      // 3. خلط كل طبقة داخل نطاقها الزمني بشكل مستقل
-      const shuffledFresh = shuffleArray([...freshReels]);
-      const shuffledRecent = shuffleArray([...recentReels]);
-      const shuffledArchive = shuffleArray([...archiveReels]);
-
-      // 4. دمج الطبقات بالترتيب: (الجديد عشوائياً في الأوّل ⬅️ ثم المتوسط عشوائياً ⬅️ ثم القديم عشوائياً في الآخر)
-      window.cachedReelsList = [...shuffledFresh, ...shuffledRecent, ...shuffledArchive];
-    } else {
-      // تحديث البيانات الحية مع الحفاظ على الترتيب الأصلي بدون تقطيع
-      window.cachedReelsList = docs;
-    }
-    
-
-
-    // إذا كانت الشاشة مبنية بالفعل، لا نعيد رسم الـ HTML لتجنب التقطيع
-   // if (container.querySelector('.reel-item')) return;
+    // تعيين القائمة مباشرة بدون خلط عشوائي
+    window.cachedReelsList = docs;
 
     let html = "";
     window.cachedReelsList.forEach((data) => {
       const docId = data.id;
-if ((data.gender !== gender && (!data.email || !window.ADMIN_EMAILS.includes(data.email.toLowerCase()))) || !data.mediaUrl) return;
+
+      // فحص أمان المشرف بدون مشاكل لـ toLowerCase
+      const postEmail = (data.email || "").toLowerCase();
+      const isAdminPost = window.ADMIN_EMAILS.some(e => e.toLowerCase() === postEmail);
+
+      if ((data.gender !== gender && !isAdminPost) || !data.mediaUrl) return;
+
       const likesArr = data.likes || [];
       const hasLiked = myName && likesArr.includes(myName);
 
@@ -2756,7 +2733,8 @@ if ((data.gender !== gender && (!data.email || !window.ADMIN_EMAILS.includes(dat
         <div class="reel-item" style="position:relative; width:100vw; height:calc(100vh - 60px); scroll-snap-align:start; scroll-snap-stop:always; background:#000; display:flex; align-items:center; justify-content:center;">
           
           <!-- فيديو الريل بملء الشاشة -->
-<video class="athr-reel-video" src="${data.mediaUrl}" loop playsinline preload="auto" crossorigin="anonymous" onclick="window.playOnlyThisReel(event, this)" ontimeupdate="window.updateReelProgress(this)" style="width:100%; height:100%; object-fit:contain; display:block;"></video>
+          <video class="athr-reel-video" src="${data.mediaUrl}" loop playsinline preload="auto" crossorigin="anonymous" onclick="window.playOnlyThisReel(event, this)" ontimeupdate="window.updateReelProgress(this)" style="width:100%; height:100%; object-fit:contain; display:block;"></video>
+          
           <!-- 📊 شريط التقدم والتوقيت أسفل الفيديو -->
           <div style="position:absolute; bottom:12px; left:15px; right:15px; z-index:25; display:flex; align-items:center; gap:8px;">
             <span class="reel-time-current" style="color:#fff; font-size:11px; font-family:monospace; min-width:35px; text-align:left;">0:00</span>
@@ -2766,7 +2744,9 @@ if ((data.gender !== gender && (!data.email || !window.ADMIN_EMAILS.includes(dat
 
           <!-- تفاصيل الكاتب والنص فوق الفيديو -->
           <div style="position:absolute; bottom:35px; right:15px; left:80px; z-index:10; text-align:right; text-shadow:0 2px 6px rgba(0,0,0,0.8); pointer-events:none;">
-            <strong style="color:var(--gold); font-size:16px; font-family:'Amiri', serif; display:block; margin-bottom:6px;">✨ ${data.name}</strong>
+            <strong style="color:var(--gold); font-size:16px; font-family:'Amiri', serif; display:block; margin-bottom:6px;">
+              ✨ ${data.name} ${isAdminPost ? '<span style="color:#111; background:var(--gold); font-size:10px; padding:2px 8px; border-radius:10px; margin-right:5px;">👑 مشرف</span>' : ''}
+            </strong>
             <p style="color:#fff; font-size:14px; font-family:'Amiri', serif; line-height:1.5; margin:0; max-height:80px; overflow:hidden;">${data.text || ''}</p>
           </div>
 
@@ -2995,4 +2975,155 @@ window.adminDeleteUserAccount = async function(userName) {
     console.error(e);
     alert("حدث خطأ أثناء حذف الحساب.");
   }
+};
+// 🎨 دالة رسم كروت الفيديوهات في الشاشة
+window.renderReelsHTML = function(gender, myName, isAppending = false) {
+  const container = document.getElementById('reelsContainer');
+  if (!container) return;
+
+  let html = "";
+  window.cachedReelsList.forEach((data) => {
+    const docId = data.id;
+    const postEmail = (data.email || "").toLowerCase();
+    const isAdminPost = window.ADMIN_EMAILS.some(e => e.toLowerCase() === postEmail);
+
+    if ((data.gender !== gender && !isAdminPost) || !data.mediaUrl) return;
+
+    const likesArr = data.likes || [];
+    const hasLiked = myName && likesArr.includes(myName);
+
+    html += `
+      <div class="reel-item" data-id="${docId}" style="position:relative; width:100vw; height:calc(100vh - 60px); scroll-snap-align:start; scroll-snap-stop:always; background:#000; display:flex; align-items:center; justify-content:center;">
+        
+        <video class="athr-reel-video" src="${data.mediaUrl}" loop playsinline preload="auto" crossorigin="anonymous" onclick="window.playOnlyThisReel(event, this)" ontimeupdate="window.updateReelProgress(this)" style="width:100%; height:100%; object-fit:contain; display:block;"></video>
+        
+        <div style="position:absolute; bottom:12px; left:15px; right:15px; z-index:25; display:flex; align-items:center; gap:8px;">
+          <span class="reel-time-current" style="color:#fff; font-size:11px; font-family:monospace; min-width:35px; text-align:left;">0:00</span>
+          <input type="range" class="reel-progress-slider" value="0" min="0" max="100" step="0.1" oninput="window.seekReelVideo(this)" style="flex:1; height:4px; -webkit-appearance:none; background:rgba(255,255,255,0.3); border-radius:2px; outline:none; cursor:pointer;" />
+          <span class="reel-time-duration" style="color:#fff; font-size:11px; font-family:monospace; min-width:35px; text-align:right;">0:00</span>
+        </div>
+
+        <div style="position:absolute; bottom:35px; right:15px; left:80px; z-index:10; text-align:right; text-shadow:0 2px 6px rgba(0,0,0,0.8); pointer-events:none;">
+          <strong style="color:var(--gold); font-size:16px; font-family:'Amiri', serif; display:block; margin-bottom:6px;">
+            ✨ ${data.name} ${isAdminPost ? '<span style="color:#111; background:var(--gold); font-size:10px; padding:2px 8px; border-radius:10px; margin-right:5px;">👑 مشرف</span>' : ''}
+          </strong>
+          <p style="color:#fff; font-size:14px; font-family:'Amiri', serif; line-height:1.5; margin:0; max-height:80px; overflow:hidden;">${data.text || ''}</p>
+        </div>
+
+        <div style="position:absolute; bottom:55px; left:15px; z-index:20; display:flex; flex-direction:column; align-items:center; gap:20px;">
+          <div id="reelLikeBtn-${docId}" onclick="window.togglePostLike(event, '${docId}', ${hasLiked}, '❤️')" style="text-align:center; cursor:pointer;">
+            <div class="like-icon-box" style="background:rgba(0,0,0,0.5); backdrop-filter:blur(6px); width:46px; height:46px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:22px; border:1px solid rgba(255,255,255,0.15);">${hasLiked ? '❤️' : '🤍'}</div>
+            <span class="like-count-num" style="color:#fff; font-size:11px; font-weight:bold; margin-top:4px; display:block; text-shadow:0 1px 3px rgba(0,0,0,0.8);">${likesArr.length}</span>
+          </div>
+
+          <div onclick="window.toggleCommunityReelComments('${docId}')" style="text-align:center; cursor:pointer;">
+            <div style="background:rgba(0,0,0,0.5); backdrop-filter:blur(6px); width:46px; height:46px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; border:1px solid rgba(255,255,255,0.15);">💬</div>
+            <span style="color:#fff; font-size:11px; font-weight:bold; margin-top:4px; display:block; text-shadow:0 1px 3px rgba(0,0,0,0.8);">${data.commentsCount || 0}</span>
+          </div>
+
+          <div onclick="window.downloadCommunityVideo('${data.mediaUrl}', 'ريل_أثر_${data.name}')" style="text-align:center; cursor:pointer;" title="تنزيل الفيديو">
+            <div style="background:rgba(0,0,0,0.5); backdrop-filter:blur(6px); width:46px; height:46px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; border:1px solid rgba(255,255,255,0.15);">📥</div>
+            <span style="color:#fff; font-size:11px; font-weight:bold; margin-top:4px; display:block; text-shadow:0 1px 3px rgba(0,0,0,0.8);">تنزيل</span>
+          </div>
+        </div>
+
+        <div id="reelComments-${docId}" style="display:none; position:absolute; bottom:0; left:0; width:100%; height:50vh; background:rgba(15,20,16,0.95); backdrop-filter:blur(15px); border-radius:20px 20px 0 0; z-index:50; padding:15px; direction:rtl; flex-direction:column;">
+          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:8px;">
+            <strong style="color:var(--gold);">التعليقات</strong>
+            <button onclick="document.getElementById('reelComments-${docId}').style.display='none'" style="background:none; border:none; color:#ff4d4d; font-size:18px; cursor:pointer;">✕</button>
+          </div>
+          <div id="commentsList-${docId}" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:6px; margin-bottom:8px;"></div>
+          <div style="display:flex; gap:6px;">
+            <input id="commentInput-${docId}" type="text" placeholder="اكتب تعليقاً..." style="flex:1; padding:10px; background:#000; border:1px solid var(--border); color:#fff; border-radius:20px; outline:none; font-size:13px;" onkeypress="if(event.key==='Enter') window.sendComment('${docId}')" />
+            <button onclick="window.sendComment('${docId}')" style="background:var(--gold); color:#111; border:none; padding:0 18px; border-radius:20px; font-weight:bold; cursor:pointer;">إرسال</button>
+          </div>
+        </div>
+
+      </div>
+    `;
+  });
+
+  if (isAppending) {
+    container.insertAdjacentHTML('beforeend', html);
+  } else {
+    container.innerHTML = html;
+  }
+
+  // المراقب الذكي لتشغيل الفيديو اللي الشاشة واقفة عليه + جلب فيديوهات زيادة لما يقرب من النهاية
+  window.attachReelsObserver(gender, myName);
+};
+
+// 🔄 دالة الجلب التلقائي للدفعة التالية (15 فيديو كمان من السيرفر)
+window.loadMoreReels = async function(gender, myName) {
+  if (isLoadingMoreReels || !hasMoreReels || !lastReelDoc) return;
+
+  try {
+    isLoadingMoreReels = true;
+
+    // بداية الجلب بعد آخر فيديو متسجل بـ startAfter
+    const { startAfter } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+
+    const nextQ = query(
+      collection(db, "posts"),
+      where("mediaType", "==", "video"),
+      orderBy("createdAt", "desc"),
+      startAfter(lastReelDoc),
+      limit(15)
+    );
+
+    const snapshot = await getDocs(nextQ);
+
+    if (snapshot.empty) {
+      hasMoreReels = false;
+      isLoadingMoreReels = false;
+      return;
+    }
+
+    lastReelDoc = snapshot.docs[snapshot.docs.length - 1];
+
+    const newDocs = [];
+    snapshot.docs.forEach(docSnap => newDocs.push({ id: docSnap.id, ...docSnap.data() }));
+
+    window.cachedReelsList = newDocs;
+    window.renderReelsHTML(gender, myName, true); // إلحاق الفيديوهات الجديدة بالأسفل
+
+  } catch (err) {
+    console.error("Error loading more reels:", err);
+  } finally {
+    isLoadingMoreReels = false;
+  }
+};
+
+// 👁️ المراقب الذكي للشاشات
+window.attachReelsObserver = function(gender, myName) {
+  const container = document.getElementById('reelsContainer');
+  if (!container) return;
+
+  const reelItems = container.querySelectorAll('.reel-item');
+  const totalItems = reelItems.length;
+
+  const observerOptions = { root: container, threshold: 0.6 };
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const video = entry.target.querySelector('.athr-reel-video');
+      const itemIndex = Array.from(reelItems).indexOf(entry.target);
+
+      if (entry.isIntersecting) {
+        if (video) video.play().catch(err => console.log("Play blocked:", err));
+
+        // 🚀 أول ما يوصل للفيديو اللي قبل الأخير بـ 3 فيديوهات، اطلب الدفعة الجديدة خفية!
+        if (itemIndex >= totalItems - 3) {
+          window.loadMoreReels(gender, myName);
+        }
+      } else {
+        if (video) {
+          video.pause();
+          video.currentTime = 0;
+        }
+      }
+    });
+  }, observerOptions);
+
+  reelItems.forEach(item => observer.observe(item));
 };
