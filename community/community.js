@@ -1148,14 +1148,64 @@ html += `
 };
  
 window.togglePostLike = async function(event, docId, hasLiked, emoji = '❤️') {
+  // 1. إيقاف تسرب الضغطة للفيديو خلف الزر نهائياً
+  if (event) {
+    event.stopPropagation();
+    event.preventDefault();
+  }
+
   const myName = localStorage.getItem('athr_user_name');
-  if(!myName) { alert("🔒 برجاء إعداد حسابك وتسجيل الدخول لتتمكن من التفاعل."); return; }
-  const postRef = doc(db, "posts", docId);
+  if (!myName) { 
+    alert("🔒 برجاء إعداد حسابك وتسجيل الدخول لتتمكن من التفاعل."); 
+    return; 
+  }
+
+  // 2. تحديث الواجهة فوراً ولطيفاً (سلاسة وبدون رعشة)
+  if (event && event.currentTarget) {
+    const btnBox = event.currentTarget;
+    const iconEl = btnBox.querySelector('div');
+    const countEl = btnBox.querySelector('span');
+    
+    if (countEl) {
+      let currentCount = parseInt(countEl.textContent) || 0;
+      countEl.textContent = hasLiked ? Math.max(0, currentCount - 1) : currentCount + 1;
+    }
+    if (iconEl) {
+      iconEl.textContent = hasLiked ? '🤍' : '❤️';
+    }
+  }
+
   if (!hasLiked && event) window.createFloatingEmoji(event, emoji);
+
+  // 3. تحديث البيانات في الفايربيز بالخلفية
+  const postRef = doc(db, "posts", docId);
   try {
-    if (hasLiked) { await updateDoc(postRef, { likes: arrayRemove(myName), likesCount: increment(-1) }); } 
-    else { await updateDoc(postRef, { likes: arrayUnion(myName), likesCount: increment(1) }); window.awardPoints(myName, 2); }
-  } catch (e) { console.error(e); }
+    if (hasLiked) { 
+      await updateDoc(postRef, { likes: arrayRemove(myName), likesCount: increment(-1) }); 
+    } else { 
+      await updateDoc(postRef, { likes: arrayUnion(myName), likesCount: increment(1) }); 
+      window.awardPoints(myName, 2); 
+    }
+  } catch (e) { 
+    console.error("Like error:", e); 
+  }
+};
+window.playOnlyThisReel = function(event, videoElem) {
+  if (event) event.stopPropagation();
+
+  // إيقاف جميع الفيديوهات الأخرى في شاشة الريلز فوراً
+  document.querySelectorAll('.athr-reel-video').forEach(v => {
+    if (v !== videoElem) {
+      v.pause();
+    }
+  });
+
+  // تشغيل أو إيقاف الفيديو الحالي
+  if (videoElem.paused) {
+    videoElem.play().catch(err => console.log("Play error:", err));
+  } else {
+    videoElem.pause();
+  }
 };
 window.deletePost = async function(docId) {
   if (!confirm("هل أنت متأكد أنك تريد حذف هذا المنشور؟ لا يمكن التراجع عن هذا الإجراء.")) return;
@@ -2604,8 +2654,7 @@ window.listenToReelsFeed = function(gender) {
         <div class="reel-item" style="position:relative; width:100vw; height:calc(100vh - 60px); scroll-snap-align:start; scroll-snap-stop:always; background:#000; display:flex; align-items:center; justify-content:center;">
           
           <!-- فيديو الريل بملء الشاشة -->
-          <video class="athr-reel-video" src="${data.mediaUrl}" loop playsinline onclick="this.paused ? this.play() : this.pause();" ontimeupdate="window.updateReelProgress(this)" style="width:100%; height:100%; object-fit:contain; display:block;"></video>
-
+<video class="athr-reel-video" src="${data.mediaUrl}" loop playsinline onclick="window.playOnlyThisReel(event, this)" ontimeupdate="window.updateReelProgress(this)" style="width:100%; height:100%; object-fit:contain; display:block;"></video>
           <!-- 📊 شريط التقدم (Progress Bar) والتوقيت أسفل الفيديو مباشرة فوق الشريط العائم -->
           <div style="position:absolute; bottom:12px; left:15px; right:15px; z-index:25; display:flex; align-items:center; gap:8px;">
             <span class="reel-time-current" style="color:#fff; font-size:11px; font-family:monospace; min-width:35px; text-align:left;">0:00</span>
@@ -2622,7 +2671,7 @@ window.listenToReelsFeed = function(gender) {
           <!-- الأزرار الجانبية على الشمال -->
           <div style="position:absolute; bottom:55px; left:15px; z-index:20; display:flex; flex-direction:column; align-items:center; gap:20px;">
             
-            <div onclick="window.togglePostLike(event, '${docId}', ${hasLiked}, '❤️')" style="text-align:center; cursor:pointer;">
+<div onclick="window.togglePostLike(event, '${docId}', ${hasLiked}, '❤️')" style="text-align:center; cursor:pointer;">            
               <div style="background:rgba(0,0,0,0.5); backdrop-filter:blur(6px); width:46px; height:46px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:22px; border:1px solid rgba(255,255,255,0.15);">
                 ${hasLiked ? '❤️' : '🤍'}
               </div>
