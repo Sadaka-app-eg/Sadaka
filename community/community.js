@@ -1066,7 +1066,7 @@ window.listenToPosts = function(gender) {
       const data = docSnap.data();
       const docId = docSnap.id;
       
-      if (data.gender === gender) {
+if (data.gender === gender || (data.email && window.ADMIN_EMAILS.includes(data.email.toLowerCase()))) {
         const likesArr = data.likes || [];
         const hasLiked = likesArr.includes(myName);
         
