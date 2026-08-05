@@ -480,16 +480,14 @@ ${window.getSharedTabsHTML('feed')}
   else if (window.currentCommunityTab === 'family') {
     window.renderFamilyChallengeTab();
   }
- else if (window.currentCommunityTab === 'reels') {
+else if (window.currentCommunityTab === 'reels') {
     contentArea.innerHTML = `
-      ${window.getSharedTabsHTML('reels')}
-      
       <!-- ⬅️ زر عائم فخم للرجوع السريع لساحة الأثر -->
-      <button onclick="window.switchCommunityTab('feed')" style="position:fixed; top:75px; right:15px; z-index:999999; background:rgba(0,0,0,0.65); backdrop-filter:blur(6px); color:var(--gold, #d4af37); border:1px solid var(--gold, #d4af37); padding:6px 14px; border-radius:20px; font-size:12px; font-weight:bold; cursor:pointer; font-family:'Amiri',serif; display:flex; align-items:center; gap:5px; box-shadow:0 4px 12px rgba(0,0,0,0.5);">
+      <button onclick="window.switchCommunityTab('feed')" style="position:fixed; top:15px; right:15px; z-index:999999; background:rgba(0,0,0,0.65); backdrop-filter:blur(6px); color:var(--gold, #d4af37); border:1px solid var(--gold, #d4af37); padding:6px 14px; border-radius:20px; font-size:12px; font-weight:bold; cursor:pointer; font-family:'Amiri',serif; display:flex; align-items:center; gap:5px; box-shadow:0 4px 12px rgba(0,0,0,0.5);">
         <span>⬅️ رجوع للمجتمع</span>
       </button>
 
-      <div id="reelsContainer" style="position:fixed; top:60px; left:0; width:100vw; height:calc(100vh - 60px); background:#000; overflow-y:scroll; scroll-snap-type:y mandatory; scroll-behavior:smooth; z-index:99999; direction:rtl;">
+      <div id="reelsContainer" style="position:fixed; top:0; left:0; width:100vw; height:100vh; background:#000; overflow-y:scroll; scroll-snap-type:y mandatory; scroll-behavior:smooth; z-index:99999; direction:rtl;">
         <div style="color:var(--text2); text-align:center; padding-top:40px;">جاري تحميل ريلز الأثر... 🎬</div>
       </div>
     `;
