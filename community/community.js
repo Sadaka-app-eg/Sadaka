@@ -1217,11 +1217,13 @@ window.updatePostCardStats = function(docId, data, myName) {
 };
 
 // المستمع الرئيسي للبوستات — تحديث تدريجي بدون تجميد أو إعادة تشغيل الفيديوهات
+window.athrFeedState = { lastDoc: null, loading: false, exhausted: false };
+
 window.listenToPosts = function(gender) {
-  const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(50));
+  const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(300));
   const myName = localStorage.getItem('athr_user_name');
   const renderedIds = new Set();
-
+  window.athrFeedState = { lastDoc: null, loading: false, exhausted: false };
   unsubscribePosts = onSnapshot(q, (snapshot) => {
     const listArea = document.getElementById('postsList');
     if (!listArea) return;
