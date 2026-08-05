@@ -4,7 +4,7 @@
 // 👑 مصفوفة تضم البريد الإلكتروني لكل المشرفين والمالكين
 window.ADMIN_EMAILS = [
   "mohammedhager499@gmail.com",
-  "ahmedmohamedhosny100@gmail.com"
+  "ahmedmohamedhosny100@gmail.com" // البريد الثاني أو أي بريد إضافي
 ]; 
 
 // دالة فحص هل المستخدم الحالي ضمن قائمة المشرفين؟
@@ -13,8 +13,7 @@ window.isAdminUser = function() {
   return window.ADMIN_EMAILS.some(email => email.toLowerCase() === currentEmail);
 };
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, getDoc, getDocs, setDoc, arrayUnion, arrayRemove, onSnapshot, query, where, orderBy, limit, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
+import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, getDoc, setDoc, arrayUnion, arrayRemove, onSnapshot, query, where, orderBy, limit, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 const firebaseConfig = {
   apiKey: "AIzaSyCuLaDRVQ9SWSO7zs2WL3D-ANj-wHeoYWg",
   authDomain: "sadaka-app-6637e.firebaseapp.com",
@@ -85,53 +84,33 @@ btn.style.cssText = "position:absolute; top:10px; right:14px; z-index:500; backg
 // =========================================================
 // 🛠️ 1️⃣ نظام التحقق وإدارة الحسابات الذكي
 // =========================================================
-// 🛠️ 1️⃣ نظام التحقق وإدارة الحسابات الذكي (حفظ دائم واسترجاع تلقائي للإيميل والصورة)
 window.checkCommunityUser = async function() {
   const contentArea = document.getElementById('communityContent');
   if (!contentArea) return;
 
-  // جلب الإيميل المسجل بجوجل
-  const googleEmail = localStorage.getItem('user_email') || (window.firebaseAuth?.currentUser?.email) || "";
-  const googleUser = localStorage.getItem('user_display_name');
+  const CURRENT_VERSION = "v2_profile_update"; 
+  const userVersion = localStorage.getItem('athr_app_version');
 
-  // إذا لم يكن هناك تسجيل دخول بجوجل في الأقسام المغلقة
-  if (window.currentCommunityTab !== 'feed' && !googleUser && !googleEmail) {
-    window.renderAuthRequiredBlock();
+  if (userVersion !== CURRENT_VERSION) {
+    localStorage.removeItem('athr_user_name');
+    localStorage.removeItem('athr_user_gender');
+    localStorage.setItem('athr_app_version', CURRENT_VERSION);
+    setTimeout(() => { window.checkCommunityUser(); }, 100);
     return;
   }
 
-  // 🚀 فحص سحري: لو المسجل له حساب سابق في الفايربيز بريده أو اسمه
-  if (googleEmail) {
-    try {
-      // البحث عن الملف الشخصي بـ Firestore
-      const q = query(collection(db, "users_profiles"), where("email", "==", googleEmail.toLowerCase()));
-      const querySnap = await getDocs(q);
-
-      if (!querySnap.empty) {
-        // الحساب موجود بالفعل! استرجاع البيانات وتثبيتها للأبد
-        const userData = querySnap.docs[0].data();
-        localStorage.setItem('athr_user_name', userData.name);
-        localStorage.setItem('user_display_name', userData.name);
-        localStorage.setItem('athr_user_gender', userData.gender);
-        localStorage.setItem('user_email', userData.email);
-
-        if (userData.avatar && typeof setAppData === 'function') {
-          await setAppData('athr_user_avatar', userData.avatar);
-        }
-
-        window.renderCommunityBody();
-        return; // الدخول المباشر بدون فتح شاشة الإعداد!
-      }
-    } catch (e) {
-      console.log("فحص الحساب أوفلاين/سيرفر:", e);
+  if (window.currentCommunityTab !== 'feed') {
+    const googleUser = localStorage.getItem('user_display_name');
+    if (!googleUser) {
+      window.renderAuthRequiredBlock();
+      return;
     }
   }
 
-  // إذا كان مسجل بجوجل ولسه ملهوش حساب في الفايربيز -> يفتح شاشة الإعداد لأول مرة فقط!
   const userGender = localStorage.getItem('athr_user_gender');
   const userName = localStorage.getItem('athr_user_name');
 
-  if (googleUser && (!userGender || !userName)) {
+  if (localStorage.getItem('user_display_name') && (!userGender || !userName)) {
     window.renderSetupScreen();
   } else {
     window.renderCommunityBody();
@@ -285,11 +264,10 @@ window.processCommunitySubmit = async function() {
       if(resData.success) avatarUrl = resData.data.url;
     }
 
-const myEmail = (localStorage.getItem('user_email') || window.firebaseAuth?.currentUser?.email || trimmedName).toLowerCase();
+    const myEmail = localStorage.getItem('user_email') || trimmedName;
     const userBio = bioInp.value.trim() || "ذاكر لله ومحب للأثر الطيب";
     
-    // 1️⃣ حفظ الملف الأساسي في السيرفر (Firestore) مع الإيميل الصريح
-// 1️⃣ حفظ الملف الأساسي في السيرفر (Firestore)
+    // 1️⃣ حفظ الملف الأساسي في السيرفر (Firestore)
     await setDoc(doc(db, "users_profiles", trimmedName), {
       name: trimmedName,
       email: myEmail,
@@ -303,29 +281,28 @@ const myEmail = (localStorage.getItem('user_email') || window.firebaseAuth?.curr
       createdAt: serverTimestamp()
     });
 
-    // 2️⃣ تخزين البيانات الخفيفة في LocalStorage بكتلة واحدة آمنة
+    // 2️⃣ الاعتماد على IndexedDB لتخزين البيانات الثقيلة والصورة أوفلاين (بدون لمس الـ 5MB)
+    if (typeof setAppData === 'function') {
+      await setAppData('athr_user_avatar', avatarUrl);
+      await setAppData('athr_user_bio', userBio);
+    }
+
+    // 3️⃣ حفظ النصوص القصيرة جداً فقط في LocalStorage (تكلفة أقل من 1KB)
     try {
-      localStorage.setItem('user_email', myEmail);
       localStorage.setItem('user_display_name', trimmedName);
       localStorage.setItem('athr_user_name', trimmedName);
       localStorage.setItem('athr_user_gender', window.selectedSetupGender);
       localStorage.setItem('athr_app_version', "v2_profile_update");
-
+      
+      // مسح أي صور قديمة كانت محشورة في LocalStorage بالخطأ
       localStorage.removeItem('athr_user_avatar');
       localStorage.removeItem('user_photo_url');
     } catch(err) {
       console.warn("Storage warning:", err);
     }
 
-    // 3️⃣ تخزين البيانات أوفلاين عبر IndexedDB
-    if (typeof setAppData === 'function') {
-      await setAppData('athr_user_avatar', avatarUrl);
-      await setAppData('athr_user_bio', userBio);
-    }
-
     window.triggerSparksEffect();
     window.renderCommunityBody();
-    
   } catch(e) {
     console.error(e);
     alert("حدث مشكلة أثناء إنشاء الحساب، يرجى إعادة المحاولة.");
@@ -573,8 +550,8 @@ window.openUserProfileCard = async function(userName) {
     const friendStatus = window.getFriendStatus(myDataForFriend, userName);
 
 const isMeAdmin = window.isAdminUser();
-const userEmailClean = (u.email || "").toLowerCase();
-const isUserAdmin = window.ADMIN_EMAILS.some(e => e.toLowerCase() === userEmailClean);
+  const isUserAdmin = u.email && u.email.toLowerCase() === window.ADMIN_EMAIL.toLowerCase();
+
   modal.innerHTML = `
     <div class="comm-card" style="width:100%; max-width:360px; text-align:center; border:1px solid var(--gold); padding:25px 15px; background:#070c07; position:relative; animation:fadeIn 0.3s;">
       <button onclick="document.getElementById('athrProfileModal').style.display='none'" style="position:absolute; top:12px; left:12px; background:transparent; color:#ff4d4d; border:none; font-size:18px; cursor:pointer; font-weight:bold;">✕</button>
@@ -584,16 +561,7 @@ const isUserAdmin = window.ADMIN_EMAILS.some(e => e.toLowerCase() === userEmailC
       <h3 class="${styleInfo.class}" style="font-family:'Amiri', serif; font-size:20px; margin-bottom:4px; display:flex; align-items:center; justify-content:center; gap:6px;">
         ${u.name} ${online ? '<span class="online-dot"></span>' : ''}
       </h3>
-${isUserAdmin ? `  
-  <div style="margin-bottom:10px;">
-    <span style="color:#111; background:var(--gold); font-size:12px; font-weight:bold; padding:4px 12px; border-radius:15px; box-shadow:0 0 10px rgba(212,175,55,0.5); display:inline-block;">👑 المشرف العام</span>
-  </div>
-` : ''}
 
-<!-- 👑 زر حظر وحذف الحساب للمشرفين فقط عند تصفح حسابات الآخرين -->
-${window.isAdminUser() && !window.ADMIN_EMAILS.includes(u.email ? u.email.toLowerCase() : "") ? `
-  <button onclick="window.adminDeleteUserAccount('${u.name}')" style="width:100%; background:rgba(255,77,77,0.15); border:1px solid #ff4d4d; color:#ff4d4d; padding:10px; border-radius:25px; font-weight:bold; cursor:pointer; font-size:12px; margin-bottom:10px;">⚠️ حظر وحذف الحساب بالكامل (إدارة)</button>
-` : ''}
       ${isUserAdmin ? `
         <div style="margin-bottom:10px;">
           <span style="color:#111; background:var(--gold); font-size:12px; font-weight:bold; padding:4px 12px; border-radius:15px; box-shadow:0 0 10px rgba(212,175,55,0.5); display:inline-block;">👑 المشرف العام</span>
@@ -1105,9 +1073,9 @@ html += `
       <div style="display: flex; align-items: center; gap: 10px; cursor: pointer;" onclick="window.openUserProfileCard('${data.name}')">
         <img src="${userAvatar}" id="avatar-post-${docId}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--gold, #d4af37);" />
         <div>
-<strong class="${nameClass}" id="name-post-${docId}" style="font-size: 14px; display: block; line-height: 1.2;">
-  ${data.name} ${data.email && window.ADMIN_EMAILS.includes(data.email.toLowerCase()) ? '<span style="color:#d4af37; font-size:11px; background:rgba(212,175,55,0.15); padding:1px 6px; border-radius:10px; border:1px solid #d4af37; margin-right:4px;">👑 مشرف</span>' : ''} ${data.gender === 'female' ? '🧕' : ''}
-</strong>
+          <strong class="${nameClass}" id="name-post-${docId}" style="font-size: 14px; display: block; line-height: 1.2;">
+            ${data.name} ${data.gender === 'female' ? '🧕' : ''}
+          </strong>
           <small style="color: var(--text2); font-size: 11px; margin-top: 2px; display: block;">
             ${data.createdAt ? window.formatPostTime(data.createdAt) : 'الآن ✨'} • 🌐
           </small>
@@ -1359,7 +1327,7 @@ window.listenToChats = function(gender) {
     let html = "";
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
-if (data.gender === gender || (data.email && window.ADMIN_EMAILS.includes(data.email.toLowerCase()))) {        
+      if (data.gender === gender) {
         const isMe = data.name === localStorage.getItem('athr_user_name');
         const bodyHtml = data.messageType === 'audio' && data.audioUrl
           ? `<audio controls src="${data.audioUrl}" style="max-width:220px; height:34px;"></audio>`
@@ -2747,7 +2715,8 @@ window.listenToReelsFeed = function(gender) {
     let html = "";
     window.cachedReelsList.forEach((data) => {
       const docId = data.id;
-if ((data.gender !== gender && (!data.email || !window.ADMIN_EMAILS.includes(data.email.toLowerCase()))) || !data.mediaUrl) return;
+      if (data.gender !== gender || !data.mediaUrl) return;
+
       const likesArr = data.likes || [];
       const hasLiked = myName && likesArr.includes(myName);
 
