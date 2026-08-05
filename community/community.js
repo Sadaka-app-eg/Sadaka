@@ -1,13 +1,16 @@
 // =========================================================================
 // 🚀 شبكة مجتمع أثر الاجتماعية الإسلامية المتكاملة - إصدار 2026 المطور (نسخة مصححة الميديا)
 // =========================================================================
-// 👑 البريد الإلكتروني المعتمد والوحيد لمالك ومشرف التطبيق
-window.ADMIN_EMAIL = "ahmedmohamedhosny100@gmail.com"; 
+// 👑 مصفوفة تضم البريد الإلكتروني لكل المشرفين والمالكين
+window.ADMIN_EMAILS = [
+  "mohammedhager499@gmail.com",
+  "ahmedmohamedhosny100@gmail.com"
+]; 
 
-// دالة فحص هل المستخدم الحالي هو المشرف المالك؟
+// دالة فحص هل المستخدم الحالي ضمن قائمة المشرفين؟
 window.isAdminUser = function() {
-  const currentEmail = localStorage.getItem('user_email') || "";
-  return currentEmail.trim().toLowerCase() === window.ADMIN_EMAIL.toLowerCase();
+  const currentEmail = (localStorage.getItem('user_email') || "").trim().toLowerCase();
+  return window.ADMIN_EMAILS.some(email => email.toLowerCase() === currentEmail);
 };
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, getDoc, setDoc, arrayUnion, arrayRemove, onSnapshot, query, where, orderBy, limit, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -558,7 +561,16 @@ const isMeAdmin = window.isAdminUser();
       <h3 class="${styleInfo.class}" style="font-family:'Amiri', serif; font-size:20px; margin-bottom:4px; display:flex; align-items:center; justify-content:center; gap:6px;">
         ${u.name} ${online ? '<span class="online-dot"></span>' : ''}
       </h3>
+${window.ADMIN_EMAILS.includes(u.email ? u.email.toLowerCase() : "") ? `
+  <div style="margin-bottom:10px;">
+    <span style="color:#111; background:var(--gold); font-size:12px; font-weight:bold; padding:4px 12px; border-radius:15px; box-shadow:0 0 10px rgba(212,175,55,0.5); display:inline-block;">👑 المشرف العام</span>
+  </div>
+` : ''}
 
+<!-- 👑 زر حظر وحذف الحساب للمشرفين فقط عند تصفح حسابات الآخرين -->
+${window.isAdminUser() && !window.ADMIN_EMAILS.includes(u.email ? u.email.toLowerCase() : "") ? `
+  <button onclick="window.adminDeleteUserAccount('${u.name}')" style="width:100%; background:rgba(255,77,77,0.15); border:1px solid #ff4d4d; color:#ff4d4d; padding:10px; border-radius:25px; font-weight:bold; cursor:pointer; font-size:12px; margin-bottom:10px;">⚠️ حظر وحذف الحساب بالكامل (إدارة)</button>
+` : ''}
       ${isUserAdmin ? `
         <div style="margin-bottom:10px;">
           <span style="color:#111; background:var(--gold); font-size:12px; font-weight:bold; padding:4px 12px; border-radius:15px; box-shadow:0 0 10px rgba(212,175,55,0.5); display:inline-block;">👑 المشرف العام</span>
@@ -1324,7 +1336,7 @@ window.listenToChats = function(gender) {
     let html = "";
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
-      if (data.gender === gender) {
+if (data.gender === gender || (data.email && window.ADMIN_EMAILS.includes(data.email.toLowerCase()))) {        
         const isMe = data.name === localStorage.getItem('athr_user_name');
         const bodyHtml = data.messageType === 'audio' && data.audioUrl
           ? `<audio controls src="${data.audioUrl}" style="max-width:220px; height:34px;"></audio>`
@@ -2704,10 +2716,7 @@ window.listenToReelsFeed = function(gender) {
       window.cachedReelsList = docs;
     }
     
-    else {
-      // تحديث القائمة بالجديد فوراً بدون كسر تجربة المستخدم
-      window.cachedReelsList = docs;
-    }
+
 
     // إذا كانت الشاشة مبنية بالفعل، لا نعيد رسم الـ HTML لتجنب التقطيع
    // if (container.querySelector('.reel-item')) return;
@@ -2715,8 +2724,7 @@ window.listenToReelsFeed = function(gender) {
     let html = "";
     window.cachedReelsList.forEach((data) => {
       const docId = data.id;
-      if (data.gender !== gender || !data.mediaUrl) return;
-
+if ((data.gender !== gender && (!data.email || !window.ADMIN_EMAILS.includes(data.email.toLowerCase()))) || !data.mediaUrl) return;
       const likesArr = data.likes || [];
       const hasLiked = myName && likesArr.includes(myName);
 
