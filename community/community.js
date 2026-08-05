@@ -2867,9 +2867,9 @@ window.buildReelItemHtml = function(data, docId, hasLiked) {
           <span style="color:#fff; font-size:11px; font-weight:bold; margin-top:4px; display:block; text-shadow:0 1px 3px rgba(0,0,0,0.8);">${data.commentsCount || 0}</span>
         </div>
 
-        <div onclick="window.downloadCommunityVideo('${data.mediaUrl}', 'ريل_أثر_${data.name}')" style="text-align:center; cursor:pointer;" title="تنزيل الفيديو">
-          <div style="background:rgba(0,0,0,0.5); backdrop-filter:blur(6px); width:46px; height:46px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; border:1px solid rgba(255,255,255,0.15);">📥</div>
-          <span style="color:#fff; font-size:11px; font-weight:bold; margin-top:4px; display:block; text-shadow:0 1px 3px rgba(0,0,0,0.8);">تنزيل</span>
+<div onclick="window.openReelOptionsSheet('${docId}', \`${data.mediaUrl}\`, \`${(data.name||'').replace(/`/g,'')}\`)" style="text-align: center; cursor: pointer;" title="خيارات إضافية">
+          <div style="background: rgba(0,0,0,0.5); backdrop-filter: blur(6px); width:46px; height:46px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:bold; border:1px solid rgba(255,255,255,0.15);">⋯</div>
+          <span style="color:#fff; font-size:11px; font-weight:bold; margin-top:4px; display:block; text-shadow:0 1px 3px rgba(0,0,0,0.8);">خيارات</span>
         </div>
 
       </div>
@@ -3088,4 +3088,101 @@ window.adminDeleteUserAccount = async function(userName) {
     console.error(e);
     alert("حدث خطأ أثناء حذف الحساب.");
   }
+};
+// =========================================================================
+// ⋯ قائمة خيارات الريلز (سرعة + مشاركة + تنزيل)
+// =========================================================================
+window.currentReelOptionsData = { docId: null, mediaUrl: '', authorName: '' };
+
+window.openReelOptionsSheet = function(docId, mediaUrl, authorName) {
+  window.currentReelOptionsData = { docId, mediaUrl, authorName };
+
+  let dimmer = document.getElementById('reelOptionsDimmer');
+  let sheet = document.getElementById('reelOptionsSheet');
+
+  if (!dimmer || !sheet) {
+    const sheetHTML = `
+      <div class="overlay-dimmer" id="reelOptionsDimmer" onclick="window.closeReelOptionsSheet()"></div>
+      <div class="action-sheet" id="reelOptionsSheet" style="z-index: 99999999; direction: rtl;">
+        <div class="action-title">⚙️ خيارات الفيديو</div>
+        <div style="padding: 6px 0 12px; text-align:right;">
+          <div style="color:var(--gold); font-size:13px; font-weight:bold; margin-bottom:8px;">🎚️ سرعة التشغيل:</div>
+          <div style="display:flex; gap:6px; margin-bottom:16px;">
+            <button class="cat-btn" onclick="window.setReelPlaybackSpeed(0.5)" style="flex:1; font-size:12px; padding:8px 4px;">0.5x</button>
+            <button class="cat-btn" onclick="window.setReelPlaybackSpeed(1)" style="flex:1; font-size:12px; padding:8px 4px;">1x</button>
+            <button class="cat-btn" onclick="window.setReelPlaybackSpeed(1.5)" style="flex:1; font-size:12px; padding:8px 4px;">1.5x</button>
+            <button class="cat-btn" onclick="window.setReelPlaybackSpeed(2)" style="flex:1; font-size:12px; padding:8px 4px;">2x</button>
+          </div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <button class="action-btn" onclick="window.shareReelVideo()"><span>📤</span> مشاركة الفيديو (واتساب، تليجرام، فيسبوك...)</button>
+          <button class="action-btn" onclick="window.downloadReelFromSheet()"><span>📥</span> تنزيل الفيديو على الجهاز</button>
+          <button class="action-btn action-cancel" onclick="window.closeReelOptionsSheet()"><span>✕</span> إلغاء</button>
+        </div>
+      </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', sheetHTML);
+    dimmer = document.getElementById('reelOptionsDimmer');
+    sheet = document.getElementById('reelOptionsSheet');
+  }
+
+  if (dimmer) dimmer.classList.add('show');
+  if (sheet) sheet.classList.add('show');
+};
+
+window.closeReelOptionsSheet = function() {
+  const dimmer = document.getElementById('reelOptionsDimmer');
+  const sheet = document.getElementById('reelOptionsSheet');
+  if (dimmer) dimmer.classList.remove('show');
+  if (sheet) sheet.classList.remove('show');
+};
+
+// تغيير سرعة تشغيل الفيديو النشط حالياً في الريلز
+window.setReelPlaybackSpeed = function(speed) {
+  const docId = window.currentReelOptionsData.docId;
+  const reelItem = document.querySelector(`.reel-item[data-doc-id="${docId}"]`);
+  const video = reelItem ? reelItem.querySelector('.athr-reel-video') : null;
+  if (video) video.playbackRate = speed;
+  window.closeReelOptionsSheet();
+};
+
+// مشاركة الفيديو عبر قائمة المشاركة الأصلية للجهاز (بتظهر واتساب، تليجرام، فيسبوك، انستجرام تلقائي لو مثبتين)
+window.shareReelVideo = async function() {
+  const { mediaUrl, authorName } = window.currentReelOptionsData;
+  if (!mediaUrl) return;
+  window.closeReelOptionsSheet();
+
+  try {
+    const response = await fetch(mediaUrl);
+    const blob = await response.blob();
+    const file = new File([blob], `أثر_${authorName || 'فيديو'}.mp4`, { type: blob.type || 'video/mp4' });
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({
+        files: [file],
+        title: `فيديو من ${authorName || 'أثر'}`,
+        text: `✨ فيديو من ${authorName || 'أثر'} — شبكة مجتمع أثر`
+      });
+    } else if (navigator.share) {
+      await navigator.share({ title: `فيديو من ${authorName || 'أثر'}`, url: mediaUrl });
+    } else {
+      navigator.clipboard.writeText(mediaUrl);
+      alert('✅ تم نسخ رابط الفيديو، الصقه في التطبيق اللي عايز تشاركه فيه');
+    }
+  } catch (err) {
+    console.error('خطأ مشاركة الفيديو:', err);
+    if (navigator.share) {
+      navigator.share({ title: `فيديو من ${authorName || 'أثر'}`, url: mediaUrl }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(mediaUrl);
+      alert('✅ تم نسخ رابط الفيديو');
+    }
+  }
+};
+
+// تنزيل الفيديو من القائمة الجديدة (بيستخدم نفس دالة التنزيل الأساسية الموجودة عندك)
+window.downloadReelFromSheet = function() {
+  const { mediaUrl, authorName } = window.currentReelOptionsData;
+  window.closeReelOptionsSheet();
+  window.downloadCommunityVideo(mediaUrl, `ريل_أثر_${authorName || ''}`);
 };
