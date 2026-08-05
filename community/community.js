@@ -1148,46 +1148,48 @@ html += `
 };
  
 window.togglePostLike = async function(event, docId, hasLiked, emoji = '❤️') {
-  // 1. إيقاف تسرب الضغطة للفيديو خلف الزر نهائياً
+  // 1. منع تسرب الضغطة للفيديو تماماً
   if (event) {
     event.stopPropagation();
     event.preventDefault();
   }
 
   const myName = localStorage.getItem('athr_user_name');
-  if (!myName) { 
-    alert("🔒 برجاء إعداد حسابك وتسجيل الدخول لتتمكن من التفاعل."); 
-    return; 
+  if (!myName) {
+    alert("🔒 برجاء إعداد حسابك وتسجيل الدخول لتتمكن من التفاعل.");
+    return;
   }
 
-  // 2. تحديث الواجهة فوراً ولطيفاً (سلاسة وبدون رعشة)
-  if (event && event.currentTarget) {
-    const btnBox = event.currentTarget;
-    const iconEl = btnBox.querySelector('div');
-    const countEl = btnBox.querySelector('span');
-    
-    if (countEl) {
-      let currentCount = parseInt(countEl.textContent) || 0;
-      countEl.textContent = hasLiked ? Math.max(0, currentCount - 1) : currentCount + 1;
+  // 2. تحديث القلب والعداد في الواجهة فوراً وسريعة جداً بدون إعادة رسم الـ DOM
+  const reelLikeBtn = document.getElementById(`reelLikeBtn-${docId}`);
+  if (reelLikeBtn) {
+    const iconBox = reelLikeBtn.querySelector('.like-icon-box');
+    const countNum = reelLikeBtn.querySelector('.like-count-num');
+
+    if (countNum) {
+      let current = parseInt(countNum.textContent) || 0;
+      countNum.textContent = hasLiked ? Math.max(0, current - 1) : current + 1;
     }
-    if (iconEl) {
-      iconEl.textContent = hasLiked ? '🤍' : '❤️';
+    if (iconBox) {
+      iconBox.textContent = hasLiked ? '🤍' : '❤️';
     }
+    // تحديث الأونكليك ليعكس الحالة الجديدة
+    reelLikeBtn.setAttribute('onclick', `window.togglePostLike(event, '${docId}', ${!hasLiked}, '${emoji}')`);
   }
 
   if (!hasLiked && event) window.createFloatingEmoji(event, emoji);
 
-  // 3. تحديث البيانات في الفايربيز بالخلفية
+  // 3. تحديث الفايربيز في الخلفية
   const postRef = doc(db, "posts", docId);
   try {
-    if (hasLiked) { 
-      await updateDoc(postRef, { likes: arrayRemove(myName), likesCount: increment(-1) }); 
-    } else { 
-      await updateDoc(postRef, { likes: arrayUnion(myName), likesCount: increment(1) }); 
-      window.awardPoints(myName, 2); 
+    if (hasLiked) {
+      await updateDoc(postRef, { likes: arrayRemove(myName), likesCount: increment(-1) });
+    } else {
+      await updateDoc(postRef, { likes: arrayUnion(myName), likesCount: increment(1) });
+      window.awardPoints(myName, 2);
     }
-  } catch (e) { 
-    console.error("Like error:", e); 
+  } catch (e) {
+    console.error("Like update error:", e);
   }
 };
 window.playOnlyThisReel = function(event, videoElem) {
@@ -1551,6 +1553,9 @@ window.listenToPrivateMessages = function() {
 // 🕌 7️⃣ حملة الفجر وإدارة التأثيرات الجمالية والمطولة
 // =========================================================
 window.switchCommunityTab = function(tab) {
+  if (tab !== 'reels') {
+    window.cachedReelsList = null; // 🎲 تصفير الكاش ليعاد خلط الريلز عشوائياً عند الزيارة القادمة
+  }
   if (tab === 'private') {
     window.activePrivateRoomId = null;
     window.currentPrivateTargetUser = null;
@@ -2619,7 +2624,6 @@ window.downloadCommunityVideo = function(videoUrl, fileName = 'فيديو_أثر
   }
 };
 window.listenToReelsFeed = function(gender) {
-  // 🚀 استعلام بسيط بدون orderBy مركب لمنع طلب الـ Index تماماً
   const q = query(
     collection(db, "posts"), 
     where("mediaType", "==", "video"), 
@@ -2632,37 +2636,50 @@ window.listenToReelsFeed = function(gender) {
     const container = document.getElementById('reelsContainer');
     if (!container) return;
 
-    // جلب الوثائق وترتيبها محلياً بالأحدث أولاً لتفادي أي أخطاء في الـ Index
+    // 1. جلب البيانات
     const docs = [];
     snapshot.forEach(docSnap => docs.push({ id: docSnap.id, ...docSnap.data() }));
-    
-// 🎲 خلط الفيديوهات بشكل عشوائي تماماً في كل مرة لعدم إملال المستخدم
-    for (let i = docs.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [docs[i], docs[j]] = [docs[j], docs[i]];
+
+    // 🎯 السحر هنا: نخلط الفيديوهات عشوائياً في أول مرة فقط عند فتح الشاشة، ولا نعيد خلطها عند التفاعل!
+    if (!window.cachedReelsList || window.cachedReelsList.length === 0) {
+      for (let i = docs.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [docs[i], docs[j]] = [docs[j], docs[i]];
+      }
+      window.cachedReelsList = docs;
+    } else {
+      // تحديث البيانات فقط مع الحفاظ على الترتيب العشوائي الأصلي
+      window.cachedReelsList = window.cachedReelsList.map(cachedItem => {
+        const updated = docs.find(d => d.id === cachedItem.id);
+        return updated || cachedItem;
+      });
     }
 
+    // إذا كانت الشاشة مبنية بالفعل، لا نعيد رسم الـ HTML عشان الفيديو متقطعش أو تقلب!
+    if (container.querySelector('.reel-item')) return;
+
     let html = "";
-    docs.forEach((data) => {
+    window.cachedReelsList.forEach((data) => {
       const docId = data.id;
       if (data.gender !== gender || !data.mediaUrl) return;
 
       const likesArr = data.likes || [];
       const hasLiked = myName && likesArr.includes(myName);
 
-     html += `
+      html += `
         <div class="reel-item" style="position:relative; width:100vw; height:calc(100vh - 60px); scroll-snap-align:start; scroll-snap-stop:always; background:#000; display:flex; align-items:center; justify-content:center;">
           
           <!-- فيديو الريل بملء الشاشة -->
-<video class="athr-reel-video" src="${data.mediaUrl}" loop playsinline onclick="window.playOnlyThisReel(event, this)" ontimeupdate="window.updateReelProgress(this)" style="width:100%; height:100%; object-fit:contain; display:block;"></video>
-          <!-- 📊 شريط التقدم (Progress Bar) والتوقيت أسفل الفيديو مباشرة فوق الشريط العائم -->
+          <video class="athr-reel-video" src="${data.mediaUrl}" loop playsinline onclick="window.playOnlyThisReel(event, this)" ontimeupdate="window.updateReelProgress(this)" style="width:100%; height:100%; object-fit:contain; display:block;"></video>
+
+          <!-- 📊 شريط التقدم والتوقيت أسفل الفيديو -->
           <div style="position:absolute; bottom:12px; left:15px; right:15px; z-index:25; display:flex; align-items:center; gap:8px;">
             <span class="reel-time-current" style="color:#fff; font-size:11px; font-family:monospace; min-width:35px; text-align:left;">0:00</span>
             <input type="range" class="reel-progress-slider" value="0" min="0" max="100" step="0.1" oninput="window.seekReelVideo(this)" style="flex:1; height:4px; -webkit-appearance:none; background:rgba(255,255,255,0.3); border-radius:2px; outline:none; cursor:pointer;" />
             <span class="reel-time-duration" style="color:#fff; font-size:11px; font-family:monospace; min-width:35px; text-align:right;">0:00</span>
           </div>
 
-          <!-- تفاصيل الكاتب والنص فوق الفيديو من الأسفل -->
+          <!-- تفاصيل الكاتب والنص فوق الفيديو -->
           <div style="position:absolute; bottom:35px; right:15px; left:80px; z-index:10; text-align:right; text-shadow:0 2px 6px rgba(0,0,0,0.8); pointer-events:none;">
             <strong style="color:var(--gold); font-size:16px; font-family:'Amiri', serif; display:block; margin-bottom:6px;">✨ ${data.name}</strong>
             <p style="color:#fff; font-size:14px; font-family:'Amiri', serif; line-height:1.5; margin:0; max-height:80px; overflow:hidden;">${data.text || ''}</p>
@@ -2671,24 +2688,21 @@ window.listenToReelsFeed = function(gender) {
           <!-- الأزرار الجانبية على الشمال -->
           <div style="position:absolute; bottom:55px; left:15px; z-index:20; display:flex; flex-direction:column; align-items:center; gap:20px;">
             
-<div onclick="window.togglePostLike(event, '${docId}', ${hasLiked}, '❤️')" style="text-align:center; cursor:pointer;">            
-              <div style="background:rgba(0,0,0,0.5); backdrop-filter:blur(6px); width:46px; height:46px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:22px; border:1px solid rgba(255,255,255,0.15);">
+            <!-- زر التفاعل/القلب -->
+            <div id="reelLikeBtn-${docId}" onclick="window.togglePostLike(event, '${docId}', ${hasLiked}, '❤️')" style="text-align:center; cursor:pointer;">
+              <div class="like-icon-box" style="background:rgba(0,0,0,0.5); backdrop-filter:blur(6px); width:46px; height:46px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:22px; border:1px solid rgba(255,255,255,0.15);">
                 ${hasLiked ? '❤️' : '🤍'}
               </div>
-              <span style="color:#fff; font-size:11px; font-weight:bold; margin-top:4px; display:block; text-shadow:0 1px 3px rgba(0,0,0,0.8);">${likesArr.length}</span>
+              <span class="like-count-num" style="color:#fff; font-size:11px; font-weight:bold; margin-top:4px; display:block; text-shadow:0 1px 3px rgba(0,0,0,0.8);">${likesArr.length}</span>
             </div>
 
             <div onclick="window.toggleCommunityReelComments('${docId}')" style="text-align:center; cursor:pointer;">
-              <div style="background:rgba(0,0,0,0.5); backdrop-filter:blur(6px); width:46px; height:46px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; border:1px solid rgba(255,255,255,0.15);">
-                💬
-              </div>
+              <div style="background:rgba(0,0,0,0.5); backdrop-filter:blur(6px); width:46px; height:46px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; border:1px solid rgba(255,255,255,0.15);">💬</div>
               <span style="color:#fff; font-size:11px; font-weight:bold; margin-top:4px; display:block; text-shadow:0 1px 3px rgba(0,0,0,0.8);">${data.commentsCount || 0}</span>
             </div>
 
             <div onclick="window.downloadCommunityVideo('${data.mediaUrl}', 'ريل_أثر_${data.name}')" style="text-align:center; cursor:pointer;" title="تنزيل الفيديو">
-              <div style="background:rgba(0,0,0,0.5); backdrop-filter:blur(6px); width:46px; height:46px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; border:1px solid rgba(255,255,255,0.15);">
-                📥
-              </div>
+              <div style="background:rgba(0,0,0,0.5); backdrop-filter:blur(6px); width:46px; height:46px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; border:1px solid rgba(255,255,255,0.15);">📥</div>
               <span style="color:#fff; font-size:11px; font-weight:bold; margin-top:4px; display:block; text-shadow:0 1px 3px rgba(0,0,0,0.8);">تنزيل</span>
             </div>
 
@@ -2713,12 +2727,8 @@ window.listenToReelsFeed = function(gender) {
 
     container.innerHTML = html || `<div style="color:#fff; text-align:center; padding-top:100px; font-family:'Amiri',serif; font-size:18px;">لا توجد مقاطع ريلز منشورة في هذا المجلس بعد 🎬</div>`;
 
-    // 🚀 تفعيل المراقب الذكي (IntersectionObserver)
-    const observerOptions = {
-      root: container,
-      threshold: 0.6
-    };
-
+    // تفعيل المراقب الذكي (IntersectionObserver)
+    const observerOptions = { root: container, threshold: 0.6 };
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         const video = entry.target;
@@ -2731,9 +2741,7 @@ window.listenToReelsFeed = function(gender) {
       });
     }, observerOptions);
 
-    container.querySelectorAll('.athr-reel-video').forEach(video => {
-      observer.observe(video);
-    });
+    container.querySelectorAll('.athr-reel-video').forEach(video => observer.observe(video));
   });
 };
 
