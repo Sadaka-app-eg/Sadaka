@@ -2678,8 +2678,7 @@ window.listenToReelsFeed = function(gender) {
         <div class="reel-item" style="position:relative; width:100vw; height:calc(100vh - 60px); scroll-snap-align:start; scroll-snap-stop:always; background:#000; display:flex; align-items:center; justify-content:center;">
           
           <!-- فيديو الريل بملء الشاشة -->
-          <video class="athr-reel-video" src="${data.mediaUrl}" loop playsinline onclick="window.playOnlyThisReel(event, this)" ontimeupdate="window.updateReelProgress(this)" style="width:100%; height:100%; object-fit:contain; display:block;"></video>
-
+<video class="athr-reel-video" src="${data.mediaUrl}" loop playsinline preload="auto" crossorigin="anonymous" onclick="window.playOnlyThisReel(event, this)" ontimeupdate="window.updateReelProgress(this)" style="width:100%; height:100%; object-fit:contain; display:block;"></video>
           <!-- 📊 شريط التقدم والتوقيت أسفل الفيديو -->
           <div style="position:absolute; bottom:12px; left:15px; right:15px; z-index:25; display:flex; align-items:center; gap:8px;">
             <span class="reel-time-current" style="color:#fff; font-size:11px; font-family:monospace; min-width:35px; text-align:left;">0:00</span>
