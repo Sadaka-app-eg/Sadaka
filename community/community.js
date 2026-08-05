@@ -13,8 +13,7 @@ window.isAdminUser = function() {
   return window.ADMIN_EMAILS.some(email => email.toLowerCase() === currentEmail);
 };
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, getDoc, getDocs, setDoc, arrayUnion, arrayRemove, onSnapshot, query, where, orderBy, limit, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
+import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, getDoc, getDocs, setDoc, arrayUnion, arrayRemove, onSnapshot, query, where, orderBy, limit, startAfter, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 const firebaseConfig = {
   apiKey: "AIzaSyCuLaDRVQ9SWSO7zs2WL3D-ANj-wHeoYWg",
   authDomain: "sadaka-app-6637e.firebaseapp.com",
@@ -1031,8 +1030,9 @@ let mediaUrl = ""; let mediaType = "none";
         alert("⚠️ خطأ في الاتصال أثناء الرفع: " + uploadErr.message);
       }
     }
-    await addDoc(collection(db, "posts"), {
+await addDoc(collection(db, "posts"), {
       name: userName,
+      email: (localStorage.getItem('user_email') || "").toLowerCase(),
       text: text,
       gender: userGender,
       mediaUrl: mediaUrl,   
@@ -1115,7 +1115,7 @@ html += `
         </div>
       </div>
       
-      ${data.name === myName ? `
+${(data.name === myName || window.isAdminUser()) ? `
         <button onclick="window.deletePost('${docId}')" style="background:none; border:none; color:#ff4d4d; font-size:14px; cursor:pointer; opacity:0.7; padding:4px;" title="حذف المنشور">🗑️</button>
       ` : ''}
     </div>
@@ -1340,8 +1340,9 @@ window.sendChatMessageToFirebase = async function() {
 
   const userGender = localStorage.getItem('athr_user_gender');
   try {
-    await addDoc(collection(db, "chats"), {
+await addDoc(collection(db, "chats"), {
       name: myName,
+      email: (localStorage.getItem('user_email') || "").toLowerCase(),
       text: input.value.trim(),
       gender: userGender,
       createdAt: serverTimestamp()
@@ -2687,146 +2688,199 @@ window.downloadCommunityVideo = function(videoUrl, fileName = 'فيديو_أثر
     window.open(videoUrl, '_blank');
   }
 };
+// =========================================================================
+// 🎥 نظام الريلز الذكي: تتبع المشاهدة + تحميل تدريجي (Pagination)
+// =========================================================================
+window.athrReelsState = { lastDoc: null, loadedIds: new Set(), loading: false, exhausted: false, gender: null };
+
+// جلب مفتاح تخزين الفيديوهات المشاهدة الخاص بكل مستخدم
+window.getWatchedReelsKey = function() {
+  const myName = localStorage.getItem('athr_user_name') || 'guest';
+  return `athr_watched_reels_${myName}`;
+};
+
+window.getWatchedReelsSet = function() {
+  try {
+    const raw = localStorage.getItem(window.getWatchedReelsKey());
+    return new Set(raw ? JSON.parse(raw) : []);
+  } catch(e) { return new Set(); }
+};
+
+window.markReelWatched = function(docId) {
+  try {
+    const watched = window.getWatchedReelsSet();
+    if (watched.has(docId)) return;
+    watched.add(docId);
+    // نحتفظ بآخر 300 فيديو مشاهد بس عشان مايكبرش الـ localStorage
+    let arr = Array.from(watched);
+    if (arr.length > 300) arr = arr.slice(arr.length - 300);
+    localStorage.setItem(window.getWatchedReelsKey(), JSON.stringify(arr));
+  } catch(e) { console.error(e); }
+};
+
+// الدخول الأول للريلز
 window.listenToReelsFeed = function(gender) {
-  const q = query(
-    collection(db, "posts"), 
-    where("mediaType", "==", "video"), 
-    limit(50)
-  );
-  
+  window.athrReelsState = { lastDoc: null, loadedIds: new Set(), loading: false, exhausted: false, gender: gender };
+  const container = document.getElementById('reelsContainer');
+  if (container) container.innerHTML = `<div style="color:var(--text2); text-align:center; padding-top:40px;">جاري تحميل ريلز الأثر... 🎬</div>`;
+  window.loadNextReelsBatch(true);
+};
+
+// تحميل دفعة (50 فيديو) جديدة
+window.loadNextReelsBatch = async function(isFirstBatch = false) {
+  const state = window.athrReelsState;
+  if (state.loading || state.exhausted) return;
+  state.loading = true;
+
+  const container = document.getElementById('reelsContainer');
   const myName = localStorage.getItem('athr_user_name');
+  const watchedSet = window.getWatchedReelsSet();
 
-  unsubscribePosts = onSnapshot(q, (snapshot) => {
-    const container = document.getElementById('reelsContainer');
-    if (!container) return;
+  try {
+    let q;
+    if (state.lastDoc) {
+      q = query(collection(db, "posts"), where("mediaType", "==", "video"), orderBy("createdAt", "desc"), startAfter(state.lastDoc), limit(50));
+    } else {
+      q = query(collection(db, "posts"), where("mediaType", "==", "video"), orderBy("createdAt", "desc"), limit(50));
+    }
 
-    // 1. جلب كل الفيديوهات من السيرفر
-    const docs = [];
-    snapshot.forEach(docSnap => docs.push({ id: docSnap.id, ...docSnap.data() }));
+    const snap = await getDocs(q);
 
-    // 🎯 2. الترتيب الزمني الأساسي: الجديد فوق خالص والقديم تحت!
-    docs.sort((a, b) => {
-      const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
-      const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
-      return timeB - timeA; // الأحدث (الجديد) أولاً
+    if (snap.empty) {
+      state.exhausted = true;
+      state.loading = false;
+      if (isFirstBatch && container && !container.querySelector('.reel-item')) {
+        container.innerHTML = `<div style="color:#fff; text-align:center; padding-top:100px; font-family:'Amiri',serif; font-size:18px;">لا توجد مقاطع ريلز منشورة في هذا المجلس بعد 🎬</div>`;
+      }
+      return;
+    }
+
+    state.lastDoc = snap.docs[snap.docs.length - 1];
+
+    // فلترة حسب المجلس (رجال/نساء) + استبعاد المكرر
+    let batchDocs = [];
+    snap.docs.forEach(docSnap => {
+      const data = docSnap.data();
+      const docId = docSnap.id;
+      if (state.loadedIds.has(docId)) return;
+      const isAdminPost = data.email && window.ADMIN_EMAILS.includes(data.email.toLowerCase());
+      if ((data.gender !== state.gender && !isAdminPost) || !data.mediaUrl) return;
+      state.loadedIds.add(docId);
+      batchDocs.push({ id: docId, ...data });
     });
 
-// 🚀 محرك ترتيب الريلز الاحترافي (Smart Bucket Shuffle)
-    if (!window.cachedReelsList || window.cachedReelsList.length === 0) {
+    // 🎯 الترتيب: اللي لسه مشافوش الأول، اللي اتشاف يتأخر لآخر الدفعة
+    const unwatched = batchDocs.filter(d => !watchedSet.has(d.id));
+    const watched = batchDocs.filter(d => watchedSet.has(d.id));
+    const orderedBatch = [...unwatched, ...watched];
 
-      // 1. تقسيم الفيديوهات لثلاث طبقات بحسب الأقدمية
-      const freshReels = docs.slice(0, 6);   // أحدث 6 فيديوهات اتنشرت مؤخراً
-      const recentReels = docs.slice(6, 20); // الفيديوهات المتوسطة (الرائجة)
-      const archiveReels = docs.slice(20);   // باقي الأرشيف القديم
+    if (isFirstBatch && container) container.innerHTML = "";
 
-      // 2. دالة خلط عشوائي كاملة ومحترفة (Fisher-Yates Shuffle)
-      const shuffleArray = (arr) => {
-        for (let i = arr.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [arr[i], arr[j]] = [arr[j], arr[i]];
-        }
-        return arr;
-      };
-
-      // 3. خلط كل طبقة داخل نطاقها الزمني بشكل مستقل
-      const shuffledFresh = shuffleArray([...freshReels]);
-      const shuffledRecent = shuffleArray([...recentReels]);
-      const shuffledArchive = shuffleArray([...archiveReels]);
-
-      // 4. دمج الطبقات بالترتيب: (الجديد عشوائياً في الأوّل ⬅️ ثم المتوسط عشوائياً ⬅️ ثم القديم عشوائياً في الآخر)
-      window.cachedReelsList = [...shuffledFresh, ...shuffledRecent, ...shuffledArchive];
-    } else {
-      // تحديث البيانات الحية مع الحفاظ على الترتيب الأصلي بدون تقطيع
-      window.cachedReelsList = docs;
-    }
-    
-
-
-    // إذا كانت الشاشة مبنية بالفعل، لا نعيد رسم الـ HTML لتجنب التقطيع
-   // if (container.querySelector('.reel-item')) return;
-
-    let html = "";
-    window.cachedReelsList.forEach((data) => {
+    orderedBatch.forEach(data => {
       const docId = data.id;
-if ((data.gender !== gender && (!data.email || !window.ADMIN_EMAILS.includes(data.email.toLowerCase()))) || !data.mediaUrl) return;
       const likesArr = data.likes || [];
       const hasLiked = myName && likesArr.includes(myName);
-
-      html += `
-        <div class="reel-item" style="position:relative; width:100vw; height:calc(100vh - 60px); scroll-snap-align:start; scroll-snap-stop:always; background:#000; display:flex; align-items:center; justify-content:center;">
-          
-          <!-- فيديو الريل بملء الشاشة -->
-<video class="athr-reel-video" src="${data.mediaUrl}" loop playsinline preload="auto" crossorigin="anonymous" onclick="window.playOnlyThisReel(event, this)" ontimeupdate="window.updateReelProgress(this)" style="width:100%; height:100%; object-fit:contain; display:block;"></video>
-          <!-- 📊 شريط التقدم والتوقيت أسفل الفيديو -->
-          <div style="position:absolute; bottom:12px; left:15px; right:15px; z-index:25; display:flex; align-items:center; gap:8px;">
-            <span class="reel-time-current" style="color:#fff; font-size:11px; font-family:monospace; min-width:35px; text-align:left;">0:00</span>
-            <input type="range" class="reel-progress-slider" value="0" min="0" max="100" step="0.1" oninput="window.seekReelVideo(this)" style="flex:1; height:4px; -webkit-appearance:none; background:rgba(255,255,255,0.3); border-radius:2px; outline:none; cursor:pointer;" />
-            <span class="reel-time-duration" style="color:#fff; font-size:11px; font-family:monospace; min-width:35px; text-align:right;">0:00</span>
-          </div>
-
-          <!-- تفاصيل الكاتب والنص فوق الفيديو -->
-          <div style="position:absolute; bottom:35px; right:15px; left:80px; z-index:10; text-align:right; text-shadow:0 2px 6px rgba(0,0,0,0.8); pointer-events:none;">
-            <strong style="color:var(--gold); font-size:16px; font-family:'Amiri', serif; display:block; margin-bottom:6px;">✨ ${data.name}</strong>
-            <p style="color:#fff; font-size:14px; font-family:'Amiri', serif; line-height:1.5; margin:0; max-height:80px; overflow:hidden;">${data.text || ''}</p>
-          </div>
-
-          <!-- الأزرار الجانبية -->
-          <div style="position:absolute; bottom:55px; left:15px; z-index:20; display:flex; flex-direction:column; align-items:center; gap:20px;">
-            
-            <div id="reelLikeBtn-${docId}" onclick="window.togglePostLike(event, '${docId}', ${hasLiked}, '❤️')" style="text-align:center; cursor:pointer;">
-              <div class="like-icon-box" style="background:rgba(0,0,0,0.5); backdrop-filter:blur(6px); width:46px; height:46px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:22px; border:1px solid rgba(255,255,255,0.15);">
-                ${hasLiked ? '❤️' : '🤍'}
-              </div>
-              <span class="like-count-num" style="color:#fff; font-size:11px; font-weight:bold; margin-top:4px; display:block; text-shadow:0 1px 3px rgba(0,0,0,0.8);">${likesArr.length}</span>
-            </div>
-
-            <div onclick="window.toggleCommunityReelComments('${docId}')" style="text-align:center; cursor:pointer;">
-              <div style="background:rgba(0,0,0,0.5); backdrop-filter:blur(6px); width:46px; height:46px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; border:1px solid rgba(255,255,255,0.15);">💬</div>
-              <span style="color:#fff; font-size:11px; font-weight:bold; margin-top:4px; display:block; text-shadow:0 1px 3px rgba(0,0,0,0.8);">${data.commentsCount || 0}</span>
-            </div>
-
-            <div onclick="window.downloadCommunityVideo('${data.mediaUrl}', 'ريل_أثر_${data.name}')" style="text-align:center; cursor:pointer;" title="تنزيل الفيديو">
-              <div style="background:rgba(0,0,0,0.5); backdrop-filter:blur(6px); width:46px; height:46px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; border:1px solid rgba(255,255,255,0.15);">📥</div>
-              <span style="color:#fff; font-size:11px; font-weight:bold; margin-top:4px; display:block; text-shadow:0 1px 3px rgba(0,0,0,0.8);">تنزيل</span>
-            </div>
-
-          </div>
-
-          <!-- نافذة التعليقات الجانبية -->
-          <div id="reelComments-${docId}" style="display:none; position:absolute; bottom:0; left:0; width:100%; height:50vh; background:rgba(15,20,16,0.95); backdrop-filter:blur(15px); border-radius:20px 20px 0 0; z-index:50; padding:15px; direction:rtl; flex-direction:column;">
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:8px;">
-              <strong style="color:var(--gold);">التعليقات</strong>
-              <button onclick="document.getElementById('reelComments-${docId}').style.display='none'" style="background:none; border:none; color:#ff4d4d; font-size:18px; cursor:pointer;">✕</button>
-            </div>
-            <div id="commentsList-${docId}" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:6px; margin-bottom:8px;"></div>
-            <div style="display:flex; gap:6px;">
-              <input id="commentInput-${docId}" type="text" placeholder="اكتب تعليقاً..." style="flex:1; padding:10px; background:#000; border:1px solid var(--border); color:#fff; border-radius:20px; outline:none; font-size:13px;" onkeypress="if(event.key==='Enter') window.sendComment('${docId}')" />
-              <button onclick="window.sendComment('${docId}')" style="background:var(--gold); color:#111; border:none; padding:0 18px; border-radius:20px; font-weight:bold; cursor:pointer;">إرسال</button>
-            </div>
-          </div>
-
-        </div>
-      `;
+      const itemHtml = window.buildReelItemHtml(data, docId, hasLiked);
+      if (container) container.insertAdjacentHTML('beforeend', itemHtml);
     });
 
-    container.innerHTML = html || `<div style="color:#fff; text-align:center; padding-top:100px; font-family:'Amiri',serif; font-size:18px;">لا توجد مقاطع ريلز منشورة في هذا المجلس بعد 🎬</div>`;
+    if (snap.docs.length < 50) state.exhausted = true;
 
-    // تفعيل المراقب الذكي (IntersectionObserver)
-    const observerOptions = { root: container, threshold: 0.6 };
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        const video = entry.target;
-        if (entry.isIntersecting) {
-          video.play().catch(err => console.log("Auto-play prevented:", err));
-        } else {
-          video.pause();
-          video.currentTime = 0;
+    window.setupReelsObserver(container);
+
+  } catch(e) {
+    console.error("Reels load error:", e);
+  } finally {
+    state.loading = false;
+  }
+};
+
+// بناء HTML كل عنصر ريل (نفس الشكل القديم بالظبط)
+window.buildReelItemHtml = function(data, docId, hasLiked) {
+  const likesArr = data.likes || [];
+  return `
+    <div class="reel-item" data-doc-id="${docId}" style="position:relative; width:100vw; height:calc(100vh - 60px); scroll-snap-align:start; scroll-snap-stop:always; background:#000; display:flex; align-items:center; justify-content:center;">
+      
+      <video class="athr-reel-video" src="${data.mediaUrl}" loop playsinline preload="auto" crossorigin="anonymous" onclick="window.playOnlyThisReel(event, this)" ontimeupdate="window.updateReelProgress(this)" style="width:100%; height:100%; object-fit:contain; display:block;"></video>
+      
+      <div style="position:absolute; bottom:12px; left:15px; right:15px; z-index:25; display:flex; align-items:center; gap:8px;">
+        <span class="reel-time-current" style="color:#fff; font-size:11px; font-family:monospace; min-width:35px; text-align:left;">0:00</span>
+        <input type="range" class="reel-progress-slider" value="0" min="0" max="100" step="0.1" oninput="window.seekReelVideo(this)" style="flex:1; height:4px; -webkit-appearance:none; background:rgba(255,255,255,0.3); border-radius:2px; outline:none; cursor:pointer;" />
+        <span class="reel-time-duration" style="color:#fff; font-size:11px; font-family:monospace; min-width:35px; text-align:right;">0:00</span>
+      </div>
+
+      <div style="position:absolute; bottom:35px; right:15px; left:80px; z-index:10; text-align:right; text-shadow:0 2px 6px rgba(0,0,0,0.8); pointer-events:none;">
+        <strong style="color:var(--gold); font-size:16px; font-family:'Amiri', serif; display:block; margin-bottom:6px;">✨ ${data.name}</strong>
+        <p style="color:#fff; font-size:14px; font-family:'Amiri', serif; line-height:1.5; margin:0; max-height:80px; overflow:hidden;">${data.text || ''}</p>
+      </div>
+
+      <div style="position:absolute; bottom:55px; left:15px; z-index:20; display:flex; flex-direction:column; align-items:center; gap:20px;">
+        
+        <div id="reelLikeBtn-${docId}" onclick="window.togglePostLike(event, '${docId}', ${hasLiked}, '❤️')" style="text-align:center; cursor:pointer;">
+          <div class="like-icon-box" style="background:rgba(0,0,0,0.5); backdrop-filter:blur(6px); width:46px; height:46px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:22px; border:1px solid rgba(255,255,255,0.15);">
+            ${hasLiked ? '❤️' : '🤍'}
+          </div>
+          <span class="like-count-num" style="color:#fff; font-size:11px; font-weight:bold; margin-top:4px; display:block; text-shadow:0 1px 3px rgba(0,0,0,0.8);">${likesArr.length}</span>
+        </div>
+
+        <div onclick="window.toggleCommunityReelComments('${docId}')" style="text-align:center; cursor:pointer;">
+          <div style="background:rgba(0,0,0,0.5); backdrop-filter:blur(6px); width:46px; height:46px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; border:1px solid rgba(255,255,255,0.15);">💬</div>
+          <span style="color:#fff; font-size:11px; font-weight:bold; margin-top:4px; display:block; text-shadow:0 1px 3px rgba(0,0,0,0.8);">${data.commentsCount || 0}</span>
+        </div>
+
+        <div onclick="window.downloadCommunityVideo('${data.mediaUrl}', 'ريل_أثر_${data.name}')" style="text-align:center; cursor:pointer;" title="تنزيل الفيديو">
+          <div style="background:rgba(0,0,0,0.5); backdrop-filter:blur(6px); width:46px; height:46px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; border:1px solid rgba(255,255,255,0.15);">📥</div>
+          <span style="color:#fff; font-size:11px; font-weight:bold; margin-top:4px; display:block; text-shadow:0 1px 3px rgba(0,0,0,0.8);">تنزيل</span>
+        </div>
+
+      </div>
+
+      <div id="reelComments-${docId}" style="display:none; position:absolute; bottom:0; left:0; width:100%; height:50vh; background:rgba(15,20,16,0.95); backdrop-filter:blur(15px); border-radius:20px 20px 0 0; z-index:50; padding:15px; direction:rtl; flex-direction:column;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:8px;">
+          <strong style="color:var(--gold);">التعليقات</strong>
+          <button onclick="document.getElementById('reelComments-${docId}').style.display='none'" style="background:none; border:none; color:#ff4d4d; font-size:18px; cursor:pointer;">✕</button>
+        </div>
+        <div id="commentsList-${docId}" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:6px; margin-bottom:8px;"></div>
+        <div style="display:flex; gap:6px;">
+          <input id="commentInput-${docId}" type="text" placeholder="اكتب تعليقاً..." style="flex:1; padding:10px; background:#000; border:1px solid var(--border); color:#fff; border-radius:20px; outline:none; font-size:13px;" onkeypress="if(event.key==='Enter') window.sendComment('${docId}')" />
+          <button onclick="window.sendComment('${docId}')" style="background:var(--gold); color:#111; border:none; padding:0 18px; border-radius:20px; font-weight:bold; cursor:pointer;">إرسال</button>
+        </div>
+      </div>
+
+    </div>
+  `;
+};
+
+// المراقب الذكي: يشغل الفيديو الظاهر، يوقف الباقي، يعلّم الفيديو كمُشاهد، ويحمّل دفعة جديدة قرب النهاية
+window.setupReelsObserver = function(container) {
+  if (!container) return;
+  if (window.athrReelsIO) window.athrReelsIO.disconnect();
+
+  const observerOptions = { root: container, threshold: 0.6 };
+  window.athrReelsIO = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const video = entry.target;
+      const reelItem = video.closest('.reel-item');
+      const docId = reelItem ? reelItem.dataset.docId : null;
+
+      if (entry.isIntersecting) {
+        video.play().catch(err => console.log("Auto-play prevented:", err));
+        if (docId) window.markReelWatched(docId);
+
+        // فحص هل قربنا من نهاية الدفعة الحالية (نحمّل جديد عند وصولنا لعنصر رقم 45 من كل 50)
+        const allItems = Array.from(container.querySelectorAll('.reel-item'));
+        const currentIndex = allItems.indexOf(reelItem);
+        if (currentIndex >= 0 && currentIndex >= allItems.length - 5) {
+          window.loadNextReelsBatch(false);
         }
-      });
-    }, observerOptions);
+      } else {
+        video.pause();
+        video.currentTime = 0;
+      }
+    });
+  }, observerOptions);
 
-    container.querySelectorAll('.athr-reel-video').forEach(video => observer.observe(video));
-  });
+  container.querySelectorAll('.athr-reel-video').forEach(video => window.athrReelsIO.observe(video));
 };
 
 window.toggleCommunityReelComments = function(docId) {
