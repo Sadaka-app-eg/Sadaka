@@ -1106,7 +1106,7 @@ html += `
         <img src="${userAvatar}" id="avatar-post-${docId}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--gold, #d4af37);" />
         <div>
 <strong class="${nameClass}" id="name-post-${docId}" style="font-size: 14px; display: block; line-height: 1.2;">
-  ${data.name} ${data.email && window.ADMIN_EMAILS.includes(data.email.toLowerCase()) ? '<span style="color:#d4af37; font-size:11px; background:rgba(212,175,55,0.15); padding:1px 6px; border-radius:10px; border:1px solid #d4af37; margin-right:4px;">👑 مشرف</span>' : ''} ${data.gender === 'female' ? '🧕' : ''}
+  ${data.name} ${data.email && window.ADMIN_EMAILS.includes(data.email.toLowerCase()) ? '<span style="color:var(--gold); background:rgba(212,175,55,0.08); font-size:10px; font-weight:bold; padding:2px 8px; border-radius:6px; border:1px solid rgba(212,175,55,0.4); margin-right:5px; display:inline-block;">المشرف</span>' : ''} ${data.gender === 'female' ? '🧕' : ''}
 </strong>
           
           <small style="color: var(--text2); font-size: 11px; margin-top: 2px; display: block;">
@@ -1368,9 +1368,9 @@ if (data.gender === gender || (data.email && window.ADMIN_EMAILS.includes(data.e
           : `<span style="color:var(--text); font-size:14px;">${data.text}</span>`;
         html += `
           <div style="align-self: ${isMe ? 'flex-start' : 'flex-end'}; background: ${isMe ? 'rgba(212,175,55,0.12)' : 'rgba(255,255,255,0.03)'}; border: 1px solid ${isMe ? 'var(--gold)' : 'var(--border)'}; padding: 8px 14px; border-radius: 12px; max-width: 85%; text-align: right; margin-bottom: 5px;">
-            <span onclick="window.openUserProfileCard('${data.name}')" style="display:block; font-size:11px; color:var(--gold); font-weight:bold; margin-bottom:2px; cursor:pointer; text-decoration:underline;">
-              <span class="online-dot"></span>${data.name}
-            </span>
+<span onclick="window.openUserProfileCard('${data.name}')" style="display:block; font-size:11px; color:var(--gold); font-weight:bold; margin-bottom:2px; cursor:pointer; text-decoration:underline;">
+  <span class="online-dot"></span>${data.name} ${data.email && window.ADMIN_EMAILS.includes(data.email.toLowerCase()) ? '<span style="color:var(--gold); background:rgba(212,175,55,0.08); font-size:9px; font-weight:bold; padding:1px 7px; border-radius:6px; border:1px solid rgba(212,175,55,0.4); margin-right:4px; text-decoration:none; display:inline-block;">المشرف</span>' : ''}
+</span>
             ${bodyHtml}
           </div>`;
       }
@@ -2810,7 +2810,8 @@ window.buildReelItemHtml = function(data, docId, hasLiked) {
       </div>
 
       <div style="position:absolute; bottom:35px; right:15px; left:80px; z-index:10; text-align:right; text-shadow:0 2px 6px rgba(0,0,0,0.8); pointer-events:none;">
-        <strong style="color:var(--gold); font-size:16px; font-family:'Amiri', serif; display:block; margin-bottom:6px;">✨ ${data.name}</strong>
+<strong style="color:var(--gold); font-size:16px; font-family:'Amiri', serif; display:block; margin-bottom:6px;">✨ ${data.name} ${data.email && window.ADMIN_EMAILS.includes(data.email.toLowerCase()) ? '<span style="color:var(--gold); background:rgba(212,175,55,0.1); font-size:10px; font-weight:bold; padding:2px 8px; border-radius:6px; border:1px solid rgba(212,175,55,0.5); margin-right:4px; display:inline-block; vertical-align:middle;">المشرف</span>' : ''}</strong>
+        
         <p style="color:#fff; font-size:14px; font-family:'Amiri', serif; line-height:1.5; margin:0; max-height:80px; overflow:hidden;">${data.text || ''}</p>
       </div>
 
