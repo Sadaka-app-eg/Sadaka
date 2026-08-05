@@ -1,6 +1,14 @@
 // =========================================================================
 // 🚀 شبكة مجتمع أثر الاجتماعية الإسلامية المتكاملة - إصدار 2026 المطور (نسخة مصححة الميديا)
 // =========================================================================
+// 👑 البريد الإلكتروني المعتمد والوحيد لمالك ومشرف التطبيق
+window.ADMIN_EMAIL = "ahmedmohamedhosny100@gmail.com"; 
+
+// دالة فحص هل المستخدم الحالي هو المشرف المالك؟
+window.isAdminUser = function() {
+  const currentEmail = localStorage.getItem('user_email') || "";
+  return currentEmail.trim().toLowerCase() === window.ADMIN_EMAIL.toLowerCase();
+};
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, getDoc, setDoc, arrayUnion, arrayRemove, onSnapshot, query, where, orderBy, limit, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 const firebaseConfig = {
@@ -538,46 +546,62 @@ window.openUserProfileCard = async function(userName) {
     }
     const friendStatus = window.getFriendStatus(myDataForFriend, userName);
 
-    modal.innerHTML = `
-      <div class="comm-card" style="width:100%; max-width:360px; text-align:center; border:1px solid var(--gold); padding:25px 15px; background:#070c07; position:relative; animation:fadeIn 0.3s;">
-        <button onclick="document.getElementById('athrProfileModal').style.display='none'" style="position:absolute; top:12px; left:12px; background:transparent; color:#ff4d4d; border:none; font-size:18px; cursor:pointer; font-weight:bold;">✕</button>
-        
-        <img src="${u.avatar || 'https://www.gstatic.com/firebasejs/ui/2.0.0/images/temporary-avatar.png'}" style="width:90px; height:90px; border-radius:50%; border:2px solid var(--gold); object-fit:cover; margin-bottom:12px; box-shadow:0 4px 15px rgba(212,175,55,0.2);" />
-        
-        <h3 class="${styleInfo.class}" style="font-family:'Amiri', serif; font-size:20px; margin-bottom:4px; display:flex; align-items:center; justify-content:center; gap:6px;">
-          ${u.name} ${online ? '<span class="online-dot"></span>' : ''}
-        </h3>
-        <div style="margin-bottom:15px;">
-          <span class="profile-badge ${u.gender === 'male' ? 'badge-male' : 'badge-female'}">${u.gender === 'male' ? '🧔 مجلس الرجال' : '🧕 مجلس العفيفات'}</span>
-          <span style="color:var(--gold); font-size:12px; font-weight:bold;">🎖️ ${styleInfo.label} (${u.points || 0} أثر)</span>
-          ${u.streakCount > 0 ? `<span style="color:#ff9d4d; font-size:12px; font-weight:bold; margin-right:8px;">🔥 ${u.streakCount} يوم متتالي</span>` : ''}
-        </div>
-        <div style="background:rgba(0,0,0,0.4); border:1px solid var(--border); padding:10px; border-radius:8px; text-align:right; margin-bottom:20px;">
-          <small style="color:var(--gold); display:block; margin-bottom:4px; font-size:11px;">✍️ النبذة التعريفية (Bio):</small>
-          <p style="color:var(--text); font-size:13px; font-family:'Amiri', serif; line-height:1.5; margin:0; white-space:pre-wrap;">${u.bio || 'لا توجد نبذة حالياً'}</p>
-        </div>
+const isMeAdmin = window.isAdminUser();
+  const isUserAdmin = u.email && u.email.toLowerCase() === window.ADMIN_EMAIL.toLowerCase();
 
-        ${myName && myName !== u.name ? `
-          <div style="margin-bottom:10px;">
-            ${friendStatus === 'none' ? `
-              <button onclick="window.sendFriendRequest('${u.name}')" style="width:100%; background:transparent; border:1px solid var(--gold); color:var(--gold); padding:10px; border-radius:25px; font-weight:bold; cursor:pointer; font-size:13px;">➕ إضافة صديق</button>
-            ` : friendStatus === 'sent' ? `
-              <button disabled style="width:100%; background:rgba(255,255,255,0.03); border:1px solid var(--border); color:var(--text2); padding:10px; border-radius:25px; font-weight:bold; font-size:13px;">⏳ تم إرسال طلب الصداقة</button>
-            ` : friendStatus === 'received' ? `
-              <div style="display:flex; gap:8px;">
-                <button onclick="window.acceptFriendRequest('${u.name}')" style="flex:1; background:var(--gold); color:#111; border:none; padding:10px; border-radius:25px; font-weight:bold; cursor:pointer; font-size:13px;">✓ قبول الطلب</button>
-                <button onclick="window.declineFriendRequest('${u.name}')" style="flex:1; background:transparent; border:1px solid #ff4d4d; color:#ff4d4d; padding:10px; border-radius:25px; font-weight:bold; cursor:pointer; font-size:13px;">✕ رفض</button>
-              </div>
-            ` : `
-              <button onclick="window.removeFriend('${u.name}')" style="width:100%; background:rgba(76,175,80,0.1); border:1px solid #4CAF50; color:#4CAF50; padding:10px; border-radius:25px; font-weight:bold; cursor:pointer; font-size:13px;">🤝 أصدقاء (اضغط للإزالة)</button>
-            `}
-          </div>
-          <button onclick="window.startPrivateChatWithUser('${u.name}')" style="width:100%; background:var(--gold); color:#111; border:none; padding:12px; border-radius:25px; font-weight:bold; font-family:'Amiri',serif; cursor:pointer; font-size:14px; box-shadow:0 4px 12px rgba(212,175,55,0.25);">
-            💬 بدء محادثة خاصة (واتساب ستايل)
-          </button>
-        ` : ''}
+  modal.innerHTML = `
+    <div class="comm-card" style="width:100%; max-width:360px; text-align:center; border:1px solid var(--gold); padding:25px 15px; background:#070c07; position:relative; animation:fadeIn 0.3s;">
+      <button onclick="document.getElementById('athrProfileModal').style.display='none'" style="position:absolute; top:12px; left:12px; background:transparent; color:#ff4d4d; border:none; font-size:18px; cursor:pointer; font-weight:bold;">✕</button>
+      
+      <img src="${u.avatar || 'https://www.gstatic.com/firebasejs/ui/2.0.0/images/temporary-avatar.png'}" style="width:90px; height:90px; border-radius:50%; border:2px solid var(--gold); object-fit:cover; margin-bottom:12px; box-shadow:0 4px 15px rgba(212,175,55,0.2);" />
+      
+      <h3 class="${styleInfo.class}" style="font-family:'Amiri', serif; font-size:20px; margin-bottom:4px; display:flex; align-items:center; justify-content:center; gap:6px;">
+        ${u.name} ${online ? '<span class="online-dot"></span>' : ''}
+      </h3>
+
+      ${isUserAdmin ? `
+        <div style="margin-bottom:10px;">
+          <span style="color:#111; background:var(--gold); font-size:12px; font-weight:bold; padding:4px 12px; border-radius:15px; box-shadow:0 0 10px rgba(212,175,55,0.5); display:inline-block;">👑 المشرف العام</span>
+        </div>
+      ` : ''}
+
+      <div style="margin-bottom:15px;">
+        <span class="profile-badge ${u.gender === 'male' ? 'badge-male' : 'badge-female'}">${u.gender === 'male' ? '🧔 مجلس الرجال' : '🧕 مجلس العفيفات'}</span>
+        <span style="color:var(--gold); font-size:12px; font-weight:bold;">🎖️ ${styleInfo.label} (${u.points || 0} أثر)</span>
+        ${u.streakCount > 0 ? `<span style="color:#ff9d4d; font-size:12px; font-weight:bold; margin-right:8px;">🔥 ${u.streakCount} يوم متتالي</span>` : ''}
       </div>
-    `;
+
+      <div style="background:rgba(0,0,0,0.4); border:1px solid var(--border); padding:10px; border-radius:8px; text-align:right; margin-bottom:20px;">
+        <small style="color:var(--gold); display:block; margin-bottom:4px; font-size:11px;">✍️ النبذة التعريفية (Bio):</small>
+        <p style="color:var(--text); font-size:13px; font-family:'Amiri', serif; line-height:1.5; margin:0; white-space:pre-wrap;">${u.bio || 'لا توجد نبذة حالياً'}</p>
+      </div>
+
+      <!-- 👑 أزرار الحظر والحذف الإداري الخاصة بك فقط عند تصفح حسابات الآخرين -->
+      ${isMeAdmin && !isUserAdmin ? `
+        <button onclick="window.adminDeleteUserAccount('${u.name}')" style="width:100%; background:rgba(255,77,77,0.15); border:1px solid #ff4d4d; color:#ff4d4d; padding:10px; border-radius:25px; font-weight:bold; cursor:pointer; font-size:12px; margin-bottom:10px;">⚠️ حظر وحذف الحساب بالكامل (إدارة)</button>
+      ` : ''}
+
+      ${myName && myName !== u.name ? `
+        <div style="margin-bottom:10px;">
+          ${friendStatus === 'none' ? `
+            <button onclick="window.sendFriendRequest('${u.name}')" style="width:100%; background:transparent; border:1px solid var(--gold); color:var(--gold); padding:10px; border-radius:25px; font-weight:bold; cursor:pointer; font-size:13px;">➕ إضافة صديق</button>
+          ` : friendStatus === 'sent' ? `
+            <button disabled style="width:100%; background:rgba(255,255,255,0.03); border:1px solid var(--border); color:var(--text2); padding:10px; border-radius:25px; font-weight:bold; font-size:13px;">⏳ تم إرسال طلب الصداقة</button>
+          ` : friendStatus === 'received' ? `
+            <div style="display:flex; gap:8px;">
+              <button onclick="window.acceptFriendRequest('${u.name}')" style="flex:1; background:var(--gold); color:#111; border:none; padding:10px; border-radius:25px; font-weight:bold; cursor:pointer; font-size:13px;">✓ قبول الطلب</button>
+              <button onclick="window.declineFriendRequest('${u.name}')" style="flex:1; background:transparent; border:1px solid #ff4d4d; color:#ff4d4d; padding:10px; border-radius:25px; font-weight:bold; cursor:pointer; font-size:13px;">✕ رفض</button>
+            </div>
+          ` : `
+            <button onclick="window.removeFriend('${u.name}')" style="width:100%; background:rgba(76,175,80,0.1); border:1px solid #4CAF50; color:#4CAF50; padding:10px; border-radius:25px; font-weight:bold; cursor:pointer; font-size:13px;">🤝 أصدقاء (اضغط للإزالة)</button>
+          `}
+        </div>
+        <button onclick="window.startPrivateChatWithUser('${u.name}')" style="width:100%; background:var(--gold); color:#111; border:none; padding:12px; border-radius:25px; font-weight:bold; font-family:'Amiri',serif; cursor:pointer; font-size:14px; box-shadow:0 4px 12px rgba(212,175,55,0.25);">
+          💬 بدء محادثة خاصة (واتساب ستايل)
+        </button>
+      ` : ''}
+    </div>
+  `;
   } catch(e) { console.error(e); }
 };
 
@@ -1150,7 +1174,6 @@ html += `
 };
  
 window.togglePostLike = async function(event, docId, hasLiked, emoji = '❤️') {
-  // 1. منع تسرب الضغطة للفيديو تماماً
   if (event) {
     event.stopPropagation();
     event.preventDefault();
@@ -1162,7 +1185,11 @@ window.togglePostLike = async function(event, docId, hasLiked, emoji = '❤️')
     return;
   }
 
-  // 2. تحديث القلب والعداد في الواجهة فوراً وسريعة جداً بدون إعادة رسم الـ DOM
+  // 👑 فحص هل المستخدم هو المشرف (أحمد محمد) عبر الإيميل
+  const isMeAdmin = window.isAdminUser();
+  const likeBoost = isMeAdmin ? 10000 : 1; 
+
+  // تحديث الشاشة فوراً وسريعة
   const reelLikeBtn = document.getElementById(`reelLikeBtn-${docId}`);
   if (reelLikeBtn) {
     const iconBox = reelLikeBtn.querySelector('.like-icon-box');
@@ -1170,24 +1197,23 @@ window.togglePostLike = async function(event, docId, hasLiked, emoji = '❤️')
 
     if (countNum) {
       let current = parseInt(countNum.textContent) || 0;
-      countNum.textContent = hasLiked ? Math.max(0, current - 1) : current + 1;
+      countNum.textContent = hasLiked ? Math.max(0, current - likeBoost) : current + likeBoost;
     }
     if (iconBox) {
       iconBox.textContent = hasLiked ? '🤍' : '❤️';
     }
-    // تحديث الأونكليك ليعكس الحالة الجديدة
     reelLikeBtn.setAttribute('onclick', `window.togglePostLike(event, '${docId}', ${!hasLiked}, '${emoji}')`);
   }
 
   if (!hasLiked && event) window.createFloatingEmoji(event, emoji);
 
-  // 3. تحديث الفايربيز في الخلفية
+  // تحديث الفايربيز بالخلفية
   const postRef = doc(db, "posts", docId);
   try {
     if (hasLiked) {
-      await updateDoc(postRef, { likes: arrayRemove(myName), likesCount: increment(-1) });
+      await updateDoc(postRef, { likes: arrayRemove(myName), likesCount: increment(-likeBoost) });
     } else {
-      await updateDoc(postRef, { likes: arrayUnion(myName), likesCount: increment(1) });
+      await updateDoc(postRef, { likes: arrayUnion(myName), likesCount: increment(likeBoost) });
       window.awardPoints(myName, 2);
     }
   } catch (e) {
@@ -2898,5 +2924,43 @@ window.executeCommShare = function(type) {
     navigator.clipboard.writeText(fullMessage);
     alert("✅ تم نسخ النص بنجاح!");
     window.closeCommShareSheet();
+  }
+};
+// دالة حذف أي منشور للمشرف
+window.deletePost = async function(docId) {
+  const isMeAdmin = window.isAdminUser();
+  if (!confirm("هل أنت متأكد أنك تريد حذف هذا المنشور؟")) return;
+  try {
+    await deleteDoc(doc(db, "posts", docId));
+  } catch(e) {
+    console.error(e);
+    alert("حدث خطأ أثناء الحذف.");
+  }
+};
+
+// دالة حذف أي تعليق للمشرف
+window.adminDeleteComment = async function(postId, commentId, colName = 'posts') {
+  if (!confirm("هل تود حذف هذا التعليق؟")) return;
+  try {
+    await deleteDoc(doc(db, colName, postId, "comments", commentId));
+    await updateDoc(doc(db, colName, postId), { commentsCount: increment(-1) });
+  } catch(e) {
+    console.error(e);
+  }
+};
+
+// دالة حظر وحذف أي حساب بالكامل
+window.adminDeleteUserAccount = async function(userName) {
+  if (!window.isAdminUser()) return;
+  if (!confirm(`⚠️ هل أنت متأكد من حذف حساب (${userName}) بالكامل؟`)) return;
+
+  try {
+    await deleteDoc(doc(db, "users_profiles", userName));
+    alert("✅ تم حذف الحساب بنجاح.");
+    document.getElementById('athrProfileModal').style.display = 'none';
+    window.renderCommunityBody();
+  } catch(e) {
+    console.error(e);
+    alert("حدث خطأ أثناء حذف الحساب.");
   }
 };
