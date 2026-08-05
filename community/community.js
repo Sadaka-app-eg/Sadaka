@@ -2726,65 +2726,91 @@ window.listenToReelsFeed = function(gender) {
   window.loadNextReelsBatch(true);
 };
 
-// تحميل دفعة (50 فيديو) جديدة
 window.loadNextReelsBatch = async function(isFirstBatch = false) {
   const state = window.athrReelsState;
-  if (state.loading || state.exhausted) return;
+  if (state.loading) return;
   state.loading = true;
 
   const container = document.getElementById('reelsContainer');
   const myName = localStorage.getItem('athr_user_name');
-  const watchedSet = window.getWatchedReelsSet();
+  let watchedSet = window.getWatchedReelsSet();
 
   try {
-    let q;
-    if (state.lastDoc) {
-      q = query(collection(db, "posts"), where("mediaType", "==", "video"), orderBy("createdAt", "desc"), startAfter(state.lastDoc), limit(50));
-    } else {
-      q = query(collection(db, "posts"), where("mediaType", "==", "video"), orderBy("createdAt", "desc"), limit(50));
-    }
+    let addedAny = false;
+    let keepFetching = true;
 
-    const snap = await getDocs(q);
-
-    if (snap.empty) {
-      state.exhausted = true;
-      state.loading = false;
-      if (isFirstBatch && container && !container.querySelector('.reel-item')) {
-        container.innerHTML = `<div style="color:#fff; text-align:center; padding-top:100px; font-family:'Amiri',serif; font-size:18px;">لا توجد مقاطع ريلز منشورة في هذا المجلس بعد 🎬</div>`;
+    while (keepFetching) {
+      let q;
+      if (state.lastDoc) {
+        q = query(collection(db, "posts"), where("mediaType", "==", "video"), orderBy("createdAt", "desc"), startAfter(state.lastDoc), limit(50));
+      } else {
+        q = query(collection(db, "posts"), where("mediaType", "==", "video"), orderBy("createdAt", "desc"), limit(50));
       }
-      return;
+
+      const snap = await getDocs(q);
+
+      // خلصت كل الفيديوهات الموجودة في السيرفر
+      if (snap.empty) {
+        if (!addedAny && watchedSet.size > 0) {
+          // كل الفيديوهات المتاحة اتشافت قبل كدا -> نبدأ دورة جديدة من الأول
+          window.resetWatchedReels();
+          watchedSet = new Set();
+          state.lastDoc = null;
+          state.loadedIds = new Set();
+          continue;
+        }
+        state.exhausted = true;
+        keepFetching = false;
+        if (isFirstBatch && container && !container.querySelector('.reel-item')) {
+          container.innerHTML = `<div style="color:#fff; text-align:center; padding-top:100px; font-family:'Amiri',serif; font-size:18px;">لا توجد مقاطع ريلز منشورة في هذا المجلس بعد 🎬</div>`;
+        }
+        break;
+      }
+
+      state.lastDoc = snap.docs[snap.docs.length - 1];
+
+      // فلترة: نطلع بس الفيديوهات الجديدة اللي (1) في نفس المجلس (2) لسه ماتشافتش
+      let batchDocs = [];
+      snap.docs.forEach(docSnap => {
+        const data = docSnap.data();
+        const docId = docSnap.id;
+        if (state.loadedIds.has(docId)) return;
+        if (watchedSet.has(docId)) return; // 🚫 اتشاف قبل كدا، منعرضوش تاني خالص
+        const isAdminPost = data.email && window.ADMIN_EMAILS.includes(data.email.toLowerCase());
+        if ((data.gender !== state.gender && !isAdminPost) || !data.mediaUrl) return;
+        state.loadedIds.add(docId);
+        batchDocs.push({ id: docId, ...data });
+      });
+
+      if (isFirstBatch && container && !addedAny) container.innerHTML = "";
+
+      batchDocs.forEach(data => {
+        const docId = data.id;
+        const likesArr = data.likes || [];
+        const hasLiked = myName && likesArr.includes(myName);
+        const itemHtml = window.buildReelItemHtml(data, docId, hasLiked);
+        if (container) container.insertAdjacentHTML('beforeend', itemHtml);
+        addedAny = true;
+      });
+
+      if (snap.docs.length < 50) {
+        // مفيش دفعات تانية بعد كدا في السيرفر أصلاً
+        if (batchDocs.length === 0 && !addedAny && watchedSet.size > 0) {
+          // آخر دفعة كانت كلها متشافة -> ابدأ دورة جديدة
+          window.resetWatchedReels();
+          watchedSet = new Set();
+          state.lastDoc = null;
+          state.loadedIds = new Set();
+          continue;
+        }
+        state.exhausted = true;
+        keepFetching = false;
+      } else if (batchDocs.length > 0) {
+        // جبنا فيديوهات جديدة كفاية، نوقف اللوب ونعرضها
+        keepFetching = false;
+      }
+      // لو الدفعة دي كلها كانت متشافة بس لسه فيه دفعات تانية، اللوب هيكمل يجيب اللي بعدها تلقائياً
     }
-
-    state.lastDoc = snap.docs[snap.docs.length - 1];
-
-    // فلترة حسب المجلس (رجال/نساء) + استبعاد المكرر
-    let batchDocs = [];
-    snap.docs.forEach(docSnap => {
-      const data = docSnap.data();
-      const docId = docSnap.id;
-      if (state.loadedIds.has(docId)) return;
-      const isAdminPost = data.email && window.ADMIN_EMAILS.includes(data.email.toLowerCase());
-      if ((data.gender !== state.gender && !isAdminPost) || !data.mediaUrl) return;
-      state.loadedIds.add(docId);
-      batchDocs.push({ id: docId, ...data });
-    });
-
-    // 🎯 الترتيب: اللي لسه مشافوش الأول، اللي اتشاف يتأخر لآخر الدفعة
-    const unwatched = batchDocs.filter(d => !watchedSet.has(d.id));
-    const watched = batchDocs.filter(d => watchedSet.has(d.id));
-    const orderedBatch = [...unwatched, ...watched];
-
-    if (isFirstBatch && container) container.innerHTML = "";
-
-    orderedBatch.forEach(data => {
-      const docId = data.id;
-      const likesArr = data.likes || [];
-      const hasLiked = myName && likesArr.includes(myName);
-      const itemHtml = window.buildReelItemHtml(data, docId, hasLiked);
-      if (container) container.insertAdjacentHTML('beforeend', itemHtml);
-    });
-
-    if (snap.docs.length < 50) state.exhausted = true;
 
     window.setupReelsObserver(container);
 
@@ -2793,6 +2819,13 @@ window.loadNextReelsBatch = async function(isFirstBatch = false) {
   } finally {
     state.loading = false;
   }
+};
+
+// دالة تصفير قائمة الفيديوهات المشاهدة (بتتنفذ تلقائياً لما تخلص كل الفيديوهات)
+window.resetWatchedReels = function() {
+  try {
+    localStorage.removeItem(window.getWatchedReelsKey());
+  } catch(e) { console.error(e); }
 };
 
 // بناء HTML كل عنصر ريل (نفس الشكل القديم بالظبط)
