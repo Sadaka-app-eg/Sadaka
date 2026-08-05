@@ -31,6 +31,19 @@ const IMGBB_API_KEY = "3b0e9c0cb3ddf5475324fa1a126a4e3e";
 const WOMEN_SECRET_CODE = "Athr2026"; 
 const FAJR_VOLUNTEER_CODE = "Fajr2026"; // 🔑 الكود السري لتفعيل لوحة التطوع
 const MANAGER_WHATSAPP = "201069168725"; // 📞 رقم واتس مشرف التطبيق
+// 🎲 أرقام إعجابات عشوائية للمشرفين (لإظهار تفاعل واقعي متغير فوق الألف)
+const ADMIN_LIKE_BOOSTS = [
+  11023, 10145, 1256, 13441, 14102, 1478, 10523, 1589, 1634, 1701,
+  1758, 1812, 1867, 923, 9780, 2034, 2091, 2145, 2203, 2267,
+  2318, 2379, 2431, 2487, 2542, 2601, 2658, 2714, 2773, 2829,
+  2887, 2943, 3001, 3067, 3124, 3189, 3247, 3312, 3378, 3441
+];
+
+window.getRandomAdminBoost = function() {
+  return ADMIN_LIKE_BOOSTS[Math.floor(Math.random() * ADMIN_LIKE_BOOSTS.length)];
+};
+
+
 window.currentCommunityTab = 'feed'; 
 window.activePrivateRoomId = null; 
 let unsubscribePosts = null; 
@@ -1221,7 +1234,22 @@ window.togglePostLike = async function(event, docId, hasLiked, emoji = '❤️')
 
   // 👑 فحص هل المستخدم هو المشرف (أحمد محمد) عبر الإيميل
   const isMeAdmin = window.isAdminUser();
-  const likeBoost = isMeAdmin ? 10000 : 1; 
+  const postRef = doc(db, "posts", docId);
+  let likeBoost = 1;
+
+  if (isMeAdmin) {
+    if (hasLiked) {
+      // لو بيلغي اللايك، نجيب نفس الرقم اللي اتسجل قبل كده عشان يترد صح بدون فروقات
+      try {
+        const snap = await getDoc(postRef);
+        likeBoost = (snap.exists() && snap.data().adminLikeBoost) ? snap.data().adminLikeBoost : window.getRandomAdminBoost();
+      } catch (e) {
+        likeBoost = window.getRandomAdminBoost();
+      }
+    } else {
+      likeBoost = window.getRandomAdminBoost();
+    }
+  }
 
   // تحديث الشاشة فوراً وسريعة
   const reelLikeBtn = document.getElementById(`reelLikeBtn-${docId}`);
@@ -1241,13 +1269,16 @@ window.togglePostLike = async function(event, docId, hasLiked, emoji = '❤️')
 
   if (!hasLiked && event) window.createFloatingEmoji(event, emoji);
 
-  // تحديث الفايربيز بالخلفية
-  const postRef = doc(db, "posts", docId);
+  // تحديث الفايربيز بالخلفية (تسجيل حقيقي دائم يشوفه كل الناس)
   try {
     if (hasLiked) {
-      await updateDoc(postRef, { likes: arrayRemove(myName), likesCount: increment(-likeBoost) });
+      const updates = { likes: arrayRemove(myName), likesCount: increment(-likeBoost) };
+      if (isMeAdmin) updates.adminLikeBoost = null;
+      await updateDoc(postRef, updates);
     } else {
-      await updateDoc(postRef, { likes: arrayUnion(myName), likesCount: increment(likeBoost) });
+      const updates = { likes: arrayUnion(myName), likesCount: increment(likeBoost) };
+      if (isMeAdmin) updates.adminLikeBoost = likeBoost;
+      await updateDoc(postRef, updates);
       window.awardPoints(myName, 2);
     }
   } catch (e) {
