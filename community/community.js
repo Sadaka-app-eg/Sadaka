@@ -13,7 +13,8 @@ window.isAdminUser = function() {
   return window.ADMIN_EMAILS.some(email => email.toLowerCase() === currentEmail);
 };
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, getDoc, setDoc, arrayUnion, arrayRemove, onSnapshot, query, where, orderBy, limit, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, getDoc, getDocs, setDoc, arrayUnion, arrayRemove, onSnapshot, query, where, orderBy, limit, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
 const firebaseConfig = {
   apiKey: "AIzaSyCuLaDRVQ9SWSO7zs2WL3D-ANj-wHeoYWg",
   authDomain: "sadaka-app-6637e.firebaseapp.com",
@@ -84,33 +85,53 @@ btn.style.cssText = "position:absolute; top:10px; right:14px; z-index:500; backg
 // =========================================================
 // 🛠️ 1️⃣ نظام التحقق وإدارة الحسابات الذكي
 // =========================================================
+// 🛠️ 1️⃣ نظام التحقق وإدارة الحسابات الذكي (حفظ دائم واسترجاع تلقائي للإيميل والصورة)
 window.checkCommunityUser = async function() {
   const contentArea = document.getElementById('communityContent');
   if (!contentArea) return;
 
-  const CURRENT_VERSION = "v2_profile_update"; 
-  const userVersion = localStorage.getItem('athr_app_version');
+  // جلب الإيميل المسجل بجوجل
+  const googleEmail = localStorage.getItem('user_email') || (window.firebaseAuth?.currentUser?.email) || "";
+  const googleUser = localStorage.getItem('user_display_name');
 
-  if (userVersion !== CURRENT_VERSION) {
-    localStorage.removeItem('athr_user_name');
-    localStorage.removeItem('athr_user_gender');
-    localStorage.setItem('athr_app_version', CURRENT_VERSION);
-    setTimeout(() => { window.checkCommunityUser(); }, 100);
+  // إذا لم يكن هناك تسجيل دخول بجوجل في الأقسام المغلقة
+  if (window.currentCommunityTab !== 'feed' && !googleUser && !googleEmail) {
+    window.renderAuthRequiredBlock();
     return;
   }
 
-  if (window.currentCommunityTab !== 'feed') {
-    const googleUser = localStorage.getItem('user_display_name');
-    if (!googleUser) {
-      window.renderAuthRequiredBlock();
-      return;
+  // 🚀 فحص سحري: لو المسجل له حساب سابق في الفايربيز بريده أو اسمه
+  if (googleEmail) {
+    try {
+      // البحث عن الملف الشخصي بـ Firestore
+      const q = query(collection(db, "users_profiles"), where("email", "==", googleEmail.toLowerCase()));
+      const querySnap = await getDocs(q);
+
+      if (!querySnap.empty) {
+        // الحساب موجود بالفعل! استرجاع البيانات وتثبيتها للأبد
+        const userData = querySnap.docs[0].data();
+        localStorage.setItem('athr_user_name', userData.name);
+        localStorage.setItem('user_display_name', userData.name);
+        localStorage.setItem('athr_user_gender', userData.gender);
+        localStorage.setItem('user_email', userData.email);
+
+        if (userData.avatar && typeof setAppData === 'function') {
+          await setAppData('athr_user_avatar', userData.avatar);
+        }
+
+        window.renderCommunityBody();
+        return; // الدخول المباشر بدون فتح شاشة الإعداد!
+      }
+    } catch (e) {
+      console.log("فحص الحساب أوفلاين/سيرفر:", e);
     }
   }
 
+  // إذا كان مسجل بجوجل ولسه ملهوش حساب في الفايربيز -> يفتح شاشة الإعداد لأول مرة فقط!
   const userGender = localStorage.getItem('athr_user_gender');
   const userName = localStorage.getItem('athr_user_name');
 
-  if (localStorage.getItem('user_display_name') && (!userGender || !userName)) {
+  if (googleUser && (!userGender || !userName)) {
     window.renderSetupScreen();
   } else {
     window.renderCommunityBody();
@@ -264,10 +285,11 @@ window.processCommunitySubmit = async function() {
       if(resData.success) avatarUrl = resData.data.url;
     }
 
-    const myEmail = localStorage.getItem('user_email') || trimmedName;
+const myEmail = (localStorage.getItem('user_email') || window.firebaseAuth?.currentUser?.email || trimmedName).toLowerCase();
     const userBio = bioInp.value.trim() || "ذاكر لله ومحب للأثر الطيب";
     
-    // 1️⃣ حفظ الملف الأساسي في السيرفر (Firestore)
+    // 1️⃣ حفظ الملف الأساسي في السيرفر (Firestore) مع الإيميل الصريح
+// 1️⃣ حفظ الملف الأساسي في السيرفر (Firestore)
     await setDoc(doc(db, "users_profiles", trimmedName), {
       name: trimmedName,
       email: myEmail,
@@ -281,28 +303,29 @@ window.processCommunitySubmit = async function() {
       createdAt: serverTimestamp()
     });
 
-    // 2️⃣ الاعتماد على IndexedDB لتخزين البيانات الثقيلة والصورة أوفلاين (بدون لمس الـ 5MB)
-    if (typeof setAppData === 'function') {
-      await setAppData('athr_user_avatar', avatarUrl);
-      await setAppData('athr_user_bio', userBio);
-    }
-
-    // 3️⃣ حفظ النصوص القصيرة جداً فقط في LocalStorage (تكلفة أقل من 1KB)
+    // 2️⃣ تخزين البيانات الخفيفة في LocalStorage بكتلة واحدة آمنة
     try {
+      localStorage.setItem('user_email', myEmail);
       localStorage.setItem('user_display_name', trimmedName);
       localStorage.setItem('athr_user_name', trimmedName);
       localStorage.setItem('athr_user_gender', window.selectedSetupGender);
       localStorage.setItem('athr_app_version', "v2_profile_update");
-      
-      // مسح أي صور قديمة كانت محشورة في LocalStorage بالخطأ
+
       localStorage.removeItem('athr_user_avatar');
       localStorage.removeItem('user_photo_url');
     } catch(err) {
       console.warn("Storage warning:", err);
     }
 
+    // 3️⃣ تخزين البيانات أوفلاين عبر IndexedDB
+    if (typeof setAppData === 'function') {
+      await setAppData('athr_user_avatar', avatarUrl);
+      await setAppData('athr_user_bio', userBio);
+    }
+
     window.triggerSparksEffect();
     window.renderCommunityBody();
+    
   } catch(e) {
     console.error(e);
     alert("حدث مشكلة أثناء إنشاء الحساب، يرجى إعادة المحاولة.");
