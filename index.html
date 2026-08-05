@@ -8701,9 +8701,10 @@ window.closeSurah = function() {
         const user = result.user;
         const firstName = user.displayName ? user.displayName.split(' ')[0] : 'المستخدم';
         
-        try {
+try {
           localStorage.setItem('user_display_name', firstName);
           localStorage.setItem('athr_user_name', firstName);
+          if (user.email) localStorage.setItem('user_email', user.email.toLowerCase());
         } catch(e) {}
 
         if (window.firebaseDb) {
@@ -8731,7 +8732,7 @@ window.closeSurah = function() {
       let displayName = user.displayName ? user.displayName.split(' ')[0] : 'المستخدم';
       const savedName = localStorage.getItem('user_display_name');
       
-      if (savedName) {
+if (savedName) {
         displayName = savedName;
       } else {
         try {
@@ -8739,6 +8740,9 @@ window.closeSurah = function() {
           localStorage.setItem('athr_user_name', displayName);
         } catch(e) {}
       }
+      try {
+        if (user.email) localStorage.setItem('user_email', user.email.toLowerCase());
+      } catch(e) {}
 
       if (typeof window.realFinishLogin === 'function') {
         window.realFinishLogin(displayName);
@@ -8801,9 +8805,10 @@ window.closeSurah = function() {
       .then((result) => {
         const user = result.user;
         const firstName = user.displayName ? user.displayName.split(' ')[0] : 'المستخدم';
-        try {
+try {
           localStorage.setItem('user_display_name', firstName);
           localStorage.setItem('athr_user_name', firstName);
+          if (user.email) localStorage.setItem('user_email', user.email.toLowerCase());
         } catch(e) {}
         window.location.reload();
       })
