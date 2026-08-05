@@ -1626,6 +1626,13 @@ window.switchCommunityTab = function(tab) {
     window.currentPrivateTargetUser = null;
   }
   window.currentCommunityTab = tab;
+
+  // 🎬 إخفاء/إظهار الشريط الأزرق العلوي حسب التاب المفتوح
+  const header = document.querySelector('.header');
+  if (header) {
+    header.style.display = (tab === 'reels') ? 'none' : 'flex';
+  }
+
   window.checkCommunityUser();
 };
 
