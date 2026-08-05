@@ -2649,16 +2649,36 @@ window.listenToReelsFeed = function(gender) {
       return timeB - timeA; // الأحدث (الجديد) أولاً
     });
 
-    // 🎲 3. عشوائية ذكية: نخلط الفيديوهات في مجموعات بسيطة عشان الترتيب ميبقاش صلب، مع الحفاظ على إن الجديد فوق والقديم تحت
+// 🚀 محرك ترتيب الريلز الاحترافي (Smart Bucket Shuffle)
     if (!window.cachedReelsList || window.cachedReelsList.length === 0) {
-      // نخلط عشوائياً بين كل 3 أو 4 فيديوهات متقاربة زمنياً فقط
-      for (let i = 0; i < docs.length - 1; i += 2) {
-        if (Math.random() > 0.5) {
-          [docs[i], docs[i + 1]] = [docs[i + 1], docs[i]];
+
+      // 1. تقسيم الفيديوهات لثلاث طبقات بحسب الأقدمية
+      const freshReels = docs.slice(0, 6);   // أحدث 6 فيديوهات اتنشرت مؤخراً
+      const recentReels = docs.slice(6, 20); // الفيديوهات المتوسطة (الرائجة)
+      const archiveReels = docs.slice(20);   // باقي الأرشيف القديم
+
+      // 2. دالة خلط عشوائي كاملة ومحترفة (Fisher-Yates Shuffle)
+      const shuffleArray = (arr) => {
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
         }
-      }
-      window.cachedReelsList = docs;
+        return arr;
+      };
+
+      // 3. خلط كل طبقة داخل نطاقها الزمني بشكل مستقل
+      const shuffledFresh = shuffleArray([...freshReels]);
+      const shuffledRecent = shuffleArray([...recentReels]);
+      const shuffledArchive = shuffleArray([...archiveReels]);
+
+      // 4. دمج الطبقات بالترتيب: (الجديد عشوائياً في الأوّل ⬅️ ثم المتوسط عشوائياً ⬅️ ثم القديم عشوائياً في الآخر)
+      window.cachedReelsList = [...shuffledFresh, ...shuffledRecent, ...shuffledArchive];
     } else {
+      // تحديث البيانات الحية مع الحفاظ على الترتيب الأصلي بدون تقطيع
+      window.cachedReelsList = docs;
+    }
+    
+    else {
       // تحديث القائمة بالجديد فوراً بدون كسر تجربة المستخدم
       window.cachedReelsList = docs;
     }
