@@ -1236,7 +1236,7 @@ window.listenToPosts = function(gender) {
         const data = docSnap.data();
         const docId = docSnap.id;
         if (!isAllowed(data)) return;
-        html += window.buildPostCardHtml(data, docId, myName);
+html = window.buildPostCardHtml(data, docId, myName) + html;
         renderedIds.add(docId);
       });
       listArea.innerHTML = html || `<div class="comm-card"><p style="color:var(--text2); text-align:center;">الساحة فارغة، انشر أثرك الطيب الحين...</p></div>`;
@@ -2885,7 +2885,7 @@ window.loadNextReelsBatch = async function(isFirstBatch = false) {
         const likesArr = data.likes || [];
         const hasLiked = myName && likesArr.includes(myName);
         const itemHtml = window.buildReelItemHtml(data, docId, hasLiked);
-        if (container) container.insertAdjacentHTML('beforeend', itemHtml);
+if (container) container.insertAdjacentHTML('afterbegin', itemHtml);        
         addedAny = true;
       });
 
