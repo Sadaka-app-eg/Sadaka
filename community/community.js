@@ -2772,65 +2772,40 @@ window.loadNextReelsBatch = async function(isFirstBatch = false) {
   let watchedSet = window.getWatchedReelsSet();
 
   try {
-    let addedAny = false;
-    let keepFetching = true;
+    let q;
+    if (state.lastDoc) {
+      q = query(collection(db, "posts"), where("mediaType", "==", "video"), orderBy("createdAt", "desc"), startAfter(state.lastDoc), limit(50));
+    } else {
+      q = query(collection(db, "posts"), where("mediaType", "==", "video"), orderBy("createdAt", "desc"), limit(50));
+    }
 
-    while (keepFetching) {
-      let q;
-      if (state.lastDoc) {
-        q = query(collection(db, "posts"), where("mediaType", "==", "video"), orderBy("createdAt", "desc"), startAfter(state.lastDoc), limit(50));
-      } else {
-        q = query(collection(db, "posts"), where("mediaType", "==", "video"), orderBy("createdAt", "desc"), limit(50));
-      }
-
-
-      // خلصت كل الفيديوهات الموجودة في السيرفر
-      if (snap.empty) {
-        if (!addedAny && watchedSet.size > 0) {
-          // كل الفيديوهات المتاحة اتشافت قبل كدا -> نبدأ دورة جديدة من الأول
-          window.resetWatchedReels();
-          watchedSet = new Set();
-          state.lastDoc = null;
-          state.loadedIds = new Set();
-          continue;
-        }
-        state.exhausted = true;
-        keepFetching = false;
-        if (isFirstBatch && container && !container.querySelector('.reel-item')) {
-          container.innerHTML = `<div style="color:#fff; text-align:center; padding-top:100px; font-family:'Amiri',serif; font-size:18px;">لا توجد مقاطع ريلز منشورة في هذا المجلس بعد 🎬</div>`;
-        }
-        break;
-      }
-
-// 🚀 ربط الاستماع بـ unsubscribePosts لمنع التكرار وتثبيت الـ active
     if (window.unsubscribePosts) window.unsubscribePosts();
 
     window.unsubscribePosts = onSnapshot(q, (snap) => {
       if (snap.empty) {
-        if (!addedAny && watchedSet.size > 0) {
+        if (watchedSet.size > 0) {
           window.resetWatchedReels();
           watchedSet = new Set();
           state.lastDoc = null;
           state.loadedIds = new Set();
-          return;
         }
         state.exhausted = true;
         if (isFirstBatch && container && !container.querySelector('.reel-item')) {
           container.innerHTML = `<div style="color:#fff; text-align:center; padding-top:100px; font-family:'Amiri',serif; font-size:18px;">لا توجد مقاطع ريلز منشورة في هذا المجلس بعد 🎬</div>`;
         }
+        state.loading = false;
         return;
       }
 
       state.lastDoc = snap.docs[snap.docs.length - 1];
 
-      // 🎯 التحديث الذكي: معالجة التغيرات بدون إعادة رسم الفيديو الشغال
+      // 🎯 التحديث الذكي بدون تجميد أو ريلود للـ DOM
       snap.docChanges().forEach(change => {
         const docSnap = change.doc;
         const docId = docSnap.id;
         const data = docSnap.data();
 
         if (change.type === 'modified') {
-          // تحديث عداد اللايكات فقط في شاشة الريل بدون ريلود للفيديو!
           const likeNumEl = document.querySelector(`#reelLikeBtn-${docId} .like-count-num`);
           if (likeNumEl) {
             const likesArr = data.likes || [];
@@ -2840,46 +2815,26 @@ window.loadNextReelsBatch = async function(isFirstBatch = false) {
           const isAdminPost = data.email && window.ADMIN_EMAILS.includes(data.email.toLowerCase());
           if ((data.gender === state.gender || isAdminPost) && data.mediaUrl && !watchedSet.has(docId)) {
             state.loadedIds.add(docId);
-            const myName = localStorage.getItem('athr_user_name');
             const hasLiked = myName && (data.likes || []).includes(myName);
             const itemHtml = window.buildReelItemHtml(data, docId, hasLiked);
             
             if (container) {
-              if (isFirstBatch && !addedAny) container.innerHTML = "";
+              const loadingText = container.querySelector('div');
+              if (loadingText && !container.querySelector('.reel-item')) {
+                container.innerHTML = "";
+              }
               container.insertAdjacentHTML('afterbegin', itemHtml);
-              addedAny = true;
             }
           }
         }
       });
 
       window.setupReelsObserver(container);
+      state.loading = false;
     });
-
-      if (snap.docs.length < 50) {
-        // مفيش دفعات تانية بعد كدا في السيرفر أصلاً
-        if (batchDocs.length === 0 && !addedAny && watchedSet.size > 0) {
-          // آخر دفعة كانت كلها متشافة -> ابدأ دورة جديدة
-          window.resetWatchedReels();
-          watchedSet = new Set();
-          state.lastDoc = null;
-          state.loadedIds = new Set();
-          continue;
-        }
-        state.exhausted = true;
-        keepFetching = false;
-      } else if (batchDocs.length > 0) {
-        // جبنا فيديوهات جديدة كفاية، نوقف اللوب ونعرضها
-        keepFetching = false;
-      }
-      // لو الدفعة دي كلها كانت متشافة بس لسه فيه دفعات تانية، اللوب هيكمل يجيب اللي بعدها تلقائياً
-    }
-
-    window.setupReelsObserver(container);
 
   } catch(e) {
     console.error("Reels load error:", e);
-  } finally {
     state.loading = false;
   }
 };
