@@ -1066,10 +1066,13 @@ await addDoc(collection(db, "posts"), {
 window.listenToPosts = function(gender) {
   const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(50));
   const myName = localStorage.getItem('athr_user_name');
-  const isFirstRender = listArea && listArea.children.length === 0;
+  
   unsubscribePosts = onSnapshot(q, (snapshot) => {
     const listArea = document.getElementById('postsList');
     if (!listArea) return;
+
+    // 🎯 تعريف المتغير بعد جلب listArea مباشرةً
+    const isFirstRender = listArea.children.length === 0 || listArea.querySelector('p');
 
     let html = "";
     
@@ -1077,7 +1080,7 @@ window.listenToPosts = function(gender) {
       const data = docSnap.data();
       const docId = docSnap.id;
       
-if (data.gender === gender || (data.email && window.ADMIN_EMAILS.includes(data.email.toLowerCase()))) {
+      if (data.gender === gender || (data.email && window.ADMIN_EMAILS.includes(data.email.toLowerCase()))) {
         const likesArr = data.likes || [];
         const hasLiked = likesArr.includes(myName);
         
@@ -1085,115 +1088,113 @@ if (data.gender === gender || (data.email && window.ADMIN_EMAILS.includes(data.e
         let userAvatar = "https://www.gstatic.com/firebasejs/ui/2.0.0/images/temporary-avatar.png";
         let nameClass = "regular-user-text";
 
-let mediaHtml = "";
-if (data.mediaUrl) {
-  if (data.mediaType === 'video') {
-    mediaHtml = `
-      <div style="position:relative; margin-top:10px; border-radius:8px; overflow:hidden; background:#000; border:1px solid var(--gold);">
-        <button 
-          onclick="window.downloadCommunityVideo('${data.mediaUrl}', 'فيديو_أثر_${data.name}')" 
-          style="position:absolute; top:10px; left:10px; z-index:10; background:rgba(0,0,0,0.7); backdrop-filter:blur(4px); color:var(--gold, #d4af37); border:1px solid var(--gold, #d4af37); padding:6px 12px; border-radius:20px; font-size:12px; font-weight:bold; cursor:pointer; display:flex; align-items:center; gap:5px;"
-          title="تنزيل الفيديو إلى جهازك"
-        >
-          <span>📥 تنزيل الفيديو</span>
-        </button>
-        <video controls style="width:100%; max-height:380px; display:block;" preload="metadata" playsinline>
-          <source src="${data.mediaUrl}" type="video/mp4">
-          <source src="${data.mediaUrl}" type="video/webm">
-          متصفحك لا يدعم تشغيل هذا الفيديو.
-        </video>
-      </div>`;
-  } else if (data.mediaType === 'image') {
-    mediaHtml = `<img src="${data.mediaUrl}" onclick="window.openImageLightbox('${data.mediaUrl}')" style="width:100%; border-radius:8px; margin-top:10px; max-height:300px; object-fit:contain; background:#000; cursor:pointer;" />`;
-  }
-}
+        let mediaHtml = "";
+        if (data.mediaUrl) {
+          if (data.mediaType === 'video') {
+            mediaHtml = `
+              <div style="position:relative; margin-top:10px; border-radius:8px; overflow:hidden; background:#000; border:1px solid var(--gold);">
+                <button 
+                  onclick="window.downloadCommunityVideo('${data.mediaUrl}', 'فيديو_أثر_${data.name}')" 
+                  style="position:absolute; top:10px; left:10px; z-index:10; background:rgba(0,0,0,0.7); backdrop-filter:blur(4px); color:var(--gold, #d4af37); border:1px solid var(--gold, #d4af37); padding:6px 12px; border-radius:20px; font-size:12px; font-weight:bold; cursor:pointer; display:flex; align-items:center; gap:5px;"
+                  title="تنزيل الفيديو إلى جهازك"
+                >
+                  <span>📥 تنزيل الفيديو</span>
+                </button>
+                <video controls style="width:100%; max-height:380px; display:block;" preload="metadata" playsinline>
+                  <source src="${data.mediaUrl}" type="video/mp4">
+                  <source src="${data.mediaUrl}" type="video/webm">
+                  متصفحك لا يدعم تشغيل هذا الفيديو.
+                </video>
+              </div>`;
+          } else if (data.mediaType === 'image') {
+            mediaHtml = `<img src="${data.mediaUrl}" onclick="window.openImageLightbox('${data.mediaUrl}')" style="width:100%; border-radius:8px; margin-top:10px; max-height:300px; object-fit:contain; background:#000; cursor:pointer;" />`;
+          }
+        }
 
-// استبدل بناء الكارت الداخلي بهذا الهيكل العصري:
-html += `
-  <div class="comm-card">
-    <!-- 1. رأس المنشور (البروفايل، الاسم، الوقت) -->
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-      <div style="display: flex; align-items: center; gap: 10px; cursor: pointer;" onclick="window.openUserProfileCard('${data.name}')">
-        <img src="${userAvatar}" id="avatar-post-${docId}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--gold, #d4af37);" />
-        <div>
-<strong class="${nameClass}" id="name-post-${docId}" style="font-size: 14px; display: block; line-height: 1.2;">
-  ${data.name} ${data.email && window.ADMIN_EMAILS.includes(data.email.toLowerCase()) ? '<span style="color:var(--gold); background:rgba(212,175,55,0.08); font-size:10px; font-weight:bold; padding:2px 8px; border-radius:6px; border:1px solid rgba(212,175,55,0.4); margin-right:5px; display:inline-block;">المشرف</span>' : ''} ${data.gender === 'female' ? '🧕' : ''}
-</strong>
-          
-          <small style="color: var(--text2); font-size: 11px; margin-top: 2px; display: block;">
-            ${data.createdAt ? window.formatPostTime(data.createdAt) : 'الآن ✨'} • 🌐
-          </small>
-        </div>
-      </div>
-      
-${(data.name === myName || window.isAdminUser()) ? `
-        <button onclick="window.deletePost('${docId}')" style="background:none; border:none; color:#ff4d4d; font-size:14px; cursor:pointer; opacity:0.7; padding:4px;" title="حذف المنشور">🗑️</button>
-      ` : ''}
-    </div>
-    
-    <!-- 2. نص المنشور -->
-    ${data.text ? `<p style="color: var(--text); font-family: 'Amiri', serif; font-size: 16px; line-height: 1.6; white-space: pre-wrap; margin: 0 0 10px 0;">${data.text}</p>` : ''}
-    
-    <!-- 3. ميديا المنشور (صور أو فيديو) -->
-    ${mediaHtml}
-    
-    <!-- 4. شريط العدادات (عدد التفاعلات والتعليقات) -->
-    <div class="post-stats-counter">
-      <div>
-        ${likesArr.length > 0 ? `<span style="background: var(--gold); color: #111; border-radius: 50%; padding: 2px 5px; font-size: 10px; margin-left: 4px;">✨</span> ${likesArr.length}` : ''}
-      </div>
-      <div>
-        <span>${data.commentsCount || 0} تعليق</span>
-      </div>
-    </div>
-    
-    <!-- 5. شريط الأزرار الفيس بوكي (تفاعل - تعليق - مشاركة) -->
-    <div class="post-actions-fb">
-      <div style="position: relative; flex: 1; display: flex;">
-        <button 
-          onmousedown="window.startReactionPress(event, '${docId}')" 
-          onmouseup="window.endReactionPress(event, '${docId}', ${hasLiked})" 
-          ontouchstart="window.startReactionPress(event, '${docId}')" 
-          ontouchend="window.endReactionPress(event, '${docId}', ${hasLiked})"
-          onclick="if(!window.isLongPress) window.togglePostLike(event, '${docId}', ${hasLiked})"
-          class="fb-action-btn"
-          style="${hasLiked ? 'color: var(--gold, #d4af37) !important; font-weight: bold;' : ''}"
-        >
-          <span>${hasLiked ? '✨' : '👍'}</span>
-          <span>${hasLiked ? 'متفاعل' : 'تفاعل'}</span>
-        </button>
+        html += `
+          <div class="comm-card" data-post-id="${docId}">
+            <!-- 1. رأس المنشور (البروفايل، الاسم، الوقت) -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <div style="display: flex; align-items: center; gap: 10px; cursor: pointer;" onclick="window.openUserProfileCard('${data.name}')">
+                <img src="${userAvatar}" id="avatar-post-${docId}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--gold, #d4af37);" />
+                <div>
+                  <strong class="${nameClass}" id="name-post-${docId}" style="font-size: 14px; display: block; line-height: 1.2;">
+                    ${data.name} ${data.email && window.ADMIN_EMAILS.includes(data.email.toLowerCase()) ? '<span style="color:var(--gold); background:rgba(212,175,55,0.08); font-size:10px; font-weight:bold; padding:2px 8px; border-radius:6px; border:1px solid rgba(212,175,55,0.4); margin-right:5px; display:inline-block;">المشرف</span>' : ''} ${data.gender === 'female' ? '🧕' : ''}
+                  </strong>
+                  <small style="color: var(--text2); font-size: 11px; margin-top: 2px; display: block;">
+                    ${data.createdAt ? window.formatPostTime(data.createdAt) : 'الآن ✨'} • 🌐
+                  </small>
+                </div>
+              </div>
+              
+              ${(data.name === myName || window.isAdminUser()) ? `
+                <button onclick="window.deletePost('${docId}')" style="background:none; border:none; color:#ff4d4d; font-size:14px; cursor:pointer; opacity:0.7; padding:4px;" title="حذف المنشور">🗑️</button>
+              ` : ''}
+            </div>
+            
+            <!-- 2. نص المنشور -->
+            ${data.text ? `<p style="color: var(--text); font-family: 'Amiri', serif; font-size: 16px; line-height: 1.6; white-space: pre-wrap; margin: 0 0 10px 0;">${data.text}</p>` : ''}
+            
+            <!-- 3. ميديا المنشور (صور أو فيديو) -->
+            ${mediaHtml}
+            
+            <!-- 4. شريط العدادات (عدد التفاعلات والتعليقات) -->
+            <div class="post-stats-counter">
+              <div id="likesCountBox-${docId}">
+                ${likesArr.length > 0 ? `<span style="background: var(--gold); color: #111; border-radius: 50%; padding: 2px 5px; font-size: 10px; margin-left: 4px;">✨</span> ${likesArr.length}` : ''}
+              </div>
+              <div id="commentsCountBox-${docId}">
+                <span>${data.commentsCount || 0} تعليق</span>
+              </div>
+            </div>
+            
+            <!-- 5. شريط الأزرار الفيس بوكي (تفاعل - تعليق - مشاركة) -->
+            <div class="post-actions-fb">
+              <div style="position: relative; flex: 1; display: flex;">
+                <button 
+                  onmousedown="window.startReactionPress(event, '${docId}')" 
+                  onmouseup="window.endReactionPress(event, '${docId}', ${hasLiked})" 
+                  ontouchstart="window.startReactionPress(event, '${docId}')" 
+                  ontouchend="window.endReactionPress(event, '${docId}', ${hasLiked})"
+                  onclick="if(!window.isLongPress) window.togglePostLike(event, '${docId}', ${hasLiked})"
+                  class="fb-action-btn"
+                  style="${hasLiked ? 'color: var(--gold, #d4af37) !important; font-weight: bold;' : ''}"
+                >
+                  <span>${hasLiked ? '✨' : '👍'}</span>
+                  <span>${hasLiked ? 'متفاعل' : 'تفاعل'}</span>
+                </button>
 
-        <!-- قائمة الإيموجيز عند الضغط المطول -->
-        <div id="reactionMenu-${docId}" style="display:none; position: absolute; bottom: 42px; right: 0; background: #1c1d1e; border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; padding: 6px 12px; gap: 10px; z-index: 99999; box-shadow: 0 8px 24px rgba(0,0,0,0.5);">
-          <span onclick="window.selectCustomReaction(event, '${docId}', '👍')" style="cursor:pointer; font-size:22px; transition: transform 0.1s;" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">👍</span>
-          <span onclick="window.selectCustomReaction(event, '${docId}', '❤️')" style="cursor:pointer; font-size:22px; transition: transform 0.1s;" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">❤️</span>
-          <span onclick="window.selectCustomReaction(event, '${docId}', '🤝')" style="cursor:pointer; font-size:22px; transition: transform 0.1s;" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">🤝</span>
-          <span onclick="window.selectCustomReaction(event, '${docId}', '😮')" style="cursor:pointer; font-size:22px; transition: transform 0.1s;" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">😮</span>
-          <span onclick="window.selectCustomReaction(event, '${docId}', '😢')" style="cursor:pointer; font-size:22px; transition: transform 0.1s;" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">😢</span>
-        </div>
-      </div>
+                <!-- قائمة الإيموجيز عند الضغط المطول -->
+                <div id="reactionMenu-${docId}" style="display:none; position: absolute; bottom: 42px; right: 0; background: #1c1d1e; border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; padding: 6px 12px; gap: 10px; z-index: 99999; box-shadow: 0 8px 24px rgba(0,0,0,0.5);">
+                  <span onclick="window.selectCustomReaction(event, '${docId}', '👍')" style="cursor:pointer; font-size:22px; transition: transform 0.1s;" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">👍</span>
+                  <span onclick="window.selectCustomReaction(event, '${docId}', '❤️')" style="cursor:pointer; font-size:22px; transition: transform 0.1s;" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">❤️</span>
+                  <span onclick="window.selectCustomReaction(event, '${docId}', '🤝')" style="cursor:pointer; font-size:22px; transition: transform 0.1s;" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">🤝</span>
+                  <span onclick="window.selectCustomReaction(event, '${docId}', '😮')" style="cursor:pointer; font-size:22px; transition: transform 0.1s;" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">😮</span>
+                  <span onclick="window.selectCustomReaction(event, '${docId}', '😢')" style="cursor:pointer; font-size:22px; transition: transform 0.1s;" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">😢</span>
+                </div>
+              </div>
 
-      <button onclick="window.toggleCommentsSection('${docId}')" class="fb-action-btn">
-        <span>💬</span>
-        <span>تعليق</span>
-      </button>
+              <button onclick="window.toggleCommentsSection('${docId}')" class="fb-action-btn">
+                <span>💬</span>
+                <span>تعليق</span>
+              </button>
 
-<button onclick="window.openCommShareSheet(\`${data.text ? data.text.replace(/"/g, '&quot;') : 'أثر طيب'}\`, '${data.name}', '${data.mediaUrl || ''}', '${data.mediaType || ''}')" class="fb-action-btn">      
-        <span>🔗</span>
-        <span>مشاركة</span>
-      </button>
-    </div>
+              <button onclick="window.openCommShareSheet(\`${data.text ? data.text.replace(/"/g, '&quot;') : 'أثر طيب'}\`, '${data.name}', '${data.mediaUrl || ''}', '${data.mediaType || ''}')" class="fb-action-btn">      
+                <span>🔗</span>
+                <span>مشاركة</span>
+              </button>
+            </div>
 
-    <!-- 6. قسم التعليقات (مخفي ويظهر عند الضغط) -->
-    <div id="commentsWrapper-${docId}" style="display:none; padding-top:12px; border-top: 1px solid rgba(0,0,0,0.05); margin-top: 8px;">
-      <div id="commentsList-${docId}" style="max-height:220px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; margin-bottom:10px;"></div>
-      <div style="display:flex; gap:8px; align-items: center;">
-        <input id="commentInput-${docId}" type="text" placeholder="اكتب تعليقاً طيباً..." style="flex:1; padding:8px 14px; background: rgba(0,0,0,0.05); border:1px solid var(--border); color:var(--text); border-radius:20px; font-size:13px; outline:none;" onkeypress="if(event.key==='Enter') window.sendComment('${docId}')" />
-        <button onclick="window.sendComment('${docId}')" style="background:var(--gold); color:#111; border:none; padding:6px 16px; border-radius:20px; font-size:12px; font-weight:bold; cursor:pointer;">إرسال</button>
-      </div>
-    </div>
-  </div>
-`;
+            <!-- 6. قسم التعليقات (مخفي ويظهر عند الضغط) -->
+            <div id="commentsWrapper-${docId}" style="display:none; padding-top:12px; border-top: 1px solid rgba(0,0,0,0.05); margin-top: 8px;">
+              <div id="commentsList-${docId}" style="max-height:220px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; margin-bottom:10px;"></div>
+              <div style="display:flex; gap:8px; align-items: center;">
+                <input id="commentInput-${docId}" type="text" placeholder="اكتب تعليقاً طيباً..." style="flex:1; padding:8px 14px; background: rgba(0,0,0,0.05); border:1px solid var(--border); color:var(--text); border-radius:20px; font-size:13px; outline:none;" onkeypress="if(event.key==='Enter') window.sendComment('${docId}')" />
+                <button onclick="window.sendComment('${docId}')" style="background:var(--gold); color:#111; border:none; padding:6px 16px; border-radius:20px; font-size:12px; font-weight:bold; cursor:pointer;">إرسال</button>
+              </div>
+            </div>
+          </div>
+        `;
         
         // إصلاح تحديث الصورة والاسم الحقيقي للكاتب بداخل الـ Feed
         getDoc(doc(db, "users_profiles", data.name)).then(userDoc => {
@@ -1216,30 +1217,29 @@ ${(data.name === myName || window.isAdminUser()) ? `
       }
     });
 
-// ✅ السطر الجديد: يرسم الصفحة أول مرة فقط، وفي التحديثات التفاعلية يُحدث العدادات فقط دون إعادة رسم الفيديوهات!
-if (isFirstRender) {
-  listArea.innerHTML = html || `<div class="comm-card"><p style="color:var(--text2); text-align:center;">الساحة فارغة، انشر أثرك الطيب الحين...</p></div>`;
-} else {
-  // تحديث عدادات التفاعل والتعليقات بالـ DOM المباشر لكل منشور دون المساس بالـ Video أو عمل Reset
-  snapshot.docs.forEach((docSnap) => {
-    const data = docSnap.data();
-    const docId = docSnap.id;
-    const card = listArea.querySelector(`[data-post-id="${docId}"]`) || listArea.children[0];
-    if (card) {
-      const likesCountBox = card.querySelector('.post-stats-counter div:first-child');
-      const commentsCountBox = card.querySelector('.post-stats-counter div:last-child');
-      const likesArr = data.likes || [];
-      if (likesCountBox) {
-        likesCountBox.innerHTML = likesArr.length > 0 
-          ? `<span style="background: var(--gold); color: #111; border-radius: 50%; padding: 2px 5px; font-size: 10px; margin-left: 4px;">✨</span> ${likesArr.length}` 
-          : '';
-      }
-      if (commentsCountBox) {
-        commentsCountBox.innerHTML = `<span>${data.commentsCount || 0} تعليق</span>`;
-      }
-    }
-  });
-}    
+    // ✅ الرسم أول مرة فقط، وفي التحديثات التفاعلية يُحدث العدادات فقط دون إعادة رسم الفيديوهات
+    if (isFirstRender) {
+      listArea.innerHTML = html || `<div class="comm-card"><p style="color:var(--text2); text-align:center;">الساحة فارغة، انشر أثرك الطيب الحين...</p></div>`;
+    } else {
+      snapshot.docs.forEach((docSnap) => {
+        const data = docSnap.data();
+        const docId = docSnap.id;
+        const card = listArea.querySelector(`[data-post-id="${docId}"]`);
+        if (card) {
+          const likesCountBox = card.querySelector(`#likesCountBox-${docId}`);
+          const commentsCountBox = card.querySelector(`#commentsCountBox-${docId}`);
+          const likesArr = data.likes || [];
+          if (likesCountBox) {
+            likesCountBox.innerHTML = likesArr.length > 0 
+              ? `<span style="background: var(--gold); color: #111; border-radius: 50%; padding: 2px 5px; font-size: 10px; margin-left: 4px;">✨</span> ${likesArr.length}` 
+              : '';
+          }
+          if (commentsCountBox) {
+            commentsCountBox.innerHTML = `<span>${data.commentsCount || 0} تعليق</span>`;
+          }
+        }
+      });
+    }    
   });
 };
  
