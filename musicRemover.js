@@ -425,7 +425,12 @@ window.renderStudioUI = function() {
                 <canvas id="studioCanvas" style="max-width: 100%; max-height: 480px; display: block; margin: 0 auto; cursor: move;"></canvas>
                 <canvas id="waveformCanvas" width="800" height="60" style="width: 100%; height: 50px; background: rgba(0,0,0,0.5); position: absolute; bottom: 0; left: 0; pointer-events: none;"></canvas>
             </div>
-
+<!-- ▶️ شريط تشغيل المعاينة الحية -->
+            <div style="display: flex; align-items: center; gap: 10px; background: var(--bg2); padding: 10px 14px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 15px;">
+                <button id="studioPreviewPlayBtn" onclick="window.toggleStudioPreviewPlay()" style="background: var(--gold); color: #111; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 16px; cursor: pointer; flex-shrink: 0;">▶️</button>
+                <input type="range" id="studioPreviewSeek" min="0" max="100" value="0" step="0.1" oninput="window.seekStudioPreview(this.value)" style="flex: 1; accent-color: var(--gold);">
+                <span id="studioPreviewTimeLabel" style="font-size: 11px; color: var(--text2); font-family: monospace; min-width: 80px; text-align: left;">00:00 / 00:00</span>
+            </div>
             <!-- 🎞️ شريط التايم لاين البصري الاحترافي -->
            <!-- 🎞️ شريط التايم لاين المطور متعدد المسارات (CapCut Multitrack Timeline) -->
             <div style="background: var(--bg2); padding: 15px; border-radius: 12px; border: 1px solid var(--gold); margin-bottom: 20px;">
@@ -1238,7 +1243,6 @@ video.onloadeddata = () => {
         if (e.ambientAudioEl) {
             e.ambientAudioEl.play();
         }
-        window.startCanvasRenderLoop();
         if (typeof window.drawAudioWaveform === 'function') window.drawAudioWaveform();
     };
 
@@ -1395,7 +1399,65 @@ window.setupCanvasDragAndDrop = function() {
     canvas.ontouchmove = doDrag;
     canvas.ontouchend = stopDrag;
 };
+// ▶️ تشغيل/إيقاف المعاينة الحية
+window.toggleStudioPreviewPlay = function() {
+    const video = window.studioEngine.videoElement;
+    const btn = document.getElementById('studioPreviewPlayBtn');
+    if (!video) { alert('يرجى رفع فيديو أولاً!'); return; }
 
+    if (video.paused) {
+        window.initStudioAudioEngine();
+        if (window.studioEngine.audioCtx && window.studioEngine.audioCtx.state === 'suspended') {
+            window.studioEngine.audioCtx.resume();
+        }
+        video.play();
+        if (btn) btn.textContent = '⏸️';
+    } else {
+        video.pause();
+        if (btn) btn.textContent = '▶️';
+    }
+};
+
+// 🎚️ شريط السحب اليدوي للمعاينة
+window.seekStudioPreview = function(val) {
+    const e = window.studioEngine;
+    const video = e.videoElement;
+    if (!video || !video.duration) return;
+    const currentClip = e.clips[e.selectedClipIndex];
+    const start = currentClip ? currentClip.start : 0;
+    const end = currentClip ? currentClip.end : video.duration;
+    video.currentTime = start + ((end - start) * (val / 100));
+    if (typeof window.drawStudioCanvas === 'function') window.drawStudioCanvas();
+};
+
+// 🔄 تحديث شريط التقدم ووقت المعاينة تلقائياً
+window.updateStudioPreviewProgress = function() {
+    const e = window.studioEngine;
+    const video = e.videoElement;
+    const seekEl = document.getElementById('studioPreviewSeek');
+    const labelEl = document.getElementById('studioPreviewTimeLabel');
+    const btn = document.getElementById('studioPreviewPlayBtn');
+    if (video && seekEl && labelEl) {
+        const currentClip = e.clips[e.selectedClipIndex];
+        const start = currentClip ? currentClip.start : 0;
+        const end = currentClip ? currentClip.end : (video.duration || 0);
+        const dur = Math.max(0.01, end - start);
+        const rel = Math.min(Math.max(video.currentTime - start, 0), dur);
+
+        seekEl.value = (rel / dur) * 100;
+
+        const fmt = (s) => {
+            const m = Math.floor(s / 60);
+            const sec = Math.floor(s % 60);
+            return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+        };
+        labelEl.textContent = `${fmt(rel)} / ${fmt(dur)}`;
+
+        if (btn) btn.textContent = video.paused ? '▶️' : '⏸️';
+    }
+    requestAnimationFrame(window.updateStudioPreviewProgress);
+};
+window.updateStudioPreviewProgress();
 // 🖼️ رفع الشعار
 window.handleLogoUpload = function(event) {
     const file = event.target.files[0];
