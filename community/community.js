@@ -1076,7 +1076,11 @@ window.listenToPosts = function(gender) {
 
     // أول تحميل للصفحة
     if (renderedIds.size === 0) {
-      let html = "";
+      
+// ✅ نفحص هل الساحة فاضية فعلياً ولا مليانة كروت قبل كدا
+    const isAreaEmpty = !listArea.querySelector('.comm-card:not(:has(p))');
+    let html = "";
+      
       snapshot.docs.forEach((docSnap) => {
         const data = docSnap.data();
         const docId = docSnap.id;
@@ -1086,8 +1090,10 @@ window.listenToPosts = function(gender) {
         }
       });
 
+// ✅ لو الساحة فاضية يرسمها، ولو مليانة يضيف البوست الجديد بـ insertAdjacentHTML بدون مسح أو ريلود للساحة!
+    if (isAreaEmpty) {
       listArea.innerHTML = html || `<div class="comm-card"><p style="color:var(--text2); text-align:center;">الساحة فارغة، انشر أثرك الطيب الحين...</p></div>`;
-
+    }
       snapshot.docs.forEach((docSnap) => {
         const data = docSnap.data();
         if (!isAllowed(data)) return;
