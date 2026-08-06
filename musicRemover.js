@@ -394,32 +394,20 @@ window.renderStudioUI = function() {
     <div class="comm-card" style="background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; direction: rtl; text-align: right;">
         
         <!-- 📁 منطقة رفع الفيديو -->
-<div style="border: 2px dashed var(--gold); border-radius: 14px; padding: 25px; text-align: center; background: var(--bg2); margin-bottom: 20px;">
-            <span style="font-size: 45px; display: block; margin-bottom: 10px;">🎬</span>
-            
-            <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 12px;">
-                <label for="videoStudioInput" style="background: var(--gold); color: #111; padding: 10px 18px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 13px;">
-                    📹 اختر مقطع فيديو
-                </label>
-                <input type="file" id="videoStudioInput" accept="video/*,audio/*" onchange="window.handleStudioFileUpload(event)" style="display: none;" />
-
-                <button id="studioRecBtn" onclick="window.toggleStudioDirectRecord()" style="background: var(--card); color: var(--gold); border: 1px solid var(--gold); padding: 10px 18px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 13px;">
-                    🎙️ سجل صوت حقيقي
-                </button>
-
-                <label for="imageStudioInput" style="background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 10px 18px; border-radius: 10px; cursor: pointer; font-size: 13px;">
-                    🖼️ اختر صورة خلفية
-                </label>
-                <input type="file" id="imageStudioInput" accept="image/*" onchange="window.convertImageToStudioVideo(event)" style="display: none;" />
-            </div>
-
-            <span id="studioFileName" style="display: block; color: var(--text2); font-size: 12px; margin-top: 5px;">اختر مقطعاً أو سجّل صوتك أو اختر صورة للبدء</span>
-            <div id="studioRecStatusText" style="font-size: 11px; margin-top: 5px; color: var(--gold);"></div>
+        <div style="border: 2px dashed var(--gold); border-radius: 14px; padding: 25px; text-align: center; background: var(--bg2); margin-bottom: 20px;">
+            <span style="font-size: 45px; display: block; margin-bottom: 10px;">🎥</span>
+            <label for="videoStudioInput" style="background: var(--gold); color: #111; padding: 12px 24px; border-radius: 10px; font-weight: bold; cursor: pointer; font-family: 'Amiri', serif; font-size: 15px; display: inline-block; box-shadow: 0 4px 15px rgba(212,175,55,0.25);">
+                اختر مقطع فيديو / موعظة لمعالجته
+            </label>
+            <input type="file" id="videoStudioInput" accept="video/*,audio/*" onchange="window.handleStudioFileUpload(event)" style="display: none;" />
+            <span id="studioFileName" style="display: block; color: var(--text2); font-size: 12px; margin-top: 10px;">لم يتم اختيار مقطع بعد</span>
         </div>
 
+        <!-- 📺 مسرح العمل والمعاينة الحية -->
         <div id="studioWorkArea" style="display: none;">
             
-            <video id="studioVideoPlayer" style="display: none;"></video>
+            <video id="studioVideoPlayer" controls style="width: 100%; margin-top: 10px; border-radius: 8px;"></video>
+
             <!-- الكانفاس الموحد -->
             <div style="position: relative; text-align: center; margin-top: 15px; margin-bottom: 15px; background: #000; border-radius: 12px; overflow: hidden; border: 1px solid var(--border);">
                 <canvas id="studioCanvas" style="max-width: 100%; max-height: 480px; display: block; margin: 0 auto; cursor: move;"></canvas>
@@ -474,7 +462,48 @@ window.renderStudioUI = function() {
             
             </div>
 
+<!-- ⚙️ إعدادات التصدير والجودة والـ FPS -->
+<div style="background: var(--bg2); padding: 15px; border-radius: 12px; border: 1px solid var(--gold); margin-bottom: 15px;">
+    <strong style="color: var(--gold); font-size: 14px; display: block; margin-bottom: 10px;">⚙️ إعدادات الجودة والتصدير السريع:</strong>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 12px;">
+        <!-- اختيار الجودة / الأبعاد -->
+        <div>
+            <label style="display:block; color:var(--text2); font-size:11px; margin-bottom:4px;">🎯 جودة الدقة (Resolution):</label>
+            <select id="exportQualitySelect" onchange="window.updateExportEstimates()" style="width:100%; padding:6px; border-radius:6px; background:var(--card); color:var(--text); border:1px solid var(--border); font-size:12px;">
+                <option value="1080">Full HD (1080p) - جودة عالية</option>
+                <option value="720" selected>HD (720p) - متوازنة (موصى بها)</option>
+                <option value="480">SD (480p) - جودة منخفضة (حجم صغير)</option>
+            </select>
+        </div>
 
+        <!-- اختيار الـ FPS -->
+        <div>
+            <label style="display:block; color:var(--text2); font-size:11px; margin-bottom:4px;">🎞️ معدل الفريمات (FPS):</label>
+            <select id="exportFpsSelect" onchange="window.updateExportEstimates()" style="width:100%; padding:6px; border-radius:6px; background:var(--card); color:var(--text); border:1px solid var(--border); font-size:12px;">
+                <option value="60">60 FPS (سلاسة فائقة - حجم أكبر)</option>
+                <option value="30" selected>30 FPS (قياسي - متوازن)</option>
+                <option value="24">24 FPS (سينمائي - توفير مساحة)</option>
+            </select>
+        </div>
+
+        <!-- اختيار المعدل البت / الضغط (Bitrate) -->
+        <div>
+            <label style="display:block; color:var(--text2); font-size:11px; margin-bottom:4px;">🗜️ ضغط الحجم (Bitrate):</label>
+            <select id="exportBitrateSelect" onchange="window.updateExportEstimates()" style="width:100%; padding:6px; border-radius:6px; background:var(--card); color:var(--text); border:1px solid var(--border); font-size:12px;">
+                <option value="5000000">عالي (5 Mbps)</option>
+                <option value="2500000" selected>متوسط (2.5 Mbps)</option>
+                <option value="1000000">منخفض جداً (1 Mbps) - لتصغير الحجم</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- 📊 شريط الحجم التقديري المطور -->
+    <div style="background: #000; padding: 10px; border-radius: 8px; border: 1px solid var(--border); text-align: center; font-size: 13px;">
+        📊 الحجم التقديري المتوقع عند التصدير: 
+        <span id="finalEstSizeMB" style="color: var(--gold); font-weight: bold; font-size: 15px;">-- MB</span>
+    </div>
+</div>
 
 <!-- 🎨 6. تبويب الملصقات والـ Picture-in-Picture -->
 <div id="tabContent_stickersTab" class="studio-tab-content" style="display: none;">
@@ -538,7 +567,6 @@ window.renderStudioUI = function() {
             <button onclick="window.selectParticleType('rain', this)" class="particle-type-btn" style="background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 8px; border-radius: 8px; font-size: 11px; cursor: pointer;">🌧️ مطر خفيف</button>
             <button onclick="window.selectParticleType('leaves', this)" class="particle-type-btn" style="background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 8px; border-radius: 8px; font-size: 11px; cursor: pointer;">🍃 ورق متطاير</button>
             <button onclick="window.selectParticleType('sparks', this)" class="particle-type-btn" style="background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 8px; border-radius: 8px; font-size: 11px; cursor: pointer;">🔥 شرر متصاعد</button>
-            <button onclick="window.selectParticleType('cameraShake', this)" class="particle-type-btn" style="background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 8px; border-radius: 8px; font-size: 11px; cursor: pointer;">🎥 حركة كاميرا انسيابية (Camera Float)</button>
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 10px;">
@@ -636,25 +664,6 @@ window.renderStudioUI = function() {
 
 <!-- 🎙️ 1. تبويب الصوت -->
             <div id="tabContent_audioTab" class="studio-tab-content">
-            <!-- 📊 الشاشة اللحظية وخيارات الضوضاء والثبات (مدمجة جوة تبويب الصوت) -->
-  <div style="background: rgba(0,0,0,0.5); border: 1px solid var(--gold); border-radius: 14px; padding: 12px; margin-bottom: 15px;">
-    <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text2); margin-bottom: 6px; font-family: 'Amiri', serif;">
-      <span>📊 طيف الترددات الحية (Spectrum Analyzer)</span>
-      <span>مستوى العلو: <b id="loudnessValText" style="color:var(--gold); font-family: monospace;">-60 LUFS</b></span>
-    </div>
-    <canvas id="audioSpectrumCanvas" style="width: 100%; height: 70px; border-radius: 6px; display: block; margin-bottom: 10px;"></canvas>
-
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-      <label style="display: flex; align-items: center; gap: 6px; background: var(--bg2); padding: 8px; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; font-size: 11px;">
-        <input type="checkbox" id="chkDynamicsProcessor" checked onchange="window.updateStudioAudioFilters()" style="accent-color: var(--gold);">
-        <span>🛡️ ثبات الصوت والـ Limiter</span>
-      </label>
-      <label style="display: flex; align-items: center; gap: 6px; background: var(--bg2); padding: 8px; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; font-size: 11px;">
-        <input type="checkbox" id="chkNoiseDereverb" checked onchange="window.updateStudioAudioFilters()" style="accent-color: var(--gold);">
-        <span>✨ عزل الضوضاء والصدى</span>
-      </label>
-    </div>
-  </div>
                 <div style="margin-bottom: 15px;">
                     <strong style="color: var(--gold); font-size: 13px; display: block; margin-bottom: 8px;">⚡ البريسيتس السريعة بنقرة واحدة:</strong>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px;">
@@ -911,59 +920,27 @@ window.renderStudioUI = function() {
                 </div>
             </div>
 
-</div>
-
-            <!-- ⚙️ إعدادات دقة التصدير والجودة النهائية -->
-            <div style="background: var(--bg2); padding: 15px; border-radius: 12px; border: 1px solid var(--gold); margin-top: 20px; margin-bottom: 15px;">
-                <strong style="color: var(--gold); font-size: 13px; display: block; margin-bottom: 10px;">⚙️ إعدادات دقة التصدير والجودة النهائية:</strong>
-                
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 10px;">
+            <!-- ⚙️ إعدادات التصدير -->
+            <div style="background: var(--bg2); padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 15px; font-size: 12px;">
+                <strong style="color: var(--gold); font-size: 13px; display: block; margin-bottom: 8px;">⚙️ إعدادات دقة التصدير والجودة:</strong>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
                     <div>
-                        <label style="display:block; color:var(--text2); font-size:11px; margin-bottom:4px;">🎯 جودة الدقة (Resolution):</label>
-                        <select id="exportQualitySelect" onchange="window.updateExportEstimates()" style="width:100%; padding:6px; border-radius:6px; background:var(--card); color:var(--text); border:1px solid var(--border); font-size:12px;">
-                            <option value="1080">Full HD (1080p)</option>
-                            <option value="720" selected>HD (720p) - متوازنة</option>
-                            <option value="480">SD (480p) - حجم صغير</option>
+                        <label style="display:block; color:var(--text2); margin-bottom:2px;">جودة الفيديو (Bitrate):</label>
+                        <select id="exportBitrate" onchange="window.updateEstimatedSize()" style="width:100%; padding:6px; border-radius:6px; background:var(--card); color:var(--text); border:1px solid var(--border);">
+                            <option value="1200000">منخفضة / واتساب (1.2 Mbps)</option>
+                            <option value="2500000" selected>متوسطة HD (2.5 Mbps)</option>
+                            <option value="4500000">عالية Full HD (4.5 Mbps)</option>
                         </select>
                     </div>
-
                     <div>
-                        <label style="display:block; color:var(--text2); font-size:11px; margin-bottom:4px;">🎞️ معدل الفريمات (FPS):</label>
-                        <select id="exportFpsSelect" onchange="window.updateExportEstimates()" style="width:100%; padding:6px; border-radius:6px; background:var(--card); color:var(--text); border:1px solid var(--border); font-size:12px;">
-                            <option value="60">60 FPS (سلاسة فائقة)</option>
-                            <option value="30" selected>30 FPS (قياسي - متوازن)</option>
-                            <option value="24">24 FPS (سينمائي)</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label style="display:block; color:var(--text2); font-size:11px; margin-bottom:4px;">🗜️ ضغط الحجم (Bitrate):</label>
-                        <select id="exportBitrateSelect" onchange="window.updateExportEstimates()" style="width:100%; padding:6px; border-radius:6px; background:var(--card); color:var(--text); border:1px solid var(--border); font-size:12px;">
-                            <option value="5000000">عالي (5 Mbps)</option>
-                            <option value="2500000" selected>متوسط (2.5 Mbps)</option>
-                            <option value="1000000">منخفض جداً (1 Mbps)</option>
+                        <label style="display:block; color:var(--text2); margin-bottom:2px;">سلاسة الحركة (FPS):</label>
+                        <select id="exportFPS" style="width:100%; padding:6px; border-radius:6px; background:var(--card); color:var(--text); border:1px solid var(--border);">
+                            <option value="30" selected>30 إطار/ثانية</option>
+                            <option value="60">60 إطار/ثانية (سلاسة فائقة)</option>
                         </select>
                     </div>
                 </div>
-
-                <div style="background: #000; padding: 8px; border-radius: 6px; border: 1px solid var(--border); text-align: center; font-size: 12px; color: var(--text2);">
-                    📊 الحجم التقديري المتوقع عند التصدير: <span id="finalEstSizeMB" style="color: var(--gold); font-weight: bold;">-- MB</span>
-                </div>
             </div>
-
-            <!-- 📥 أزرار التصدير والتنزيل -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <button onclick="window.exportStudioPureAudio()" style="background: #005485; color: #fff; border: none; padding: 12px; border-radius: 10px; font-weight: bold; font-family: 'Amiri', serif; font-size: 14px; cursor: pointer;">
-                    🎵 استخراج الصوت المنقى (MP3)
-                </button>
-                <button onclick="window.exportStudioOffline()" style="background: #4caf50; color: #fff; border: none; padding: 12px; border-radius: 10px; font-weight: bold; font-family: 'Amiri', serif; font-size: 14px; cursor: pointer;">
-                    🎬 تصدير الفيديو المعدل بالكامل
-                </button>
-            </div>
-
-            <div id="studioStatusLog" style="text-align: center; color: var(--gold); font-size: 13px; font-weight: bold; margin-top: 15px; font-family: sans-serif;"></div>
-        </div>
-    </div>`;
 
             <!-- 📥 أزرار التصدير والتنزيل -->
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
@@ -1181,21 +1158,18 @@ window.setTransition = function(clipIdx, type) {
 
 // 📂 معالجة رفع الفيديو
 // 📂 معالجة رفع الفيديو
-// 📂 معالجة رفع الفيديو والصور بضمان قراءة المدة الحقيقية وتفادي التعليق عند 0
+// 📂 معالجة رفع الفيديو بضمان قراءة المدة الحقيقية (Reliable Duration Handling)
 window.handleStudioFileUpload = function(event) {
-    const file = event.target ? event.target.files[0] : event;
+    const file = event.target.files[0];
     if (!file) return;
 
-    window.studioEngine.originalFileSize = file.size || 0;
-    const fileNameEl = document.getElementById('studioFileName');
-    if (fileNameEl) {
-        fileNameEl.textContent = `📹 الملف المختار: ${file.name || 'ملف مخصص'} (${((file.size || 0) / (1024 * 1024)).toFixed(1)} MB)`;
-    }
+    window.studioEngine.originalFileSize = file.size;
+    document.getElementById('studioFileName').textContent = `📹 الملف المختار: ${file.name} (${(file.size / (1024 * 1024)).toFixed(1)} MB)`;
     
     const video = document.getElementById('studioVideoPlayer');
     const videoURL = URL.createObjectURL(file);
     video.src = videoURL;
-    video.loop = false;
+    video.loop = false; // 🚫 إيقاف التكرار التلقائي للفيديو
     
     window.studioEngine.videoElement = video;
     window.studioEngine.renderCanvas = document.getElementById('studioCanvas');
@@ -1204,10 +1178,8 @@ window.handleStudioFileUpload = function(event) {
     document.getElementById('studioWorkArea').style.display = 'block';
 
     const finalizeClip = (dur) => {
-        // إذا كانت المدة غير محددة أو غير منتهية (كما يحدث مع صور WebM)، نحدد مدة افتراضية 15 ثانية
-        const validDuration = (dur && isFinite(dur) && dur > 0) ? dur : (window.studioEngine.customImageDuration || 15);
-        
-        window.studioEngine.clips = [{ id: 1, start: 0, end: validDuration }];
+        if (!dur || isNaN(dur) || !isFinite(dur)) return;
+        window.studioEngine.clips = [{ id: 1, start: 0, end: dur }];
 
         window.studioEngine.renderCanvas.width = video.videoWidth || 1280;
         window.studioEngine.renderCanvas.height = video.videoHeight || 720;
@@ -1224,37 +1196,58 @@ window.handleStudioFileUpload = function(event) {
         window.drawSingleStudioFrame();
     };
 
-    video.onloadedmetadata = () => {
-        finalizeClip(video.duration);
-    };
-
     video.onloadeddata = () => {
-        finalizeClip(video.duration);
+        if (isFinite(video.duration) && video.duration > 0) {
+            finalizeClip(video.duration);
+            return;
+        }
+        const onDurationChange = () => {
+            if (isFinite(video.duration) && video.duration > 0) {
+                video.removeEventListener('durationchange', onDurationChange);
+                finalizeClip(video.duration);
+            }
+        };
+        video.addEventListener('durationchange', onDurationChange);
+
+        if (!isFinite(video.duration)) {
+            video.currentTime = 1e10;
+            video.ontimeupdate = () => {
+                video.ontimeupdate = null;
+                video.currentTime = 0;
+                if (isFinite(video.duration) && video.duration > 0) {
+                    finalizeClip(video.duration);
+                }
+            };
+        }
     };
 
-    video.onplay = () => {
-        const e = window.studioEngine;
-        const curClip = e.clips[e.selectedClipIndex];
-        const endT = curClip ? curClip.end : (isFinite(video.duration) ? video.duration : 15);
-        
-        if (video.currentTime >= endT - 0.1 || video.ended) {
-            video.currentTime = curClip ? curClip.start : 0;
-        }
+    // 🎵 عند تشغيل الفيديو: تشغيل المؤثر الصوتي
+video.onplay = () => {
+    const e = window.studioEngine;
+    const curClip = e.clips[e.selectedClipIndex];
+    const endT = curClip ? curClip.end : video.duration;
+    
+    // 👈 السطر ده: لو واقف عند النهاية أو قريبه منها، يرجع للبداية فوراً قبل التشغيل
+    if (video.currentTime >= endT - 0.1 || video.ended) {
+        video.currentTime = curClip ? curClip.start : 0;
+    }
 
-        window.initStudioAudioEngine();
-        if (e.ambientAudioEl) {
-            e.ambientAudioEl.play();
-        }
-        window.startCanvasRenderLoop();
-        if (typeof window.drawAudioWaveform === 'function') window.drawAudioWaveform();
-    };
+    window.initStudioAudioEngine();
+    if (e.ambientAudioEl) {
+        e.ambientAudioEl.play();
+    }
+    window.startCanvasRenderLoop();
+    if (typeof window.drawAudioWaveform === 'function') window.drawAudioWaveform();
+};
 
+    // 🛑 عند إيقاف الفيديو: إيقاف المؤثر الصوتي فوراً
     video.onpause = () => {
         if (window.studioEngine.ambientAudioEl) {
             window.studioEngine.ambientAudioEl.pause();
         }
     };
 
+    // 🏁 عند انتهاء الفيديو: الوقوف تماماً وعدم الإعادة
     video.onended = () => {
         if (window.studioEngine.ambientAudioEl) {
             window.studioEngine.ambientAudioEl.pause();
@@ -1641,16 +1634,10 @@ function startSpectrumAndLoudnessVisualizer() {
     draw();
 }
 
-// 🎛️ تحديث فلاتر الصوت المباشرة وتربيط المربعات التشغيلية فعلياً
 window.updateStudioAudioFilters = function() {
     const e = window.studioEngine;
     if (!e.audioCtx) return;
 
-    // 1. قراءة حالة المربعات (Checkboxes)
-    const enableDynamics = document.getElementById('chkDynamicsProcessor')?.checked ?? true;
-    const enableNoiseDereverb = document.getElementById('chkNoiseDereverb')?.checked ?? true;
-
-    // 2. قراءة قيم السلايدرات
     const masterGain = parseFloat(document.getElementById('sliderMasterGain')?.value || 100);
     const presence = parseFloat(document.getElementById('sliderPresence')?.value || 0);
     const warmth = parseFloat(document.getElementById('sliderWarmth')?.value || 0);
@@ -1660,7 +1647,6 @@ window.updateStudioAudioFilters = function() {
     const reverb = parseFloat(document.getElementById('sliderReverb')?.value || 0);
     const noise = parseFloat(document.getElementById('sliderNoise')?.value || 0);
 
-    // تحديث النصوص الرقمية في الواجهة
     if (document.getElementById('valMasterGain')) document.getElementById('valMasterGain').textContent = `${masterGain}%`;
     if (document.getElementById('valPresence')) document.getElementById('valPresence').textContent = `${presence}%`;
     if (document.getElementById('valWarmth')) document.getElementById('valWarmth').textContent = `${warmth}%`;
@@ -1671,37 +1657,14 @@ window.updateStudioAudioFilters = function() {
     if (document.getElementById('valNoise')) document.getElementById('valNoise').textContent = noise > 0 ? `${noise}%` : 'إيقاف';
 
     if (!e.isOriginal) {
-        // 📢 مضاعف الصوت
         if (e.masterGainNode) e.masterGainNode.gain.value = masterGain / 100;
-        
-        // 🗣️ التجسيم والوضوح
-        if (e.presenceFilter) e.presenceFilter.gain.value = (presence / 100) * 12;
-        if (e.warmthFilter) e.warmthFilter.gain.value = (warmth / 100) * 10;
+        if (e.presenceFilter) e.presenceFilter.gain.value = (presence / 100) * 12; // رفعة تصل لـ +12dB
+        if (e.warmthFilter) e.warmthFilter.gain.value = (warmth / 100) * 10;     // رفعة تصل لـ +10dB
         if (e.voiceFilter) e.voiceFilter.gain.value = (voice - 100) / 10;
         if (e.trebleFilter) e.trebleFilter.gain.value = -(treble / 2.5);
         if (e.bassFilter) e.bassFilter.gain.value = -(bass / 2.5);
-
-        // 🛡️ تفعيل / إيقاف ثبات الصوت والـ Limiter فعلياً
-        if (e.compressorNode) {
-            if (enableDynamics) {
-                e.compressorNode.threshold.value = -24;
-                e.compressorNode.ratio.value = 12;
-            } else {
-                e.compressorNode.threshold.value = 0;
-                e.compressorNode.ratio.value = 1;
-            }
-        }
-
-        // ✨ تفعيل / إيقاف عزل الضوضاء والصدى فعلياً
-        if (e.noiseFilter) {
-            if (enableNoiseDereverb) {
-                e.noiseFilter.Q.value = noise > 0 ? (noise / 10) : 0.5;
-                if (e.reverbGain) e.reverbGain.gain.value = (reverb / 100) * 0.6;
-            } else {
-                e.noiseFilter.Q.value = 0.001;
-                if (e.reverbGain) e.reverbGain.gain.value = 0;
-            }
-        }
+        if (e.reverbGain) e.reverbGain.gain.value = (reverb / 100) * 0.6;
+        if (e.noiseFilter) e.noiseFilter.Q.value = noise > 0 ? (noise / 10) : 0.001;
     }
 };
 
@@ -2951,20 +2914,7 @@ window.drawStudioCanvas = function () {
     
     if (isVideoVisible) {
         ctx.save();
-// 🎥 تفعيل حركة الكاميرا الانسيابية الحية أثناء الرسم (Camera Float)
-            if (e.particleSystem && e.particleSystem.type === 'cameraShake') {
-                const time = Date.now() * 0.001 * (e.particleSystem.speed || 1.0);
-                const intensity = (e.particleSystem.size || 1.0) * 12;
-                
-                const offsetX = Math.sin(time * 1.5) * intensity;
-                const offsetY = Math.cos(time * 2.0) * (intensity * 0.6);
-                const rotation = Math.sin(time * 0.8) * 0.015 * (e.particleSystem.size || 1.0);
 
-                ctx.translate(canvas.width / 2 + offsetX, canvas.height / 2 + offsetY);
-                ctx.rotate(rotation);
-                ctx.scale(1.05, 1.05);
-                ctx.translate(-canvas.width / 2, -canvas.height / 2);
-            }
         if (e.enableMirrorFlip) {
             ctx.translate(canvas.width, 0);
             ctx.scale(-1, 1);
@@ -3676,11 +3626,9 @@ window.selectParticleType = function(type, btnEl) {
     const canvas = e.renderCanvas;
     if (canvas) e.particleSystem.init(canvas.width, canvas.height);
 
-document.getElementById('studioStatusLog').textContent = type === 'none'
-    ? '🚫 تم إيقاف تأثيرات الجو'
-    : type === 'cameraShake'
-    ? '🎥 تم تفعيل حركة الكاميرا الانسيابية! انتحكم في السرعة والمدى من السلايدرات بالأسفل.'
-    : '✨ تم تفعيل التأثير! يمكنك التحكم في كميته وسرعته من السلايدرات تحت.';
+    document.getElementById('studioStatusLog').textContent = type === 'none'
+        ? '🚫 تم إيقاف تأثيرات الجو'
+        : '✨ تم تفعيل التأثير! يمكنك التحكم في كميته وسرعته من السلايدرات تحت.';
 };
 
 window.updateParticleEffect = function() {
@@ -3789,60 +3737,5 @@ window.toggleStudioDirectRecord = async function() {
       studioMediaRecorder.stop();
       isStudioRecording = false;
     }
-  }
-};
-// 🖼️ تحويل صورة ثابته إلى فيديو بالمدة المحددة بدون تعليق العداد
-window.convertImageToStudioVideo = function(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  const img = new Image();
-  img.onload = () => {
-    window.studioEngine.bgCustomImage = img;
-    const canvas = document.createElement('canvas');
-    canvas.width = 1280;
-    canvas.height = 720;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0, 1280, 720);
-
-    const stream = canvas.captureStream(25);
-    const mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
-    const chunks = [];
-
-    mediaRecorder.ondataavailable = e => chunks.push(e.data);
-    mediaRecorder.onstop = () => {
-      const blob = new Blob(chunks, { type: 'video/webm' });
-      const videoFile = new File([blob], `صورة_فيديو_${Date.now()}.webm`, { type: 'video/webm' });
-      
-      // حفظ مدة افتراضية 15 ثانية
-      window.studioEngine.customImageDuration = 15;
-      
-      // تغذية الاستوديو بالفيديو المولد
-      window.handleStudioFileUpload(videoFile);
-      
-      const durationBox = document.getElementById('imageDurationControl');
-      if (durationBox) durationBox.style.display = 'block';
-    };
-
-    mediaRecorder.start();
-    setTimeout(() => {
-      mediaRecorder.stop();
-    }, 800);
-  };
-
-  img.src = URL.createObjectURL(file);
-};
-
-// ⏱️ تحديث مدة فيديو الصورة على التايم لاين حسب رغبة المستخدم
-window.updateImageVideoDuration = function(secondsVal) {
-  const secs = parseFloat(secondsVal) || 15;
-  const e = window.studioEngine;
-  if (e.clips && e.clips.length > 0) {
-    e.clips[0].end = secs;
-    if (e.videoElement) {
-      e.videoElement.duration = secs;
-    }
-    window.renderTimelineUI();
-    document.getElementById('studioStatusLog').textContent = `⏱️ تم تعديل مدة عرض الصورة إلى ${secs} ثانية بنجاح!`;
   }
 };
