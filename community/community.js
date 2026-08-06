@@ -1066,7 +1066,7 @@ await addDoc(collection(db, "posts"), {
 window.listenToPosts = function(gender) {
   const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(50));
   const myName = localStorage.getItem('athr_user_name');
-  
+  const isFirstRender = listArea && listArea.children.length === 0;
   unsubscribePosts = onSnapshot(q, (snapshot) => {
     const listArea = document.getElementById('postsList');
     if (!listArea) return;
@@ -1216,7 +1216,30 @@ ${(data.name === myName || window.isAdminUser()) ? `
       }
     });
 
-    listArea.innerHTML = html || `<div class="comm-card"><p style="color:var(--text2); text-align:center;">الساحة فارغة، انشر أثرك الطيب الحين...</p></div>`;
+// ✅ السطر الجديد: يرسم الصفحة أول مرة فقط، وفي التحديثات التفاعلية يُحدث العدادات فقط دون إعادة رسم الفيديوهات!
+if (isFirstRender) {
+  listArea.innerHTML = html || `<div class="comm-card"><p style="color:var(--text2); text-align:center;">الساحة فارغة، انشر أثرك الطيب الحين...</p></div>`;
+} else {
+  // تحديث عدادات التفاعل والتعليقات بالـ DOM المباشر لكل منشور دون المساس بالـ Video أو عمل Reset
+  snapshot.docs.forEach((docSnap) => {
+    const data = docSnap.data();
+    const docId = docSnap.id;
+    const card = listArea.querySelector(`[data-post-id="${docId}"]`) || listArea.children[0];
+    if (card) {
+      const likesCountBox = card.querySelector('.post-stats-counter div:first-child');
+      const commentsCountBox = card.querySelector('.post-stats-counter div:last-child');
+      const likesArr = data.likes || [];
+      if (likesCountBox) {
+        likesCountBox.innerHTML = likesArr.length > 0 
+          ? `<span style="background: var(--gold); color: #111; border-radius: 50%; padding: 2px 5px; font-size: 10px; margin-left: 4px;">✨</span> ${likesArr.length}` 
+          : '';
+      }
+      if (commentsCountBox) {
+        commentsCountBox.innerHTML = `<span>${data.commentsCount || 0} تعليق</span>`;
+      }
+    }
+  });
+}    
   });
 };
  
