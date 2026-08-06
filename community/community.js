@@ -46,6 +46,7 @@ window.getRandomAdminBoost = function() {
 
 window.currentCommunityTab = 'feed'; 
 window.activePrivateRoomId = null; 
+let isFirstLoad = true;
 let unsubscribePosts = null; 
 let unsubscribeChats = null;
 let unsubscribePrivates = null;
@@ -1216,7 +1217,10 @@ ${(data.name === myName || window.isAdminUser()) ? `
       }
     });
 
-    listArea.innerHTML = html || `<div class="comm-card"><p style="color:var(--text2); text-align:center;">الساحة فارغة، انشر أثرك الطيب الحين...</p></div>`;
+if (isFirstLoad) {
+  listArea.innerHTML = html || `<div class="comm-card"><p style="color:var(--text2); text-align:center;">الساحة فارغة، انشر أثرك الطيب الحين...</p></div>`;
+  isFirstLoad = false;
+}    
   });
 };
  
@@ -1232,14 +1236,14 @@ window.togglePostLike = async function(event, docId, hasLiked, emoji = '❤️')
     return;
   }
 
-  // 👑 فحص هل المستخدم هو المشرف (أحمد محمد) عبر الإيميل
   const isMeAdmin = window.isAdminUser();
   const postRef = doc(db, "posts", docId);
   let likeBoost = 1;
 
+  // 👑 لو المستخدم مشرف، نحسب الزيادة العشوائية الضخمة المخصصة للمشرفين
   if (isMeAdmin) {
     if (hasLiked) {
-      // لو بيلغي اللايك، نجيب نفس الرقم اللي اتسجل قبل كده عشان يترد صح بدون فروقات
+      // عند إلغاء التفاعل: نجيب نفس الرقم المخصوم القديم
       try {
         const snap = await getDoc(postRef);
         likeBoost = (snap.exists() && snap.data().adminLikeBoost) ? snap.data().adminLikeBoost : window.getRandomAdminBoost();
@@ -1247,11 +1251,12 @@ window.togglePostLike = async function(event, docId, hasLiked, emoji = '❤️')
         likeBoost = window.getRandomAdminBoost();
       }
     } else {
+      // عند التفاعل لأول مرة: نولّد رقم عشوائي فخم من المصفوفة
       likeBoost = window.getRandomAdminBoost();
     }
   }
 
-  // تحديث الشاشة فوراً وسريعة
+  // 1️⃣ تحديث الشاشة فوراً في الريلز (لو مفتوحة) بالرقم الجديد
   const reelLikeBtn = document.getElementById(`reelLikeBtn-${docId}`);
   if (reelLikeBtn) {
     const iconBox = reelLikeBtn.querySelector('.like-icon-box');
@@ -1269,14 +1274,20 @@ window.togglePostLike = async function(event, docId, hasLiked, emoji = '❤️')
 
   if (!hasLiked && event) window.createFloatingEmoji(event, emoji);
 
-  // تحديث الفايربيز بالخلفية (تسجيل حقيقي دائم يشوفه كل الناس)
+  // 2️⃣ 🚀 حفظ الزيادة الضخمة مباشرة في السيرفر (Firestore) لتظهر بنفس الرقم عند جميع المستخدمين فوراً!
   try {
     if (hasLiked) {
-      const updates = { likes: arrayRemove(myName), likesCount: increment(-likeBoost) };
+      const updates = { 
+        likes: arrayRemove(myName), 
+        likesCount: increment(-likeBoost) 
+      };
       if (isMeAdmin) updates.adminLikeBoost = null;
       await updateDoc(postRef, updates);
     } else {
-      const updates = { likes: arrayUnion(myName), likesCount: increment(likeBoost) };
+      const updates = { 
+        likes: arrayUnion(myName), 
+        likesCount: increment(likeBoost) 
+      };
       if (isMeAdmin) updates.adminLikeBoost = likeBoost;
       await updateDoc(postRef, updates);
       window.awardPoints(myName, 2);
