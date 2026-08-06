@@ -1066,95 +1066,157 @@ await addDoc(collection(db, "posts"), {
 window.listenToPosts = function(gender) {
   const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(50));
   const myName = localStorage.getItem('athr_user_name');
-  const renderedIds = new Set();
-
+  
   unsubscribePosts = onSnapshot(q, (snapshot) => {
     const listArea = document.getElementById('postsList');
     if (!listArea) return;
 
-    const isAllowed = (data) => data.gender === gender || (data.email && window.ADMIN_EMAILS.includes(data.email.toLowerCase()));
-
-    // أول تحميل للصفحة
-    if (renderedIds.size === 0) {
-      
-// ✅ نفحص هل الساحة فاضية فعلياً ولا مليانة كروت قبل كدا
-    const isAreaEmpty = !listArea.querySelector('.comm-card:not(:has(p))');
     let html = "";
+    
+    snapshot.docs.forEach((docSnap) => {
+      const data = docSnap.data();
+      const docId = docSnap.id;
       
-      snapshot.docs.forEach((docSnap) => {
-        const data = docSnap.data();
-        const docId = docSnap.id;
-        if (isAllowed(data)) {
-          html += window.buildPostCardHtml ? window.buildPostCardHtml(data, docId, myName) : '';
-          renderedIds.add(docId);
-        }
-      });
+if (data.gender === gender || (data.email && window.ADMIN_EMAILS.includes(data.email.toLowerCase()))) {
+        const likesArr = data.likes || [];
+        const hasLiked = likesArr.includes(myName);
+        
+        // جلب صورة افتراضية أولاً لحين تحميل الصورة الحقيقية للملف الشخصي
+        let userAvatar = "https://www.gstatic.com/firebasejs/ui/2.0.0/images/temporary-avatar.png";
+        let nameClass = "regular-user-text";
 
-// ✅ لو الساحة فاضية يرسمها، ولو مليانة يضيف البوست الجديد بـ insertAdjacentHTML بدون مسح أو ريلود للساحة!
-    if (isAreaEmpty) {
-      listArea.innerHTML = html || `<div class="comm-card"><p style="color:var(--text2); text-align:center;">الساحة فارغة، انشر أثرك الطيب الحين...</p></div>`;
-    }
-      snapshot.docs.forEach((docSnap) => {
-        const data = docSnap.data();
-        if (!isAllowed(data)) return;
+let mediaHtml = "";
+if (data.mediaUrl) {
+  if (data.mediaType === 'video') {
+    mediaHtml = `
+      <div style="position:relative; margin-top:10px; border-radius:8px; overflow:hidden; background:#000; border:1px solid var(--gold);">
+        <button 
+          onclick="window.downloadCommunityVideo('${data.mediaUrl}', 'فيديو_أثر_${data.name}')" 
+          style="position:absolute; top:10px; left:10px; z-index:10; background:rgba(0,0,0,0.7); backdrop-filter:blur(4px); color:var(--gold, #d4af37); border:1px solid var(--gold, #d4af37); padding:6px 12px; border-radius:20px; font-size:12px; font-weight:bold; cursor:pointer; display:flex; align-items:center; gap:5px;"
+          title="تنزيل الفيديو إلى جهازك"
+        >
+          <span>📥 تنزيل الفيديو</span>
+        </button>
+        <video controls style="width:100%; max-height:380px; display:block;" preload="metadata" playsinline>
+          <source src="${data.mediaUrl}" type="video/mp4">
+          <source src="${data.mediaUrl}" type="video/webm">
+          متصفحك لا يدعم تشغيل هذا الفيديو.
+        </video>
+      </div>`;
+  } else if (data.mediaType === 'image') {
+    mediaHtml = `<img src="${data.mediaUrl}" onclick="window.openImageLightbox('${data.mediaUrl}')" style="width:100%; border-radius:8px; margin-top:10px; max-height:300px; object-fit:contain; background:#000; cursor:pointer;" />`;
+  }
+}
+
+// استبدل بناء الكارت الداخلي بهذا الهيكل العصري:
+html += `
+  <div class="comm-card">
+    <!-- 1. رأس المنشور (البروفايل، الاسم، الوقت) -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+      <div style="display: flex; align-items: center; gap: 10px; cursor: pointer;" onclick="window.openUserProfileCard('${data.name}')">
+        <img src="${userAvatar}" id="avatar-post-${docId}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--gold, #d4af37);" />
+        <div>
+<strong class="${nameClass}" id="name-post-${docId}" style="font-size: 14px; display: block; line-height: 1.2;">
+  ${data.name} ${data.email && window.ADMIN_EMAILS.includes(data.email.toLowerCase()) ? '<span style="color:var(--gold); background:rgba(212,175,55,0.08); font-size:10px; font-weight:bold; padding:2px 8px; border-radius:6px; border:1px solid rgba(212,175,55,0.4); margin-right:5px; display:inline-block;">المشرف</span>' : ''} ${data.gender === 'female' ? '🧕' : ''}
+</strong>
+          
+          <small style="color: var(--text2); font-size: 11px; margin-top: 2px; display: block;">
+            ${data.createdAt ? window.formatPostTime(data.createdAt) : 'الآن ✨'} • 🌐
+          </small>
+        </div>
+      </div>
+      
+${(data.name === myName || window.isAdminUser()) ? `
+        <button onclick="window.deletePost('${docId}')" style="background:none; border:none; color:#ff4d4d; font-size:14px; cursor:pointer; opacity:0.7; padding:4px;" title="حذف المنشور">🗑️</button>
+      ` : ''}
+    </div>
+    
+    <!-- 2. نص المنشور -->
+    ${data.text ? `<p style="color: var(--text); font-family: 'Amiri', serif; font-size: 16px; line-height: 1.6; white-space: pre-wrap; margin: 0 0 10px 0;">${data.text}</p>` : ''}
+    
+    <!-- 3. ميديا المنشور (صور أو فيديو) -->
+    ${mediaHtml}
+    
+    <!-- 4. شريط العدادات (عدد التفاعلات والتعليقات) -->
+    <div class="post-stats-counter">
+      <div>
+        ${likesArr.length > 0 ? `<span style="background: var(--gold); color: #111; border-radius: 50%; padding: 2px 5px; font-size: 10px; margin-left: 4px;">✨</span> ${likesArr.length}` : ''}
+      </div>
+      <div>
+        <span>${data.commentsCount || 0} تعليق</span>
+      </div>
+    </div>
+    
+    <!-- 5. شريط الأزرار الفيس بوكي (تفاعل - تعليق - مشاركة) -->
+    <div class="post-actions-fb">
+      <div style="position: relative; flex: 1; display: flex;">
+        <button 
+          onmousedown="window.startReactionPress(event, '${docId}')" 
+          onmouseup="window.endReactionPress(event, '${docId}', ${hasLiked})" 
+          ontouchstart="window.startReactionPress(event, '${docId}')" 
+          ontouchend="window.endReactionPress(event, '${docId}', ${hasLiked})"
+          onclick="if(!window.isLongPress) window.togglePostLike(event, '${docId}', ${hasLiked})"
+          class="fb-action-btn"
+          style="${hasLiked ? 'color: var(--gold, #d4af37) !important; font-weight: bold;' : ''}"
+        >
+          <span>${hasLiked ? '✨' : '👍'}</span>
+          <span>${hasLiked ? 'متفاعل' : 'تفاعل'}</span>
+        </button>
+
+        <!-- قائمة الإيموجيز عند الضغط المطول -->
+        <div id="reactionMenu-${docId}" style="display:none; position: absolute; bottom: 42px; right: 0; background: #1c1d1e; border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; padding: 6px 12px; gap: 10px; z-index: 99999; box-shadow: 0 8px 24px rgba(0,0,0,0.5);">
+          <span onclick="window.selectCustomReaction(event, '${docId}', '👍')" style="cursor:pointer; font-size:22px; transition: transform 0.1s;" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">👍</span>
+          <span onclick="window.selectCustomReaction(event, '${docId}', '❤️')" style="cursor:pointer; font-size:22px; transition: transform 0.1s;" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">❤️</span>
+          <span onclick="window.selectCustomReaction(event, '${docId}', '🤝')" style="cursor:pointer; font-size:22px; transition: transform 0.1s;" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">🤝</span>
+          <span onclick="window.selectCustomReaction(event, '${docId}', '😮')" style="cursor:pointer; font-size:22px; transition: transform 0.1s;" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">😮</span>
+          <span onclick="window.selectCustomReaction(event, '${docId}', '😢')" style="cursor:pointer; font-size:22px; transition: transform 0.1s;" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">😢</span>
+        </div>
+      </div>
+
+      <button onclick="window.toggleCommentsSection('${docId}')" class="fb-action-btn">
+        <span>💬</span>
+        <span>تعليق</span>
+      </button>
+
+<button onclick="window.openCommShareSheet(\`${data.text ? data.text.replace(/"/g, '&quot;') : 'أثر طيب'}\`, '${data.name}', '${data.mediaUrl || ''}', '${data.mediaType || ''}')" class="fb-action-btn">      
+        <span>🔗</span>
+        <span>مشاركة</span>
+      </button>
+    </div>
+
+    <!-- 6. قسم التعليقات (مخفي ويظهر عند الضغط) -->
+    <div id="commentsWrapper-${docId}" style="display:none; padding-top:12px; border-top: 1px solid rgba(0,0,0,0.05); margin-top: 8px;">
+      <div id="commentsList-${docId}" style="max-height:220px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; margin-bottom:10px;"></div>
+      <div style="display:flex; gap:8px; align-items: center;">
+        <input id="commentInput-${docId}" type="text" placeholder="اكتب تعليقاً طيباً..." style="flex:1; padding:8px 14px; background: rgba(0,0,0,0.05); border:1px solid var(--border); color:var(--text); border-radius:20px; font-size:13px; outline:none;" onkeypress="if(event.key==='Enter') window.sendComment('${docId}')" />
+        <button onclick="window.sendComment('${docId}')" style="background:var(--gold); color:#111; border:none; padding:6px 16px; border-radius:20px; font-size:12px; font-weight:bold; cursor:pointer;">إرسال</button>
+      </div>
+    </div>
+  </div>
+`;
+        
+        // إصلاح تحديث الصورة والاسم الحقيقي للكاتب بداخل الـ Feed
         getDoc(doc(db, "users_profiles", data.name)).then(userDoc => {
           if (userDoc.exists()) {
             const uData = userDoc.data();
-            const avatarImg = document.getElementById(`avatar-post-${docSnap.id}`);
-            const nameTxt = document.getElementById(`name-post-${docSnap.id}`);
+            const avatarImg = document.getElementById(`avatar-post-${docId}`);
+            const nameTxt = document.getElementById(`name-post-${docId}`);
+            
             if (uData.avatar && avatarImg) avatarImg.src = uData.avatar;
             if (nameTxt) {
               const isOnline = window.isUserOnline(uData.lastSeen);
               nameTxt.innerHTML = `✨ ${uData.name || data.name} ${isOnline ? '<span class="online-dot"></span>' : ''}`;
+              if (typeof window.getUserNameClassAndStyle === 'function') {
+                const styleInfo = window.getUserNameClassAndStyle(uData.points);
+                nameTxt.className = styleInfo.class;
+              }
             }
           }
         }).catch(e => console.log("Profile async fetch skip:", e));
-      });
-      return;
-    }
-
-    // التحديثات اللحظية بدون إعادة تحميل الفيديوهات
-    snapshot.docChanges().forEach(change => {
-      const docSnap = change.doc;
-      const docId = docSnap.id;
-      const data = docSnap.data();
-
-      if (change.type === 'added') {
-        if (renderedIds.has(docId) || !isAllowed(data)) return;
-
-        const emptyMsg = listArea.querySelector('p');
-        if (listArea.children.length === 1 && emptyMsg) listArea.innerHTML = '';
-
-        if (window.buildPostCardHtml) {
-          listArea.insertAdjacentHTML('afterbegin', window.buildPostCardHtml(data, docId, myName));
-        }
-        renderedIds.add(docId);
-
-      } else if (change.type === 'modified') {
-        if (!isAllowed(data)) return;
-        const card = listArea.querySelector(`[data-post-id="${docId}"]`);
-        if (card) {
-          const likesCountBox = card.querySelector(`#likesCountBox-${docId}`);
-          const commentsCountBox = card.querySelector(`#commentsCountBox-${docId}`);
-          const likesArr = data.likes || [];
-          const displayLikesCount = (typeof data.likesCount === 'number') ? data.likesCount : likesArr.length;
-
-          if (likesCountBox) {
-            likesCountBox.innerHTML = displayLikesCount > 0 
-              ? `<span style="background: var(--gold); color: #111; border-radius: 50%; padding: 2px 5px; font-size: 10px; margin-left: 4px;">✨</span> ${displayLikesCount}` 
-              : '';
-          }
-          if (commentsCountBox) {
-            commentsCountBox.innerHTML = `<span>${data.commentsCount || 0} تعليق</span>`;
-          }
-        }
-
-      } else if (change.type === 'removed') {
-        const el = listArea.querySelector(`[data-post-id="${docId}"]`);
-        if (el) el.remove();
-        renderedIds.delete(docId);
       }
     });
+
+    listArea.innerHTML = html || `<div class="comm-card"><p style="color:var(--text2); text-align:center;">الساحة فارغة، انشر أثرك الطيب الحين...</p></div>`;
   });
 };
  
@@ -1170,36 +1232,26 @@ window.togglePostLike = async function(event, docId, hasLiked, emoji = '❤️')
     return;
   }
 
+  // 👑 فحص هل المستخدم هو المشرف (أحمد محمد) عبر الإيميل
   const isMeAdmin = window.isAdminUser();
   const postRef = doc(db, "posts", docId);
-  let likeBoost = isMeAdmin ? window.getRandomAdminBoost() : 1;
+  let likeBoost = 1;
 
-  // 1️⃣ تحديث التفاعل فوراً في ساحة الأثر (Feed)
-  const cardArea = document.querySelector(`[data-post-id="${docId}"]`);
-  if (cardArea) {
-    const likeBtn = cardArea.querySelector(`#likeBtnFeed-${docId}`) || cardArea.querySelector('.fb-action-btn');
-    const likesCountBox = cardArea.querySelector(`#likesCountBox-${docId}`);
-
-    if (likesCountBox) {
-      let currentCount = parseInt(likesCountBox.textContent) || 0;
-      let newCount = hasLiked ? Math.max(0, currentCount - likeBoost) : (currentCount + likeBoost);
-      likesCountBox.innerHTML = newCount > 0 
-        ? `<span style="background: var(--gold); color: #111; border-radius: 50%; padding: 2px 5px; font-size: 10px; margin-left: 4px;">✨</span> ${newCount}` 
-        : '';
-    }
-
-    if (likeBtn) {
-      likeBtn.style.color = !hasLiked ? 'var(--gold, #d4af37)' : '';
-      likeBtn.style.fontWeight = !hasLiked ? 'bold' : 'normal';
-      const iconSpan = likeBtn.querySelector('span:first-child');
-      const textSpan = likeBtn.querySelector('span:last-child');
-      if (iconSpan) iconSpan.textContent = !hasLiked ? '✨' : '👍';
-      if (textSpan) textSpan.textContent = !hasLiked ? 'متفاعل' : 'تفاعل';
-      likeBtn.setAttribute('onclick', `if(!window.isLongPress) window.togglePostLike(event, '${docId}', ${!hasLiked})`);
+  if (isMeAdmin) {
+    if (hasLiked) {
+      // لو بيلغي اللايك، نجيب نفس الرقم اللي اتسجل قبل كده عشان يترد صح بدون فروقات
+      try {
+        const snap = await getDoc(postRef);
+        likeBoost = (snap.exists() && snap.data().adminLikeBoost) ? snap.data().adminLikeBoost : window.getRandomAdminBoost();
+      } catch (e) {
+        likeBoost = window.getRandomAdminBoost();
+      }
+    } else {
+      likeBoost = window.getRandomAdminBoost();
     }
   }
 
-  // 2️⃣ تحديث التفاعل فوراً في شاشة الريلز (Reels)
+  // تحديث الشاشة فوراً وسريعة
   const reelLikeBtn = document.getElementById(`reelLikeBtn-${docId}`);
   if (reelLikeBtn) {
     const iconBox = reelLikeBtn.querySelector('.like-icon-box');
@@ -1207,7 +1259,7 @@ window.togglePostLike = async function(event, docId, hasLiked, emoji = '❤️')
 
     if (countNum) {
       let current = parseInt(countNum.textContent) || 0;
-      countNum.textContent = hasLiked ? Math.max(0, current - likeBoost) : (current + likeBoost);
+      countNum.textContent = hasLiked ? Math.max(0, current - likeBoost) : current + likeBoost;
     }
     if (iconBox) {
       iconBox.textContent = hasLiked ? '🤍' : '❤️';
@@ -1217,7 +1269,7 @@ window.togglePostLike = async function(event, docId, hasLiked, emoji = '❤️')
 
   if (!hasLiked && event) window.createFloatingEmoji(event, emoji);
 
-  // 3️⃣ الحفظ في السيرفر (Firestore)
+  // تحديث الفايربيز بالخلفية (تسجيل حقيقي دائم يشوفه كل الناس)
   try {
     if (hasLiked) {
       const updates = { likes: arrayRemove(myName), likesCount: increment(-likeBoost) };
@@ -2720,69 +2772,87 @@ window.loadNextReelsBatch = async function(isFirstBatch = false) {
   let watchedSet = window.getWatchedReelsSet();
 
   try {
-    let q;
-    if (state.lastDoc) {
-      q = query(collection(db, "posts"), where("mediaType", "==", "video"), orderBy("createdAt", "desc"), startAfter(state.lastDoc), limit(50));
-    } else {
-      q = query(collection(db, "posts"), where("mediaType", "==", "video"), orderBy("createdAt", "desc"), limit(50));
-    }
+    let addedAny = false;
+    let keepFetching = true;
 
-    if (window.unsubscribePosts) window.unsubscribePosts();
+    while (keepFetching) {
+      let q;
+      if (state.lastDoc) {
+        q = query(collection(db, "posts"), where("mediaType", "==", "video"), orderBy("createdAt", "desc"), startAfter(state.lastDoc), limit(50));
+      } else {
+        q = query(collection(db, "posts"), where("mediaType", "==", "video"), orderBy("createdAt", "desc"), limit(50));
+      }
 
-    window.unsubscribePosts = onSnapshot(q, (snap) => {
+      const snap = await getDocs(q);
+
+      // خلصت كل الفيديوهات الموجودة في السيرفر
       if (snap.empty) {
-        if (watchedSet.size > 0) {
+        if (!addedAny && watchedSet.size > 0) {
+          // كل الفيديوهات المتاحة اتشافت قبل كدا -> نبدأ دورة جديدة من الأول
           window.resetWatchedReels();
           watchedSet = new Set();
           state.lastDoc = null;
           state.loadedIds = new Set();
+          continue;
         }
         state.exhausted = true;
+        keepFetching = false;
         if (isFirstBatch && container && !container.querySelector('.reel-item')) {
           container.innerHTML = `<div style="color:#fff; text-align:center; padding-top:100px; font-family:'Amiri',serif; font-size:18px;">لا توجد مقاطع ريلز منشورة في هذا المجلس بعد 🎬</div>`;
         }
-        state.loading = false;
-        return;
+        break;
       }
 
       state.lastDoc = snap.docs[snap.docs.length - 1];
 
-      // 🎯 التحديث الذكي بدون تجميد أو ريلود للـ DOM
-      snap.docChanges().forEach(change => {
-        const docSnap = change.doc;
-        const docId = docSnap.id;
+      // فلترة: نطلع بس الفيديوهات الجديدة اللي (1) في نفس المجلس (2) لسه ماتشافتش
+      let batchDocs = [];
+      snap.docs.forEach(docSnap => {
         const data = docSnap.data();
-
-        if (change.type === 'modified') {
-          const likeNumEl = document.querySelector(`#reelLikeBtn-${docId} .like-count-num`);
-          if (likeNumEl) {
-            const likesArr = data.likes || [];
-            likeNumEl.textContent = typeof data.likesCount === 'number' ? data.likesCount : likesArr.length;
-          }
-        } else if (change.type === 'added' && !state.loadedIds.has(docId)) {
-          const isAdminPost = data.email && window.ADMIN_EMAILS.includes(data.email.toLowerCase());
-          if ((data.gender === state.gender || isAdminPost) && data.mediaUrl && !watchedSet.has(docId)) {
-            state.loadedIds.add(docId);
-            const hasLiked = myName && (data.likes || []).includes(myName);
-            const itemHtml = window.buildReelItemHtml(data, docId, hasLiked);
-            
-            if (container) {
-              const loadingText = container.querySelector('div');
-              if (loadingText && !container.querySelector('.reel-item')) {
-                container.innerHTML = "";
-              }
-              container.insertAdjacentHTML('afterbegin', itemHtml);
-            }
-          }
-        }
+        const docId = docSnap.id;
+        if (state.loadedIds.has(docId)) return;
+        if (watchedSet.has(docId)) return; // 🚫 اتشاف قبل كدا، منعرضوش تاني خالص
+        const isAdminPost = data.email && window.ADMIN_EMAILS.includes(data.email.toLowerCase());
+        if ((data.gender !== state.gender && !isAdminPost) || !data.mediaUrl) return;
+        state.loadedIds.add(docId);
+        batchDocs.push({ id: docId, ...data });
       });
 
-      window.setupReelsObserver(container);
-      state.loading = false;
-    });
+      if (isFirstBatch && container && !addedAny) container.innerHTML = "";
+
+      batchDocs.forEach(data => {
+        const docId = data.id;
+        const likesArr = data.likes || [];
+        const hasLiked = myName && likesArr.includes(myName);
+        const itemHtml = window.buildReelItemHtml(data, docId, hasLiked);
+        if (container) container.insertAdjacentHTML('beforeend', itemHtml);
+        addedAny = true;
+      });
+
+      if (snap.docs.length < 50) {
+        // مفيش دفعات تانية بعد كدا في السيرفر أصلاً
+        if (batchDocs.length === 0 && !addedAny && watchedSet.size > 0) {
+          // آخر دفعة كانت كلها متشافة -> ابدأ دورة جديدة
+          window.resetWatchedReels();
+          watchedSet = new Set();
+          state.lastDoc = null;
+          state.loadedIds = new Set();
+          continue;
+        }
+        state.exhausted = true;
+        keepFetching = false;
+      } else if (batchDocs.length > 0) {
+        // جبنا فيديوهات جديدة كفاية، نوقف اللوب ونعرضها
+        keepFetching = false;
+      }
+      // لو الدفعة دي كلها كانت متشافة بس لسه فيه دفعات تانية، اللوب هيكمل يجيب اللي بعدها تلقائياً
+    }
+
+    window.setupReelsObserver(container);
 
   } catch(e) {
     console.error("Reels load error:", e);
+  } finally {
     state.loading = false;
   }
 };
