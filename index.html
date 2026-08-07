@@ -8743,22 +8743,34 @@ if (savedName) {
   });
 
   // 8️⃣ دالة تسجيل الدخول الهجينة (Popup للأجهزة والـ PWA مع fallback)
+// 8️⃣ دالة تسجيل الدخول والخروج المضمونة
   window.triggerHeaderGoogleLogin = function() {
     const savedName = localStorage.getItem('user_display_name');
 
-    if (savedName || auth.currentUser) {
+    if (savedName || (auth && auth.currentUser)) {
       if (confirm('هل ترغب في تسجيل الخروج من الحساب وتطهير الجلسة الحالية؟')) {
+        
+        // 🎯 1. مسح جميع المفاتيح المتعلقة بالمستخدم فوراً من الذاكرة
         localStorage.removeItem('user_display_name');
         localStorage.removeItem('athr_user_name');
         localStorage.removeItem('athr_user_gender');
+        localStorage.removeItem('user_email');
+        localStorage.removeItem('user_photo_url');
+        localStorage.removeItem('athr_user_avatar');
+        sessionStorage.clear();
 
-        signOut(auth).then(() => {
-          alert("🔒 تم تسجيل الخروج بنجاح.");
+        // 🎯 2. خروج من الفايربيز وإعادة تحميل نظيفة
+        if (auth) {
+          signOut(auth).then(() => {
+            alert("🔒 تم تسجيل الخروج بنجاح.");
+            window.location.reload();
+          }).catch(err => {
+            console.error('خطأ أثناء الخروج:', err);
+            window.location.reload();
+          });
+        } else {
           window.location.reload();
-        }).catch(err => {
-          console.error('خطأ أثناء سحب الجلسة:', err);
-          window.location.reload();
-        });
+        }
       }
       return;
     }
@@ -8766,12 +8778,11 @@ if (savedName) {
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
 
-    // تجربة الـ Popup أولاً لأنها أنجح 100% في أجهزة PWA والموبايل الحديثة
     signInWithPopup(auth, provider)
       .then((result) => {
         const user = result.user;
         const firstName = user.displayName ? user.displayName.split(' ')[0] : 'المستخدم';
-try {
+        try {
           localStorage.setItem('user_display_name', firstName);
           localStorage.setItem('athr_user_name', firstName);
           if (user.email) localStorage.setItem('user_email', user.email.toLowerCase());
@@ -8780,7 +8791,6 @@ try {
       })
       .catch((err) => {
         console.warn("Popup blocked or failed, trying redirect...", err);
-        // إذا حظر المتصفح Popup نستخدم Redirect كخيار بديل
         signInWithRedirect(auth, provider).catch(rErr => {
           console.error("Redirect Error:", rErr);
           alert("⚠️ تعذر الاتصال بجوجل، تحقق من شبكة الإنترنت لديك.");
