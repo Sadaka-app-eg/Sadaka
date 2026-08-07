@@ -27,7 +27,7 @@ window.sheikhAvatars = {
   "حسن صالح": "https://media.unitedmuslimworld.com/img/24/01/02/12913_1704169256.jpg",
   "سلمان المطيري": "https://media.unitedmuslimworld.com/img/24/01/02/12913_1704169256.jpg",
   "أحمد بن طالب": "https://elmanshar.com/wp-content/uploads/2025/05/%D8%A7%D9%84%D8%B4%D9%8A%D8%AE-%D8%A3%D8%AD%D9%85%D8%AF-%D8%A8%D9%86-%D8%B7%D8%A7%D9%84%D8%A8.png",
-  "أدعية خاشعة": "https://example.com/doaa.jpg",
+  "أدعية خاشعة": "https://chatgpt.com/backend-api/estuary/content?id=file_00000000370c824385076231328372f2&ts=496142&p=fs&cid=1&sig=8c8313f797340b9a968e4cee5c14f74f32e138598f4fe356f0a6c9234b5bb586&v=0",
   "أناشيد": "https://chatgpt.com/backend-api/estuary/content?id=file_00000000fb1c8243b81f3b68dff32558&ts=496141&p=fs&cid=1&sig=e80ca4e79fbfdee05f077effe09617b96e3456e3f4b8835f9000c89e8d8a238a&v=0",
   // الصورة الافتراضية في حال عدم وجود صورة للشيخ
   "default": "https://images.unsplash.com/photo-1609599006353-e629aaabfeae?q=80&w=500&auto=format&fit=crop"
