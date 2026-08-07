@@ -1,6 +1,41 @@
 // ==========================================
 // مصفوفة التلاوات النادرة المظبوطة بالملي
 // ========================================== 
+
+// ==========================================
+// مصفوفة صور القراء (استبدل الرابط بأي صورة من جوجل)
+// ==========================================
+window.sheikhAvatars = {
+  "محمد عباده": "https://i.ytimg.com/vi/FcPmE_h5Tkw/maxresdefault.jpg",
+  "أحمد السعيد مندور": "https://i1.sndcdn.com/artworks-5w5jicQ4DMTl6uWy-3zhzAA-t1080x1080.jpg",
+  "أسامة عمران": "https://scontent.fcai23-1.fna.fbcdn.net/v/t39.30808-6/481356579_122163936878297909_4465087355139742659_n.jpg?stp=dst-jpg_tt6&cstp=mx960x960&ctp=s960x960&_nc_cat=108&ccb=1-7&_nc_sid=a5f93a&_nc_ohc=KLGkiGhS1bUQ7kNvwE2fkOK&_nc_oc=Adp55Bxghyp2HshGxgwjydegz0p0nIWzNZDCgFcxd3cBLvzgLFAdSkoFFG0WxjWIOG8&_nc_zt=23&_nc_ht=scontent.fcai23-1.fna&_nc_gid=wDUY9e6uATvU93XEBg9dDw&_nc_ss=7b289&oh=00_AQG32_KVXOp2zq8nIGTY5vE-uMUf16sc0JOV-tgm87klzw&oe=6A7BBBC1",
+  "ناصر القطامي": "https://i.pinimg.com/564x/6f/2d/35/6f2d3586e913233f1f03ade207398949.jpg",
+  "أحمد النفيس": "https://tse1.mm.bing.net/th/id/OIP.MhKlQ2QDTAeZOW_A89YyqAHaJ4?r=0&pid=Api&h=220&P=0",
+  "حسن فهمي": "https://images.search.yahoo.com/search/images;_ylt=AwrEIA4O2XVqNwIAQE6JzbkF;_ylu=Y29sbwNiZjEEcG9zAzEEdnRpZAMEc2VjA3Ny?fr=mcafee&p=%D8%B5%D9%88%D8%B1%D8%A9+%D8%AD%D8%B3%D9%86+%D9%81%D9%87%D9%85%D9%8A+%D8%A7%D9%84%D9%82%D8%A7%D8%B1%D8%A6&imgurl=https%3A%2F%2Fimg.youtube.com%2Fvi%2FDdUfQHq3jTA%2Fmaxresdefault.jpg",
+  "منشاوي": "https://gnram.com/content/uploads/2022/04/asdlkijyhnsddflasd-768x576.jpg",
+  "أحمد كاسب": "https://tse2.mm.bing.net/th/id/OIP.xIt8H49MndWUCrRyBNCU4AHaHT?r=0&pid=Api&h=220&P=0",
+  "عبدالرحمن مسعد": "https://i.ytimg.com/vi/1w5EvOJaKcI/maxresdefault.jpg",
+  "إسلام صبحي": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts122/v4/0b/88/93/0b8893cd-da13-e5f5-1da2-f48daee1632a/mza_6767763467441609118.jpg/1200x1200ECA.PESS01-60.jpg?imgShow=Podcasts112/v4/57/a2/6c/57a26c36-cab4-77b3-5e38-c0df763f5554/mza_18366441498081103401.jpg",
+  "ياسر الدوسري": "https://i.pinimg.com/736x/f3/c5/9e/f3c59e46ca34a437ace534c35913f807.jpg",
+  "محمود علي البنا": "https://gate.ahram.org.eg/Media/News/2023/6/29/2023-638236529594353916-435.jpg",
+  "شعبان الصياد": "https://media.arabicradio.net/original/2023/01/29/638106139716311087.jpg",
+  "عمر بن ضياء الدين": "https://play-lh.googleusercontent.com/aMdy6D3a21LnpSR9CBAQXnFQ9w-ULXRGSYSgdXTgMnTJl_V3iiD4xIsodo4MLewh7V0",
+  "عبدالله الخلف": "https://pbs.twimg.com/media/HBeinXFWMAAp-ZS.jpg",
+  "باسل مؤنس": "https://i1.sndcdn.com/artworks-yURv8TR3ocKFULGx-NMCd6g-t500x500.jpg",
+  "جابر القيطان": "https://tse4.mm.bing.net/th/id/OIP.TpwlSEi81TO7u_jjsvI3DAHaHY?r=0&pid=Api&h=220&P=0",
+  "أحمد عبدالرازق نصر": "https://i.ytimg.com/vi/oO2jLz7xu-0/maxresdefault.jpg?sqp=-oaymwEmCIAKENAF8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGGUgZShVMA8=&rs=AOn4CLB6pMha95nYql7ibocN-I46RfkeuQ",
+  "حسن صالح": "https://media.unitedmuslimworld.com/img/24/01/02/12913_1704169256.jpg",
+  "سلمان المطيري": "https://media.unitedmuslimworld.com/img/24/01/02/12913_1704169256.jpg",
+  "أحمد بن طالب": "https://elmanshar.com/wp-content/uploads/2025/05/%D8%A7%D9%84%D8%B4%D9%8A%D8%AE-%D8%A3%D8%AD%D9%85%D8%AF-%D8%A8%D9%86-%D8%B7%D8%A7%D9%84%D8%A8.png",
+  "أدعية خاشعة": "https://example.com/doaa.jpg",
+  "أناشيد": "https://example.com/anachid.jpg",
+  // الصورة الافتراضية في حال عدم وجود صورة للشيخ
+  "default": "https://images.unsplash.com/photo-1609599006353-e629aaabfeae?q=80&w=500&auto=format&fit=crop"
+};
+
+window.getSheikhAvatar = function(tag) {
+  return window.sheikhAvatars[tag] || window.sheikhAvatars["default"];
+};
 window.rareRecitations = [ 
   // تلاوات الشيخ محمد عباده (25 تلاوة)
   { name: "محمد عباده: ونفخ في الصور فصعق من في السماوات ومن في الأرض..... 🎙️", url: "audio/obada_1.mp3", desc: "", tag: "محمد عباده" },
@@ -420,595 +455,321 @@ window.rareRecitations = [
   { name: "دعاء يبكي الحجر للشيخ منصور السالمي 🤲", url: "audio/doaa_8.mp3", desc: "", tag: "أدعية خاشعة" }
 ];
 
-// 📌 إدارة التلاوات المثبتة (Pinned Recitations)
+// =========================================================================
+// 🎧 النظام المطور لمشغل "أثر" (Now Playing + Sleep Timer + Multi-Controls)
+// =========================================================================
+
+// حالات التشغيل والإعدادات
+window.repeatMode = 'off'; // 'off', 'one' (تكرار التلاوة), 'all' (تكرار القائمة)
+window.isShuffle = false;
+window.playbackSpeed = 1.0;
+
+// إدارة التلاوات المثبتة
 window.getPinnedRareUrls = function() {
-    try {
-        return JSON.parse(localStorage.getItem('athr_pinned_rare') || '[]');
-    } catch(e) {
-        return [];
-    }
+  try { return JSON.parse(localStorage.getItem('athr_pinned_rare') || '[]'); } 
+  catch(e) { return []; }
 };
 
 window.togglePinRare = function(url) {
-    let pinned = window.getPinnedRareUrls();
-    if (pinned.includes(url)) {
-        pinned = pinned.filter(u => u !== url);
-    } else {
-        pinned.push(url);
-    }
-    localStorage.setItem('athr_pinned_rare', JSON.stringify(pinned));
-    window.renderRareRecitations();
+  let pinned = window.getPinnedRareUrls();
+  if (pinned.includes(url)) {
+    pinned = pinned.filter(u => u !== url);
+  } else {
+    pinned.push(url);
+  }
+  localStorage.setItem('athr_pinned_rare', JSON.stringify(pinned));
+  window.renderRareRecitations();
 };
 
 if (!window.rareAudioPlayer) {
-    window.rareAudioPlayer = new Audio();
+  window.rareAudioPlayer = new Audio();
 }
 window.currentRareUrl = '';
 window.currentRareFilter = 'all';
 window.currentRareGlobalId = null;
 
+// مؤقت النوم المطور
 window.sleepTimer = {
-    active: false,
-    endAt: 0,
-    totalMinutes: 0,
-    intervalId: null
+  active: false,
+  endAt: 0,
+  stopAtEndTrack: false,
+  intervalId: null
 };
 
 window.formatTime = function (seconds) {
-    if (!isFinite(seconds) || seconds < 0) seconds = 0;
-    const m = Math.floor(seconds / 60);
-    const s = Math.floor(seconds % 60);
-    return `${m}:${s < 10 ? '0' : ''}${s}`;
+  if (!isFinite(seconds) || seconds < 0) seconds = 0;
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m}:${s < 10 ? '0' : ''}${s}`;
 };
 
+// تصفية التلاوات حسب القارئ المختار حالياً
 window.getFilteredRareList = function () {
-    let list = window.rareRecitations.filter(item => {
-        if (window.currentRareFilter === 'all') return true;
-        return item.tag === window.currentRareFilter;
-    });
+  let list = window.rareRecitations.filter(item => {
+    if (window.currentRareFilter === 'all') return true;
+    return item.tag === window.currentRareFilter;
+  });
 
-    // 📌 رفـع المثبت في أول القائمة
-    const pinnedUrls = window.getPinnedRareUrls();
-    list.sort((a, b) => {
-        const isAPinned = pinnedUrls.includes(a.url);
-        const isBPinned = pinnedUrls.includes(b.url);
-        if (isAPinned && !isBPinned) return -1;
-        if (!isAPinned && isBPinned) return 1;
-        return 0;
-    });
+  const pinnedUrls = window.getPinnedRareUrls();
+  list.sort((a, b) => {
+    const isAPinned = pinnedUrls.includes(a.url);
+    const isBPinned = pinnedUrls.includes(b.url);
+    if (isAPinned && !isBPinned) return -1;
+    if (!isAPinned && isBPinned) return 1;
+    return 0;
+  });
 
-    return list;
+  return list;
 };
 
+// محرك الصوت وتفاعلات الأداء السريع
 function ensureRareAudioEngine() {
-    const player = window.rareAudioPlayer;
+  const player = window.rareAudioPlayer;
+
+  player.onplay = () => {
+    window.updateNowPlayingUI();
+    window.updateListPlayState();
     
-    player.onloadedmetadata = () => {
-        const id = window.currentRareGlobalId;
-        const totalEl = document.querySelector(`span[data-time-id="${id}"]`);
-        if (totalEl && player.duration) {
-            const activeProgressBar = document.querySelector(`input[data-progress-id="${id}"]`);
-            if(activeProgressBar) activeProgressBar.value = (player.currentTime / player.duration) * 100;
-            totalEl.textContent = `${window.formatTime(player.currentTime)} / ${window.formatTime(player.duration)}`;
-        }
-    };
+    if ('mediaSession' in navigator && window.currentRareUrl) {
+      const currentTrack = window.rareRecitations.find(item => item.url === window.currentRareUrl);
+      const trackName = currentTrack ? currentTrack.name.replace(/[🎙️🤲🎵]/g, '').trim() : 'تلاوة خاشعة';
+      const fullIconUrl = window.getSheikhAvatar(currentTrack ? currentTrack.tag : '');
 
-    player.ontimeupdate = () => {
-        const id = window.currentRareGlobalId;
-        const activeProgressBar = document.querySelector(`input[data-progress-id="${id}"]`);
-        const activeTimeLabel = document.querySelector(`span[data-time-id="${id}"]`);
-        
-        if (activeProgressBar && player.duration) {
-            activeProgressBar.value = (player.currentTime / player.duration) * 100;
-        }
-        if (activeTimeLabel && player.duration) {
-            activeTimeLabel.textContent = `${window.formatTime(player.currentTime)} / ${window.formatTime(player.duration)}`;
-        }
-    };
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: trackName,
+        artist: currentTrack ? currentTrack.tag : 'أثر',
+        album: 'التلاوات النادرة',
+        artwork: [{ src: fullIconUrl, sizes: '512x512', type: 'image/jpeg' }]
+      });
+    }
+  };
 
-    player.onplay = () => {
-        window.renderRareRecitations();
-        if ('mediaSession' in navigator && window.currentRareUrl) {
-            const currentTrack = window.rareRecitations.find(item => item.url === window.currentRareUrl);
-            const trackName = currentTrack ? currentTrack.name.replace('🎙️', '').trim() : 'تلاوة خاشعة مؤثرة';
-            const fullIconUrl = window.location.origin + window.location.pathname.replace(/[^\/]*$/, '') + 'icon.png';
+  player.onpause = () => {
+    window.updateNowPlayingUI();
+    window.updateListPlayState();
+  };
 
-            navigator.mediaSession.metadata = new MediaMetadata({
-                title: trackName,
-                artist: 'أثر',
-                album: ' ',
-                artwork: [
-                    { src: fullIconUrl, sizes: '192x192', type: 'image/png' },
-                    { src: fullIconUrl, sizes: '512x512', type: 'image/png' }
-                ]
-            });
-        }
-    };
-
-    player.onpause = () => window.renderRareRecitations();
-
-    player.onended = () => {
-        if (window.sleepTimer.active && Date.now() < window.sleepTimer.endAt) {
-            window.playNextRareTrack();
-        } else {
-            window.currentRareUrl = '';
-            window.currentRareGlobalId = null;
-            window.renderRareRecitations();
-        }
-    };
-}
-
-window.playNextRareTrack = function () {
-    const list = window.getFilteredRareList();
-    if (list.length === 0) return;
-
-    let idx = list.findIndex(item => item.url === window.currentRareUrl);
-    let nextIdx = (idx === -1) ? 0 : (idx + 1) % list.length;
-
-    const nextTrack = list[nextIdx];
-    const realGlobalId = window.rareRecitations.indexOf(nextTrack);
+  player.ontimeupdate = () => {
+    window.updateNowPlayingProgressOnly();
     
-    window.currentRareGlobalId = realGlobalId;
-    window.playRare(nextTrack.url);
-};
+    // التلاشي التدريجي للسيليب تايمر في آخر 15 ثانية
+    if (window.sleepTimer.active && window.sleepTimer.endAt > 0) {
+      const remainingMs = window.sleepTimer.endAt - Date.now();
+      if (remainingMs <= 15000 && remainingMs > 0) {
+        player.volume = Math.max(0, remainingMs / 15000);
+      }
+    }
+  };
 
-window.startSleepTimer = function (minutes) {
-    minutes = parseFloat(minutes);
-    if (!minutes || minutes <= 0) return;
+  player.onended = () => {
+    player.volume = 1.0; // إعادة ضبط الصوت
 
-    window.sleepTimer.active = true;
-    window.sleepTimer.totalMinutes = minutes;
-    window.sleepTimer.endAt = Date.now() + minutes * 60 * 1000;
-
-    if (!window.currentRareUrl || window.rareAudioPlayer.paused) {
-        const list = window.getFilteredRareList();
-        if (list.length > 0) {
-            const startTrack = list[0];
-            window.currentRareGlobalId = window.rareRecitations.indexOf(startTrack);
-            window.playRare(startTrack.url);
-        }
+    // فحص مؤقت النوم لو مخصص لحين نهاية التلاوة الحالية
+    if (window.sleepTimer.active && window.sleepTimer.stopAtEndTrack) {
+      player.pause();
+      window.cancelSleepTimer();
+      return;
     }
 
-    if (window.sleepTimer.intervalId) clearInterval(window.sleepTimer.intervalId);
-    window.sleepTimer.intervalId = setInterval(window.tickSleepTimer, 1000);
+    // فحص وضع التكرار
+    if (window.repeatMode === 'one') {
+      player.currentTime = 0;
+      player.play();
+    } else {
+      window.playNextRareTrack();
+    }
+  };
+}
 
-    window.tickSleepTimer();
-    window.renderSleepTimerBar();
+// التشغيل السريع بدون بطء
+window.playRare = async function (url) {
+  const player = window.rareAudioPlayer;
+  ensureRareAudioEngine();
+
+  let safeUrl = url === "audio/nasr_6.mp3" ? "audio/nast_6.mp3" : url;
+  
+  if (window.currentRareUrl === url) {
+    if (!player.paused) {
+      player.pause();
+    } else {
+      player.play().catch(e => console.log("Play error:", e));
+    }
+  } else {
+    let finalPlayableSource = safeUrl;
+    if ('caches' in window) {
+      try {
+        const absUrl = new URL(safeUrl, window.location.href).href;
+        const cache = await caches.open('athr-audio-cache-v1');
+        const cachedResponse = await cache.match(absUrl) || await cache.match(safeUrl);
+        if (cachedResponse) {
+          const blob = await cachedResponse.blob();
+          finalPlayableSource = URL.createObjectURL(blob);
+        }
+      } catch (e) {}
+    }
+
+    player.src = finalPlayableSource;
+    player.playbackRate = window.playbackSpeed;
+    window.currentRareUrl = url;
+    player.play().catch(e => console.log("Play error:", e));
+  }
+};
+
+// التنقل بين التلاوات محصوراً في القائمة الحالية المفلترة
+window.playNextRareTrack = function () {
+  const list = window.getFilteredRareList();
+  if (list.length === 0) return;
+
+  if (window.isShuffle) {
+    let randomIdx = Math.floor(Math.random() * list.length);
+    const nextTrack = list[randomIdx];
+    window.currentRareGlobalId = window.rareRecitations.indexOf(nextTrack);
+    window.playRare(nextTrack.url);
+    return;
+  }
+
+  let idx = list.findIndex(item => item.url === window.currentRareUrl);
+  let nextIdx = (idx === -1) ? 0 : (idx + 1) % list.length;
+
+  if (nextIdx === 0 && window.repeatMode === 'off' && idx !== -1) {
+    // توقف عند نهاية القائمة لو لم تفعل التكرار
+    window.rareAudioPlayer.pause();
+    return;
+  }
+
+  const nextTrack = list[nextIdx];
+  window.currentRareGlobalId = window.rareRecitations.indexOf(nextTrack);
+  window.playRare(nextTrack.url);
+};
+
+window.playPrevRareTrack = function () {
+  const list = window.getFilteredRareList();
+  if (list.length === 0) return;
+
+  let idx = list.findIndex(item => item.url === window.currentRareUrl);
+  let prevIdx = (idx <= 0) ? list.length - 1 : idx - 1;
+  const prevTrack = list[prevIdx];
+  window.currentRareGlobalId = window.rareRecitations.indexOf(prevTrack);
+  window.playRare(prevTrack.url);
+};
+
+// تقديم وتأخير 10 ثوانٍ
+window.skipTime = function(seconds) {
+  const player = window.rareAudioPlayer;
+  if (player.duration) {
+    player.currentTime = Math.min(Math.max(0, player.currentTime + seconds), player.duration);
+  }
+};
+
+// تغيير السرعة
+window.cycleSpeed = function() {
+  const speeds = [1.0, 1.25, 1.5, 0.75];
+  let idx = speeds.indexOf(window.playbackSpeed);
+  window.playbackSpeed = speeds[(idx + 1) % speeds.length];
+  window.rareAudioPlayer.playbackRate = window.playbackSpeed;
+  const speedBtn = document.getElementById('npSpeedBtn');
+  if (speedBtn) speedBtn.textContent = `${window.playbackSpeed}x`;
+};
+
+// التكرار والعشوائي
+window.toggleRepeat = function() {
+  const modes = ['off', 'all', 'one'];
+  let idx = modes.indexOf(window.repeatMode);
+  window.repeatMode = modes[(idx + 1) % modes.length];
+  const btn = document.getElementById('npRepeatBtn');
+  if (btn) {
+    if (window.repeatMode === 'off') { btn.textContent = '🔁'; btn.style.opacity = '0.5'; }
+    else if (window.repeatMode === 'all') { btn.textContent = '🔁'; btn.style.opacity = '1'; }
+    else if (window.repeatMode === 'one') { btn.textContent = '🔂'; btn.style.opacity = '1'; }
+  }
+};
+
+window.toggleShuffle = function() {
+  window.isShuffle = !window.isShuffle;
+  const btn = document.getElementById('npShuffleBtn');
+  if (btn) btn.style.opacity = window.isShuffle ? '1' : '0.5';
+};
+
+// ==========================================
+// ⏱️ إعدادات مؤقت النوم داخل الشاشة
+// ==========================================
+window.startSleepTimer = function (minutes, stopAtEnd = false) {
+  window.rareAudioPlayer.volume = 1.0;
+  window.sleepTimer.active = true;
+  window.sleepTimer.stopAtEndTrack = stopAtEnd;
+
+  if (stopAtEnd) {
+    window.sleepTimer.endAt = 0;
+  } else {
+    minutes = parseFloat(minutes);
+    if (!minutes || minutes <= 0) return;
+    window.sleepTimer.endAt = Date.now() + minutes * 60 * 1000;
+  }
+
+  if (window.sleepTimer.intervalId) clearInterval(window.sleepTimer.intervalId);
+  window.sleepTimer.intervalId = setInterval(window.tickSleepTimer, 1000);
+
+  window.closeSleepModal();
+  window.updateSleepTimerBadge();
 };
 
 window.cancelSleepTimer = function () {
-    window.sleepTimer.active = false;
-    window.sleepTimer.endAt = 0;
-    if (window.sleepTimer.intervalId) {
-        clearInterval(window.sleepTimer.intervalId);
-        window.sleepTimer.intervalId = null;
-    }
-    window.renderSleepTimerBar();
+  window.rareAudioPlayer.volume = 1.0;
+  window.sleepTimer.active = false;
+  window.sleepTimer.endAt = 0;
+  window.sleepTimer.stopAtEndTrack = false;
+  if (window.sleepTimer.intervalId) {
+    clearInterval(window.sleepTimer.intervalId);
+    window.sleepTimer.intervalId = null;
+  }
+  window.closeSleepModal();
+  window.updateSleepTimerBadge();
 };
 
 window.tickSleepTimer = function () {
-    if (!window.sleepTimer.active) return;
+  if (!window.sleepTimer.active) return;
+  
+  if (!window.sleepTimer.stopAtEndTrack && window.sleepTimer.endAt > 0) {
     const remainingMs = window.sleepTimer.endAt - Date.now();
-
     if (remainingMs <= 0) {
-        window.rareAudioPlayer.pause();
-        window.cancelSleepTimer();
-        window.renderRareRecitations();
-        return;
+      window.rareAudioPlayer.pause();
+      window.cancelSleepTimer();
+      return;
     }
-
-    const remainingLabel = document.getElementById('sleepTimerRemaining');
-    if (remainingLabel) {
-        remainingLabel.textContent = window.formatTime(remainingMs / 1000);
-    }
-};
-
-window.playRare = async function (url) {
-    const player = window.rareAudioPlayer;
-    ensureRareAudioEngine();
-
-    let safeUrl = url === "audio/nasr_6.mp3" ? "audio/nast_6.mp3" : url;
-    const absUrl = new URL(safeUrl, window.location.href).href;
-
-    let finalPlayableSource = safeUrl;
-
-    if ('caches' in window) {
-        try {
-            const cache = await caches.open('athr-audio-cache-v1');
-            const cachedResponse = await cache.match(absUrl) || await cache.match(safeUrl);
-            
-            if (cachedResponse) {
-                const blob = await cachedResponse.blob();
-                finalPlayableSource = URL.createObjectURL(blob);
-            }
-        } catch (e) {
-            console.log("خطأ في فحص الكاش:", e);
-        }
-    }
-
-    if (window.currentRareUrl === url) {
-        if (!player.paused) {
-            player.pause();
-        } else {
-            player.play().catch(e => console.log("Play error:", e));
-        }
-    } else {
-        player.src = finalPlayableSource;
-        window.currentRareUrl = url;
-        player.play().catch(e => console.log("Play error:", e));
-    }
-
-    window.renderRareRecitations();
-};
-
-window.seekRare = function (element, url) {
-    const player = window.rareAudioPlayer;
-    const realIndex = window.rareRecitations.findIndex(item => item.url === url);
-    if (window.currentRareGlobalId === realIndex && player.duration) {
-        player.currentTime = (element.value / 100) * player.duration;
-    } else {
-        element.value = 0;
-    }
-};
-
-window.filterRare = function (tag) {
-    window.currentRareFilter = tag;
-    const buttons = document.querySelectorAll('.sheikh-btn');
-    buttons.forEach(btn => {
-        btn.style.background = 'var(--card)';
-        btn.style.color = 'var(--text)';
-        btn.style.border = '1px solid var(--border)';
-    });
-
-    if (event && event.currentTarget) {
-        const activeBtn = event.currentTarget;
-        activeBtn.style.background = 'var(--gold)';
-        activeBtn.style.color = '#111';
-        activeBtn.style.border = 'none';
-    }
-    renderRareRecitations();
-};
-
-window.renderSleepTimerBar = function () {
-    const bar = document.getElementById('sleepTimerBar');
-    if (!bar) return;
-
-    if (window.sleepTimer.active) {
-        bar.innerHTML = `
-          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; background:var(--card); border:1px solid var(--gold); border-radius:12px; padding:12px 15px; margin-bottom:15px; direction:rtl;">
-            <div style="font-family:'Amiri',serif; color:var(--text); font-size:14px;">
-              ⏱️ تايمر النوم شغال — هيقف بعد
-              <span id="sleepTimerRemaining" style="color:var(--gold); font-weight:bold;">${window.formatTime((window.sleepTimer.endAt - Date.now()) / 1000)}</span>
-            </div>
-            <button onclick="window.cancelSleepTimer()" style="background:rgba(255,0,0,0.15); color:#ff6b6b; border:1px solid #ff6b6b; border-radius:8px; padding:6px 14px; cursor:pointer; font-family:'Amiri',serif;">إلغاء</button>
-          </div>
-        `;
-    } else {
-        bar.innerHTML = `
-          <div style="display:flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:12px 15px; margin-bottom:15px; direction:rtl;">
-            <span style="font-family:'Amiri',serif; color:var(--text); font-size:14px;">⏱️ تايمر النوم (دقيقة):</span>
-            <input id="sleepTimerInput" type="number" min="1" value="20" style="width:70px; padding:6px 8px; border-radius:8px; border:1px solid var(--border); background:transparent; color:var(--text); text-align:center;" />
-            <button onclick="window.startSleepTimer(document.getElementById('sleepTimerInput').value)" style="background:var(--gold); color:#111; border:none; border-radius:8px; padding:6px 14px; cursor:pointer; font-family:'Amiri',serif; font-weight:bold;">بدء</button>
-          </div>
-        `;
-    }
-};
-
-window.renderRareRecitations = function () {
-    const container = document.getElementById('rareList');
-    if (!container) return;
-
-    window.renderSleepTimerBar();
-
-    if (!window.rareRecitations || window.rareRecitations.length === 0) {
-        container.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text2);">⏳ جاري تحميل قائمة التلاوات...</div>';
-        return;
-    }
-
-    const filteredList = window.getFilteredRareList();
-    const pinnedUrls = window.getPinnedRareUrls();
-
-    if (filteredList.length === 0) {
-        container.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text2); font-family:\'Amiri\',serif;">لا توجد تلاوات مرفوعة لهذا الشيخ بعد.</div>';
-        return;
-    }
-
-    container.innerHTML = filteredList.map((item) => {
-        const realIndex = window.rareRecitations.indexOf(item);
-        const isCurrent = (window.currentRareUrl === item.url);
-        const isPlaying = isCurrent && !window.rareAudioPlayer.paused;
-        const icon = isPlaying ? '⏸' : '▶';
-
-        const isPinned = pinnedUrls.includes(item.url);
-        const pinIcon = isPinned ? '📍' : '📌';
-        const pinTitle = isPinned ? 'إلغاء التثبيت' : 'تثبيت التلاوة في الأعلى';
-        const cardBg = isPinned ? 'background:rgba(212,175,55,0.08); border:1px solid var(--gold);' : 'background:var(--card); border:1px solid var(--border);';
-
-        const currentProgress = isCurrent && window.rareAudioPlayer.duration ? (window.rareAudioPlayer.currentTime / window.rareAudioPlayer.duration) * 100 : 0;
-        const timeLabel = isCurrent && window.rareAudioPlayer.duration
-          ? `${window.formatTime(window.rareAudioPlayer.currentTime)} / ${window.formatTime(window.rareAudioPlayer.duration)}`
-          : '0:00 / --:--';
-
-return `
-        <div class="athr-lecture-card ${isPlaying ? 'playing' : ''}" style="margin-bottom: 10px; cursor:pointer;" onclick="window.openNowPlaying('${item.url}')">
-          <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
-            
-            <!-- أزرار التشغيل والتحميل والمشاركة على اليسار -->
-            <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
-              <button onclick="event.stopPropagation(); window.currentRareGlobalId=${realIndex}; window.openNowPlaying('${item.url}')" class="athr-icon-btn primary" style="width: 34px; height: 34px; font-size: 15px;">${icon}</button>
-              <button id="rare_dl_${item.url.replace(/[^a-zA-Z0-9]/g,'_')}" onclick="event.stopPropagation(); window.downloadRareAudio('${item.url}')" class="athr-icon-btn" style="width: 32px; height: 32px; font-size: 14px;" title="تحميل أوفلاين">📥</button>
-              <button onclick="event.stopPropagation(); window.shareRareAudio('${item.name.replace(/'/g, "\\'")}', '${item.url}', this)" class="athr-icon-btn" style="width: 32px; height: 32px; font-size: 14px;" title="مشاركة">🔗</button>
-              <button onclick="event.stopPropagation(); window.togglePinRare('${item.url}')" class="athr-icon-btn" style="width: 32px; height: 32px; font-size: 14px;" title="${pinTitle}">${pinIcon}</button>
-            </div>
-
-            <!-- اسم التلاوة على اليمين -->
-            <div style="font-weight: bold; color: var(--text); font-family: 'Amiri', serif; font-size: 14px; line-height: 1.4; flex: 1; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-              ${item.name}
-            </div>
-
-          </div>
-
-          <!-- سلايدر الصوت والوقت ملموم تحت العنوان -->
-          <div style="width: 100%; display: flex; flex-direction: column; gap: 3px; margin-top: 4px;">
-            <input type="range"
-                   data-progress-id="${realIndex}"
-                   min="0" max="100"
-                   value="${currentProgress}"
-                   oninput="window.seekRare(this, '${item.url}')"
-                   onclick="event.stopPropagation()"
-                   class="athr-seek-slider" />
-            <span data-time-id="${realIndex}" style="font-size: 10px; color: var(--text2); direction: ltr; text-align: left;">${timeLabel}</span>
-          </div>
-        </div>
-      `;
-    }).join('');
-
-    setTimeout(markAlreadyDownloadedRareButtons, 100);
-};
-
-function rareBtnId(url) {
-    return 'rare_dl_' + url.replace(/[^a-zA-Z0-9]/g, '_');
-}
-
-window.downloadRareAudio = async function(url) {
-    let safeUrl = url === "audio/nasr_6.mp3" ? "audio/nast_6.mp3" : url;
-    const absUrl = new URL(safeUrl, window.location.href).href;
-    const btn = document.getElementById(rareBtnId(url));
-
-    if (btn) {
-        btn.disabled = true;
-        btn.style.fontSize = '10px'; // تصغير الخط ليتناسب الرقم داخل الدائرة
-        btn.textContent = '0%';
-    }
-
-    try {
-        // فحص هل الملف موجود مسبقاً في الكاش
-        if ('caches' in window) {
-            const cache = await caches.open('athr-audio-cache-v1');
-            const match = await cache.match(absUrl) || await cache.match(safeUrl);
-            if (match) {
-                markButtonSuccess(btn);
-                return;
-            }
-        }
-
-        // تحميل الملف باستخدام XHR لحساب نسبة التقدم % بدقة
-        const blob = await new Promise((resolve, reject) => {
-            const xhr = new XMLHttpRequest();
-            xhr.open('GET', absUrl, true);
-            xhr.responseType = 'blob';
-
-            xhr.onprogress = (event) => {
-                if (event.lengthComputable && btn) {
-                    const percent = Math.round((event.loaded / event.total) * 100);
-                    btn.textContent = `${percent}%`;
-                }
-            };
-
-            xhr.onload = () => {
-                if (xhr.status === 200) {
-                    resolve(xhr.response);
-                } else {
-                    reject(new Error(`Server error: ${xhr.status}`));
-                }
-            };
-
-            xhr.onerror = () => reject(new Error("Network error"));
-            xhr.send();
-        });
-
-        // حفظ الملف المكتمل في Cache API للاستخدام الأوفلاين
-        if ('caches' in window && blob) {
-            const cache = await caches.open('athr-audio-cache-v1');
-            const responseToCache = new Response(blob, {
-                status: 200,
-                headers: { 'Content-Type': 'audio/mpeg' }
-            });
-            await cache.put(absUrl, responseToCache);
-        }
-
-        // تحديث شكل الزرار للنجاح
-        markButtonSuccess(btn);
-
-    } catch (err) {
-        console.error("خطأ التحميل:", err);
-        if (btn) {
-            btn.disabled = false;
-            btn.style.fontSize = '14px';
-            btn.textContent = '⚠️';
-        }
-    }
-};
-
-// دالة مساعدة لتحديث شكل الزرار عند نجاح التحميل
-function markButtonSuccess(btn) {
-    if (!btn) return;
-    btn.disabled = false;
-    btn.style.fontSize = '14px';
-    btn.textContent = '✅';
-    btn.style.background = 'rgba(76,175,80,0.15)';
-    btn.style.borderColor = '#4caf50';
-    btn.style.color = '#4caf50';
-}
-
-navigator.serviceWorker.addEventListener('message', (event) => {
-    const d = event.data;
-    if (!d || !d.label || !d.label.startsWith('rare_')) return;
-    const originalUrl = d.label.replace('rare_', '');
-    const btn = document.getElementById(rareBtnId(originalUrl));
-    if (!btn) return;
-
-    if (d.type === 'AUDIO_CACHED') {
-        btn.disabled = false;
-        btn.textContent = '✅';
-        btn.style.background = 'rgba(76,175,80,0.15)';
-        btn.style.borderColor = '#4caf50';
-        btn.style.color = '#4caf50';
-    }
-    if (d.type === 'AUDIO_CACHE_FAILED') {
-        btn.disabled = false;
-        btn.textContent = '⚠️';
-    }
-});
-
-async function markAlreadyDownloadedRareButtons() {
-    if (!('caches' in window)) return;
-    try {
-        const cache = await caches.open('athr-audio-cache-v1');
-        for (const item of window.rareRecitations) {
-            let safeUrl = item.url === "audio/nasr_6.mp3" ? "audio/nast_6.mp3" : item.url;
-            
-            // تحويل الرابط إلى رابط كامل للتعرف عليه داخل الكاش
-            const absUrl = new URL(safeUrl, window.location.href).href;
-            const match = await cache.match(absUrl) || await cache.match(safeUrl);
-            
-            const btn = document.getElementById(rareBtnId(item.url));
-            if (match && btn) {
-                btn.textContent = '✅';
-                btn.style.background = 'rgba(76,175,80,0.15)';
-                btn.style.borderColor = '#4caf50';
-                btn.style.color = '#4caf50';
-            }
-        }
-    } catch (e) {}
-}
-
-document.addEventListener('DOMContentLoaded', () => { renderRareRecitations(); });
-
-// 📲 دالة مشاركة التلاوة كمقطع صوتي حقيقي مباشر (MP3 Direct File)
-// 📲 دالة مشاركة التلاوة كمقطع صوتي حقيقي مباشر (مصلحة 100% لتوافق أندرويد وواتساب)
-window.shareRareAudio = async function(name, url, btnElement) {
-    let safeUrl = url === "audio/nasr_6.mp3" ? "audio/nast_6.mp3" : url;
-    const cleanName = name.replace('🎙️', '').trim();
-    
-    const btn = btnElement || (event ? event.currentTarget : null);
-    const originalHTML = btn ? btn.innerHTML : '🔗';
-    
-    try {
-        if (btn) btn.innerHTML = '⏳';
-
-        let blob = null;
-
-        // 1) محاولة الجلب من الكاش الأوفلاين أولاً
-        if ('caches' in window) {
-            try {
-                const cache = await caches.open('athr-audio-cache-v1');
-                const matchedResponse = await cache.match(safeUrl);
-                if (matchedResponse && matchedResponse.ok) {
-                    blob = await matchedResponse.blob();
-                }
-            } catch (e) {
-                console.log('كاش غير متاح:', e);
-            }
-        }
-
-        // 2) الجلب المباشر لو مش في الكاش
-        if (!blob) {
-            const response = await fetch(safeUrl);
-            if (!response.ok) {
-                throw new Error(`الملف غير موجود على السيرفر (${response.status})`);
-            }
-            blob = await response.blob();
-        }
-
-        if (!blob || blob.size === 0) {
-            throw new Error('الملف فارغ أو تالف');
-        }
-
-        // 🔑 الحل السحري: اسم ملف إنجليزي آمن خفيف + MIME Type متوافق 100%
-        const safeFileName = `audio_${Date.now()}.mp3`;
-        const audioFile = new File([blob], safeFileName, { type: 'audio/mpeg' });
-
-        // 📲 فحص إمكانية مشاركة الملفات
-        if (navigator.canShare && navigator.canShare({ files: [audioFile] })) {
-            await navigator.share({
-                title: cleanName,
-                text: `تلاوة خاشعة: ${cleanName} 🎙️ - تطبيق أثر`,
-                files: [audioFile]
-            });
-        } else if (navigator.share) {
-            const fullAudioUrl = new URL(safeUrl, window.location.href).href;
-            await navigator.share({ title: cleanName, text: cleanName, url: fullAudioUrl });
-        } else {
-            const fullAudioUrl = new URL(safeUrl, window.location.href).href;
-            await navigator.clipboard.writeText(fullAudioUrl);
-            alert('تم نسخ رابط التلاوة، يمكنك لصقه ومشاركته الآن ✓');
-        }
-
-    } catch (err) {
-        console.error('خطأ في مشاركة التلاوة:', err.message, safeUrl);
-        
-        if (err.name === 'AbortError') {
-            // إلغاء المستخدم للمشاركة بيده
-        } else {
-            try {
-                const fullAudioUrl = new URL(safeUrl, window.location.href).href;
-                if (navigator.share) {
-                    await navigator.share({ title: cleanName, text: cleanName, url: fullAudioUrl });
-                } else {
-                    await navigator.clipboard.writeText(fullAudioUrl);
-                    alert('تم نسخ رابط التلاوة بدل الملف الصوتي ✓');
-                }
-            } catch (fallbackErr) {
-                alert(`⚠️ تعذر تجهيز ملف الصوت لهذه التلاوة (${err.message}). تأكد من اتصال الإنترنت أو أن الملف موجود.`);
-            }
-        }
-    } finally {
-        if (btn) btn.innerHTML = originalHTML;
-    }
-};
-// =========================================================================
-// 🎧 شاشة "يُشغّل الآن" (Now Playing) بالتصميم الفخم والسحب بين التلاوات
-// =========================================================================
-
-window.updateNowPlayingUI = function() {
-  const overlay = document.getElementById('rareNowPlayingOverlay');
-  if (!overlay || overlay.style.display !== 'flex') return;
-  const player = window.rareAudioPlayer;
-  const track = window.rareRecitations.find(item => item.url === window.currentRareUrl);
-  if (!track) return;
-
-  const cleanName = track.name.replace(/[🎙️🤲🎵]/g, '').trim();
-  const sheikhEl = document.getElementById('nowPlayingSheikh');
-  const trackEl = document.getElementById('nowPlayingTrackName');
-  if (sheikhEl) sheikhEl.textContent = track.tag;
-  if (trackEl) trackEl.textContent = cleanName;
-
-  const avatarIcon = track.tag === 'أدعية خاشعة' ? '🤲' : (track.tag === 'أناشيد' ? '🎵' : '🎙️');
-  const avatarEl = document.getElementById('nowPlayingAvatar');
-  if (avatarEl) avatarEl.textContent = avatarIcon;
-
-  const seek = document.getElementById('nowPlayingSeek');
-  if (seek && player.duration) {
-    seek.value = (player.currentTime / player.duration) * 100;
-    document.getElementById('nowPlayingCurrentTime').textContent = window.formatTime(player.currentTime);
-    document.getElementById('nowPlayingDuration').textContent = window.formatTime(player.duration);
   }
-
-  const playBtn = document.getElementById('nowPlayingPlayBtn');
-  if (playBtn) playBtn.textContent = player.paused ? '▶' : '⏸';
+  window.updateSleepTimerBadge();
 };
 
+window.updateSleepTimerBadge = function() {
+  const badge = document.getElementById('npTimerBadge');
+  if (!badge) return;
+
+  if (!window.sleepTimer.active) {
+    badge.textContent = '⏱️';
+    badge.style.color = 'var(--text)';
+  } else if (window.sleepTimer.stopAtEndTrack) {
+    badge.textContent = '⏱️ نهاية المقطع';
+    badge.style.color = 'var(--gold)';
+  } else {
+    const remainingMs = Math.max(0, window.sleepTimer.endAt - Date.now());
+    badge.textContent = `⏱️ ${window.formatTime(remainingMs / 1000)}`;
+    badge.style.color = 'var(--gold)';
+  }
+};
+
+window.openSleepModal = function() {
+  const modal = document.getElementById('npSleepModal');
+  if (modal) modal.style.display = 'flex';
+};
+
+window.closeSleepModal = function() {
+  const modal = document.getElementById('npSleepModal');
+  if (modal) modal.style.display = 'none';
+};
+
+// ==========================================
+// 🎨 واجهة "يُشغّل الآن" (Now Playing Overlay)
+// ==========================================
 window.ensureNowPlayingOverlay = function() {
   if (document.getElementById('rareNowPlayingOverlay')) return;
 
@@ -1017,60 +778,155 @@ window.ensureNowPlayingOverlay = function() {
     style.id = 'nowPlayingStyleTag';
     style.innerHTML = `
       @keyframes npGlowPulse {
-        0%, 100% { box-shadow: 0 0 25px 6px rgba(212,175,55,0.35), 0 0 60px 20px rgba(212,175,55,0.12); }
-        50% { box-shadow: 0 0 40px 12px rgba(212,175,55,0.55), 0 0 90px 30px rgba(212,175,55,0.22); }
+        0%, 100% { transform: scale(1); box-shadow: 0 0 25px 6px rgba(212,175,55,0.3); }
+        50% { transform: scale(1.03); box-shadow: 0 0 45px 12px rgba(212,175,55,0.5); }
       }
-      .now-playing-avatar-wrap { width:220px; height:220px; display:flex; align-items:center; justify-content:center; margin:0 auto; }
-      .now-playing-avatar { width:190px; height:190px; border-radius:50%; background:radial-gradient(circle at 35% 30%, #1a2a1c, #050805); border:3px solid var(--gold); display:flex; align-items:center; justify-content:center; font-size:80px; animation: npGlowPulse 3s ease-in-out infinite; }
+      .now-playing-avatar-wrap { width:220px; height:220px; display:flex; align-items:center; justify-content:center; margin:0 auto; position:relative; }
+      .now-playing-avatar { width:200px; height:200px; border-radius:50%; object-fit:cover; border:3px solid var(--gold); transition: all 0.3s ease; }
+      .now-playing-avatar.playing { animation: npGlowPulse 4s ease-in-out infinite; }
+      .now-playing-bg { position:absolute; inset:0; background-size:cover; background-position:center; filter: blur(50px) brightness(0.25); z-index:-1; transition: background 0.5s ease; }
+      .np-modal-option { background: rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); color:var(--text); padding:12px; border-radius:10px; cursor:pointer; font-family:'Amiri',serif; width:100%; text-align:center; font-size:14px; margin-bottom:8px; transition:0.2s; }
+      .np-modal-option:hover { background: var(--gold); color:#111; }
     `;
     document.head.appendChild(style);
   }
 
   const overlayHTML = `
-    <div id="rareNowPlayingOverlay" style="display:none; position:fixed; inset:0; background:linear-gradient(180deg, #0b120c 0%, #000 100%); z-index:99999999; flex-direction:column; align-items:center; justify-content:space-between; padding:20px 20px calc(20px + env(safe-area-inset-bottom)); direction:rtl;">
+    <div id="rareNowPlayingOverlay" style="display:none; position:fixed; inset:0; background:#080d09; z-index:99999999; flex-direction:column; align-items:center; justify-content:space-between; padding:20px 20px calc(20px + env(safe-area-inset-bottom)); direction:rtl; overflow:hidden;">
       
-      <div style="width:100%; display:flex; justify-content:space-between; align-items:center;">
-        <button onclick="window.closeNowPlaying()" style="background:rgba(255,255,255,0.06); border:none; color:var(--text); width:36px; height:36px; border-radius:50%; font-size:18px; cursor:pointer;">⌄</button>
-        <span style="color:var(--gold); font-family:'Amiri',serif; font-size:13px; font-weight:bold;">🎧 يُشغّل الآن</span>
-        <span style="width:36px;"></span>
+      <div id="npAmbientBg" class="now-playing-bg"></div>
+
+      <!-- أعلى الشاشة -->
+      <div style="width:100%; display:flex; justify-content:space-between; align-items:center; z-index:2;">
+        <button onclick="window.closeNowPlaying()" style="background:rgba(255,255,255,0.1); border:none; color:var(--text); width:38px; height:38px; border-radius:50%; font-size:20px; cursor:pointer;">⌄</button>
+        <span style="color:var(--gold); font-family:'Amiri',serif; font-size:14px; font-weight:bold;">🎧 يُشغّل الآن</span>
+        <button id="npTimerBadge" onclick="window.openSleepModal()" style="background:rgba(255,255,255,0.1); border:none; color:var(--text); padding:6px 12px; border-radius:20px; font-size:12px; cursor:pointer; font-family:'Amiri',serif;">⏱️</button>
       </div>
 
-      <div id="npSwipeZone" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:22px; width:100%;">
+      <!-- منتصف الشاشة (الصورة والعنوان + دعم السحب للإغلاق والتبديل) -->
+      <div id="npSwipeZone" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; width:100%; z-index:2;">
         <div class="now-playing-avatar-wrap">
-          <div class="now-playing-avatar" id="nowPlayingAvatar">🎙️</div>
+          <img id="nowPlayingAvatar" class="now-playing-avatar" src="" alt="الشيخ" />
         </div>
-        <div style="text-align:center; padding:0 20px;">
-          <div id="nowPlayingSheikh" style="color:var(--gold); font-size:20px; font-weight:bold; font-family:'Amiri',serif;"></div>
-          <div id="nowPlayingTrackName" style="color:var(--text2); font-size:13px; margin-top:8px; line-height:1.6;"></div>
+        <div style="text-align:center; padding:0 15px;">
+          <div id="nowPlayingSheikh" style="color:var(--gold); font-size:22px; font-weight:bold; font-family:'Amiri',serif;"></div>
+          <div id="nowPlayingTrackName" style="color:var(--text2); font-size:14px; margin-top:6px; line-height:1.5; font-family:'Amiri',serif;"></div>
         </div>
-        <div style="color:var(--text2); font-size:11px; opacity:0.6;">← اسحب يمين أو شمال للتنقل بين التلاوات →</div>
       </div>
 
-      <div style="width:100%; max-width:420px;">
+      <!-- أسفل الشاشة (التحكم وسلايدر الوقت) -->
+      <div style="width:100%; max-width:420px; z-index:2;">
         <input type="range" id="nowPlayingSeek" min="0" max="100" value="0" oninput="window.seekNowPlaying(this)" style="width:100%; accent-color:var(--gold); cursor:pointer;" />
-        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text2); direction:ltr; margin-top:2px;">
+        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text2); direction:ltr; margin-top:3px;">
           <span id="nowPlayingCurrentTime">0:00</span>
           <span id="nowPlayingDuration">0:00</span>
         </div>
-        <div style="display:flex; justify-content:center; align-items:center; gap:35px; margin-top:22px;">
+
+        <!-- أزرار التحكم الفخمة -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px; direction:ltr;">
+          <button id="npShuffleBtn" onclick="window.toggleShuffle()" style="background:none; border:none; color:var(--text); font-size:18px; opacity:0.5; cursor:pointer;">🔀</button>
+          <button onclick="window.skipTime(-10)" style="background:none; border:none; color:var(--text); font-size:20px; cursor:pointer;">↺10</button>
           <button onclick="window.nowPlayingPrev()" style="background:none; border:none; color:var(--text); font-size:28px; cursor:pointer;">⏮</button>
-          <button id="nowPlayingPlayBtn" onclick="window.nowPlayingTogglePlay()" style="background:var(--gold); color:#111; border:none; width:64px; height:64px; border-radius:50%; font-size:26px; cursor:pointer;">⏸</button>
+          <button id="nowPlayingPlayBtn" onclick="window.nowPlayingTogglePlay()" style="background:var(--gold); color:#111; border:none; width:64px; height:64px; border-radius:50%; font-size:26px; cursor:pointer; font-weight:bold; display:flex; align-items:center; justify-content:center;">⏸</button>
           <button onclick="window.nowPlayingNext()" style="background:none; border:none; color:var(--text); font-size:28px; cursor:pointer;">⏭</button>
+          <button onclick="window.skipTime(10)" style="background:none; border:none; color:var(--text); font-size:20px; cursor:pointer;">10↻</button>
+          <button id="npRepeatBtn" onclick="window.toggleRepeat()" style="background:none; border:none; color:var(--text); font-size:18px; opacity:0.5; cursor:pointer;">🔁</button>
+        </div>
+
+        <div style="display:flex; justify-content:center; margin-top:12px;">
+          <button id="npSpeedBtn" onclick="window.cycleSpeed()" style="background:rgba(255,255,255,0.1); border:none; color:var(--gold); padding:4px 12px; border-radius:12px; font-size:12px; cursor:pointer;">1.0x</button>
         </div>
       </div>
+
+      <!-- نافذة تايمر النوم المنبثقة -->
+      <div id="npSleepModal" style="display:none; position:absolute; inset:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); z-index:10; flex-direction:column; align-items:center; justify-content:center; padding:30px;">
+        <h3 style="color:var(--gold); font-family:'Amiri',serif; margin-bottom:20px;">⏱️ اختيار مؤقت النوم</h3>
+        <button class="np-modal-option" onclick="window.startSleepTimer(15)">15 دقيقة</button>
+        <button class="np-modal-option" onclick="window.startSleepTimer(30)">30 دقيقة</button>
+        <button class="np-modal-option" onclick="window.startSleepTimer(45)">45 دقيقة</button>
+        <button class="np-modal-option" onclick="window.startSleepTimer(60)">ساعة كاملة</button>
+        <button class="np-modal-option" onclick="window.startSleepTimer(0, true)">عند نهاية التلاوة الحالية</button>
+        <button class="np-modal-option" style="background:rgba(255,0,0,0.2); color:#ff6b6b;" onclick="window.cancelSleepTimer()">إلغاء المؤقت</button>
+        <button style="background:none; border:none; color:var(--text2); margin-top:10px; cursor:pointer;" onclick="window.closeSleepModal()">إغلاق</button>
+      </div>
+
     </div>
   `;
   document.body.insertAdjacentHTML('beforeend', overlayHTML);
 
+  // إيماءات السحب (اليمين واليسار للتنقل / السحب للأسفل للإغلاق)
   const swipeZone = document.getElementById('npSwipeZone');
-  let npStartX = 0;
-  swipeZone.addEventListener('touchstart', (e) => { npStartX = e.touches[0].clientX; });
-  swipeZone.addEventListener('touchend', (e) => {
-    const deltaX = e.changedTouches[0].clientX - npStartX;
-    if (Math.abs(deltaX) < 50) return;
-    if (deltaX < 0) window.nowPlayingNext();
-    else window.nowPlayingPrev();
+  let startX = 0, startY = 0;
+  swipeZone.addEventListener('touchstart', (e) => {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
   });
+  swipeZone.addEventListener('touchend', (e) => {
+    const deltaX = e.changedTouches[0].clientX - startX;
+    const deltaY = e.changedTouches[0].clientY - startY;
+
+    if (deltaY > 100 && Math.abs(deltaX) < 80) {
+      window.closeNowPlaying(); // سحب للأسفل للإغلاق
+    } else if (Math.abs(deltaX) > 50 && Math.abs(deltaY) < 80) {
+      if (deltaX < 0) window.nowPlayingNext();
+      else window.nowPlayingPrev();
+    }
+  });
+};
+
+// تحديث محتوى واجهة "يُشغّل الآن"
+window.updateNowPlayingUI = function() {
+  const overlay = document.getElementById('rareNowPlayingOverlay');
+  if (!overlay || overlay.style.display !== 'flex') return;
+  const player = window.rareAudioPlayer;
+  const track = window.rareRecitations.find(item => item.url === window.currentRareUrl);
+  if (!track) return;
+
+  const cleanName = track.name.replace(/[🎙️🤲🎵]/g, '').trim();
+  const avatarUrl = window.getSheikhAvatar(track.tag);
+
+  document.getElementById('nowPlayingSheikh').textContent = track.tag;
+  document.getElementById('nowPlayingTrackName').textContent = cleanName;
+
+  const avatarImg = document.getElementById('nowPlayingAvatar');
+  avatarImg.src = avatarUrl;
+  if (!player.paused) avatarImg.classList.add('playing');
+  else avatarImg.classList.remove('playing');
+
+  document.getElementById('npAmbientBg').style.backgroundImage = `url('${avatarUrl}')`;
+  document.getElementById('nowPlayingPlayBtn').textContent = player.paused ? '▶' : '⏸';
+
+  window.updateSleepTimerBadge();
+};
+
+window.updateNowPlayingProgressOnly = function() {
+  const player = window.rareAudioPlayer;
+  const seek = document.getElementById('nowPlayingSeek');
+  if (seek && player.duration) {
+    seek.value = (player.currentTime / player.duration) * 100;
+    document.getElementById('nowPlayingCurrentTime').textContent = window.formatTime(player.currentTime);
+    document.getElementById('nowPlayingDuration').textContent = window.formatTime(player.duration);
+  }
+
+  // تحديث سلايدر المقطع المحدد بالقائمة الخلفية بدون رندر كامل
+  if (window.currentRareGlobalId !== null) {
+    const id = window.currentRareGlobalId;
+    const activeProgressBar = document.querySelector(`input[data-progress-id="${id}"]`);
+    const activeTimeLabel = document.querySelector(`span[data-time-id="${id}"]`);
+    if (activeProgressBar && player.duration) activeProgressBar.value = (player.currentTime / player.duration) * 100;
+    if (activeTimeLabel && player.duration) activeTimeLabel.textContent = `${window.formatTime(player.currentTime)} / ${window.formatTime(player.duration)}`;
+  }
+};
+
+window.updateListPlayState = function() {
+  const player = window.rareAudioPlayer;
+  document.querySelectorAll('.athr-icon-btn.primary').forEach(btn => {
+    btn.textContent = '▶';
+  });
+  if (window.currentRareGlobalId !== null && !player.paused) {
+    const activeBtn = document.querySelector(`button[data-play-btn-id="${window.currentRareGlobalId}"]`);
+    if (activeBtn) activeBtn.textContent = '⏸';
+  }
 };
 
 window.openNowPlaying = function(url) {
@@ -1107,17 +963,208 @@ window.seekNowPlaying = function(el) {
   if (player.duration) player.currentTime = (el.value / 100) * player.duration;
 };
 
-window.playPrevRareTrack = function () {
-  const list = window.getFilteredRareList();
-  if (list.length === 0) return;
-  let idx = list.findIndex(item => item.url === window.currentRareUrl);
-  let prevIdx = (idx <= 0) ? list.length - 1 : idx - 1;
-  const prevTrack = list[prevIdx];
-  window.currentRareGlobalId = window.rareRecitations.indexOf(prevTrack);
-  window.playRare(prevTrack.url);
+// ==========================================
+// 📜 رندر القائمة الرئيسية بأداء عالي وسريع
+// ==========================================
+window.renderRareRecitations = function () {
+  const container = document.getElementById('rareList');
+  if (!container) return;
+
+  if (!window.rareRecitations || window.rareRecitations.length === 0) {
+    container.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text2);">⏳ جاري تحميل قائمة التلاوات...</div>';
+    return;
+  }
+
+  const filteredList = window.getFilteredRareList();
+  const pinnedUrls = window.getPinnedRareUrls();
+
+  if (filteredList.length === 0) {
+    container.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text2); font-family:\'Amiri\',serif;">لا توجد تلاوات مرفوعة لهذا الشيخ بعد.</div>';
+    return;
+  }
+
+  container.innerHTML = filteredList.map((item) => {
+    const realIndex = window.rareRecitations.indexOf(item);
+    const isCurrent = (window.currentRareUrl === item.url);
+    const isPlaying = isCurrent && !window.rareAudioPlayer.paused;
+    const icon = isPlaying ? '⏸' : '▶';
+
+    const isPinned = pinnedUrls.includes(item.url);
+    const pinIcon = isPinned ? '📍' : '📌';
+    const pinTitle = isPinned ? 'إلغاء التثبيت' : 'تثبيت التلاوة في الأعلى';
+
+    const currentProgress = isCurrent && window.rareAudioPlayer.duration ? (window.rareAudioPlayer.currentTime / window.rareAudioPlayer.duration) * 100 : 0;
+    const timeLabel = isCurrent && window.rareAudioPlayer.duration
+      ? `${window.formatTime(window.rareAudioPlayer.currentTime)} / ${window.formatTime(window.rareAudioPlayer.duration)}`
+      : '0:00 / --:--';
+
+    return `
+      <div class="athr-lecture-card ${isPlaying ? 'playing' : ''}" style="margin-bottom: 10px; cursor:pointer;" onclick="window.openNowPlaying('${item.url}')">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+          
+          <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+            <button data-play-btn-id="${realIndex}" onclick="event.stopPropagation(); window.currentRareGlobalId=${realIndex}; window.openNowPlaying('${item.url}')" class="athr-icon-btn primary" style="width: 34px; height: 34px; font-size: 15px;">${icon}</button>
+            <button id="rare_dl_${item.url.replace(/[^a-zA-Z0-9]/g,'_')}" onclick="event.stopPropagation(); window.downloadRareAudio('${item.url}')" class="athr-icon-btn" style="width: 32px; height: 32px; font-size: 14px;" title="تحميل أوفلاين">📥</button>
+            <button onclick="event.stopPropagation(); window.shareRareAudio('${item.name.replace(/'/g, "\\'")}', '${item.url}', this)" class="athr-icon-btn" style="width: 32px; height: 32px; font-size: 14px;" title="مشاركة">🔗</button>
+            <button onclick="event.stopPropagation(); window.togglePinRare('${item.url}')" class="athr-icon-btn" style="width: 32px; height: 32px; font-size: 14px;" title="${pinTitle}">${pinIcon}</button>
+          </div>
+
+          <div style="font-weight: bold; color: var(--text); font-family: 'Amiri', serif; font-size: 14px; line-height: 1.4; flex: 1; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+            ${item.name}
+          </div>
+
+        </div>
+
+        <div style="width: 100%; display: flex; flex-direction: column; gap: 3px; margin-top: 4px;">
+          <input type="range"
+                 data-progress-id="${realIndex}"
+                 min="0" max="100"
+                 value="${currentProgress}"
+                 oninput="window.seekRare(this, '${item.url}')"
+                 onclick="event.stopPropagation()"
+                 class="athr-seek-slider" />
+          <span data-time-id="${realIndex}" style="font-size: 10px; color: var(--text2); direction: ltr; text-align: left;">${timeLabel}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  setTimeout(markAlreadyDownloadedRareButtons, 100);
 };
 
-window.rareAudioPlayer.addEventListener('timeupdate', window.updateNowPlayingUI);
-window.rareAudioPlayer.addEventListener('play', window.updateNowPlayingUI);
-window.rareAudioPlayer.addEventListener('pause', window.updateNowPlayingUI);
-window.rareAudioPlayer.addEventListener('loadedmetadata', window.updateNowPlayingUI);
+window.seekRare = function (element, url) {
+  const player = window.rareAudioPlayer;
+  const realIndex = window.rareRecitations.findIndex(item => item.url === url);
+  if (window.currentRareGlobalId === realIndex && player.duration) {
+    player.currentTime = (element.value / 100) * player.duration;
+  }
+};
+
+window.filterRare = function (tag) {
+  window.currentRareFilter = tag;
+  const buttons = document.querySelectorAll('.sheikh-btn');
+  buttons.forEach(btn => {
+    btn.style.background = 'var(--card)';
+    btn.style.color = 'var(--text)';
+    btn.style.border = '1px solid var(--border)';
+  });
+
+  if (event && event.currentTarget) {
+    const activeBtn = event.currentTarget;
+    activeBtn.style.background = 'var(--gold)';
+    activeBtn.style.color = '#111';
+    activeBtn.style.border = 'none';
+  }
+  renderRareRecitations();
+};
+
+function rareBtnId(url) { return 'rare_dl_' + url.replace(/[^a-zA-Z0-9]/g, '_'); }
+
+window.downloadRareAudio = async function(url) {
+  let safeUrl = url === "audio/nasr_6.mp3" ? "audio/nast_6.mp3" : url;
+  const absUrl = new URL(safeUrl, window.location.href).href;
+  const btn = document.getElementById(rareBtnId(url));
+
+  if (btn) {
+    btn.disabled = true;
+    btn.style.fontSize = '10px';
+    btn.textContent = '0%';
+  }
+
+  try {
+    if ('caches' in window) {
+      const cache = await caches.open('athr-audio-cache-v1');
+      const match = await cache.match(absUrl) || await cache.match(safeUrl);
+      if (match) { markButtonSuccess(btn); return; }
+    }
+
+    const blob = await new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', absUrl, true);
+      xhr.responseType = 'blob';
+      xhr.onprogress = (event) => {
+        if (event.lengthComputable && btn) {
+          const percent = Math.round((event.loaded / event.total) * 100);
+          btn.textContent = `${percent}%`;
+        }
+      };
+      xhr.onload = () => (xhr.status === 200 ? resolve(xhr.response) : reject(new Error("Err")));
+      xhr.onerror = () => reject(new Error("Net Err"));
+      xhr.send();
+    });
+
+    if ('caches' in window && blob) {
+      const cache = await caches.open('athr-audio-cache-v1');
+      await cache.put(absUrl, new Response(blob, { status: 200, headers: { 'Content-Type': 'audio/mpeg' } }));
+    }
+    markButtonSuccess(btn);
+  } catch (err) {
+    if (btn) { btn.disabled = false; btn.style.fontSize = '14px'; btn.textContent = '⚠️'; }
+  }
+};
+
+function markButtonSuccess(btn) {
+  if (!btn) return;
+  btn.disabled = false;
+  btn.style.fontSize = '14px';
+  btn.textContent = '✅';
+  btn.style.background = 'rgba(76,175,80,0.15)';
+  btn.style.borderColor = '#4caf50';
+  btn.style.color = '#4caf50';
+}
+
+async function markAlreadyDownloadedRareButtons() {
+  if (!('caches' in window)) return;
+  try {
+    const cache = await caches.open('athr-audio-cache-v1');
+    for (const item of window.rareRecitations) {
+      let safeUrl = item.url === "audio/nasr_6.mp3" ? "audio/nast_6.mp3" : item.url;
+      const absUrl = new URL(safeUrl, window.location.href).href;
+      const match = await cache.match(absUrl) || await cache.match(safeUrl);
+      const btn = document.getElementById(rareBtnId(item.url));
+      if (match && btn) markButtonSuccess(btn);
+    }
+  } catch (e) {}
+}
+
+window.shareRareAudio = async function(name, url, btnElement) {
+  let safeUrl = url === "audio/nasr_6.mp3" ? "audio/nast_6.mp3" : url;
+  const cleanName = name.replace('🎙️', '').trim();
+  const btn = btnElement || (event ? event.currentTarget : null);
+  const originalHTML = btn ? btn.innerHTML : '🔗';
+
+  try {
+    if (btn) btn.innerHTML = '⏳';
+    let blob = null;
+
+    if ('caches' in window) {
+      try {
+        const cache = await caches.open('athr-audio-cache-v1');
+        const matched = await cache.match(safeUrl);
+        if (matched && matched.ok) blob = await matched.blob();
+      } catch (e) {}
+    }
+
+    if (!blob) {
+      const res = await fetch(safeUrl);
+      if (res.ok) blob = await res.blob();
+    }
+
+    const audioFile = new File([blob], `audio_${Date.now()}.mp3`, { type: 'audio/mpeg' });
+
+    if (navigator.canShare && navigator.canShare({ files: [audioFile] })) {
+      await navigator.share({ title: cleanName, text: `تلاوة خاشعة: ${cleanName} 🎙️`, files: [audioFile] });
+    } else if (navigator.share) {
+      await navigator.share({ title: cleanName, text: cleanName, url: new URL(safeUrl, window.location.href).href });
+    } else {
+      await navigator.clipboard.writeText(new URL(safeUrl, window.location.href).href);
+      alert('تم نسخ رابط التلاوة بنجاح ✓');
+    }
+  } catch (err) {
+    if (err.name !== 'AbortError') alert('تعذر مشاركة الملف كصوت، يمكنك نسخ الرابط مصفى.');
+  } finally {
+    if (btn) btn.innerHTML = originalHTML;
+  }
+};
+
+document.addEventListener('DOMContentLoaded', () => { renderRareRecitations(); });
