@@ -1185,9 +1185,9 @@ window.buildPostCardHtml = function(docId, data, myName) {
     
     ${mediaHtml}
     
-    <div class="post-stats-counter" id="postStats-${docId}">
+<div class="post-stats-counter" id="postStats-${docId}">
       <div id="likesCounter-${docId}">
-        ${likesArr.length > 0 ? `<span style="background: var(--gold); color: #111; border-radius: 50%; padding: 2px 5px; font-size: 10px; margin-left: 4px;">✨</span> ${likesArr.length}` : ''}
+        ${(data.likesCount || likesArr.length) > 0 ? `<span style="background: var(--gold); color: #111; border-radius: 50%; padding: 2px 5px; font-size: 10px; margin-left: 4px;">✨</span> ${data.likesCount || likesArr.length}` : ''}
       </div>
       <div>
         <span id="commentsCountText-${docId}">${data.commentsCount || 0} تعليق</span>
@@ -1246,10 +1246,11 @@ window.updatePostCardStats = function(docId, data, myName) {
   const likesArr = data.likes || [];
   const hasLiked = likesArr.includes(myName);
 
-  const likesCounter = document.getElementById(`likesCounter-${docId}`);
+const likesCounter = document.getElementById(`likesCounter-${docId}`);
   if (likesCounter) {
-    likesCounter.innerHTML = likesArr.length > 0
-      ? `<span style="background: var(--gold); color: #111; border-radius: 50%; padding: 2px 5px; font-size: 10px; margin-left: 4px;">✨</span> ${likesArr.length}`
+    const displayCount = data.likesCount || likesArr.length;
+    likesCounter.innerHTML = displayCount > 0
+      ? `<span style="background: var(--gold); color: #111; border-radius: 50%; padding: 2px 5px; font-size: 10px; margin-left: 4px;">✨</span> ${displayCount}`
       : '';
   }
 
