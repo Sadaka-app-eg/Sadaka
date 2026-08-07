@@ -594,24 +594,27 @@ function ensureRareAudioEngine() {
     }
   };
 
-  player.onended = () => {
-    player.volume = 1.0; // إعادة ضبط الصوت
+// ✅ الجزء المعدل المظبوط:
+player.onended = () => {
+  player.volume = 1.0;
 
-    // فحص مؤقت النوم لو مخصص لحين نهاية التلاوة الحالية
-    if (window.sleepTimer.active && window.sleepTimer.stopAtEndTrack) {
-      player.pause();
-      window.cancelSleepTimer();
-      return;
-    }
+  if (window.sleepTimer.active && window.sleepTimer.stopAtEndTrack) {
+    window.cancelSleepTimer();
+  }
 
-    // فحص وضع التكرار
-    if (window.repeatMode === 'one') {
-      player.currentTime = 0;
-      player.play();
-    } else {
-      window.playNextRareTrack();
-    }
-  };
+  // فحص وضع التكرار الحصري (لو مفعل تكرار المقطع يكرره)
+  if (window.repeatMode === 'one') {
+    player.currentTime = 0;
+    player.play();
+  } else {
+    // 🛑 الفصل التام والتوقف عند انتهاء التلاوة
+    player.pause();
+    player.currentTime = 0;
+    window.updateNowPlayingUI();
+    window.updateMiniPlayerUI();
+    window.updateListPlayState();
+  }
+};
 }
 
 // التشغيل السريع بدون بطء
@@ -1229,19 +1232,28 @@ function rareBtnId(url) { return 'rare_dl_' + url.replace(/[^a-zA-Z0-9]/g, '_');
 window.downloadRareAudio = async function(url) {
   let safeUrl = url === "audio/nasr_6.mp3" ? "audio/nast_6.mp3" : url;
   const absUrl = new URL(safeUrl, window.location.href).href;
-  const btn = document.getElementById(rareBtnId(url));
+  const listBtn = document.getElementById(rareBtnId(url));
+  const sheetBtn = document.getElementById('sheetDownloadBtn');
 
-  if (btn) {
-    btn.disabled = true;
-    btn.style.fontSize = '10px';
-    btn.textContent = '0%';
+  if (listBtn) {
+    listBtn.disabled = true;
+    listBtn.style.fontSize = '10px';
+    listBtn.textContent = '0%';
+  }
+  if (sheetBtn) {
+    sheetBtn.disabled = true;
+    sheetBtn.textContent = '⏳ جاري التحميل (0%)...';
   }
 
   try {
     if ('caches' in window) {
       const cache = await caches.open('athr-audio-cache-v1');
       const match = await cache.match(absUrl) || await cache.match(safeUrl);
-      if (match) { markButtonSuccess(btn); return; }
+      if (match) { 
+        markButtonSuccess(listBtn); 
+        if (sheetBtn) sheetBtn.textContent = '✅ تم التحميل (متاح أوفلاين)';
+        return; 
+      }
     }
 
     const blob = await new Promise((resolve, reject) => {
@@ -1249,9 +1261,10 @@ window.downloadRareAudio = async function(url) {
       xhr.open('GET', absUrl, true);
       xhr.responseType = 'blob';
       xhr.onprogress = (event) => {
-        if (event.lengthComputable && btn) {
+        if (event.lengthComputable) {
           const percent = Math.round((event.loaded / event.total) * 100);
-          btn.textContent = `${percent}%`;
+          if (listBtn) listBtn.textContent = `${percent}%`;
+          if (sheetBtn) sheetBtn.textContent = `⏳ جاري التحميل (${percent}%)...`;
         }
       };
       xhr.onload = () => (xhr.status === 200 ? resolve(xhr.response) : reject(new Error("Err")));
@@ -1263,9 +1276,15 @@ window.downloadRareAudio = async function(url) {
       const cache = await caches.open('athr-audio-cache-v1');
       await cache.put(absUrl, new Response(blob, { status: 200, headers: { 'Content-Type': 'audio/mpeg' } }));
     }
-    markButtonSuccess(btn);
+
+    markButtonSuccess(listBtn);
+    if (sheetBtn) {
+      sheetBtn.disabled = false;
+      sheetBtn.textContent = '✅ تم التحميل (متاح أوفلاين)';
+    }
   } catch (err) {
-    if (btn) { btn.disabled = false; btn.style.fontSize = '14px'; btn.textContent = '⚠️'; }
+    if (listBtn) { listBtn.disabled = false; listBtn.style.fontSize = '14px'; listBtn.textContent = '⚠️'; }
+    if (sheetBtn) { sheetBtn.disabled = false; sheetBtn.textContent = '⚠️ تعذر التحميل - حاول مجدداً'; }
   }
 };
 
@@ -1337,7 +1356,10 @@ document.addEventListener('DOMContentLoaded', () => { renderRareRecitations(); }
 // ==========================================
 // 📱 قائمة الخيارات الثلاث نقاط (⋮ Context Menu)
 // ==========================================
-window.openContextMenu = function(url, btnElement) {
+// ==========================================
+// 📱 قائمة الخيارات الثلاث نقاط (⋮ Context Menu) المحدثة
+// ==========================================
+window.openContextMenu = async function(url, btnElement) {
   const track = window.rareRecitations.find(item => item.url === url);
   if (!track) return;
 
@@ -1346,16 +1368,31 @@ window.openContextMenu = function(url, btnElement) {
 
   const isPinned = window.getPinnedRareUrls().includes(url);
   const isAnachid = track.tag === 'أناشيد';
+  const cleanTitle = track.name.replace(/[🎙️🤲🎵]/g, '').trim();
+
+  // 🔍 فحص هل التلاوة محمّلة أوفلاين في الكاش مسبقاً؟
+  let isDownloaded = false;
+  if ('caches' in window) {
+    try {
+      let safeUrl = url === "audio/nasr_6.mp3" ? "audio/nast_6.mp3" : url;
+      const absUrl = new URL(safeUrl, window.location.href).href;
+      const cache = await caches.open('athr-audio-cache-v1');
+      const match = await cache.match(absUrl) || await cache.match(safeUrl);
+      if (match) isDownloaded = true;
+    } catch(e) {}
+  }
+
+  const downloadBtnText = isDownloaded ? '✅ تم التحميل (متاح أوفلاين)' : '📥 تحميل أوفلاين للتطبيق';
 
   const menuHTML = `
     <div id="athrContextMenu" style="position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 999999999; display: flex; align-items: flex-end; justify-content: center;" onclick="this.remove()">
       <div style="width: 100%; max-width: 450px; background: #121813; border-top: 2px solid var(--gold); border-radius: 20px 20px 0 0; padding: 20px; direction: rtl; font-family: 'Amiri', serif;" onclick="event.stopPropagation()">
         
         <div style="text-align: center; font-weight: bold; color: var(--gold); font-size: 16px; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
-          ${track.name.replace(/[🎙️🤲🎵]/g, '').trim()}
+          ${cleanTitle}
         </div>
 
-        <button class="np-modal-option" onclick="window.downloadRareAudio('${url}'); document.getElementById('athrContextMenu').remove();">📥 تحميل أوفلاين للتطبيق</button>
+        <button id="sheetDownloadBtn" class="np-modal-option" onclick="window.downloadRareAudio('${url}')">${downloadBtnText}</button>
         <button class="np-modal-option" onclick="window.shareRareAudio('${track.name.replace(/'/g, "\\'")}', '${url}'); document.getElementById('athrContextMenu').remove();">🔗 مشاركة التلاوة</button>
         <button class="np-modal-option" onclick="window.togglePinRare('${url}'); document.getElementById('athrContextMenu').remove();">${isPinned ? '📍 إلغاء التثبيت' : '📌 تثبيت التلاوة في الأعلى'}</button>
         <button class="np-modal-option" onclick="window.openSleepModal(); document.getElementById('athrContextMenu').remove();">⏱️ مؤقت النوم</button>
@@ -1370,7 +1407,6 @@ window.openContextMenu = function(url, btnElement) {
 
   document.body.insertAdjacentHTML('beforeend', menuHTML);
 };
-
 // ==========================================
 // 🎧 المشغل المصغر السفلي (Mini Player Bar)
 // ==========================================
@@ -1405,14 +1441,19 @@ window.updateMiniPlayerUI = function() {
   const overlay = document.getElementById('rareNowPlayingOverlay');
   const track = window.rareRecitations.find(item => item.url === window.currentRareUrl);
 
-  // إظهار الشريط فقط إذا كانت شاشة Now Playing مغلقة وهناك تلاوة شغالة
-  if (track && (!overlay || overlay.style.display !== 'flex')) {
+  // 🎯 الفحص الذكي: هل الصفحة النشطة حالياً في التطبيق هي صفحة التلاوات الخاشعة؟
+  const activePage = document.querySelector('.page.active');
+  const isRarePageActive = activePage && activePage.id === 'rareRecitationsPage';
+
+  // يظهر الشريط فقط لو كانت هناك تلاوة شغال + الشاشة الكاملة مغلقة + المستخدم متواجد داخل صفحة التلاوات الخاشعة
+  if (track && isRarePageActive && (!overlay || overlay.style.display !== 'flex')) {
     mini.style.display = 'block';
     document.getElementById('miniPlayerAvatar').src = window.getSheikhAvatar(track.tag);
     document.getElementById('miniPlayerTitle').textContent = track.name.replace(/[🎙️🤲🎵]/g, '').trim();
     document.getElementById('miniPlayerSheikh').textContent = track.tag;
     document.getElementById('miniPlayerPlayBtn').textContent = window.rareAudioPlayer.paused ? '▶' : '⏸';
   } else {
+    // 🚫 يختفي تماماً عند الخروج من صفحة التلاوات الخاشعة
     mini.style.display = 'none';
   }
 };
