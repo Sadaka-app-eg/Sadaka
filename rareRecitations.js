@@ -916,7 +916,7 @@ if (!document.getElementById('rareActiveTrackStyle')) {
           <span id="nowPlayingDuration">0:00</span>
         </div>
 
-<!-- أزرار التحكم الأنيقة المبسطة (بدون تقديم وتأخير 10 ثوانٍ) -->
+<!-- أزرار التحكم بدون تقديم وتأخير 10 ثوانٍ -->
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px; direction:ltr; padding: 0 10px;">
           <button id="npShuffleBtn" onclick="window.toggleShuffle()" style="background:none; border:none; color:var(--text); font-size:18px; opacity:0.5; cursor:pointer;">🔀</button>
           <button onclick="window.nowPlayingPrev()" style="background:none; border:none; color:var(--text); font-size:28px; cursor:pointer;">⏮</button>
@@ -1140,10 +1140,7 @@ html += filteredList.map((item) => {
     const isPinned = pinnedUrls.includes(item.url);
     const cleanName = item.name.replace(/[🎙️🤲🎵]/g, '').trim();
 
-  const isCurrent = (window.currentRareUrl === item.url);
-    const isPlaying = isCurrent && !window.rareAudioPlayer.paused;
-
-    // أيقونة أنيميشن الصوت الشغال
+    // أنيميشن الموجات الصوتية الراقصة للمقطع النشط
     const soundWaveHtml = isPlaying ? `
       <div class="eq-wave-container">
         <div class="eq-bar"></div>
@@ -1151,6 +1148,11 @@ html += filteredList.map((item) => {
         <div class="eq-bar"></div>
       </div>
     ` : (isCurrent ? '⏸ ' : '');
+
+    const currentProgress = isCurrent && window.rareAudioPlayer.duration ? (window.rareAudioPlayer.currentTime / window.rareAudioPlayer.duration) * 100 : 0;
+    const timeLabel = isCurrent && window.rareAudioPlayer.duration
+      ? `${window.formatTime(window.rareAudioPlayer.currentTime)} / ${window.formatTime(window.rareAudioPlayer.duration)}`
+      : '0:00 / --:--';
 
     return `
       <div class="athr-lecture-card ${isCurrent ? 'playing' : ''}" style="margin-bottom: 10px; padding: 12px; border-radius: 14px; background: var(--card); border: 1px solid var(--border); cursor:pointer; transition: all 0.3s ease;" onclick="window.openNowPlaying('${item.url}')">
