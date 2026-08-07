@@ -677,17 +677,34 @@ window.toggleRepeat = function() {
   let idx = modes.indexOf(window.repeatMode);
   window.repeatMode = modes[(idx + 1) % modes.length];
   const btn = document.getElementById('npRepeatBtn');
+  const accentColor = window.getRandomAccentColor(window.currentRareUrl || '');
+
   if (btn) {
-    if (window.repeatMode === 'off') { btn.textContent = '🔁'; btn.style.opacity = '0.5'; }
-    else if (window.repeatMode === 'all') { btn.textContent = '🔁'; btn.style.opacity = '1'; }
-    else if (window.repeatMode === 'one') { btn.textContent = '🔂'; btn.style.opacity = '1'; }
+    if (window.repeatMode === 'off') {
+      btn.textContent = '🔁';
+      btn.style.color = 'var(--text)';
+      btn.style.opacity = '0.4';
+    } else if (window.repeatMode === 'all') {
+      btn.textContent = '🔁';
+      btn.style.color = accentColor;
+      btn.style.opacity = '1';
+    } else if (window.repeatMode === 'one') {
+      btn.textContent = '🔂';
+      btn.style.color = accentColor;
+      btn.style.opacity = '1';
+    }
   }
 };
 
 window.toggleShuffle = function() {
   window.isShuffle = !window.isShuffle;
   const btn = document.getElementById('npShuffleBtn');
-  if (btn) btn.style.opacity = window.isShuffle ? '1' : '0.5';
+  const accentColor = window.getRandomAccentColor(window.currentRareUrl || '');
+
+  if (btn) {
+    btn.style.color = window.isShuffle ? accentColor : 'var(--text)';
+    btn.style.opacity = window.isShuffle ? '1' : '0.4';
+  }
 };
 
 // ==========================================
@@ -770,6 +787,27 @@ window.closeSleepModal = function() {
 // ==========================================
 // 🎨 واجهة "يُشغّل الآن" (Now Playing Overlay)
 // ==========================================
+
+// مصفوفة ألوان راقية ومريحة للعين للتنقل بينها
+window.dynamicColors = [
+  '#d4af37', // ذهبي
+  '#2ecc71', // أخضر زمردي
+  '#3498db', // أزرق هادئ
+  '#9b59b6', // بنفسجي ملكي
+  '#e67e22', // برتقالي دافئ
+  '#1abc9c', // تركواز
+  '#e74c3c'  // أحمر عنابي
+];
+
+window.getRandomAccentColor = function(url) {
+  // توليد لون ثابت ومختلف بناءً على رابط التلاوة
+  let hash = 0;
+  for (let i = 0; i < url.length; i++) {
+    hash = url.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % window.dynamicColors.length;
+  return window.dynamicColors[index];
+};
 window.ensureNowPlayingOverlay = function() {
   if (document.getElementById('rareNowPlayingOverlay')) return;
 
@@ -874,7 +912,6 @@ window.ensureNowPlayingOverlay = function() {
   });
 };
 
-// تحديث محتوى واجهة "يُشغّل الآن"
 window.updateNowPlayingUI = function() {
   const overlay = document.getElementById('rareNowPlayingOverlay');
   if (!overlay || overlay.style.display !== 'flex') return;
@@ -884,17 +921,35 @@ window.updateNowPlayingUI = function() {
 
   const cleanName = track.name.replace(/[🎙️🤲🎵]/g, '').trim();
   const avatarUrl = window.getSheikhAvatar(track.tag);
+  
+  // 🎨 الحصول على اللون المخصص لهذه التلاوة
+  const accentColor = window.getRandomAccentColor(track.url);
 
   document.getElementById('nowPlayingSheikh').textContent = track.tag;
+  document.getElementById('nowPlayingSheikh').style.color = accentColor; // لون اسم الشيخ
   document.getElementById('nowPlayingTrackName').textContent = cleanName;
 
   const avatarImg = document.getElementById('nowPlayingAvatar');
   avatarImg.src = avatarUrl;
-  if (!player.paused) avatarImg.classList.add('playing');
-  else avatarImg.classList.remove('playing');
+  avatarImg.style.borderColor = accentColor; // لون إطار صورة الشيخ
+  
+  if (!player.paused) {
+    avatarImg.classList.add('playing');
+    avatarImg.style.boxShadow = `0 0 35px 8px ${accentColor}80`; // إشعاع متوهج بلون التلاوة
+  } else {
+    avatarImg.classList.remove('playing');
+    avatarImg.style.boxShadow = 'none';
+  }
+
+  // تحديث لون زر التشغيل والسلايدر
+  const playBtn = document.getElementById('nowPlayingPlayBtn');
+  playBtn.style.background = accentColor;
+  playBtn.textContent = player.paused ? '▶' : '⏸';
+
+  const seek = document.getElementById('nowPlayingSeek');
+  if (seek) seek.style.accentColor = accentColor;
 
   document.getElementById('npAmbientBg').style.backgroundImage = `url('${avatarUrl}')`;
-  document.getElementById('nowPlayingPlayBtn').textContent = player.paused ? '▶' : '⏸';
 
   window.updateSleepTimerBadge();
 };
