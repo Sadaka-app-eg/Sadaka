@@ -998,11 +998,13 @@ window.openNowPlaying = function(url) {
 
   document.getElementById('rareNowPlayingOverlay').style.display = 'flex';
   window.updateNowPlayingUI();
+  window.updateMiniPlayerUI(); // إخفاء الشريط السفلي عند الفتح
 };
 
 window.closeNowPlaying = function() {
   const overlay = document.getElementById('rareNowPlayingOverlay');
   if (overlay) overlay.style.display = 'none';
+  window.updateMiniPlayerUI(); // إظهار الشريط السفلي عند الخروج
 };
 
 window.nowPlayingTogglePlay = function() {
@@ -1045,8 +1047,8 @@ window.renderRareRecitations = function () {
     const icon = isPlaying ? '⏸' : '▶';
 
     const isPinned = pinnedUrls.includes(item.url);
-    const pinIcon = isPinned ? '📍' : '📌';
-    const pinTitle = isPinned ? 'إلغاء التثبيت' : 'تثبيت التلاوة في الأعلى';
+    const avatarUrl = window.getSheikhAvatar(item.tag);
+    const cleanName = item.name.replace(/[🎙️🤲🎵]/g, '').trim();
 
     const currentProgress = isCurrent && window.rareAudioPlayer.duration ? (window.rareAudioPlayer.currentTime / window.rareAudioPlayer.duration) * 100 : 0;
     const timeLabel = isCurrent && window.rareAudioPlayer.duration
@@ -1054,23 +1056,35 @@ window.renderRareRecitations = function () {
       : '0:00 / --:--';
 
     return `
-      <div class="athr-lecture-card ${isPlaying ? 'playing' : ''}" style="margin-bottom: 10px; cursor:pointer;" onclick="window.openNowPlaying('${item.url}')">
-        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+      <div class="athr-lecture-card ${isPlaying ? 'playing' : ''}" style="margin-bottom: 10px; padding: 12px; border-radius: 14px; background: var(--card); border: 1px solid var(--border); cursor:pointer;" onclick="window.openNowPlaying('${item.url}')">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; direction: rtl;">
           
-          <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
-            <button data-play-btn-id="${realIndex}" onclick="event.stopPropagation(); window.currentRareGlobalId=${realIndex}; window.openNowPlaying('${item.url}')" class="athr-icon-btn primary" style="width: 34px; height: 34px; font-size: 15px;">${icon}</button>
-            <button id="rare_dl_${item.url.replace(/[^a-zA-Z0-9]/g,'_')}" onclick="event.stopPropagation(); window.downloadRareAudio('${item.url}')" class="athr-icon-btn" style="width: 32px; height: 32px; font-size: 14px;" title="تحميل أوفلاين">📥</button>
-            <button onclick="event.stopPropagation(); window.shareRareAudio('${item.name.replace(/'/g, "\\'")}', '${item.url}', this)" class="athr-icon-btn" style="width: 32px; height: 32px; font-size: 14px;" title="مشاركة">🔗</button>
-            <button onclick="event.stopPropagation(); window.togglePinRare('${item.url}')" class="athr-icon-btn" style="width: 32px; height: 32px; font-size: 14px;" title="${pinTitle}">${pinIcon}</button>
+          <!-- صورة الشيخ يميناً -->
+          <div style="position: relative; flex-shrink: 0;">
+            <img src="${avatarUrl}" alt="${item.tag}" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid var(--gold);" />
+            ${isPinned ? '<span style="position:absolute; bottom:-2px; right:-2px; font-size:11px;">📍</span>' : ''}
           </div>
 
-          <div style="font-weight: bold; color: var(--text); font-family: 'Amiri', serif; font-size: 14px; line-height: 1.4; flex: 1; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-            ${item.name}
+          <!-- تفاصيل التلاوة والشيخ بالمنتصف -->
+          <div style="flex: 1; min-width: 0; text-align: right;">
+            <div style="font-weight: bold; color: var(--text); font-family: 'Amiri', serif; font-size: 15px; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              ${cleanName}
+            </div>
+            <div style="font-size: 12px; color: var(--gold); font-family: 'Amiri', serif; margin-top: 3px; opacity: 0.9;">
+              ${item.tag}
+            </div>
+          </div>
+
+          <!-- أزرار التشغيل والخيارات يساراً -->
+          <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;" onclick="event.stopPropagation();">
+            <button data-play-btn-id="${realIndex}" onclick="window.currentRareGlobalId=${realIndex}; window.openNowPlaying('${item.url}')" class="athr-icon-btn primary" style="width: 38px; height: 38px; font-size: 16px; border-radius: 50%; background: var(--gold); color: #111; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;">${icon}</button>
+            <button onclick="window.openContextMenu('${item.url}', this)" class="athr-icon-btn" style="width: 34px; height: 34px; font-size: 18px; background: rgba(255,255,255,0.06); color: var(--text); border: none; border-radius: 50%; cursor: pointer;" title="خيارات إضافية">⋮</button>
           </div>
 
         </div>
 
-        <div style="width: 100%; display: flex; flex-direction: column; gap: 3px; margin-top: 4px;">
+        <!-- شريط التقدم السفلي الملموم -->
+        <div style="width: 100%; display: flex; flex-direction: column; gap: 2px; margin-top: 8px;">
           <input type="range"
                  data-progress-id="${realIndex}"
                  min="0" max="100"
@@ -1223,3 +1237,110 @@ window.shareRareAudio = async function(name, url, btnElement) {
 };
 
 document.addEventListener('DOMContentLoaded', () => { renderRareRecitations(); });
+// ==========================================
+// 📱 قائمة الخيارات الثلاث نقاط (⋮ Context Menu)
+// ==========================================
+window.openContextMenu = function(url, btnElement) {
+  const track = window.rareRecitations.find(item => item.url === url);
+  if (!track) return;
+
+  const existingMenu = document.getElementById('athrContextMenu');
+  if (existingMenu) existingMenu.remove();
+
+  const isPinned = window.getPinnedRareUrls().includes(url);
+  const isAnachid = track.tag === 'أناشيد';
+
+  const menuHTML = `
+    <div id="athrContextMenu" style="position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 999999999; display: flex; align-items: flex-end; justify-content: center;" onclick="this.remove()">
+      <div style="width: 100%; max-width: 450px; background: #121813; border-top: 2px solid var(--gold); border-radius: 20px 20px 0 0; padding: 20px; direction: rtl; font-family: 'Amiri', serif;" onclick="event.stopPropagation()">
+        
+        <div style="text-align: center; font-weight: bold; color: var(--gold); font-size: 16px; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+          ${track.name.replace(/[🎙️🤲🎵]/g, '').trim()}
+        </div>
+
+        <button class="np-modal-option" onclick="window.downloadRareAudio('${url}'); document.getElementById('athrContextMenu').remove();">📥 تحميل أوفلاين للتطبيق</button>
+        <button class="np-modal-option" onclick="window.shareRareAudio('${track.name.replace(/'/g, "\\'")}', '${url}'); document.getElementById('athrContextMenu').remove();">🔗 مشاركة التلاوة</button>
+        <button class="np-modal-option" onclick="window.togglePinRare('${url}'); document.getElementById('athrContextMenu').remove();">${isPinned ? '📍 إلغاء التثبيت' : '📌 تثبيت التلاوة في الأعلى'}</button>
+        <button class="np-modal-option" onclick="window.openSleepModal(); document.getElementById('athrContextMenu').remove();">⏱️ مؤقت النوم</button>
+        <button class="np-modal-option" onclick="window.cycleSpeed(); document.getElementById('athrContextMenu').remove();">⚡ تغيير السرعة (${window.playbackSpeed}x)</button>
+        
+        ${isAnachid ? `<button class="np-modal-option" style="color: var(--gold);" onclick="window.setRingtone('${url}', '${track.name.replace(/'/g, "\\'")}'); document.getElementById('athrContextMenu').remove();">🔔 تعيين كنغمة رنين للجوّال</button>` : ''}
+
+        <button style="width: 100%; background: none; border: none; color: var(--text2); margin-top: 10px; cursor: pointer; padding: 10px;" onclick="document.getElementById('athrContextMenu').remove()">إلغاء</button>
+      </div>
+    </div>
+  `;
+
+  document.body.insertAdjacentHTML('beforeend', menuHTML);
+};
+
+// ==========================================
+// 🎧 المشغل المصغر السفلي (Mini Player Bar)
+// ==========================================
+window.ensureMiniPlayer = function() {
+  if (document.getElementById('athrMiniPlayer')) return;
+
+  const miniHTML = `
+    <div id="athrMiniPlayer" style="display: none; position: fixed; bottom: 15px; left: 15px; right: 15px; background: rgba(18, 24, 19, 0.92); backdrop-filter: blur(12px); border: 1px solid var(--gold); border-radius: 16px; padding: 8px 14px; z-index: 999999; cursor: pointer; box-shadow: 0 10px 25px rgba(0,0,0,0.5); direction: rtl;" onclick="window.openNowPlaying(window.currentRareUrl)">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+        
+        <!-- الصورة يميناً -->
+        <img id="miniPlayerAvatar" src="" alt="الشيخ" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid var(--gold);" />
+
+        <!-- عنوان واسم الشيخ بالوسط -->
+        <div style="flex: 1; min-width: 0; text-align: right;">
+          <div id="miniPlayerTitle" style="color: var(--text); font-family: 'Amiri', serif; font-size: 13px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></div>
+          <div id="miniPlayerSheikh" style="color: var(--gold); font-size: 11px; font-family: 'Amiri', serif;"></div>
+        </div>
+
+        <!-- زر تشغيل/إيقاف يساراً -->
+        <button id="miniPlayerPlayBtn" onclick="event.stopPropagation(); window.nowPlayingTogglePlay();" style="width: 36px; height: 36px; border-radius: 50%; background: var(--gold); color: #111; border: none; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;">⏸</button>
+
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', miniHTML);
+};
+
+window.updateMiniPlayerUI = function() {
+  window.ensureMiniPlayer();
+  const mini = document.getElementById('athrMiniPlayer');
+  const overlay = document.getElementById('rareNowPlayingOverlay');
+  const track = window.rareRecitations.find(item => item.url === window.currentRareUrl);
+
+  // إظهار الشريط فقط إذا كانت شاشة Now Playing مغلقة وهناك تلاوة شغالة
+  if (track && (!overlay || overlay.style.display !== 'flex')) {
+    mini.style.display = 'block';
+    document.getElementById('miniPlayerAvatar').src = window.getSheikhAvatar(track.tag);
+    document.getElementById('miniPlayerTitle').textContent = track.name.replace(/[🎙️🤲🎵]/g, '').trim();
+    document.getElementById('miniPlayerSheikh').textContent = track.tag;
+    document.getElementById('miniPlayerPlayBtn').textContent = window.rareAudioPlayer.paused ? '▶' : '⏸';
+  } else {
+    mini.style.display = 'none';
+  }
+};
+
+// ميزة تعيين نغمة رنين للأناشيد
+window.setRingtone = async function(url, name) {
+  try {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    const file = new File([blob], `${name}.mp3`, { type: 'audio/mpeg' });
+    
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({
+        files: [file],
+        title: name,
+        text: 'احفظ المقطع الصوتي واستخدمه كنغمة رنين لرقمك.'
+      });
+    } else {
+      alert('قم بتحميل المقطع أولاً ثم عيّنه كنغمة رنين من إعدادات الصوت في جهازك.');
+    }
+  } catch(e) {
+    alert('تحميل النشيد جاري، يمكنك تعيينه من إعدادات الهاتف بعد التنزيل.');
+  }
+};
+
+// ربط تحديث الميني بليير بأحداث التشغيل والإغلاق
+window.rareAudioPlayer.addEventListener('play', window.updateMiniPlayerUI);
+window.rareAudioPlayer.addEventListener('pause', window.updateMiniPlayerUI);
