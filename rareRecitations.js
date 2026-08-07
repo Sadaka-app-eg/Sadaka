@@ -885,7 +885,7 @@ if (!document.getElementById('rareActiveTrackStyle')) {
   document.head.appendChild(style);
 }
 
-  const overlayHTML = `
+ const overlayHTML = `
     <div id="rareNowPlayingOverlay" style="display:none; position:fixed; inset:0; background:#080d09; z-index:99999999; flex-direction:column; align-items:center; justify-content:space-between; padding:20px 20px calc(20px + env(safe-area-inset-bottom)); direction:rtl; overflow:hidden;">
       
       <div id="npAmbientBg" class="now-playing-bg"></div>
@@ -897,25 +897,25 @@ if (!document.getElementById('rareActiveTrackStyle')) {
         <button id="npTimerBadge" onclick="window.openSleepModal()" style="background:rgba(255,255,255,0.1); border:none; color:var(--text); padding:6px 12px; border-radius:20px; font-size:12px; cursor:pointer; font-family:'Amiri',serif;">⏱️</button>
       </div>
 
-<!-- منتصف الشاشة (الصورة والعنوان وزر الثلاث نقط) -->
-      <div id="npSwipeZone" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; width:100%; z-index:2;">
-        <div class="now-playing-avatar-wrap">
-          <img id="nowPlayingAvatar" class="now-playing-avatar" src="" alt="الشيخ" />
+      <!-- منتصف الشاشة (الصورة بالمقاس المصغر المظبوط 160px + العنوان والثلاث نقط) -->
+      <div id="npSwipeZone" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; width:100%; z-index:2;">
+        <div style="width:160px; height:160px; display:flex; align-items:center; justify-content:center; position:relative;">
+          <img id="nowPlayingAvatar" class="now-playing-avatar" src="" alt="الشيخ" style="width:160px; height:160px; border-radius:20px; object-fit:cover; border:3px solid var(--gold); transition: all 0.3s ease;" />
         </div>
         
         <!-- صف العنوان واسم الشيخ وزر الثلاث نقاط الأنيق -->
         <div style="width:100%; max-width:420px; display:flex; align-items:center; justify-content:space-between; padding:0 10px; direction:rtl;">
           <div style="text-align:right; flex:1; min-width:0; padding-left:10px;">
-            <div id="nowPlayingSheikh" style="color:var(--gold); font-size:22px; font-weight:bold; font-family:'Amiri',serif;"></div>
-            <div id="nowPlayingTrackName" style="color:var(--text2); font-size:14px; margin-top:4px; line-height:1.5; font-family:'Amiri',serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></div>
+            <div id="nowPlayingSheikh" style="color:var(--gold); font-size:20px; font-weight:bold; font-family:'Amiri',serif;"></div>
+            <div id="nowPlayingTrackName" style="color:var(--text2); font-size:13px; margin-top:3px; line-height:1.4; font-family:'Amiri',serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></div>
           </div>
           
-          <!-- 🎯 زر الثلاث نقط هنا بروقان -->
-          <button onclick="event.stopPropagation(); window.openContextMenu(window.currentRareUrl, this)" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:var(--text); width:42px; height:42px; border-radius:50%; font-size:20px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;" title="خيارات إضافية">⋮</button>
+          <!-- 🎯 زر الثلاث نقط المظبوط هنا -->
+          <button onclick="event.stopPropagation(); window.openContextMenu(window.currentRareUrl, this)" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:var(--text); width:40px; height:40px; border-radius:50%; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;" title="خيارات إضافية">⋮</button>
         </div>
       </div>
 
-      <!-- أسفل الشاشة (التحكم وسلايدر الوقت) -->
+      <!-- أسفل الشاشة (التحكم وسلايدر الوقت بدون أزرار 10 ثوانٍ) -->
       <div style="width:100%; max-width:420px; z-index:2;">
         <input type="range" id="nowPlayingSeek" min="0" max="100" value="0" oninput="window.seekNowPlaying(this)" style="width:100%; accent-color:var(--gold); cursor:pointer;" />
         <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text2); direction:ltr; margin-top:3px;">
@@ -923,11 +923,11 @@ if (!document.getElementById('rareActiveTrackStyle')) {
           <span id="nowPlayingDuration">0:00</span>
         </div>
 
-        <!-- أزرار التحكم الفخمة (المبسطة) -->
+        <!-- أزرار التحكم الأنيقة المبسطة -->
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px; direction:ltr; padding: 0 10px;">
           <button id="npShuffleBtn" onclick="window.toggleShuffle()" style="background:none; border:none; color:var(--text); font-size:18px; opacity:0.5; cursor:pointer;">🔀</button>
           <button onclick="window.nowPlayingPrev()" style="background:none; border:none; color:var(--text); font-size:28px; cursor:pointer;">⏮</button>
-          <button id="nowPlayingPlayBtn" onclick="window.nowPlayingTogglePlay()" style="background:var(--gold); color:#111; border:none; width:64px; height:64px; border-radius:50%; font-size:26px; cursor:pointer; font-weight:bold; display:flex; align-items:center; justify-content:center;">⏸</button>
+          <button id="nowPlayingPlayBtn" onclick="window.nowPlayingTogglePlay()" style="background:var(--gold); color:#111; border:none; width:60px; height:60px; border-radius:50%; font-size:24px; cursor:pointer; font-weight:bold; display:flex; align-items:center; justify-content:center;">⏸</button>
           <button onclick="window.nowPlayingNext()" style="background:none; border:none; color:var(--text); font-size:28px; cursor:pointer;">⏭</button>
           <button id="npRepeatBtn" onclick="window.toggleRepeat()" style="background:none; border:none; color:var(--text); font-size:18px; opacity:0.5; cursor:pointer;">🔁</button>
         </div>
