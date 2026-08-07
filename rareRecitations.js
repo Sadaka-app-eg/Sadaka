@@ -897,14 +897,21 @@ if (!document.getElementById('rareActiveTrackStyle')) {
         <button id="npTimerBadge" onclick="window.openSleepModal()" style="background:rgba(255,255,255,0.1); border:none; color:var(--text); padding:6px 12px; border-radius:20px; font-size:12px; cursor:pointer; font-family:'Amiri',serif;">⏱️</button>
       </div>
 
-      <!-- منتصف الشاشة (الصورة والعنوان + دعم السحب للإغلاق والتبديل) -->
+<!-- منتصف الشاشة (الصورة والعنوان وزر الثلاث نقط) -->
       <div id="npSwipeZone" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; width:100%; z-index:2;">
         <div class="now-playing-avatar-wrap">
           <img id="nowPlayingAvatar" class="now-playing-avatar" src="" alt="الشيخ" />
         </div>
-        <div style="text-align:center; padding:0 15px;">
-          <div id="nowPlayingSheikh" style="color:var(--gold); font-size:22px; font-weight:bold; font-family:'Amiri',serif;"></div>
-          <div id="nowPlayingTrackName" style="color:var(--text2); font-size:14px; margin-top:6px; line-height:1.5; font-family:'Amiri',serif;"></div>
+        
+        <!-- صف العنوان واسم الشيخ وزر الثلاث نقاط الأنيق -->
+        <div style="width:100%; max-width:420px; display:flex; align-items:center; justify-content:space-between; padding:0 10px; direction:rtl;">
+          <div style="text-align:right; flex:1; min-width:0; padding-left:10px;">
+            <div id="nowPlayingSheikh" style="color:var(--gold); font-size:22px; font-weight:bold; font-family:'Amiri',serif;"></div>
+            <div id="nowPlayingTrackName" style="color:var(--text2); font-size:14px; margin-top:4px; line-height:1.5; font-family:'Amiri',serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></div>
+          </div>
+          
+          <!-- 🎯 زر الثلاث نقط هنا بروقان -->
+          <button onclick="event.stopPropagation(); window.openContextMenu(window.currentRareUrl, this)" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:var(--text); width:42px; height:42px; border-radius:50%; font-size:20px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;" title="خيارات إضافية">⋮</button>
         </div>
       </div>
 
@@ -916,7 +923,7 @@ if (!document.getElementById('rareActiveTrackStyle')) {
           <span id="nowPlayingDuration">0:00</span>
         </div>
 
-<!-- أزرار التحكم بدون تقديم وتأخير 10 ثوانٍ -->
+        <!-- أزرار التحكم الفخمة (المبسطة) -->
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px; direction:ltr; padding: 0 10px;">
           <button id="npShuffleBtn" onclick="window.toggleShuffle()" style="background:none; border:none; color:var(--text); font-size:18px; opacity:0.5; cursor:pointer;">🔀</button>
           <button onclick="window.nowPlayingPrev()" style="background:none; border:none; color:var(--text); font-size:28px; cursor:pointer;">⏮</button>
