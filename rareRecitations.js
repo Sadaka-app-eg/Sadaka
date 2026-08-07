@@ -506,8 +506,8 @@ window.formatTime = function (seconds) {
 // تصفية التلاوات حسب القارئ المختار حالياً
 window.getFilteredRareList = function () {
   let list = window.rareRecitations.filter(item => {
-    if (window.currentRareFilter === 'all') return true;
-    return item.tag === window.currentRareFilter;
+    if (!window.selectedSheikhTag || window.selectedSheikhTag === 'all') return true;
+    return item.tag === window.selectedSheikhTag;
   });
 
   const pinnedUrls = window.getPinnedRareUrls();
@@ -1023,31 +1023,68 @@ window.seekNowPlaying = function(el) {
 // ==========================================
 // 📜 رندر القائمة الرئيسية بأداء عالي وسريع
 // ==========================================
+// حالة الشيخ المختار حالياً (null تعني عرض شبكة جميع الشيوخ)
+window.selectedSheikhTag = null;
+
+// دالة رندر الواجهة الرئيسية (شبكة الشيوخ أو قائمة تلاوات الشيخ)
 window.renderRareRecitations = function () {
   const container = document.getElementById('rareList');
   if (!container) return;
 
-  if (!window.rareRecitations || window.rareRecitations.length === 0) {
-    container.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text2);">⏳ جاري تحميل قائمة التلاوات...</div>';
+  // إخفاء/حذف أزرار التصفية القديمة إن وجدت في الـ DOM
+  const oldButtonsContainer = document.querySelector('.sheikh-buttons-scroll') || document.getElementById('sheikhButtons');
+  if (oldButtonsContainer) oldButtonsContainer.style.display = 'none';
+
+  // 1️⃣ إذا لم يتم اختيار شيخ بعد، نعرض شبكة القراء (Grid of Sheikhs)
+  if (!window.selectedSheikhTag) {
+    window.renderSheikhsGrid(container);
     return;
   }
 
-  const filteredList = window.getFilteredRareList();
+  // 2️⃣ إذا تم اختيار شيخ، نعرض تلاوات هذا الشيخ فقط مع زر رجوع
+  const filteredList = window.rareRecitations.filter(item => item.tag === window.selectedSheikhTag);
   const pinnedUrls = window.getPinnedRareUrls();
 
+  // ترتيب التلاوات المحدث مع تقديم المثبت
+  filteredList.sort((a, b) => {
+    const isAPinned = pinnedUrls.includes(a.url);
+    const isBPinned = pinnedUrls.includes(b.url);
+    if (isAPinned && !isBPinned) return -1;
+    if (!isAPinned && isBPinned) return 1;
+    return 0;
+  });
+
+  const sheikhAvatar = window.getSheikhAvatar(window.selectedSheikhTag);
+
+  let html = `
+    <!-- هيدر الشيخ المختار مع زر الرجوع -->
+    <div style="display: flex; align-items: center; justify-content: space-between; background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 12px 18px; margin-bottom: 15px; direction: rtl;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <img src="${sheikhAvatar}" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid var(--gold);" />
+        <div>
+          <div style="font-weight: bold; color: var(--gold); font-size: 16px; font-family: 'Amiri', serif;">${window.selectedSheikhTag}</div>
+          <div style="font-size: 11px; color: var(--text2); font-family: 'Amiri', serif;">${filteredList.length} تلاوات</div>
+        </div>
+      </div>
+      <button onclick="window.backToSheikhsGrid()" style="background: rgba(212,175,55,0.15); color: var(--gold); border: 1px solid var(--gold); border-radius: 20px; padding: 6px 14px; font-family: 'Amiri', serif; font-size: 13px; cursor: pointer;">
+        ↩️ قائمة الشيوخ
+      </button>
+    </div>
+  `;
+
   if (filteredList.length === 0) {
-    container.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text2); font-family:\'Amiri\',serif;">لا توجد تلاوات مرفوعة لهذا الشيخ بعد.</div>';
+    html += '<div style="text-align:center; padding:30px; color:var(--text2); font-family:\'Amiri\',serif;">لا توجد تلاوات لـ هذا القارئ حالياً.</div>';
+    container.innerHTML = html;
     return;
   }
 
-  container.innerHTML = filteredList.map((item) => {
+  html += filteredList.map((item) => {
     const realIndex = window.rareRecitations.indexOf(item);
     const isCurrent = (window.currentRareUrl === item.url);
     const isPlaying = isCurrent && !window.rareAudioPlayer.paused;
     const icon = isPlaying ? '⏸' : '▶';
 
     const isPinned = pinnedUrls.includes(item.url);
-    const avatarUrl = window.getSheikhAvatar(item.tag);
     const cleanName = item.name.replace(/[🎙️🤲🎵]/g, '').trim();
 
     const currentProgress = isCurrent && window.rareAudioPlayer.duration ? (window.rareAudioPlayer.currentTime / window.rareAudioPlayer.duration) * 100 : 0;
@@ -1059,13 +1096,11 @@ window.renderRareRecitations = function () {
       <div class="athr-lecture-card ${isPlaying ? 'playing' : ''}" style="margin-bottom: 10px; padding: 12px; border-radius: 14px; background: var(--card); border: 1px solid var(--border); cursor:pointer;" onclick="window.openNowPlaying('${item.url}')">
         <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; direction: rtl;">
           
-          <!-- صورة الشيخ يميناً -->
           <div style="position: relative; flex-shrink: 0;">
-            <img src="${avatarUrl}" alt="${item.tag}" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid var(--gold);" />
+            <img src="${sheikhAvatar}" alt="${item.tag}" style="width: 46px; height: 46px; border-radius: 50%; object-fit: cover; border: 2px solid var(--gold);" />
             ${isPinned ? '<span style="position:absolute; bottom:-2px; right:-2px; font-size:11px;">📍</span>' : ''}
           </div>
 
-          <!-- تفاصيل التلاوة والشيخ بالمنتصف -->
           <div style="flex: 1; min-width: 0; text-align: right;">
             <div style="font-weight: bold; color: var(--text); font-family: 'Amiri', serif; font-size: 15px; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
               ${cleanName}
@@ -1075,7 +1110,6 @@ window.renderRareRecitations = function () {
             </div>
           </div>
 
-          <!-- أزرار التشغيل والخيارات يساراً -->
           <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;" onclick="event.stopPropagation();">
             <button data-play-btn-id="${realIndex}" onclick="window.currentRareGlobalId=${realIndex}; window.openNowPlaying('${item.url}')" class="athr-icon-btn primary" style="width: 38px; height: 38px; font-size: 16px; border-radius: 50%; background: var(--gold); color: #111; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;">${icon}</button>
             <button onclick="window.openContextMenu('${item.url}', this)" class="athr-icon-btn" style="width: 34px; height: 34px; font-size: 18px; background: rgba(255,255,255,0.06); color: var(--text); border: none; border-radius: 50%; cursor: pointer;" title="خيارات إضافية">⋮</button>
@@ -1083,7 +1117,6 @@ window.renderRareRecitations = function () {
 
         </div>
 
-        <!-- شريط التقدم السفلي الملموم -->
         <div style="width: 100%; display: flex; flex-direction: column; gap: 2px; margin-top: 8px;">
           <input type="range"
                  data-progress-id="${realIndex}"
@@ -1098,7 +1131,54 @@ window.renderRareRecitations = function () {
     `;
   }).join('');
 
+  container.innerHTML = html;
   setTimeout(markAlreadyDownloadedRareButtons, 100);
+};
+
+// دالة عرض شبكة القراء (3 شيوخ في الصف)
+window.renderSheikhsGrid = function (container) {
+  // استخراج القراء دون تكرار
+  const tagsSet = new Set();
+  window.rareRecitations.forEach(item => { if (item.tag) tagsSet.add(item.tag); });
+  const sheikhs = Array.from(tagsSet);
+
+  let gridHTML = `
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; direction: rtl; padding: 10px 0;">
+  `;
+
+  sheikhs.forEach(sheikh => {
+    const avatar = window.getSheikhAvatar(sheikh);
+    const count = window.rareRecitations.filter(i => i.tag === sheikh).length;
+
+    gridHTML += `
+      <div onclick="window.selectSheikh('${sheikh}')" style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 15px 8px; cursor: pointer; transition: transform 0.2s, border-color 0.2s; text-align: center;">
+        <img src="${avatar}" alt="${sheikh}" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 2.5px solid var(--gold); box-shadow: 0 4px 10px rgba(0,0,0,0.3);" />
+        <div style="font-weight: bold; color: var(--text); font-family: 'Amiri', serif; font-size: 13px; margin-top: 10px; line-height: 1.3; height: 34px; display: flex; align-items: center; justify-content: center;">
+          ${sheikh}
+        </div>
+        <div style="font-size: 10px; color: var(--gold); margin-top: 2px; font-family: 'Amiri', serif;">
+          ${count} مقطع
+        </div>
+      </div>
+    `;
+  });
+
+  gridHTML += `</div>`;
+  container.innerHTML = gridHTML;
+};
+
+// تحديد الشيخ المختار والتنقل لتلاواته
+window.selectSheikh = function(sheikhTag) {
+  window.selectedSheikhTag = sheikhTag;
+  window.currentRareFilter = sheikhTag;
+  window.renderRareRecitations();
+};
+
+// الرجوع لشبكة الشيوخ
+window.backToSheikhsGrid = function() {
+  window.selectedSheikhTag = null;
+  window.currentRareFilter = 'all';
+  window.renderRareRecitations();
 };
 
 window.seekRare = function (element, url) {
@@ -1109,23 +1189,7 @@ window.seekRare = function (element, url) {
   }
 };
 
-window.filterRare = function (tag) {
-  window.currentRareFilter = tag;
-  const buttons = document.querySelectorAll('.sheikh-btn');
-  buttons.forEach(btn => {
-    btn.style.background = 'var(--card)';
-    btn.style.color = 'var(--text)';
-    btn.style.border = '1px solid var(--border)';
-  });
 
-  if (event && event.currentTarget) {
-    const activeBtn = event.currentTarget;
-    activeBtn.style.background = 'var(--gold)';
-    activeBtn.style.color = '#111';
-    activeBtn.style.border = 'none';
-  }
-  renderRareRecitations();
-};
 
 function rareBtnId(url) { return 'rare_dl_' + url.replace(/[^a-zA-Z0-9]/g, '_'); }
 
