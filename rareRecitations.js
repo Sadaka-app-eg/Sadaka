@@ -562,7 +562,7 @@ function ensureRareAudioEngine() {
   player.onplay = () => {
     window.updateNowPlayingUI();
     window.updateListPlayState();
-    
+    window.renderRareRecitations()
     if ('mediaSession' in navigator && window.currentRareUrl) {
       const currentTrack = window.rareRecitations.find(item => item.url === window.currentRareUrl);
       const trackName = currentTrack ? currentTrack.name.replace(/[🎙️🤲🎵]/g, '').trim() : 'تلاوة خاشعة';
@@ -571,7 +571,7 @@ function ensureRareAudioEngine() {
       navigator.mediaSession.metadata = new MediaMetadata({
         title: trackName,
         artist: currentTrack ? currentTrack.tag : 'أثر',
-        album: 'التلاوات النادرة',
+        album: 'التلاوات الخاشعة',
         artwork: [{ src: fullIconUrl, sizes: '512x512', type: 'image/jpeg' }]
       });
     }
@@ -580,6 +580,7 @@ function ensureRareAudioEngine() {
   player.onpause = () => {
     window.updateNowPlayingUI();
     window.updateListPlayState();
+    window.renderRareRecitations();
   };
 
   player.ontimeupdate = () => {
@@ -845,25 +846,44 @@ window.getRandomAccentColor = function(url) {
   return window.dynamicColors[index];
 };
 window.ensureNowPlayingOverlay = function() {
-  if (document.getElementById('rareNowPlayingOverlay')) return;
-
-  if (!document.getElementById('nowPlayingStyleTag')) {
-    const style = document.createElement('style');
-    style.id = 'nowPlayingStyleTag';
-    style.innerHTML = `
-      @keyframes npGlowPulse {
-        0%, 100% { transform: scale(1); box-shadow: 0 0 25px 6px rgba(212,175,55,0.3); }
-        50% { transform: scale(1.03); box-shadow: 0 0 45px 12px rgba(212,175,55,0.5); }
-      }
-      .now-playing-avatar-wrap { width:220px; height:220px; display:flex; align-items:center; justify-content:center; margin:0 auto; position:relative; }
-      .now-playing-avatar { width:200px; height:200px; border-radius:50%; object-fit:cover; border:3px solid var(--gold); transition: all 0.3s ease; }
-      .now-playing-avatar.playing { animation: npGlowPulse 4s ease-in-out infinite; }
-      .now-playing-bg { position:absolute; inset:0; background-size:cover; background-position:center; filter: blur(50px) brightness(0.25); z-index:-1; transition: background 0.5s ease; }
-      .np-modal-option { background: rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); color:var(--text); padding:12px; border-radius:10px; cursor:pointer; font-family:'Amiri',serif; width:100%; text-align:center; font-size:14px; margin-bottom:8px; transition:0.2s; }
-      .np-modal-option:hover { background: var(--gold); color:#111; }
-    `;
-    document.head.appendChild(style);
-  }
+// أضف ستايل التلاوة النشطة والموجات الصوتية الراقصة
+if (!document.getElementById('rareActiveTrackStyle')) {
+  const style = document.createElement('style');
+  style.id = 'rareActiveTrackStyle';
+  style.innerHTML = `
+    /* ستايل الكارت الشغال حالياً */
+    .athr-lecture-card.playing {
+      border: 1.5px solid var(--gold) !important;
+      background: rgba(212, 175, 55, 0.08) !important;
+      box-shadow: 0 4px 20px rgba(212, 175, 55, 0.25) !important;
+    }
+    
+    /* أنيميشن الموجات الصوتية الراقصة */
+    .eq-wave-container {
+      display: inline-flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 14px;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+    .eq-bar {
+      width: 3px;
+      background: var(--gold);
+      border-radius: 2px;
+      animation: eqWave 1.2s ease-in-out infinite alternate;
+    }
+    .eq-bar:nth-child(1) { height: 40%; animation-delay: 0.1s; }
+    .eq-bar:nth-child(2) { height: 100%; animation-delay: 0.3s; }
+    .eq-bar:nth-child(3) { height: 60%; animation-delay: 0.2s; }
+    
+    @keyframes eqWave {
+      0% { height: 20%; }
+      100% { height: 100%; }
+    }
+  `;
+  document.head.appendChild(style);
+}
 
   const overlayHTML = `
     <div id="rareNowPlayingOverlay" style="display:none; position:fixed; inset:0; background:#080d09; z-index:99999999; flex-direction:column; align-items:center; justify-content:space-between; padding:20px 20px calc(20px + env(safe-area-inset-bottom)); direction:rtl; overflow:hidden;">
@@ -896,14 +916,12 @@ window.ensureNowPlayingOverlay = function() {
           <span id="nowPlayingDuration">0:00</span>
         </div>
 
-        <!-- أزرار التحكم الفخمة -->
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px; direction:ltr;">
+<!-- أزرار التحكم الأنيقة المبسطة (بدون تقديم وتأخير 10 ثوانٍ) -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px; direction:ltr; padding: 0 10px;">
           <button id="npShuffleBtn" onclick="window.toggleShuffle()" style="background:none; border:none; color:var(--text); font-size:18px; opacity:0.5; cursor:pointer;">🔀</button>
-          <button onclick="window.skipTime(-10)" style="background:none; border:none; color:var(--text); font-size:20px; cursor:pointer;">↺10</button>
           <button onclick="window.nowPlayingPrev()" style="background:none; border:none; color:var(--text); font-size:28px; cursor:pointer;">⏮</button>
           <button id="nowPlayingPlayBtn" onclick="window.nowPlayingTogglePlay()" style="background:var(--gold); color:#111; border:none; width:64px; height:64px; border-radius:50%; font-size:26px; cursor:pointer; font-weight:bold; display:flex; align-items:center; justify-content:center;">⏸</button>
           <button onclick="window.nowPlayingNext()" style="background:none; border:none; color:var(--text); font-size:28px; cursor:pointer;">⏭</button>
-          <button onclick="window.skipTime(10)" style="background:none; border:none; color:var(--text); font-size:20px; cursor:pointer;">10↻</button>
           <button id="npRepeatBtn" onclick="window.toggleRepeat()" style="background:none; border:none; color:var(--text); font-size:18px; opacity:0.5; cursor:pointer;">🔁</button>
         </div>
 
@@ -1114,46 +1132,51 @@ window.renderRareRecitations = function () {
     return;
   }
 
-  html += filteredList.map((item) => {
+html += filteredList.map((item) => {
     const realIndex = window.rareRecitations.indexOf(item);
     const isCurrent = (window.currentRareUrl === item.url);
     const isPlaying = isCurrent && !window.rareAudioPlayer.paused;
-    const icon = isPlaying ? '⏸' : '▶';
 
     const isPinned = pinnedUrls.includes(item.url);
     const cleanName = item.name.replace(/[🎙️🤲🎵]/g, '').trim();
 
-    const currentProgress = isCurrent && window.rareAudioPlayer.duration ? (window.rareAudioPlayer.currentTime / window.rareAudioPlayer.duration) * 100 : 0;
-    const timeLabel = isCurrent && window.rareAudioPlayer.duration
-      ? `${window.formatTime(window.rareAudioPlayer.currentTime)} / ${window.formatTime(window.rareAudioPlayer.duration)}`
-      : '0:00 / --:--';
+  const isCurrent = (window.currentRareUrl === item.url);
+    const isPlaying = isCurrent && !window.rareAudioPlayer.paused;
+
+    // أيقونة أنيميشن الصوت الشغال
+    const soundWaveHtml = isPlaying ? `
+      <div class="eq-wave-container">
+        <div class="eq-bar"></div>
+        <div class="eq-bar"></div>
+        <div class="eq-bar"></div>
+      </div>
+    ` : (isCurrent ? '⏸ ' : '');
 
     return `
-      <div class="athr-lecture-card ${isPlaying ? 'playing' : ''}" style="margin-bottom: 10px; padding: 12px; border-radius: 14px; background: var(--card); border: 1px solid var(--border); cursor:pointer;" onclick="window.openNowPlaying('${item.url}')">
+      <div class="athr-lecture-card ${isCurrent ? 'playing' : ''}" style="margin-bottom: 10px; padding: 12px; border-radius: 14px; background: var(--card); border: 1px solid var(--border); cursor:pointer; transition: all 0.3s ease;" onclick="window.openNowPlaying('${item.url}')">
         <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; direction: rtl;">
           
+          <!-- صورة الشيخ يميناً -->
           <div style="position: relative; flex-shrink: 0;">
-            <img src="${sheikhAvatar}" alt="${item.tag}" style="width: 46px; height: 46px; border-radius: 50%; object-fit: cover; border: 2px solid var(--gold);" />
+            <img src="${sheikhAvatar}" alt="${item.tag}" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid ${isCurrent ? 'var(--gold)' : 'var(--border)'}; ${isPlaying ? 'box-shadow: 0 0 12px var(--gold);' : ''}" />
             ${isPinned ? '<span style="position:absolute; bottom:-2px; right:-2px; font-size:11px;">📍</span>' : ''}
           </div>
 
+          <!-- تفاصيل التلاوة بالمنتصف مع العلامة المميزة -->
           <div style="flex: 1; min-width: 0; text-align: right;">
-            <div style="font-weight: bold; color: var(--text); font-family: 'Amiri', serif; font-size: 15px; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-              ${cleanName}
+            <div style="font-weight: bold; color: ${isCurrent ? 'var(--gold)' : 'var(--text)'}; font-family: 'Amiri', serif; font-size: 15px; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px;">
+              ${soundWaveHtml}
+              <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${cleanName}</span>
             </div>
-            <div style="font-size: 12px; color: var(--gold); font-family: 'Amiri', serif; margin-top: 3px; opacity: 0.9;">
-              ${item.tag}
+            <div style="font-size: 12px; color: ${isCurrent ? 'var(--gold)' : 'var(--text2)'}; font-family: 'Amiri', serif; margin-top: 4px; opacity: 0.9;">
+              ${item.tag} ${isCurrent ? ' • (يُشغّل الآن 🎧)' : ''}
             </div>
-          </div>
-
-          <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;" onclick="event.stopPropagation();">
-            <button data-play-btn-id="${realIndex}" onclick="window.currentRareGlobalId=${realIndex}; window.openNowPlaying('${item.url}')" class="athr-icon-btn primary" style="width: 38px; height: 38px; font-size: 16px; border-radius: 50%; background: var(--gold); color: #111; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;">${icon}</button>
-            <button onclick="window.openContextMenu('${item.url}', this)" class="athr-icon-btn" style="width: 34px; height: 34px; font-size: 18px; background: rgba(255,255,255,0.06); color: var(--text); border: none; border-radius: 50%; cursor: pointer;" title="خيارات إضافية">⋮</button>
           </div>
 
         </div>
 
-        <div style="width: 100%; display: flex; flex-direction: column; gap: 2px; margin-top: 8px;">
+        <!-- شريط التقدم السفلي -->
+        <div style="width: 100%; display: flex; flex-direction: column; gap: 2px; margin-top: 10px;">
           <input type="range"
                  data-progress-id="${realIndex}"
                  min="0" max="100"
