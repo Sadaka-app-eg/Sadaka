@@ -3493,7 +3493,10 @@ function showPage(id, el) {
   if (id === 'studioPage') {
     window.renderStudioUI();
   }
-  
+  // أضف هذا السطر في نهاية دالة showPage(id, el):
+if (typeof window.updateMiniPlayerUI === 'function') {
+  window.updateMiniPlayerUI();
+}
   updateStats();
 }
 
