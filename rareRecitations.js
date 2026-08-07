@@ -730,15 +730,15 @@ window.renderRareRecitations = function () {
           : '0:00 / --:--';
 
 return `
-        <div class="athr-lecture-card ${isPlaying ? 'playing' : ''}" style="margin-bottom: 10px;">
+        <div class="athr-lecture-card ${isPlaying ? 'playing' : ''}" style="margin-bottom: 10px; cursor:pointer;" onclick="window.openNowPlaying('${item.url}')">
           <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
             
             <!-- أزرار التشغيل والتحميل والمشاركة على اليسار -->
             <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
-              <button onclick="window.currentRareGlobalId=${realIndex}; window.playRare('${item.url}')" class="athr-icon-btn primary" style="width: 34px; height: 34px; font-size: 15px;">${icon}</button>
-              <button id="rare_dl_${item.url.replace(/[^a-zA-Z0-9]/g,'_')}" onclick="window.downloadRareAudio('${item.url}')" class="athr-icon-btn" style="width: 32px; height: 32px; font-size: 14px;" title="تحميل أوفلاين">📥</button>
-              <button onclick="window.shareRareAudio('${item.name.replace(/'/g, "\\'")}', '${item.url}', this)" class="athr-icon-btn" style="width: 32px; height: 32px; font-size: 14px;" title="مشاركة">🔗</button>
-              <button onclick="window.togglePinRare('${item.url}')" class="athr-icon-btn" style="width: 32px; height: 32px; font-size: 14px;" title="${pinTitle}">${pinIcon}</button>
+              <button onclick="event.stopPropagation(); window.currentRareGlobalId=${realIndex}; window.openNowPlaying('${item.url}')" class="athr-icon-btn primary" style="width: 34px; height: 34px; font-size: 15px;">${icon}</button>
+              <button id="rare_dl_${item.url.replace(/[^a-zA-Z0-9]/g,'_')}" onclick="event.stopPropagation(); window.downloadRareAudio('${item.url}')" class="athr-icon-btn" style="width: 32px; height: 32px; font-size: 14px;" title="تحميل أوفلاين">📥</button>
+              <button onclick="event.stopPropagation(); window.shareRareAudio('${item.name.replace(/'/g, "\\'")}', '${item.url}', this)" class="athr-icon-btn" style="width: 32px; height: 32px; font-size: 14px;" title="مشاركة">🔗</button>
+              <button onclick="event.stopPropagation(); window.togglePinRare('${item.url}')" class="athr-icon-btn" style="width: 32px; height: 32px; font-size: 14px;" title="${pinTitle}">${pinIcon}</button>
             </div>
 
             <!-- اسم التلاوة على اليمين -->
@@ -755,6 +755,7 @@ return `
                    min="0" max="100"
                    value="${currentProgress}"
                    oninput="window.seekRare(this, '${item.url}')"
+                   onclick="event.stopPropagation()"
                    class="athr-seek-slider" />
             <span data-time-id="${realIndex}" style="font-size: 10px; color: var(--text2); direction: ltr; text-align: left;">${timeLabel}</span>
           </div>
@@ -976,3 +977,147 @@ window.shareRareAudio = async function(name, url, btnElement) {
         if (btn) btn.innerHTML = originalHTML;
     }
 };
+// =========================================================================
+// 🎧 شاشة "يُشغّل الآن" (Now Playing) بالتصميم الفخم والسحب بين التلاوات
+// =========================================================================
+
+window.updateNowPlayingUI = function() {
+  const overlay = document.getElementById('rareNowPlayingOverlay');
+  if (!overlay || overlay.style.display !== 'flex') return;
+  const player = window.rareAudioPlayer;
+  const track = window.rareRecitations.find(item => item.url === window.currentRareUrl);
+  if (!track) return;
+
+  const cleanName = track.name.replace(/[🎙️🤲🎵]/g, '').trim();
+  const sheikhEl = document.getElementById('nowPlayingSheikh');
+  const trackEl = document.getElementById('nowPlayingTrackName');
+  if (sheikhEl) sheikhEl.textContent = track.tag;
+  if (trackEl) trackEl.textContent = cleanName;
+
+  const avatarIcon = track.tag === 'أدعية خاشعة' ? '🤲' : (track.tag === 'أناشيد' ? '🎵' : '🎙️');
+  const avatarEl = document.getElementById('nowPlayingAvatar');
+  if (avatarEl) avatarEl.textContent = avatarIcon;
+
+  const seek = document.getElementById('nowPlayingSeek');
+  if (seek && player.duration) {
+    seek.value = (player.currentTime / player.duration) * 100;
+    document.getElementById('nowPlayingCurrentTime').textContent = window.formatTime(player.currentTime);
+    document.getElementById('nowPlayingDuration').textContent = window.formatTime(player.duration);
+  }
+
+  const playBtn = document.getElementById('nowPlayingPlayBtn');
+  if (playBtn) playBtn.textContent = player.paused ? '▶' : '⏸';
+};
+
+window.ensureNowPlayingOverlay = function() {
+  if (document.getElementById('rareNowPlayingOverlay')) return;
+
+  if (!document.getElementById('nowPlayingStyleTag')) {
+    const style = document.createElement('style');
+    style.id = 'nowPlayingStyleTag';
+    style.innerHTML = `
+      @keyframes npGlowPulse {
+        0%, 100% { box-shadow: 0 0 25px 6px rgba(212,175,55,0.35), 0 0 60px 20px rgba(212,175,55,0.12); }
+        50% { box-shadow: 0 0 40px 12px rgba(212,175,55,0.55), 0 0 90px 30px rgba(212,175,55,0.22); }
+      }
+      .now-playing-avatar-wrap { width:220px; height:220px; display:flex; align-items:center; justify-content:center; margin:0 auto; }
+      .now-playing-avatar { width:190px; height:190px; border-radius:50%; background:radial-gradient(circle at 35% 30%, #1a2a1c, #050805); border:3px solid var(--gold); display:flex; align-items:center; justify-content:center; font-size:80px; animation: npGlowPulse 3s ease-in-out infinite; }
+    `;
+    document.head.appendChild(style);
+  }
+
+  const overlayHTML = `
+    <div id="rareNowPlayingOverlay" style="display:none; position:fixed; inset:0; background:linear-gradient(180deg, #0b120c 0%, #000 100%); z-index:99999999; flex-direction:column; align-items:center; justify-content:space-between; padding:20px 20px calc(20px + env(safe-area-inset-bottom)); direction:rtl;">
+      
+      <div style="width:100%; display:flex; justify-content:space-between; align-items:center;">
+        <button onclick="window.closeNowPlaying()" style="background:rgba(255,255,255,0.06); border:none; color:var(--text); width:36px; height:36px; border-radius:50%; font-size:18px; cursor:pointer;">⌄</button>
+        <span style="color:var(--gold); font-family:'Amiri',serif; font-size:13px; font-weight:bold;">🎧 يُشغّل الآن</span>
+        <span style="width:36px;"></span>
+      </div>
+
+      <div id="npSwipeZone" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:22px; width:100%;">
+        <div class="now-playing-avatar-wrap">
+          <div class="now-playing-avatar" id="nowPlayingAvatar">🎙️</div>
+        </div>
+        <div style="text-align:center; padding:0 20px;">
+          <div id="nowPlayingSheikh" style="color:var(--gold); font-size:20px; font-weight:bold; font-family:'Amiri',serif;"></div>
+          <div id="nowPlayingTrackName" style="color:var(--text2); font-size:13px; margin-top:8px; line-height:1.6;"></div>
+        </div>
+        <div style="color:var(--text2); font-size:11px; opacity:0.6;">← اسحب يمين أو شمال للتنقل بين التلاوات →</div>
+      </div>
+
+      <div style="width:100%; max-width:420px;">
+        <input type="range" id="nowPlayingSeek" min="0" max="100" value="0" oninput="window.seekNowPlaying(this)" style="width:100%; accent-color:var(--gold); cursor:pointer;" />
+        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text2); direction:ltr; margin-top:2px;">
+          <span id="nowPlayingCurrentTime">0:00</span>
+          <span id="nowPlayingDuration">0:00</span>
+        </div>
+        <div style="display:flex; justify-content:center; align-items:center; gap:35px; margin-top:22px;">
+          <button onclick="window.nowPlayingPrev()" style="background:none; border:none; color:var(--text); font-size:28px; cursor:pointer;">⏮</button>
+          <button id="nowPlayingPlayBtn" onclick="window.nowPlayingTogglePlay()" style="background:var(--gold); color:#111; border:none; width:64px; height:64px; border-radius:50%; font-size:26px; cursor:pointer;">⏸</button>
+          <button onclick="window.nowPlayingNext()" style="background:none; border:none; color:var(--text); font-size:28px; cursor:pointer;">⏭</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', overlayHTML);
+
+  const swipeZone = document.getElementById('npSwipeZone');
+  let npStartX = 0;
+  swipeZone.addEventListener('touchstart', (e) => { npStartX = e.touches[0].clientX; });
+  swipeZone.addEventListener('touchend', (e) => {
+    const deltaX = e.changedTouches[0].clientX - npStartX;
+    if (Math.abs(deltaX) < 50) return;
+    if (deltaX < 0) window.nowPlayingNext();
+    else window.nowPlayingPrev();
+  });
+};
+
+window.openNowPlaying = function(url) {
+  window.ensureNowPlayingOverlay();
+  const track = window.rareRecitations.find(item => item.url === url);
+  if (!track) return;
+  window.currentRareGlobalId = window.rareRecitations.indexOf(track);
+
+  if (window.currentRareUrl !== url) {
+    window.playRare(url);
+  } else if (window.rareAudioPlayer.paused) {
+    window.rareAudioPlayer.play().catch(()=>{});
+  }
+
+  document.getElementById('rareNowPlayingOverlay').style.display = 'flex';
+  window.updateNowPlayingUI();
+};
+
+window.closeNowPlaying = function() {
+  const overlay = document.getElementById('rareNowPlayingOverlay');
+  if (overlay) overlay.style.display = 'none';
+};
+
+window.nowPlayingTogglePlay = function() {
+  if (!window.currentRareUrl) return;
+  window.playRare(window.currentRareUrl);
+};
+
+window.nowPlayingNext = function() { window.playNextRareTrack(); };
+window.nowPlayingPrev = function() { window.playPrevRareTrack(); };
+
+window.seekNowPlaying = function(el) {
+  const player = window.rareAudioPlayer;
+  if (player.duration) player.currentTime = (el.value / 100) * player.duration;
+};
+
+window.playPrevRareTrack = function () {
+  const list = window.getFilteredRareList();
+  if (list.length === 0) return;
+  let idx = list.findIndex(item => item.url === window.currentRareUrl);
+  let prevIdx = (idx <= 0) ? list.length - 1 : idx - 1;
+  const prevTrack = list[prevIdx];
+  window.currentRareGlobalId = window.rareRecitations.indexOf(prevTrack);
+  window.playRare(prevTrack.url);
+};
+
+window.rareAudioPlayer.addEventListener('timeupdate', window.updateNowPlayingUI);
+window.rareAudioPlayer.addEventListener('play', window.updateNowPlayingUI);
+window.rareAudioPlayer.addEventListener('pause', window.updateNowPlayingUI);
+window.rareAudioPlayer.addEventListener('loadedmetadata', window.updateNowPlayingUI);
