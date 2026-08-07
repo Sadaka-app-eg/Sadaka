@@ -30,7 +30,7 @@ window.shortcutsData = {
   tasbeh: {
     title: "📿 السبحة الإلكترونية",
     desc: "عداد التسبيح مع حفظ إحصائياتك",
-    img: "https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=500&auto=format&fit=crop"
+    img: "https://cdn.arabsstock.com/uploads/images/309941/architectural-engineering-art-of-building-thumbnail-309941.webp"
   },
   rareRecitationsPage: {
     title: "🎧 تلاوات خاشعة",
