@@ -1524,7 +1524,7 @@ function ensureLectureAudioEngine() {
 
 window.selectedLectureCategory = null;
 
-function renderLectures() {
+function renderLectures() {  
   const listEl = document.getElementById('lecturesList');
   if (!listEl) return;
 
@@ -1613,15 +1613,17 @@ function renderLectures() {
       ? `<div class="athr-icon-btn" onclick="event.stopPropagation(); window.shareLectureAudio('${lecture.title.replace(/'/g, "\\'")}', '${lecture.src}', this)" style="width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:1px solid rgba(212,175,55,0.4); background:rgba(212,175,55,0.15); color:var(--gold, #d4af37); font-size:12px;" title="مشاركة الموعظة">🔗</div>`
       : '';
 
-    return `
+return `
       <div class="athr-lecture-card ${isCurrent ? 'playing' : ''}" style="margin-bottom: 10px; padding: 12px; border-radius: 14px; background: var(--card); border: 1px solid var(--border); cursor:pointer; transition: all 0.3s ease;" onclick="window.openLectureNowPlaying('${lecture.src}')">
         <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; direction: rtl;">
           
+          <!-- صورة الشيخ يميناً -->
           <div style="position: relative; flex-shrink: 0;">
             <img src="${sheikhAvatar}" alt="${lecture.category}" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid ${isCurrent ? 'var(--gold)' : 'var(--border)'}; ${isPlaying ? 'box-shadow: 0 0 12px var(--gold);' : ''}" />
             ${isPinned ? '<span style="position:absolute; bottom:-2px; right:-2px; font-size:11px;">📍</span>' : ''}
           </div>
 
+          <!-- تفاصيل الدرس بالمنتصف -->
           <div style="flex: 1; min-width: 0; text-align: right;">
             <div style="font-weight: bold; color: ${isCurrent ? 'var(--gold)' : 'var(--text)'}; font-family: 'Amiri', serif; font-size: 15px; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px;">
               ${soundWaveHtml}
@@ -1632,17 +1634,10 @@ function renderLectures() {
             </div>
           </div>
 
-          <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;" onclick="event.stopPropagation()">
-            <button onclick="window.togglePinLecture('${lecture.title}')" style="background:transparent; border:none; color:${isPinned ? 'var(--gold, #d4af37)' : 'rgba(255,255,255,0.3)'}; font-size:15px; cursor:pointer; padding:0;">${isPinned ? '📌' : '📍'}</button>
-            <div id="lectureDlRing_${realIndex}" class="athr-icon-btn" onclick="window.startLectureDownloadRing(${realIndex})" style="width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:1px solid rgba(212,175,55,0.3); background:rgba(212,175,55,0.1); color:var(--gold, #d4af37); font-size:12px;">⬇️</div>
-            ${shareBtnHtml}
-          </div>
-
         </div>
 
-        <div id="lectureDlStatus_${realIndex}" style="font-size:10px; color:var(--gold, #d4af37); text-align:center;"></div>
-
         ${!isVideo ? `
+        <!-- شريط التقدم السفلي -->
         <div style="width: 100%; display: flex; flex-direction: column; gap: 2px; margin-top: 10px;" onclick="event.stopPropagation()">
           <input type="range"
                  data-lecture-progress-id="${realIndex}"
@@ -2722,19 +2717,24 @@ window.ensureLectureNowPlayingOverlay = function() {
       <!-- أعلى الشاشة -->
       <div style="width:100%; display:flex; justify-content:space-between; align-items:center; z-index:2;">
         <button onclick="window.closeLectureNowPlaying()" style="background:rgba(255,255,255,0.1); border:none; color:var(--text); width:38px; height:38px; border-radius:50%; font-size:20px; cursor:pointer;">⌄</button>
-        <span style="color:var(--gold); font-family:'Amiri',serif; font-size:14px; font-weight:bold;">🎧 يُشغّل الآن - الدروس</span>
+        <span style="color:var(--gold); font-family:'Amiri',serif; font-size:14px; font-weight:bold;">🎧 يُشغّل الآن</span>
         <span style="width:38px;"></span>
       </div>
 
-      <!-- منتصف الشاشة -->
+      <!-- منتصف الشاشة (الصورة والعنوان وزر الثلاث نقاط) -->
       <div id="lectureNpSwipeZone" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; width:100%; z-index:2;">
         <div style="width:160px; height:160px; display:flex; align-items:center; justify-content:center; position:relative;">
           <img id="lectureNowPlayingAvatar" src="" alt="الشيخ" style="width:160px; height:160px; border-radius:20px; object-fit:cover; border:3px solid var(--gold); transition: all 0.3s ease;" />
         </div>
         
-        <div style="width:100%; max-width:360px; text-align:center; padding:0 10px; direction:rtl;">
-          <div id="lectureNowPlayingCategory" style="color:var(--gold); font-size:18px; font-weight:bold; font-family:'Amiri',serif;"></div>
-          <div id="lectureNowPlayingTitle" style="color:var(--text2); font-size:13px; margin-top:4px; line-height:1.4; font-family:'Amiri',serif;"></div>
+        <!-- صف العنوان واسم القسم وزر الثلاث نقاط المظبوطين -->
+        <div style="width:100%; max-width:360px; display:flex; align-items:center; justify-content:space-between; padding:0 10px; direction:rtl;">
+          <div style="text-align:right; flex:1; min-width:0; padding-left:10px;">
+            <div id="lectureNowPlayingCategory" style="color:var(--gold); font-size:20px; font-weight:bold; font-family:'Amiri',serif;"></div>
+            <div id="lectureNowPlayingTitle" style="color:var(--text2); font-size:13px; margin-top:3px; line-height:1.4; font-family:'Amiri',serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></div>
+          </div>
+          
+          <button onclick="event.stopPropagation(); window.openLectureContextMenu(window.currentLectureUrl, this)" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:var(--text); width:40px; height:40px; border-radius:50%; font-size:20px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;" title="خيارات إضافية">⋮</button>
         </div>
       </div>
 
@@ -2757,7 +2757,74 @@ window.ensureLectureNowPlayingOverlay = function() {
   `;
   document.body.insertAdjacentHTML('beforeend', overlayHTML);
 };
+// ==========================================
+// 📱 قائمة خيارات الدرس المنسدلة (Bottom Sheet)
+// ==========================================
+window.openLectureContextMenu = async function(src, btnElement) {
+  const track = window.lecturesData.find(item => item.src === src);
+  if (!track) return;
 
+  const existingMenu = document.getElementById('athrLectureContextMenu');
+  if (existingMenu) existingMenu.remove();
+
+  const realIndex = window.lecturesData.indexOf(track);
+  const pinnedList = JSON.parse(localStorage.getItem('pinned_lectures') || '[]');
+  const isPinned = pinnedList.includes(track.title);
+  const cleanTitle = track.title.replace(/[🎙️🤲🎵]/g, '').trim();
+
+  let isDownloaded = false;
+  if ('caches' in window) {
+    try {
+      const absUrl = new URL(src, window.location.href).href;
+      const cache = await caches.open('athr-audio-cache-v1');
+      const match = await cache.match(absUrl) || await cache.match(src);
+      if (match) isDownloaded = true;
+    } catch(e) {}
+  }
+
+  const downloadBtnText = isDownloaded ? '✅ تم التحميل (متاح أوفلاين)' : '📥 تحميل أوفلاين للتطبيق';
+
+  const btnStyle = `
+    width: 100%;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    color: var(--text, #f4f6f4);
+    padding: 14px 18px;
+    border-radius: 14px;
+    cursor: pointer;
+    font-family: 'Amiri', serif;
+    font-size: 15px;
+    font-weight: bold;
+    text-align: center;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  `;
+
+  const menuHTML = `
+    <div id="athrLectureContextMenu" style="position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(8px); z-index: 999999999; display: flex; align-items: flex-end; justify-content: center;" onclick="this.remove()">
+      <div style="width: 100%; max-width: 480px; background: #121813; border-top: 2px solid var(--gold, #d4af37); border-radius: 24px 24px 0 0; padding: 22px 20px; direction: rtl; font-family: 'Amiri', serif; display: flex; flex-direction: column; gap: 10px;" onclick="event.stopPropagation()">
+        
+        <div style="text-align: center; font-weight: bold; color: var(--gold, #d4af37); font-size: 16px; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px; line-height: 1.4;">
+          ${cleanTitle}
+        </div>
+
+        <button style="${btnStyle}" onclick="window.startLectureDownloadRing(${realIndex}); document.getElementById('athrLectureContextMenu').remove();">${downloadBtnText}</button>
+        <button style="${btnStyle}" onclick="window.shareLectureAudio('${track.title.replace(/'/g, "\\'")}', '${src}'); document.getElementById('athrLectureContextMenu').remove();">🔗 مشاركة الدرس</button>
+        <button style="${btnStyle}" onclick="window.togglePinLecture('${track.title.replace(/'/g, "\\'")}'); document.getElementById('athrLectureContextMenu').remove();">${isPinned ? '📍 إلغاء التثبيت' : '📌 تثبيت الدرس في الأعلى'}</button>
+        <button style="${btnStyle}" onclick="window.openSleepModal(); document.getElementById('athrLectureContextMenu').remove();">⏱️ مؤقت النوم</button>
+        <button style="${btnStyle}" onclick="window.cycleSpeed(); document.getElementById('athrLectureContextMenu').remove();">⚡ تغيير السرعة (${window.playbackSpeed || 1.0}x)</button>
+
+        <button style="width: 100%; background: transparent; border: none; color: var(--text2, #9aa79c); margin-top: 6px; cursor: pointer; padding: 10px; font-family: 'Amiri', serif; font-size: 14px;" onclick="document.getElementById('athrLectureContextMenu').remove()">إلغاء</button>
+      </div>
+    </div>
+  `;
+
+  document.body.insertAdjacentHTML('beforeend', menuHTML);
+};
 // فتح شاشة التشغيل
 window.openLectureNowPlaying = function(src) {
   const track = window.lecturesData.find(item => item.src === src);
