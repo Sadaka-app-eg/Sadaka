@@ -18,7 +18,15 @@ window.lectureSheikhAvatars = {
   "محاضرات المشايخ": "https://images.unsplash.com/photo-1512632578888-169bbbc64f33?q=80&w=500&auto=format&fit=crop",
   "default": "https://images.unsplash.com/photo-1609599006353-e629aaabfeae?q=80&w=500&auto=format&fit=crop"
 };
-
+// 👳‍♂️ صور شيوخ قسم المحاضرات (توضع تحت تصنيف محاضرات المشايخ)
+window.sheikhsSubAvatars = {
+  "عبد السلام الشويعر": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=500&auto=format&fit=crop",
+  "ابن عثيمين": "https://images.unsplash.com/photo-1532012197267-da84d127e765?q=80&w=500&auto=format&fit=crop",
+  "عبد الرزاق البدر": "https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?q=80&w=500&auto=format&fit=crop",
+  "ابن باز": "https://images.unsplash.com/photo-1512632578888-169bbbc64f33?q=80&w=500&auto=format&fit=crop",
+  "أبو إسحاق الحويني": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=500&auto=format&fit=crop",
+  "default": "https://images.unsplash.com/photo-1609599006353-e629aaabfeae?q=80&w=500&auto=format&fit=crop"
+};
 window.getLectureSheikhAvatar = function(category) {
   return window.lectureSheikhAvatars[category] || window.lectureSheikhAvatars["default"];
 };
@@ -1545,8 +1553,16 @@ function renderLectures() {
         </div>`;
     }
 
-    let filtered = window.lecturesData.filter(l => l.category === window.selectedLectureCategory);
-
+let filtered = [];
+    if (window.selectedLectureCategory === 'محاضرات المشايخ') {
+        if (!window.currentSelectedSheikh || window.currentSelectedSheikh === 'الكل') {
+            filtered = window.lecturesData.filter(l => l.category === 'محاضرات المشايخ');
+        } else {
+            filtered = window.lecturesData.filter(l => l.category === 'محاضرات المشايخ' && l.title.includes(window.currentSelectedSheikh));
+        }
+    } else {
+        filtered = window.lecturesData.filter(l => l.category === window.selectedLectureCategory);
+    }
     if (window.lectureSearchQuery && window.lectureSearchInputText) {
         const q = window.lectureSearchInputText.trim().toLowerCase();
         if (q !== "") {
@@ -1664,7 +1680,8 @@ window.selectLectureCategory = function(cat) {
 window.backToLecturesGrid = function() {
   window.selectedLectureCategory = null;
   window.currentLectureFilter = 'all';
-  if (typeof renderLectures === 'function') renderLectures();
+  window.currentSelectedSheikh = 'الكل'; // إعادة ضبط شيخ المحاضرات
+  renderLectures();
 };
 
 // تحديد الدورة والتنقل لدروسها
