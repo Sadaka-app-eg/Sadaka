@@ -1617,11 +1617,18 @@ function renderLectures() {
     setTimeout(markDownloadedLectures, 150);
 }
 
-// 📱 5. دالة عرض شبكة الشيوخ والدورات (3 في الصف)
+// 📱 دالة عرض شبكة الشيوخ والدورات لقسم الدروس والمواعظ
 window.renderLecturesGrid = function(container) {
   const categoriesSet = new Set();
-  window.lecturesData.forEach(item => { if (item.category) categoriesSet.add(item.category); });
+  if (window.lecturesData) {
+      window.lecturesData.forEach(item => { if (item.category) categoriesSet.add(item.category); });
+  }
   const categories = Array.from(categoriesSet);
+
+  if (categories.length === 0) {
+      container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text2); font-family:\'Amiri\',serif;">لا توجد دروس مضافة حالياً.</div>';
+      return;
+  }
 
   let gridHTML = `<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; direction: rtl; padding: 10px 0;">`;
 
@@ -1630,12 +1637,12 @@ window.renderLecturesGrid = function(container) {
     const count = window.lecturesData.filter(i => i.category === cat).length;
 
     gridHTML += `
-      <div onclick="window.selectLectureCategory('${cat}')" style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 14px 6px; cursor: pointer; transition: transform 0.2s; text-align: center;">
-        <img src="${avatar}" alt="${cat}" style="width: 65px; height: 65px; border-radius: 50%; object-fit: cover; border: 2.5px solid var(--gold); box-shadow: 0 4px 10px rgba(0,0,0,0.3);" />
-        <div style="font-weight: bold; color: var(--text); font-family: 'Amiri', serif; font-size: 12px; margin-top: 8px; line-height: 1.3; height: 32px; display: flex; align-items: center; justify-content: center;">
+      <div onclick="window.selectLectureCategory('${cat}')" style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--card, #121813); border: 1px solid var(--border, #222); border-radius: 16px; padding: 14px 6px; cursor: pointer; transition: transform 0.2s; text-align: center;">
+        <img src="${avatar}" alt="${cat}" style="width: 65px; height: 65px; border-radius: 50%; object-fit: cover; border: 2.5px solid var(--gold, #d4af37); box-shadow: 0 4px 10px rgba(0,0,0,0.3);" />
+        <div style="font-weight: bold; color: var(--text, #fff); font-family: 'Amiri', serif; font-size: 12px; margin-top: 8px; line-height: 1.3; height: 32px; display: flex; align-items: center; justify-content: center;">
           ${cat}
         </div>
-        <div style="font-size: 10px; color: var(--gold); margin-top: 2px; font-family: 'Amiri', serif;">
+        <div style="font-size: 10px; color: var(--gold, #d4af37); margin-top: 2px; font-family: 'Amiri', serif;">
           ${count} درس
         </div>
       </div>
@@ -1644,6 +1651,20 @@ window.renderLecturesGrid = function(container) {
 
   gridHTML += `</div>`;
   container.innerHTML = gridHTML;
+};
+
+// تحديد الدورة والتنقل لدروسها
+window.selectLectureCategory = function(cat) {
+  window.selectedLectureCategory = cat;
+  window.currentLectureFilter = cat;
+  if (typeof renderLectures === 'function') renderLectures();
+};
+
+// الرجوع لشبكة الدورات الشاملة
+window.backToLecturesGrid = function() {
+  window.selectedLectureCategory = null;
+  window.currentLectureFilter = 'all';
+  if (typeof renderLectures === 'function') renderLectures();
 };
 
 // تحديد الدورة والتنقل لدروسها
