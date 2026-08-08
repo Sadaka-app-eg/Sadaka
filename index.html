@@ -2300,7 +2300,23 @@ body.hide-controls #quran {
  <div class="page" id="downloadsManagerPage">
   <div id="downloadsManagerContainer"></div>
  </div>
+<!-- 🎙️ قسم المواعظ والدروس -->
+<div id="lecturesPage" class="page">
+  
+  <h2 style="color: var(--gold); text-align: center; margin-top: 0; padding-top: 5px; margin-bottom: 15px; font-family: 'Amiri', serif;">
+    🎙️ مَوَاعِظُ وَدُرُوسٌ 🎧
+  </h2>
 
+  <!-- 📝 وعاء أسئلة التحديات والاختبارات -->
+  <div id="athrQuizSection" style="margin-bottom: 15px;"></div>
+
+  <!-- ⏱️ وعاء مؤقت النوم للدروس -->
+  <div id="lecturesSleepTimerBar"></div>
+
+  <!-- 🟢 الوعاء الرئيسي الذي ترسم فيه الجافاسكريبت شبكة الشيوخ والدروس تلقائياً -->
+  <div id="lecturesList" style="padding: 5px;"></div>
+
+</div>
 
 <!-- 🧠 صفحة أكاديمية مسابقات أثر القرآنية المتكاملة -->
 <div class="page" id="quranQuizzesPage">
@@ -8824,3 +8840,4 @@ window.closeSurah = function(){
 </script>
 </body>	
     </html>
+	
