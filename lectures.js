@@ -3,28 +3,28 @@
 // ==========================================
 window.lectureSheikhAvatars = {
   "مواعظ متنوعة": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=500&auto=format&fit=crop",
-  "دورة التجويد": "https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=500&auto=format&fit=crop",
-  "السيرة النبوية": "https://images.unsplash.com/photo-1519817650390-64a93db51149?q=80&w=500&auto=format&fit=crop",
-  "الفقه الميسر": "https://images.unsplash.com/photo-1532012197267-da84d127e765?q=80&w=500&auto=format&fit=crop",
-  "رحلة إلى الدار الآخرة": "https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=500&auto=format&fit=crop",
-  "تفسير القرآن الكريم": "https://images.unsplash.com/photo-1609599006353-e629aaabfeae?q=80&w=500&auto=format&fit=crop",
-  "قصص الأنبياء": "https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?q=80&w=500&auto=format&fit=crop",
-  "سير الصحابة": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=500&auto=format&fit=crop",
-  "روائع التابعين": "https://images.unsplash.com/photo-1501854140801-50d01698950b?q=80&w=500&auto=format&fit=crop",
-  "البيت المسلم": "https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?q=80&w=500&auto=format&fit=crop",
-  "أصول العقيدة": "https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?q=80&w=500&auto=format&fit=crop",
-  "مفسدات القلوب": "https://images.unsplash.com/photo-1518495973542-4542c06a5843?q=80&w=500&auto=format&fit=crop",
-  "أصول الانحراف": "https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=500&auto=format&fit=crop",
-  "محاضرات المشايخ": "https://images.unsplash.com/photo-1512632578888-169bbbc64f33?q=80&w=500&auto=format&fit=crop",
+  "دورة التجويد": "https://i.ytimg.com/vi/iMVt8qkrjTM/maxresdefault.jpg",
+  "السيرة النبوية": "https://angimg.anghcdn.co/presets/shareables?artist=Omar&song=%D8%A7%D9%84%D8%B3%D9%8A%D8%B1%D8%A9+%D8%A7%D9%84%D9%86%D8%A8%D9%88%D9%8A%D8%A9+-%D8%A7%D8%AD%D9%85%D8%AF+%D8%B9%D8%A7%D9%85%D8%B1&lang=en&coverartid=168048047&type=podcast",
+  "الفقه الميسر": "https://www.ashefaa.com/a3lam/shekh/al3arifi-1.jpg",
+  "رحلة إلى الدار الآخرة": "https://2.bp.blogspot.com/-N_-4WWtGSaw/V0Y76DmA4UI/AAAAAAAAAtY/87g8L5YBVSc8JMTaVM4UCMxMo9MVe1p3gCLcB/s1600/%25D9%2585%25D8%25AD%25D9%2585%25D9%2588%25D8%25AF%2B%25D8%25A7%25D9%2584%25D9%2585%25D8%25B5%25D8%25B1%25D9%258A.jpg",
+  "تفسير القرآن الكريم": "https://i.ytimg.com/vi/Fex7Vio6xzA/maxresdefault.jpg?sqp=-oaymwEmCIAKENAF8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGHIgWyg_MA8=&rs=AOn4CLBBC67CO98ilJ9SzFlmeNRRnyt0VQ",
+  "قصص الأنبياء": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts115/v4/7c/41/49/7c414976-966c-5029-d2b1-aca4dbee3d3f/mza_2447066672092217063.jpg/1200x1200bf-60.jpg",
+  "سير الصحابة": "https://i.ytimg.com/vi/oNVXrKEN9oQ/maxresdefault.jpg?sqp=-oaymwEmCIAKENAF8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGHIgTShFMA8=&rs=AOn4CLBgI3gGc_EqMuZW8f097CzOX9MrdQ",
+  "روائع التابعين": "https://2.bp.blogspot.com/-N_-4WWtGSaw/V0Y76DmA4UI/AAAAAAAAAtY/87g8L5YBVSc8JMTaVM4UCMxMo9MVe1p3gCLcB/s1600/%25D9%2585%25D8%25AD%25D9%2585%25D9%2588%25D8%25AF%2B%25D8%25A7%25D9%2584%25D9%2585%25D8%25B5%25D8%25B1%25D9%258A.jpg",
+  "البيت المسلم": "https://i1.sndcdn.com/artworks-000401435445-bowsry-t500x500.jpg",
+  "أصول العقيدة": "https://www.islamist-movements.com/upload/photo/parags/10/2/786.jpg",
+  "مفسدات القلوب": "https://mustansiriyah.net/wp-content/uploads/2020/01/200150002.jpg",
+  "أصول الانحراف": "https://i.ytimg.com/vi/Fex7Vio6xzA/maxresdefault.jpg?sqp=-oaymwEmCIAKENAF8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGHIgWyg_MA8=&rs=AOn4CLBBC67CO98ilJ9SzFlmeNRRnyt0VQ",
+  "محاضرات المشايخ": "https://chatgpt.com/backend-api/estuary/content?id=file_00000000f3bc8243bd5f11f1a240621d&ts=496157&p=fs&cid=1&sig=5384a266aa7ef6d12b3a63171135ee856b62e7d557fdea8d1c83631e769068db&v=0",
   "default": "https://images.unsplash.com/photo-1609599006353-e629aaabfeae?q=80&w=500&auto=format&fit=crop"
 };
 // 👳‍♂️ صور شيوخ قسم المحاضرات (توضع تحت تصنيف محاضرات المشايخ)
 window.sheikhsSubAvatars = {
-  "عبد السلام الشويعر": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=500&auto=format&fit=crop",
-  "ابن عثيمين": "https://images.unsplash.com/photo-1532012197267-da84d127e765?q=80&w=500&auto=format&fit=crop",
-  "عبد الرزاق البدر": "https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?q=80&w=500&auto=format&fit=crop",
-  "ابن باز": "https://images.unsplash.com/photo-1512632578888-169bbbc64f33?q=80&w=500&auto=format&fit=crop",
-  "أبو إسحاق الحويني": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=500&auto=format&fit=crop",
+  "عبد السلام الشويعر": "https://baheth.ieasybooks.com/rails/active_storage/blobs/proxy/eyJfcmFpbHMiOnsiZGF0YSI6MTU2NDg2LCJwdXIiOiJibG9iX2lkIn19--3d33405755e7995eb9dacfb2395cb94ac0905e56/%D8%B9%D8%A8%D8%AF%D8%A7%D9%84%D8%B3%D9%84%D8%A7%D9%85%20%D8%A7%D9%84%D8%B4%D9%88%D9%8A%D8%B9%D8%B1.webp?disposition=attachment&locale=ar",
+  "ابن عثيمين": "https://pbs.twimg.com/profile_images/1413651347/image_400x400.jpg",
+  "عبد الرزاق البدر": "https://upload.wikimedia.org/wikipedia/commons/5/5a/%D8%B9%D8%A8%D8%AF_%D8%A7%D9%84%D8%B1%D8%B2%D8%A7%D9%82_%D8%A8%D9%86_%D8%B9%D8%A8%D8%AF_%D8%A7%D9%84%D9%85%D8%AD%D8%B3%D9%86_%D8%A7%D9%84%D8%A8%D8%AF%D8%B1.jpg",
+  "ابن باز": "https://www.ashefaa.com/a3lam/bin-baz2.jpg",
+  "أبو إسحاق الحويني": "https://tse4.mm.bing.net/th/id/OIP.1xxdOaWgKqHnl582JHBRtQHaHa?r=0&pid=Api&h=220&P=0",
   "default": "https://images.unsplash.com/photo-1609599006353-e629aaabfeae?q=80&w=500&auto=format&fit=crop"
 };
 window.getLectureSheikhAvatar = function(category) {
