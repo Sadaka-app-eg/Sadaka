@@ -1386,7 +1386,7 @@ window.shareRareAudio = async function(name, url, btnElement) {
 
 document.addEventListener('DOMContentLoaded', () => { renderRareRecitations(); });
 // ==========================================
-// 📱 قائمة الخيارات المنسقة رأسيًا (Bottom Sheet)
+// 📱 قائمة الخيارات المنسقة رأسيًا بالفخامة المظلمة (Bottom Sheet)
 // ==========================================
 window.openContextMenu = async function(url, btnElement) {
   const track = window.rareRecitations.find(item => item.url === url);
@@ -1412,23 +1412,44 @@ window.openContextMenu = async function(url, btnElement) {
 
   const downloadBtnText = isDownloaded ? '✅ تم التحميل (متاح أوفلاين)' : '📥 تحميل أوفلاين للتطبيق';
 
+  // الستايل الموحد الفخم للأزرار لكسر الخلفية البيضاء نهائياً
+  const btnStyle = `
+    width: 100%;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    color: var(--text, #f4f6f4);
+    padding: 14px 18px;
+    border-radius: 14px;
+    cursor: pointer;
+    font-family: 'Amiri', serif;
+    font-size: 15px;
+    font-weight: bold;
+    text-align: center;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  `;
+
   const menuHTML = `
-    <div id="athrContextMenu" style="position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(6px); z-index: 999999999; display: flex; align-items: flex-end; justify-content: center;" onclick="this.remove()">
-      <div style="width: 100%; max-width: 450px; background: #121813; border-top: 2px solid var(--gold); border-radius: 20px 20px 0 0; padding: 20px; direction: rtl; font-family: 'Amiri', serif; display: flex; flex-direction: column; gap: 8px;" onclick="event.stopPropagation()">
+    <div id="athrContextMenu" style="position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(8px); z-index: 999999999; display: flex; align-items: flex-end; justify-content: center;" onclick="this.remove()">
+      <div style="width: 100%; max-width: 480px; background: #121813; border-top: 2px solid var(--gold, #d4af37); border-radius: 24px 24px 0 0; padding: 22px 20px; direction: rtl; font-family: 'Amiri', serif; display: flex; flex-direction: column; gap: 10px;" onclick="event.stopPropagation()">
         
-        <div style="text-align: center; font-weight: bold; color: var(--gold); font-size: 16px; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+        <div style="text-align: center; font-weight: bold; color: var(--gold, #d4af37); font-size: 16px; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px; line-height: 1.4;">
           ${cleanTitle}
         </div>
 
-        <button id="sheetDownloadBtn" class="np-modal-option" onclick="window.downloadRareAudio('${url}')">${downloadBtnText}</button>
-        <button class="np-modal-option" onclick="window.shareRareAudio('${track.name.replace(/'/g, "\\'")}', '${url}'); document.getElementById('athrContextMenu').remove();">🔗 مشاركة التلاوة</button>
-        <button class="np-modal-option" onclick="window.togglePinRare('${url}'); document.getElementById('athrContextMenu').remove();">${isPinned ? '📍 إلغاء التثبيت' : '📌 تثبيت التلاوة في الأعلى'}</button>
-        <button class="np-modal-option" onclick="window.openSleepModal(); document.getElementById('athrContextMenu').remove();">⏱️ مؤقت النوم</button>
-        <button class="np-modal-option" onclick="window.cycleSpeed(); document.getElementById('athrContextMenu').remove();">⚡ تغيير السرعة (${window.playbackSpeed}x)</button>
+        <button id="sheetDownloadBtn" style="${btnStyle}" onclick="window.downloadRareAudio('${url}')">${downloadBtnText}</button>
+        <button style="${btnStyle}" onclick="window.shareRareAudio('${track.name.replace(/'/g, "\\'")}', '${url}'); document.getElementById('athrContextMenu').remove();">🔗 مشاركة التلاوة</button>
+        <button style="${btnStyle}" onclick="window.togglePinRare('${url}'); document.getElementById('athrContextMenu').remove();">${isPinned ? '📍 إلغاء التثبيت' : '📌 تثبيت التلاوة في الأعلى'}</button>
+        <button style="${btnStyle}" onclick="window.openSleepModal(); document.getElementById('athrContextMenu').remove();">⏱️ مؤقت النوم</button>
+        <button style="${btnStyle}" onclick="window.cycleSpeed(); document.getElementById('athrContextMenu').remove();">⚡ تغيير السرعة (${window.playbackSpeed}x)</button>
         
-        ${isAnachid ? `<button class="np-modal-option" style="color: var(--gold);" onclick="window.setRingtone('${url}', '${track.name.replace(/'/g, "\\'")}'); document.getElementById('athrContextMenu').remove();">🔔 تعيين كنغمة رنين للجوّال</button>` : ''}
+        ${isAnachid ? `<button style="${btnStyle} color: var(--gold, #d4af37);" onclick="window.setRingtone('${url}', '${track.name.replace(/'/g, "\\'")}'); document.getElementById('athrContextMenu').remove();">🔔 تعيين كنغمة رنين للجوّال</button>` : ''}
 
-        <button style="width: 100%; background: transparent; border: none; color: var(--text2); margin-top: 8px; cursor: pointer; padding: 10px; font-family: 'Amiri', serif;" onclick="document.getElementById('athrContextMenu').remove()">إلغاء</button>
+        <button style="width: 100%; background: transparent; border: none; color: var(--text2, #9aa79c); margin-top: 6px; cursor: pointer; padding: 10px; font-family: 'Amiri', serif; font-size: 14px;" onclick="document.getElementById('athrContextMenu').remove()">إلغاء</button>
       </div>
     </div>
   `;
