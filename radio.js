@@ -2,23 +2,23 @@
 // خريطة الإذاعات الإسلامية المضمونة والشغالة 100% مع الصور
 // =========================================================
 window.islamicRadioStations = [
-  { id: "cairo", name: "إذاعة القرآن من القاهرة 🇪🇬", url: "https://stream.radiojar.com/8s5u5tpdtwzuv", image: "image/mwa.png" },
-  { id: "makkah", name: "إذاعة القرآن من مكة المكرمة 🕋", url: "https://stream.radiojar.com/0tpy1h0kxtzuv", image: "https://qurango.net/radio/makkah/icon.png" },
-  { id: "riyadh", name: "إذاعة القرآن من الرياض 🇸🇦", url: "https://stream.radiojar.com/4wqre23fytzuv", image: "https://qurango.net/radio/riyadh/icon.png" },
+  { id: "cairo", name: "إذاعة القرآن من القاهرة 🇪🇬", url: "https://stream.radiojar.com/8s5u5tpdtwzuv", image: "https://i.pinimg.com/originals/d8/c5/6a/d8c56a664bc9a28d7e32b01a71884af2.png" },
+  { id: "makkah", name: "إذاعة القرآن من مكة المكرمة 🕋", url: "https://stream.radiojar.com/0tpy1h0kxtzuv", image: "https://www.brooonzyah.net/wp-content/uploads/2020/02/%D8%B5%D9%88%D8%B1-%D9%85%D8%B5%D8%AD%D9%81-quran-%D8%B5%D9%88%D8%B1-%D8%A7%D9%84%D9%85%D8%B5%D8%AD%D9%81-%D8%A7%D9%84%D8%B4%D8%B1%D9%8A%D9%81.jpg" },
+  { id: "riyadh", name: "إذاعة القرآن من الرياض 🇸🇦", url: "https://stream.radiojar.com/4wqre23fytzuv", image: "https://tse2.mm.bing.net/th/id/OIP.gsz0dGXktRRp5uV90H6zHQHaLH?r=0&pid=Api&h=220&P=0" },
   
-  { id: "roqia", name: "إذاعة الرقية الشرعية 🌿", url: "https://qurango.net/radio/roqiah", image: "https://qurango.net/radio/roqiah/icon.png" },
-  { id: "tafseer_all", name: "إذاعة تفسير القرآن الكريم (ابن عثيمين) 📖", url: "https://qurango.net/radio/tafseer", image: "https://qurango.net/radio/tafseer/icon.png" },
-  { id: "sakina", name: "إذاعة آيات السكينة 🕊️", url: "https://qurango.net/radio/sakeenah", image: "https://qurango.net/radio/sakeenah/icon.png" },
-  { id: "mukhtasar_tafseer", name: "المختصر في تفسير القرآن 📚", url: "https://qurango.net/radio/mukhtasartafsir", image: "https://qurango.net/radio/mukhtasartafsir/icon.png" },
-  { id: "tabari", name: "تفسير الطبري (الخلاصة) 📝", url: "https://qurango.net/radio/tabri", image: "https://qurango.net/radio/tabri/icon.png" },
+  { id: "roqia", name: "إذاعة الرقية الشرعية 🌿", url: "https://qurango.net/radio/roqiah", image: "https://qurango.net/radio/roqiah/icon.pnghttps://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjjTXF0wp7t8Y5zVIaM6mntLep5WphrxJRaJ4BiJ1yE0KB2Ol5YnNUwFQFKdD1dW2kTtEtHW8itg7FMK_Uh3fVbdXxtFpNGoXW49tA-MoIX-dxuOBj6S4FLfRh-F_ohxVwNAxo4xhGWKPbiQ6sOBTkekAU2dtnKXN6qxrY59IlgMEPAFrPoZmB0qseOicg/w680/%D8%A7%D9%84%D8%B1%D9%82%D9%8A%D8%A9%20%D8%A7%D9%84%D8%B4%D8%B1%D8%B9%D9%8A%D8%A9%20%D9%85%D9%83%D8%AA%D9%88%D8%A8%D8%A9.jpg" },
+  { id: "tafseer_all", name: "إذاعة تفسير القرآن الكريم (ابن عثيمين) 📖", url: "https://qurango.net/radio/tafseer", image: "https://books-library.com/files/books-library.com-03082211Rg8M0.JPG" },
+  { id: "sakina", name: "إذاعة آيات السكينة 🕊️", url: "https://qurango.net/radio/sakeenah", image: "https://png.pngtree.com/thumb_back/fh260/background/20230516/pngtree-one-quran-open-on-a-wooden-table-image_2569749.jpg" },
+  { id: "mukhtasar_tafseer", name: "المختصر في تفسير القرآن 📚", url: "https://qurango.net/radio/mukhtasartafsir", image: "https://backend.ketabonline.com/uploads/2020/10/1608675997647363596.jpg" },
+  { id: "tabari", name: "تفسير الطبري (الخلاصة) 📝", url: "https://qurango.net/radio/tabri", image: "https://media.zid.store/thumbs/111cc7c1-dfef-4eff-8f46-d1e2bd8bb909/6ef2f73a-d83f-4297-9003-a08394acd519-thumbnail-770x770-70.jpg" },
 
-  { id: "seerah", name: "المختصر في السيرة النبوية 🕋", url: "https://qurango.net/radio/almukhtasar_fi_alsiyra", image: "https://qurango.net/radio/almukhtasar_fi_alsiyra/icon.png" },
-  { id: "ikhtiyarat", name: "كتاب الاختيارات الفقهية 🏛️", url: "https://qurango.net/radio/alaikhtiarat_alfiqhayh_bin_baz", image: "https://qurango.net/radio/alaikhtiarat_alfiqhayh_bin_baz/icon.png" },
-  { id: "muslim", name: "إذاعة صحيح مسلم 📜", url: "https://qurango.net/radio/saheh-muslim", image: "https://qurango.net/radio/saheh-muslim/icon.png" },
-  { id: "bukhari", name: "إذاعة صحيح البخاري 📜", url: "https://qurango.net/radio/saheh-bokharee", image: "https://qurango.net/radio/saheh-bokharee/icon.png" },
-  { id: "salheen", name: "إذاعة رياض الصالحين 🌿", url: "https://qurango.net/radio/riyad", image: "https://qurango.net/radio/riyad/icon.png" },
-  { id: "fatawa", name: "إذاعة الفتاوى العامة ❓", url: "https://qurango.net/radio/fatwa", image: "https://qurango.net/radio/fatwa/icon.png" },
-  { id: "zilal_seerah", name: "في ظلال السيرة النبوية 💎", url: "https://qurango.net/radio/fi_zilal_alsiyra", image: "https://qurango.net/radio/fi_zilal_alsiyra/icon.png" }
+  { id: "seerah", name: "المختصر في السيرة النبوية 🕋", url: "https://qurango.net/radio/almukhtasar_fi_alsiyra", image: "https://media.zid.store/cdn-cgi/image/f=auto/https://media.zid.store/c3c80b9f-f176-496c-9f27-04187e1270f9/b5f1d073-3b84-47e0-adad-8c9f7f14a7e3.jpg" },
+  { id: "ikhtiyarat", name: "كتاب الاختيارات الفقهية 🏛️", url: "https://qurango.net/radio/alaikhtiarat_alfiqhayh_bin_baz", image: "https://media.zid.store/c3c80b9f-f176-496c-9f27-04187e1270f9/3aaae88e-a065-4dd0-aedc-3a2f99a42337.jpg" },
+  { id: "muslim", name: "إذاعة صحيح مسلم 📜", url: "https://qurango.net/radio/saheh-muslim", image: "https://mashreq.com.my/wp-content/uploads/2021/03/%D8%B5%D8%AD%D9%8A%D8%AD-%D9%85%D8%B3%D9%84%D9%85-2.jpg" },
+  { id: "bukhari", name: "إذاعة صحيح البخاري 📜", url: "https://qurango.net/radio/saheh-bokharee", image: "https://ak-asset.jarir.com/akeneo-prod/asset/m1images/4/2/42495.jpg" },
+  { id: "salheen", name: "إذاعة رياض الصالحين 🌿", url: "https://qurango.net/radio/riyad", image: "https://media.zid.store/c3c80b9f-f176-496c-9f27-04187e1270f9/faef15de-ffca-4c0d-8708-261cd4d0b5b9.jpeg" },
+  { id: "fatawa", name: "إذاعة الفتاوى العامة ❓", url: "https://qurango.net/radio/fatwa", image: "https://www.islamona.net/wp-content/uploads/2026/03/Picsart_26-03-27_00-11-34-054-660x1024.png" },
+  { id: "zilal_seerah", name: "في ظلال السيرة النبوية 💎", url: "https://qurango.net/radio/fi_zilal_alsiyra", image: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEj9IDSs_XnKJY_mSxTa0iwp6wTVd_cYIf40XwJiakkAcKrreWp9wzeaqZnmXJ4_V_YMKHqJOpYGjh9F-vV0c3XZrTaomjTimHqydGgrp6wSbh3M_oLlAZYgsgZYcw-bMBkb0gKSojUK7zMtVTfuMyrfhFTk1x0-YHaMaT5wAgveM8ptTGpUhIk-AUz-zuc/s735/1111111.png" }
 ];
 
 window.getRadioImage = function(station) {
