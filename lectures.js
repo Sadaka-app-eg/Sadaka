@@ -1475,162 +1475,195 @@ async function getCachedFileSizeMB(url) {
     } catch (e) { return null; }
 }
 
-function ensureGlobalAudioEngine() {
-    let audio = document.getElementById('athrGlobalLectureEngine');
-    if (!audio) {
-        audio = document.createElement('audio');
-        audio.id = 'athrGlobalLectureEngine';
-        audio.style.display = 'none';
-        document.body.appendChild(audio);
+// ==========================================
+// 🔊 محرك الصوت الخاص بالدروس والمواعظ
+// ==========================================
+if (!window.lectureAudioPlayer) {
+  window.lectureAudioPlayer = new Audio();
+}
 
-        audio.onloadedmetadata = () => {
-            const id = window.currentPlayingGlobalId;
-            const totalEl = document.getElementById('lectureTotalTime_' + id);
-            if (totalEl && audio.duration) {
-                totalEl.textContent = formatLectureTime(audio.duration);
-            }
-        };
+window.currentLectureUrl = '';
+window.currentLectureGlobalId = null;
 
-        audio.ontimeupdate = () => {
-            const id = window.currentPlayingGlobalId;
-            const seek = document.getElementById('lectureSeek_' + id);
-            const curEl = document.getElementById('lectureCurTime_' + id);
-            if (!seek || !curEl) return;
-            if (audio.duration > 0) {
-                seek.value = (audio.currentTime / audio.duration) * 100;
-                curEl.textContent = formatLectureTime(audio.currentTime);
-            }
-        };
+function ensureLectureAudioEngine() {
+  const player = window.lectureAudioPlayer;
 
-        audio.onended = () => {
-            const id = window.currentPlayingGlobalId;
-            const btn = document.getElementById('lectureBtn_' + id);
-            if (btn) btn.textContent = '▶';
-            window.currentPlayingLectureAudio = null;
-            window.currentPlayingLectureBtn = null;
-            window.currentPlayingGlobalId = null;
-        };
+  player.onplay = () => {
+    window.updateLectureNowPlayingUI();
+    window.renderLectures();
+    if ('mediaSession' in navigator && window.currentLectureUrl) {
+      const track = window.lecturesData.find(item => item.src === window.currentLectureUrl);
+      const cleanTitle = track ? track.title.replace(/[🎙️🤲🎵]/g, '').trim() : 'درس علمي';
+      const avatarUrl = window.getLectureSheikhAvatar ? window.getLectureSheikhAvatar(track ? track.category : '') : '';
+
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: cleanTitle,
+        artist: track ? track.category : 'أثر',
+        album: 'الدروس والمواعظ',
+        artwork: [{ src: avatarUrl, sizes: '512x512', type: 'image/jpeg' }]
+      });
     }
-    return audio;
+  };
+
+  player.onpause = () => {
+    window.updateLectureNowPlayingUI();
+    window.renderLectures();
+  };
+
+  player.ontimeupdate = () => {
+    window.updateLectureNowPlayingProgress();
+  };
+
+  player.onended = () => {
+    player.pause();
+    player.currentTime = 0;
+    window.updateLectureNowPlayingUI();
+    window.renderLectures();
+  };
 }
 
 window.selectedLectureCategory = null;
 
 function renderLectures() {
-    const listEl = document.getElementById('lecturesList');
-    if (!listEl) return;
+  const listEl = document.getElementById('lecturesList');
+  if (!listEl) return;
 
-    // 1️⃣ إذا لم يتم اختيار قسم بعد، نعرض شبكة الدورات والشيوخ (Grid 3x3)
-    if (!window.selectedLectureCategory) {
-        window.renderLecturesGrid(listEl);
-        return;
-    }
+  // 1️⃣ شبكة الدورات والشيوخ (Grid)
+  if (!window.selectedLectureCategory) {
+    window.renderLecturesGrid(listEl);
+    return;
+  }
 
-    // 2️⃣ هيدر الشيخ/الدورة المحددة مع زر العودة للقائمة
-    const info = window.sheikhsInfoData ? window.sheikhsInfoData[window.selectedLectureCategory] : null;
-    const sheikhAvatar = window.getLectureSheikhAvatar ? window.getLectureSheikhAvatar(window.selectedLectureCategory) : '';
+  // 2️⃣ الهيدر
+  const info = window.sheikhsInfoData ? window.sheikhsInfoData[window.selectedLectureCategory] : null;
+  const sheikhAvatar = window.getLectureSheikhAvatar ? window.getLectureSheikhAvatar(window.selectedLectureCategory) : '';
 
-    let sheikhBannerHtml = `
-      <div style="display: flex; align-items: center; justify-content: space-between; background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 12px 16px; margin-bottom: 14px; direction: rtl;">
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <img src="${sheikhAvatar}" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid var(--gold);" />
-          <div style="text-align: right;">
-            <div style="font-weight: bold; color: var(--gold); font-size: 16px; font-family: 'Amiri', serif;">${info ? info.title : window.selectedLectureCategory}</div>
-            <div style="font-size: 11.5px; color: var(--text2); font-family: 'Amiri', serif;">${info ? info.sheikh : 'دروس ومواعظ'}</div>
-          </div>
+  let sheikhBannerHtml = `
+    <div style="display: flex; align-items: center; justify-content: space-between; background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 12px 16px; margin-bottom: 14px; direction: rtl;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <img src="${sheikhAvatar}" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid var(--gold);" />
+        <div style="text-align: right;">
+          <div style="font-weight: bold; color: var(--gold); font-size: 16px; font-family: 'Amiri', serif;">${info ? info.title : window.selectedLectureCategory}</div>
+          <div style="font-size: 11.5px; color: var(--text2); font-family: 'Amiri', serif;">${info ? info.sheikh : 'دروس ومواعظ'}</div>
         </div>
-        <button onclick="window.backToLecturesGrid()" style="background: rgba(212,175,55,0.15); color: var(--gold); border: 1px solid var(--gold); border-radius: 20px; padding: 6px 14px; font-family: 'Amiri', serif; font-size: 12px; cursor: pointer; white-space: nowrap;">
-          ↩️ الأقسام والدورات
-        </button>
+      </div>
+      <button onclick="window.backToLecturesGrid()" style="background: rgba(212,175,55,0.15); color: var(--gold); border: 1px solid var(--gold); border-radius: 20px; padding: 6px 14px; font-family: 'Amiri', serif; font-size: 12px; cursor: pointer; white-space: nowrap;">
+        ↩️ الأقسام والدورات
+      </button>
+    </div>`;
+
+  // 3️⃣ البحث
+  let searchBarHtml = "";
+  if (window.selectedLectureCategory === 'تفسير القرآن الكريم') {
+    searchBarHtml = `
+      <div style="margin-bottom: 12px; direction: rtl;">
+        <input type="text" id="lectureSearchInput" oninput="window.filterLecturesBySearch(this.value)" placeholder="🔍 ابحث باسم السورة أو الدرس..." style="width: 100%; padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(212,175,55,0.3); background: rgba(15,20,16,0.85); color: #fff; font-family: 'Amiri', serif; font-size: 14px; box-sizing: border-box;" />
       </div>`;
+  }
 
-    // 3. شريط البحث السريع
-    let searchBarHtml = "";
-    if (window.selectedLectureCategory === 'تفسير القرآن الكريم') {
-        searchBarHtml = `
-        <div style="margin-bottom: 12px; direction: rtl;">
-            <input type="text" id="lectureSearchInput" oninput="window.filterLecturesBySearch(this.value)" placeholder="🔍 ابحث باسم السورة أو الدرس..." style="width: 100%; padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(212,175,55,0.3); background: rgba(15,20,16,0.85); color: #fff; font-family: 'Amiri', serif; font-size: 14px; box-sizing: border-box;" />
-        </div>`;
-    }
-
-let filtered = [];
-    if (window.selectedLectureCategory === 'محاضرات المشايخ') {
-        if (!window.currentSelectedSheikh || window.currentSelectedSheikh === 'الكل') {
-            filtered = window.lecturesData.filter(l => l.category === 'محاضرات المشايخ');
-        } else {
-            filtered = window.lecturesData.filter(l => l.category === 'محاضرات المشايخ' && l.title.includes(window.currentSelectedSheikh));
-        }
+  // 4️⃣ الفلترة
+  let filtered = [];
+  if (window.selectedLectureCategory === 'محاضرات المشايخ') {
+    if (!window.currentSelectedSheikh || window.currentSelectedSheikh === 'الكل') {
+      filtered = window.lecturesData.filter(l => l.category === 'محاضرات المشايخ');
     } else {
-        filtered = window.lecturesData.filter(l => l.category === window.selectedLectureCategory);
+      filtered = window.lecturesData.filter(l => l.category === 'محاضرات المشايخ' && l.title.includes(window.currentSelectedSheikh));
     }
-    if (window.lectureSearchQuery && window.lectureSearchInputText) {
-        const q = window.lectureSearchInputText.trim().toLowerCase();
-        if (q !== "") {
-            filtered = filtered.filter(l => l.title.toLowerCase().includes(q));
-        }
+  } else {
+    filtered = window.lecturesData.filter(l => l.category === window.selectedLectureCategory);
+  }
+
+  if (window.lectureSearchQuery && window.lectureSearchInputText) {
+    const q = window.lectureSearchInputText.trim().toLowerCase();
+    if (q !== "") {
+      filtered = filtered.filter(l => l.title.toLowerCase().includes(q));
     }
+  }
 
-    const pinnedList = JSON.parse(localStorage.getItem('pinned_lectures') || '[]');
-    filtered.sort((a, b) => {
-        const aPinned = pinnedList.includes(a.title) ? 1 : 0;
-        const bPinned = pinnedList.includes(b.title) ? 1 : 0;
-        return bPinned - aPinned;
-    });
+  const pinnedList = JSON.parse(localStorage.getItem('pinned_lectures') || '[]');
+  filtered.sort((a, b) => {
+    const aPinned = pinnedList.includes(a.title) ? 1 : 0;
+    const bPinned = pinnedList.includes(b.title) ? 1 : 0;
+    return bPinned - aPinned;
+  });
 
-    // 4. بناء كروت الدروس المصغرة والأنيقة
-    const cardsHtml = filtered.map((lecture) => {
-        const realIndex = window.lecturesData.indexOf(lecture);
-        const isPinned = pinnedList.includes(lecture.title);
-        const isVideo = lecture.type === 'video';
-        const isThisPlaying = window.currentPlayingGlobalId === realIndex && window.currentPlayingLectureAudio && !window.currentPlayingLectureAudio.paused;
+  // 5️⃣ بناء الكروت
+  const cardsHtml = filtered.map((lecture) => {
+    const realIndex = window.lecturesData.indexOf(lecture);
+    const isPinned = pinnedList.includes(lecture.title);
+    const isVideo = lecture.type === 'video';
+    const isCurrent = (window.currentLectureUrl === lecture.src);
+    const isPlaying = isCurrent && window.lectureAudioPlayer && !window.lectureAudioPlayer.paused;
+    const cleanName = lecture.title.replace(/[🎙️🤲🎵]/g, '').trim();
 
-        const shareBtnHtml = lecture.category === "مواعظ متنوعة"
-            ? `<div class="athr-icon-btn" onclick="window.shareLectureAudio('${lecture.title.replace(/'/g, "\\'")}', '${lecture.src}', this)" style="width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:1px solid rgba(212,175,55,0.4); background:rgba(212,175,55,0.15); color:var(--gold, #d4af37); font-size:12px;" title="مشاركة الموعظة">🔗</div>`
-            : '';
+    const soundWaveHtml = isPlaying ? `
+      <div class="eq-wave-container">
+        <div class="eq-bar"></div>
+        <div class="eq-bar"></div>
+        <div class="eq-bar"></div>
+      </div>
+    ` : (isCurrent ? '⏸ ' : '');
 
-        return `
-        <div class="athr-lecture-card ${isThisPlaying ? 'playing' : ''}" style="background: linear-gradient(145deg, rgba(25, 35, 28, 0.85) 0%, rgba(12, 18, 14, 0.95) 100%); border: 1px solid ${isThisPlaying ? 'var(--gold, #d4af37)' : 'rgba(212, 175, 55, 0.2)'}; border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; direction: rtl; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.35);">
-          <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
-            <div style="display:flex; align-items:center; gap:8px; flex:1; min-width:0;">
-              <button onclick="window.togglePinLecture('${lecture.title}')" style="background:transparent; border:none; color:${isPinned ? 'var(--gold, #d4af37)' : 'rgba(255,255,255,0.3)'}; font-size:15px; cursor:pointer; padding:0; flex-shrink:0;">${isPinned ? '📌' : '📍'}</button>
-              <span style="font-family:'Amiri',serif; font-size:14px; color:#fff; line-height:1.4; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${isVideo ? '🎥 ' : ''}${lecture.title}</span>
+    const currentProgress = isCurrent && window.lectureAudioPlayer && window.lectureAudioPlayer.duration ? (window.lectureAudioPlayer.currentTime / window.lectureAudioPlayer.duration) * 100 : 0;
+    const timeLabel = isCurrent && window.lectureAudioPlayer && window.lectureAudioPlayer.duration
+      ? `${window.formatTime(window.lectureAudioPlayer.currentTime)} / ${window.formatTime(window.lectureAudioPlayer.duration)}`
+      : '0:00 / --:--';
+
+    const shareBtnHtml = lecture.category === "مواعظ متنوعة"
+      ? `<div class="athr-icon-btn" onclick="event.stopPropagation(); window.shareLectureAudio('${lecture.title.replace(/'/g, "\\'")}', '${lecture.src}', this)" style="width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:1px solid rgba(212,175,55,0.4); background:rgba(212,175,55,0.15); color:var(--gold, #d4af37); font-size:12px;" title="مشاركة الموعظة">🔗</div>`
+      : '';
+
+    return `
+      <div class="athr-lecture-card ${isCurrent ? 'playing' : ''}" style="margin-bottom: 10px; padding: 12px; border-radius: 14px; background: var(--card); border: 1px solid var(--border); cursor:pointer; transition: all 0.3s ease;" onclick="window.openLectureNowPlaying('${lecture.src}')">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; direction: rtl;">
+          
+          <div style="position: relative; flex-shrink: 0;">
+            <img src="${sheikhAvatar}" alt="${lecture.category}" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid ${isCurrent ? 'var(--gold)' : 'var(--border)'}; ${isPlaying ? 'box-shadow: 0 0 12px var(--gold);' : ''}" />
+            ${isPinned ? '<span style="position:absolute; bottom:-2px; right:-2px; font-size:11px;">📍</span>' : ''}
+          </div>
+
+          <div style="flex: 1; min-width: 0; text-align: right;">
+            <div style="font-weight: bold; color: ${isCurrent ? 'var(--gold)' : 'var(--text)'}; font-family: 'Amiri', serif; font-size: 15px; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px;">
+              ${soundWaveHtml}
+              <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${isVideo ? '🎥 ' : ''}${cleanName}</span>
             </div>
-            
-            ${isVideo ? `
-                <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-                    <button onclick="window.openAthrVideoModal('${lecture.title}', '${lecture.src}')" style="background: linear-gradient(135deg, #d4af37, #b8860b); color:#111; border:none; padding:5px 12px; border-radius:18px; font-weight:bold; font-size:11.5px; cursor:pointer;">🎬 مشاهدة</button>
-                    <div id="lectureDlRing_${realIndex}" class="athr-icon-btn" onclick="window.startLectureDownloadRing(${realIndex})" style="width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:1px solid rgba(212,175,55,0.3); background:rgba(212,175,55,0.1); color:var(--gold, #d4af37); font-size:12px;">⬇️</div>
-                    ${shareBtnHtml}
-                </div>
-            ` : `
-                <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-                    <button class="athr-icon-btn primary" id="lectureBtn_${realIndex}" onclick="window.toggleLectureAudio(${realIndex})" style="width:32px; height:32px; border-radius:50%; border:none; background:linear-gradient(135deg, #e6c667, #d4af37); color:#111; font-weight:bold; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center;">${isThisPlaying ? '⏸' : '▶'}</button>
-                    <div id="lectureDlRing_${realIndex}" class="athr-icon-btn" onclick="window.startLectureDownloadRing(${realIndex})" style="width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:1px solid rgba(212,175,55,0.3); background:rgba(212,175,55,0.1); color:var(--gold, #d4af37); font-size:12px;">⬇️</div>
-                    ${shareBtnHtml}
-                </div>
-            `}
-          </div>
-
-          <div id="lectureDlStatus_${realIndex}" style="font-size:10px; color:var(--gold, #d4af37); text-align:center;"></div>
-
-          ${!isVideo ? `
-          <div style="width:100%; display:flex; flex-direction:column; gap:2px;">
-            <input type="range" class="athr-seek-slider" id="lectureSeek_${realIndex}" value="0" min="0" max="100" step="0.1" oninput="window.seekLectureAudio(${realIndex}, this.value)" style="width:100%; accent-color:var(--gold, #d4af37); cursor:pointer; height:3px; background:rgba(255,255,255,0.15); border-radius:2px; outline:none;">
-            <div style="display:flex; justify-content:space-between; font-size:10px; color:rgba(255,255,255,0.5); direction:ltr; font-family:monospace;">
-              <span id="lectureCurTime_${realIndex}">0:00</span>
-              <span id="lectureTotalTime_${realIndex}">--:--</span>
+            <div style="font-size: 12px; color: ${isCurrent ? 'var(--gold)' : 'var(--text2)'}; font-family: 'Amiri', serif; margin-top: 4px; opacity: 0.9;">
+              ${lecture.category} ${isCurrent ? ' • (يُشغّل الآن 🎧)' : ''}
             </div>
           </div>
-          ` : ''}
-          <div style="text-align:center; margin-top:2px;">
-            <button onclick="window.toggleReflectionBox(${realIndex})" style="background:transparent; border:none; color:var(--gold,#d4af37); font-size:11px; cursor:pointer; font-family:'Amiri',serif; text-decoration:underline;">💭 ما المستفاد من هذا الدرس؟</button>
-          </div>
-          <div id="reflectionBox_${realIndex}" style="display:none;"></div>
-        </div>`;
-    }).join('');
 
-    listEl.innerHTML = sheikhBannerHtml + searchBarHtml + cardsHtml;
-    setTimeout(markDownloadedLectures, 150);
+          <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;" onclick="event.stopPropagation()">
+            <button onclick="window.togglePinLecture('${lecture.title}')" style="background:transparent; border:none; color:${isPinned ? 'var(--gold, #d4af37)' : 'rgba(255,255,255,0.3)'}; font-size:15px; cursor:pointer; padding:0;">${isPinned ? '📌' : '📍'}</button>
+            <div id="lectureDlRing_${realIndex}" class="athr-icon-btn" onclick="window.startLectureDownloadRing(${realIndex})" style="width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:1px solid rgba(212,175,55,0.3); background:rgba(212,175,55,0.1); color:var(--gold, #d4af37); font-size:12px;">⬇️</div>
+            ${shareBtnHtml}
+          </div>
+
+        </div>
+
+        <div id="lectureDlStatus_${realIndex}" style="font-size:10px; color:var(--gold, #d4af37); text-align:center;"></div>
+
+        ${!isVideo ? `
+        <div style="width: 100%; display: flex; flex-direction: column; gap: 2px; margin-top: 10px;" onclick="event.stopPropagation()">
+          <input type="range"
+                 data-lecture-progress-id="${realIndex}"
+                 min="0" max="100"
+                 value="${currentProgress}"
+                 oninput="window.seekLectureListTrack(this, '${lecture.src}')"
+                 class="athr-seek-slider" />
+          <span data-lecture-time-id="${realIndex}" style="font-size: 10px; color: var(--text2); direction: ltr; text-align: left;">${timeLabel}</span>
+        </div>
+        ` : ''}
+
+        <div style="text-align:center; margin-top:6px;" onclick="event.stopPropagation()">
+          <button onclick="window.toggleReflectionBox(${realIndex})" style="background:transparent; border:none; color:var(--gold,#d4af37); font-size:11px; cursor:pointer; font-family:'Amiri',serif; text-decoration:underline;">💭 ما المستفاد من هذا الدرس؟</button>
+        </div>
+        <div id="reflectionBox_${realIndex}" style="display:none;" onclick="event.stopPropagation()"></div>
+      </div>
+    `;
+  }).join('');
+
+  listEl.innerHTML = sheikhBannerHtml + searchBarHtml + cardsHtml;
+  if (typeof markDownloadedLectures === 'function') setTimeout(markDownloadedLectures, 150);
 }
 
 // 📱 دالة عرض شبكة الشيوخ والدورات لقسم الدروس والمواعظ
@@ -1718,54 +1751,37 @@ window.togglePinLecture = function(title) {
     renderLectures();
 };
 
-window.toggleLectureAudio = async function(index) {
-    const audio = ensureGlobalAudioEngine();
-    const btn = document.getElementById('lectureBtn_' + index);
-    if (!btn) return;
+// ==========================================
+// 🎧 دالة تشغيل الصوتيات والتنقل (مطابقة لـ playRare)
+// ==========================================
+window.playLectureAudioTrack = async function (src) {
+  const player = window.lectureAudioPlayer;
+  ensureLectureAudioEngine();
 
-    const lecture = window.lecturesData[index];
-    if (!lecture) return;
-
-    if (window.currentPlayingGlobalId !== index) {
-        if (window.currentPlayingGlobalId !== null) {
-            const oldBtn = document.getElementById('lectureBtn_' + window.currentPlayingGlobalId);
-            if (oldBtn) oldBtn.textContent = '▶';
-        }
-
-        let playableSrc = lecture.src;
-        const absUrl = new URL(lecture.src, window.location.href).href;
-
-        // 🛡️ فحص هل الدرس متسجل أوفلاين في الكاش؟
-        if ('caches' in window) {
-            try {
-                const cache = await caches.open('athr-audio-cache-v1');
-                const matched = await cache.match(absUrl) || await cache.match(lecture.src);
-                if (matched) {
-                    const blob = await matched.blob();
-                    playableSrc = URL.createObjectURL(blob); // تحويل الملف المحفوظ أوفلاين لرابط متاح بدون نت
-                }
-            } catch (e) {
-                console.log("خطأ قراءة الكاش أوفلاين:", e);
-            }
-        }
-
-        audio.src = playableSrc;
-        audio.load(); 
-        window.currentPlayingGlobalId = index;
-        window.currentPlayingLectureAudio = audio;
-        window.currentPlayingLectureBtn = btn;
-    }
-
-    if (audio.paused) {
-        audio.play().then(() => {
-            btn.textContent = '⏸';
-        }).catch(err => {
-            setTimeout(() => { audio.play(); btn.textContent = '⏸'; }, 150);
-        });
+  if (window.currentLectureUrl === src) {
+    if (!player.paused) {
+      player.pause();
     } else {
-        audio.pause();
-        btn.textContent = '▶';
+      player.play().catch(e => console.log("Play error:", e));
     }
+  } else {
+    let finalPlayableSource = src;
+    if ('caches' in window) {
+      try {
+        const absUrl = new URL(src, window.location.href).href;
+        const cache = await caches.open('athr-audio-cache-v1');
+        const cachedResponse = await cache.match(absUrl) || await cache.match(src);
+        if (cachedResponse) {
+          const blob = await cachedResponse.blob();
+          finalPlayableSource = URL.createObjectURL(blob);
+        }
+      } catch (e) {}
+    }
+
+    player.src = finalPlayableSource;
+    window.currentLectureUrl = src;
+    player.play().catch(e => console.log("Play error:", e));
+  }
 };
 
 window.seekLectureAudio = function(index, value) {
@@ -2691,4 +2707,172 @@ window.selectSheikhFilter = function(sheikhName) {
     }
     
     renderLectures();
+};
+// ==========================================
+// 🎨 واجهة "يُشغّل الآن" للدروس والمواعظ
+// ==========================================
+window.ensureLectureNowPlayingOverlay = function() {
+  if (document.getElementById('lectureNowPlayingOverlay')) return;
+
+  const overlayHTML = `
+    <div id="lectureNowPlayingOverlay" style="display:none; position:fixed; inset:0; background:#080d09; z-index:99999999; flex-direction:column; align-items:center; justify-content:space-between; padding:20px 20px calc(20px + env(safe-area-inset-bottom)); direction:rtl; overflow:hidden;">
+      
+      <div id="lectureNpAmbientBg" class="now-playing-bg"></div>
+
+      <!-- أعلى الشاشة -->
+      <div style="width:100%; display:flex; justify-content:space-between; align-items:center; z-index:2;">
+        <button onclick="window.closeLectureNowPlaying()" style="background:rgba(255,255,255,0.1); border:none; color:var(--text); width:38px; height:38px; border-radius:50%; font-size:20px; cursor:pointer;">⌄</button>
+        <span style="color:var(--gold); font-family:'Amiri',serif; font-size:14px; font-weight:bold;">🎧 يُشغّل الآن - الدروس</span>
+        <span style="width:38px;"></span>
+      </div>
+
+      <!-- منتصف الشاشة -->
+      <div id="lectureNpSwipeZone" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; width:100%; z-index:2;">
+        <div style="width:160px; height:160px; display:flex; align-items:center; justify-content:center; position:relative;">
+          <img id="lectureNowPlayingAvatar" src="" alt="الشيخ" style="width:160px; height:160px; border-radius:20px; object-fit:cover; border:3px solid var(--gold); transition: all 0.3s ease;" />
+        </div>
+        
+        <div style="width:100%; max-width:360px; text-align:center; padding:0 10px; direction:rtl;">
+          <div id="lectureNowPlayingCategory" style="color:var(--gold); font-size:18px; font-weight:bold; font-family:'Amiri',serif;"></div>
+          <div id="lectureNowPlayingTitle" style="color:var(--text2); font-size:13px; margin-top:4px; line-height:1.4; font-family:'Amiri',serif;"></div>
+        </div>
+      </div>
+
+      <!-- أسفل الشاشة (التحكم وسلايدر الوقت) -->
+      <div style="width:100%; max-width:420px; z-index:2;">
+        <input type="range" id="lectureNowPlayingSeek" min="0" max="100" value="0" oninput="window.seekLectureNowPlaying(this)" style="width:100%; accent-color:var(--gold); cursor:pointer;" />
+        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text2); direction:ltr; margin-top:3px;">
+          <span id="lectureNowPlayingCurrentTime">0:00</span>
+          <span id="lectureNowPlayingDuration">0:00</span>
+        </div>
+
+        <div style="display:flex; justify-content:center; align-items:center; gap:20px; margin-top:15px; direction:ltr;">
+          <button onclick="window.playPrevLectureTrack()" style="background:none; border:none; color:var(--text); font-size:28px; cursor:pointer;">⏮</button>
+          <button id="lectureNowPlayingPlayBtn" onclick="window.lectureNowPlayingTogglePlay()" style="background:var(--gold); color:#111; border:none; width:60px; height:60px; border-radius:50%; font-size:24px; cursor:pointer; font-weight:bold; display:flex; align-items:center; justify-content:center;">⏸</button>
+          <button onclick="window.playNextLectureTrack()" style="background:none; border:none; color:var(--text); font-size:28px; cursor:pointer;">⏭</button>
+        </div>
+      </div>
+
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', overlayHTML);
+};
+
+// فتح شاشة التشغيل
+window.openLectureNowPlaying = function(src) {
+  const track = window.lecturesData.find(item => item.src === src);
+  if (!track) return;
+
+  // لو كان فيديو يفتح مودال الفيديو المصور
+  if (track.type === 'video') {
+    if (typeof window.openAthrVideoModal === 'function') {
+      window.openAthrVideoModal(track.title, track.src);
+    }
+    return;
+  }
+
+  window.ensureLectureNowPlayingOverlay();
+  window.currentLectureGlobalId = window.lecturesData.indexOf(track);
+
+  if (window.currentLectureUrl !== src) {
+    window.playLectureAudioTrack(src);
+  } else if (window.lectureAudioPlayer.paused) {
+    window.lectureAudioPlayer.play().catch(()=>{});
+  }
+
+  document.getElementById('lectureNowPlayingOverlay').style.display = 'flex';
+  window.updateLectureNowPlayingUI();
+};
+
+window.closeLectureNowPlaying = function() {
+  const overlay = document.getElementById('lectureNowPlayingOverlay');
+  if (overlay) overlay.style.display = 'none';
+};
+
+window.lectureNowPlayingTogglePlay = function() {
+  if (!window.currentLectureUrl) return;
+  window.playLectureAudioTrack(window.currentLectureUrl);
+};
+
+window.updateLectureNowPlayingUI = function() {
+  const overlay = document.getElementById('lectureNowPlayingOverlay');
+  if (!overlay || overlay.style.display !== 'flex') return;
+  const player = window.lectureAudioPlayer;
+  const track = window.lecturesData.find(item => item.src === window.currentLectureUrl);
+  if (!track) return;
+
+  const cleanTitle = track.title.replace(/[🎙️🤲🎵]/g, '').trim();
+  const avatarUrl = window.getLectureSheikhAvatar ? window.getLectureSheikhAvatar(track.category) : '';
+
+  document.getElementById('lectureNowPlayingCategory').textContent = track.category;
+  document.getElementById('lectureNowPlayingTitle').textContent = cleanTitle;
+
+  const avatarImg = document.getElementById('lectureNowPlayingAvatar');
+  if (avatarImg) {
+    avatarImg.src = avatarUrl;
+    avatarImg.style.boxShadow = !player.paused ? `0 0 35px 8px var(--gold)` : 'none';
+  }
+
+  const playBtn = document.getElementById('lectureNowPlayingPlayBtn');
+  if (playBtn) playBtn.textContent = player.paused ? '▶' : '⏸';
+
+  const ambientBg = document.getElementById('lectureNpAmbientBg');
+  if (ambientBg) ambientBg.style.backgroundImage = `url('${avatarUrl}')`;
+};
+
+window.updateLectureNowPlayingProgress = function() {
+  const player = window.lectureAudioPlayer;
+  const seek = document.getElementById('lectureNowPlayingSeek');
+  if (seek && player.duration) {
+    seek.value = (player.currentTime / player.duration) * 100;
+    document.getElementById('lectureNowPlayingCurrentTime').textContent = window.formatTime(player.currentTime);
+    document.getElementById('lectureNowPlayingDuration').textContent = window.formatTime(player.duration);
+  }
+
+  // تحديث السلايدر في الكارت الخارجي
+  if (window.currentLectureGlobalId !== null) {
+    const id = window.currentLectureGlobalId;
+    const activeProgressBar = document.querySelector(`input[data-lecture-progress-id="${id}"]`);
+    const activeTimeLabel = document.querySelector(`span[data-lecture-time-id="${id}"]`);
+    if (activeProgressBar && player.duration) activeProgressBar.value = (player.currentTime / player.duration) * 100;
+    if (activeTimeLabel && player.duration) activeTimeLabel.textContent = `${window.formatTime(player.currentTime)} / ${window.formatTime(player.duration)}`;
+  }
+};
+
+window.seekLectureNowPlaying = function(el) {
+  const player = window.lectureAudioPlayer;
+  if (player.duration) player.currentTime = (el.value / 100) * player.duration;
+};
+
+window.seekLectureListTrack = function(el, src) {
+  const player = window.lectureAudioPlayer;
+  const realIndex = window.lecturesData.findIndex(item => item.src === src);
+  if (window.currentLectureGlobalId === realIndex && player.duration) {
+    player.currentTime = (el.value / 100) * player.duration;
+  }
+};
+
+// التنقل بين الدروس (التالي والسابق)
+window.playNextLectureTrack = function() {
+  let list = window.lecturesData.filter(l => l.category === window.selectedLectureCategory);
+  if (window.selectedLectureCategory === 'محاضرات المشايخ' && window.currentSelectedSheikh !== 'الكل') {
+    list = list.filter(l => l.title.includes(window.currentSelectedSheikh));
+  }
+  if (list.length === 0) return;
+
+  let idx = list.findIndex(item => item.src === window.currentLectureUrl);
+  let nextIdx = (idx === -1) ? 0 : (idx + 1) % list.length;
+  window.openLectureNowPlaying(list[nextIdx].src);
+};
+
+window.playPrevLectureTrack = function() {
+  let list = window.lecturesData.filter(l => l.category === window.selectedLectureCategory);
+  if (window.selectedLectureCategory === 'محاضرات المشايخ' && window.currentSelectedSheikh !== 'الكل') {
+    list = list.filter(l => l.title.includes(window.currentSelectedSheikh));
+  }
+  if (list.length === 0) return;
+
+  let idx = list.findIndex(item => item.src === window.currentLectureUrl);
+  let prevIdx = (idx <= 0) ? list.length - 1 : idx - 1;
+  window.openLectureNowPlaying(list[prevIdx].src);
 };
