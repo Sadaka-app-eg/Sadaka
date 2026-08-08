@@ -2,7 +2,7 @@
 // 👳‍♂️ مصفوفة صور شيوخ وعلماء الدروس والمواعظ
 // ==========================================
 window.lectureSheikhAvatars = {
-  "مواعظ متنوعة": "https://chatgpt.com/s/m_6a76c2f970548191b64f529672a3ce10",
+"مواعظ متنوعة": "image/mwa.png",
   "دورة التجويد": "https://i.ytimg.com/vi/iMVt8qkrjTM/maxresdefault.jpg",
   "السيرة النبوية": "https://angimg.anghcdn.co/presets/shareables?artist=Omar&song=%D8%A7%D9%84%D8%B3%D9%8A%D8%B1%D8%A9+%D8%A7%D9%84%D9%86%D8%A8%D9%88%D9%8A%D8%A9+-%D8%A7%D8%AD%D9%85%D8%AF+%D8%B9%D8%A7%D9%85%D8%B1&lang=en&coverartid=168048047&type=podcast",
   "الفقه الميسر": "https://www.ashefaa.com/a3lam/shekh/al3arifi-1.jpg",
@@ -15,7 +15,7 @@ window.lectureSheikhAvatars = {
   "أصول العقيدة": "https://www.islamist-movements.com/upload/photo/parags/10/2/786.jpg",
   "مفسدات القلوب": "https://mustansiriyah.net/wp-content/uploads/2020/01/200150002.jpg",
   "أصول الانحراف": "https://i.ytimg.com/vi/Fex7Vio6xzA/maxresdefault.jpg?sqp=-oaymwEmCIAKENAF8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGHIgWyg_MA8=&rs=AOn4CLBBC67CO98ilJ9SzFlmeNRRnyt0VQ",
-  "محاضرات المشايخ": "https://chatgpt.com/s/m_6a76c30f3f54819198d1cf5efe406bbc",
+"محاضرات المشايخ": "image/moha.png",
   "default": "https://images.unsplash.com/photo-1609599006353-e629aaabfeae?q=80&w=500&auto=format&fit=crop"
 };
 // 👳‍♂️ صور شيوخ قسم المحاضرات (توضع تحت تصنيف محاضرات المشايخ)
