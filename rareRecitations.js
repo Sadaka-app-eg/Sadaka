@@ -885,33 +885,33 @@ if (!document.getElementById('rareActiveTrackStyle')) {
   document.head.appendChild(style);
 }
 
- const overlayHTML = `
+const overlayHTML = `
     <div id="rareNowPlayingOverlay" style="display:none; position:fixed; inset:0; background:#080d09; z-index:99999999; flex-direction:column; align-items:center; justify-content:space-between; padding:20px 20px calc(20px + env(safe-area-inset-bottom)); direction:rtl; overflow:hidden;">
       
       <div id="npAmbientBg" class="now-playing-bg"></div>
 
-      <!-- أعلى الشاشة -->
+      <!-- أعلى الشاشة (شيلنا زِر المؤقت من فوق وشمال) -->
       <div style="width:100%; display:flex; justify-content:space-between; align-items:center; z-index:2;">
         <button onclick="window.closeNowPlaying()" style="background:rgba(255,255,255,0.1); border:none; color:var(--text); width:38px; height:38px; border-radius:50%; font-size:20px; cursor:pointer;">⌄</button>
         <span style="color:var(--gold); font-family:'Amiri',serif; font-size:14px; font-weight:bold;">🎧 يُشغّل الآن</span>
-        <button id="npTimerBadge" onclick="window.openSleepModal()" style="background:rgba(255,255,255,0.1); border:none; color:var(--text); padding:6px 12px; border-radius:20px; font-size:12px; cursor:pointer; font-family:'Amiri',serif;">⏱️</button>
+        <span style="width:38px;"></span> <!-- مساحة فارغة للتوازت الفخم -->
       </div>
 
-      <!-- منتصف الشاشة (الصورة بالمقاس المصغر المظبوط 160px + العنوان والثلاث نقط) -->
+      <!-- منتصف الشاشة (الصورة والعنوان وزر الثلاث نقاط جنب اسم القارئ) -->
       <div id="npSwipeZone" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; width:100%; z-index:2;">
         <div style="width:160px; height:160px; display:flex; align-items:center; justify-content:center; position:relative;">
           <img id="nowPlayingAvatar" class="now-playing-avatar" src="" alt="الشيخ" style="width:160px; height:160px; border-radius:20px; object-fit:cover; border:3px solid var(--gold); transition: all 0.3s ease;" />
         </div>
         
-        <!-- صف العنوان واسم الشيخ وزر الثلاث نقاط الأنيق -->
-        <div style="width:100%; max-width:420px; display:flex; align-items:center; justify-content:space-between; padding:0 10px; direction:rtl;">
+        <!-- صف العنوان واسم الشيخ وزر الثلاث نقاط مظبوطين جنب بعض -->
+        <div style="width:100%; max-width:360px; display:flex; align-items:center; justify-content:space-between; padding:0 10px; direction:rtl;">
           <div style="text-align:right; flex:1; min-width:0; padding-left:10px;">
             <div id="nowPlayingSheikh" style="color:var(--gold); font-size:20px; font-weight:bold; font-family:'Amiri',serif;"></div>
             <div id="nowPlayingTrackName" style="color:var(--text2); font-size:13px; margin-top:3px; line-height:1.4; font-family:'Amiri',serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></div>
           </div>
           
-          <!-- 🎯 زر الثلاث نقط المظبوط هنا -->
-          <button onclick="event.stopPropagation(); window.openContextMenu(window.currentRareUrl, this)" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:var(--text); width:40px; height:40px; border-radius:50%; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;" title="خيارات إضافية">⋮</button>
+          <!-- 🎯 زر الثلاث نقط الأنيق بمظهر دائرى محترم -->
+          <button onclick="event.stopPropagation(); window.openContextMenu(window.currentRareUrl, this)" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:var(--text); width:40px; height:40px; border-radius:50%; font-size:20px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;" title="خيارات إضافية">⋮</button>
         </div>
       </div>
 
@@ -1386,10 +1386,7 @@ window.shareRareAudio = async function(name, url, btnElement) {
 
 document.addEventListener('DOMContentLoaded', () => { renderRareRecitations(); });
 // ==========================================
-// 📱 قائمة الخيارات الثلاث نقاط (⋮ Context Menu)
-// ==========================================
-// ==========================================
-// 📱 قائمة الخيارات الثلاث نقاط (⋮ Context Menu) المحدثة
+// 📱 قائمة الخيارات المنسقة رأسيًا (Bottom Sheet)
 // ==========================================
 window.openContextMenu = async function(url, btnElement) {
   const track = window.rareRecitations.find(item => item.url === url);
@@ -1402,7 +1399,6 @@ window.openContextMenu = async function(url, btnElement) {
   const isAnachid = track.tag === 'أناشيد';
   const cleanTitle = track.name.replace(/[🎙️🤲🎵]/g, '').trim();
 
-  // 🔍 فحص هل التلاوة محمّلة أوفلاين في الكاش مسبقاً؟
   let isDownloaded = false;
   if ('caches' in window) {
     try {
@@ -1417,10 +1413,10 @@ window.openContextMenu = async function(url, btnElement) {
   const downloadBtnText = isDownloaded ? '✅ تم التحميل (متاح أوفلاين)' : '📥 تحميل أوفلاين للتطبيق';
 
   const menuHTML = `
-    <div id="athrContextMenu" style="position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 999999999; display: flex; align-items: flex-end; justify-content: center;" onclick="this.remove()">
-      <div style="width: 100%; max-width: 450px; background: #121813; border-top: 2px solid var(--gold); border-radius: 20px 20px 0 0; padding: 20px; direction: rtl; font-family: 'Amiri', serif;" onclick="event.stopPropagation()">
+    <div id="athrContextMenu" style="position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(6px); z-index: 999999999; display: flex; align-items: flex-end; justify-content: center;" onclick="this.remove()">
+      <div style="width: 100%; max-width: 450px; background: #121813; border-top: 2px solid var(--gold); border-radius: 20px 20px 0 0; padding: 20px; direction: rtl; font-family: 'Amiri', serif; display: flex; flex-direction: column; gap: 8px;" onclick="event.stopPropagation()">
         
-        <div style="text-align: center; font-weight: bold; color: var(--gold); font-size: 16px; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+        <div style="text-align: center; font-weight: bold; color: var(--gold); font-size: 16px; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
           ${cleanTitle}
         </div>
 
@@ -1432,7 +1428,7 @@ window.openContextMenu = async function(url, btnElement) {
         
         ${isAnachid ? `<button class="np-modal-option" style="color: var(--gold);" onclick="window.setRingtone('${url}', '${track.name.replace(/'/g, "\\'")}'); document.getElementById('athrContextMenu').remove();">🔔 تعيين كنغمة رنين للجوّال</button>` : ''}
 
-        <button style="width: 100%; background: none; border: none; color: var(--text2); margin-top: 10px; cursor: pointer; padding: 10px;" onclick="document.getElementById('athrContextMenu').remove()">إلغاء</button>
+        <button style="width: 100%; background: transparent; border: none; color: var(--text2); margin-top: 8px; cursor: pointer; padding: 10px; font-family: 'Amiri', serif;" onclick="document.getElementById('athrContextMenu').remove()">إلغاء</button>
       </div>
     </div>
   `;
