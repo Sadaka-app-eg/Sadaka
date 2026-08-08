@@ -1488,21 +1488,23 @@ window.updateMiniPlayerUI = function() {
   window.ensureMiniPlayer();
   const mini = document.getElementById('athrMiniPlayer');
   const overlay = document.getElementById('rareNowPlayingOverlay');
+  const menu = document.getElementById('tabsMenu');
   const track = window.rareRecitations.find(item => item.url === window.currentRareUrl);
 
-  // 🎯 الفحص الذكي: هل الصفحة النشطة حالياً في التطبيق هي صفحة التلاوات الخاشعة؟
   const activePage = document.querySelector('.page.active');
   const isRarePageActive = activePage && activePage.id === 'rareRecitationsPage';
+  
+  // فحص هل المنيو الجانبي مفتوح حالياً؟
+  const isMenuOpen = menu && menu.classList.contains('open');
 
-  // يظهر الشريط فقط لو كانت هناك تلاوة شغال + الشاشة الكاملة مغلقة + المستخدم متواجد داخل صفحة التلاوات الخاشعة
-  if (track && isRarePageActive && (!overlay || overlay.style.display !== 'flex')) {
+  // يظهر الشريط فقط إذا كانت هناك تلاوة شغالة + الشاشة الكاملة مغلقة + داخل صفحة التلاوات الخاشعة + المنيو مغلق
+  if (track && isRarePageActive && !isMenuOpen && (!overlay || overlay.style.display !== 'flex')) {
     mini.style.display = 'block';
     document.getElementById('miniPlayerAvatar').src = window.getSheikhAvatar(track.tag);
     document.getElementById('miniPlayerTitle').textContent = track.name.replace(/[🎙️🤲🎵]/g, '').trim();
     document.getElementById('miniPlayerSheikh').textContent = track.tag;
     document.getElementById('miniPlayerPlayBtn').textContent = window.rareAudioPlayer.paused ? '▶' : '⏸';
   } else {
-    // 🚫 يختفي تماماً عند الخروج من صفحة التلاوات الخاشعة
     mini.style.display = 'none';
   }
 };
