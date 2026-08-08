@@ -1,3 +1,30 @@
+// ==========================================
+// 👳‍♂️ مصفوفة صور شيوخ وعلماء الدروس والمواعظ
+// ==========================================
+window.lectureSheikhAvatars = {
+  "مواعظ متنوعة": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=500&auto=format&fit=crop",
+  "دورة التجويد": "https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=500&auto=format&fit=crop",
+  "السيرة النبوية": "https://images.unsplash.com/photo-1519817650390-64a93db51149?q=80&w=500&auto=format&fit=crop",
+  "الفقه الميسر": "https://images.unsplash.com/photo-1532012197267-da84d127e765?q=80&w=500&auto=format&fit=crop",
+  "رحلة إلى الدار الآخرة": "https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=500&auto=format&fit=crop",
+  "تفسير القرآن الكريم": "https://images.unsplash.com/photo-1609599006353-e629aaabfeae?q=80&w=500&auto=format&fit=crop",
+  "قصص الأنبياء": "https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?q=80&w=500&auto=format&fit=crop",
+  "سير الصحابة": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=500&auto=format&fit=crop",
+  "روائع التابعين": "https://images.unsplash.com/photo-1501854140801-50d01698950b?q=80&w=500&auto=format&fit=crop",
+  "البيت المسلم": "https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?q=80&w=500&auto=format&fit=crop",
+  "أصول العقيدة": "https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?q=80&w=500&auto=format&fit=crop",
+  "مفسدات القلوب": "https://images.unsplash.com/photo-1518495973542-4542c06a5843?q=80&w=500&auto=format&fit=crop",
+  "أصول الانحراف": "https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=500&auto=format&fit=crop",
+  "محاضرات المشايخ": "https://images.unsplash.com/photo-1512632578888-169bbbc64f33?q=80&w=500&auto=format&fit=crop",
+  "default": "https://images.unsplash.com/photo-1609599006353-e629aaabfeae?q=80&w=500&auto=format&fit=crop"
+};
+
+window.getLectureSheikhAvatar = function(category) {
+  return window.lectureSheikhAvatars[category] || window.lectureSheikhAvatars["default"];
+};
+
+
+
 window.lecturesData = [
     { title: "سلم نفسك للوحي ، والقرآن كفيل أن يصلح كل شيء في حياتك", src: "audio/audio2/le_1.mp3", category: "مواعظ متنوعة" },
     { title: "اسمع بقلبك", src: "audio/audio2/le_2.mp3", category: "مواعظ متنوعة" },
@@ -1479,53 +1506,46 @@ function ensureGlobalAudioEngine() {
     return audio;
 }
 
+window.selectedLectureCategory = null;
+
 function renderLectures() {
     const listEl = document.getElementById('lecturesList');
     if (!listEl) return;
 
-    // 1. المربع الذهبي لاسم الشيخ والدورة
-    let sheikhBannerHtml = "";
-    const info = window.sheikhsInfoData ? window.sheikhsInfoData[window.currentLectureFilter] : null;
-
-    if (info) {
-        sheikhBannerHtml = `
-        <div style="background: linear-gradient(135deg, rgba(212,175,55,0.15) 0%, rgba(15,25,18,0.92) 100%); border: 1px solid rgba(212,175,55,0.35); border-right: 5px solid var(--gold, #d4af37); border-radius: 14px; padding: 12px 14px; margin-bottom: 12px; direction: rtl; text-align: right; box-shadow: 0 4px 15px rgba(0,0,0,0.4); backdrop-filter: blur(8px);">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="font-size: 20px;">${info.icon}</span>
-                    <strong style="color: var(--gold, #d4af37); font-family: 'Amiri', serif; font-size: 16px;">${info.title}</strong>
-                </div>
-                <span style="background: linear-gradient(135deg, #d4af37, #aa820a); color: #111; font-size: 10px; font-weight: bold; padding: 3px 10px; border-radius: 12px;">دورة معتمدة</span>
-            </div>
-            <div style="color: #fff; font-size: 13px; font-weight: bold; font-family: 'Amiri', serif; margin-bottom: 4px;">
-                <span style="color: var(--gold, #d4af37);">👳 الملقي والشارح:</span> ${info.sheikh}
-            </div>
-            <p style="color: rgba(255,255,255,0.75); font-size: 11.5px; margin: 0; line-height: 1.5; font-family: sans-serif;">${info.desc}</p>
-        </div>`;
+    // 1️⃣ إذا لم يتم اختيار قسم بعد، نعرض شبكة الدورات والشيوخ (Grid 3x3)
+    if (!window.selectedLectureCategory) {
+        window.renderLecturesGrid(listEl);
+        return;
     }
 
-    // 2. شريط البحث السريع
+    // 2️⃣ هيدر الشيخ/الدورة المحددة مع زر العودة للقائمة
+    const info = window.sheikhsInfoData ? window.sheikhsInfoData[window.selectedLectureCategory] : null;
+    const sheikhAvatar = window.getLectureSheikhAvatar ? window.getLectureSheikhAvatar(window.selectedLectureCategory) : '';
+
+    let sheikhBannerHtml = `
+      <div style="display: flex; align-items: center; justify-content: space-between; background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 12px 16px; margin-bottom: 14px; direction: rtl;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <img src="${sheikhAvatar}" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid var(--gold);" />
+          <div style="text-align: right;">
+            <div style="font-weight: bold; color: var(--gold); font-size: 16px; font-family: 'Amiri', serif;">${info ? info.title : window.selectedLectureCategory}</div>
+            <div style="font-size: 11.5px; color: var(--text2); font-family: 'Amiri', serif;">${info ? info.sheikh : 'دروس ومواعظ'}</div>
+          </div>
+        </div>
+        <button onclick="window.backToLecturesGrid()" style="background: rgba(212,175,55,0.15); color: var(--gold); border: 1px solid var(--gold); border-radius: 20px; padding: 6px 14px; font-family: 'Amiri', serif; font-size: 12px; cursor: pointer; white-space: nowrap;">
+          ↩️ الأقسام والدورات
+        </button>
+      </div>`;
+
+    // 3. شريط البحث السريع
     let searchBarHtml = "";
-    if (window.currentLectureFilter === 'تفسير القرآن الكريم' || window.currentLectureFilter === 'all') {
+    if (window.selectedLectureCategory === 'تفسير القرآن الكريم') {
         searchBarHtml = `
         <div style="margin-bottom: 12px; direction: rtl;">
             <input type="text" id="lectureSearchInput" oninput="window.filterLecturesBySearch(this.value)" placeholder="🔍 ابحث باسم السورة أو الدرس..." style="width: 100%; padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(212,175,55,0.3); background: rgba(15,20,16,0.85); color: #fff; font-family: 'Amiri', serif; font-size: 14px; box-sizing: border-box;" />
         </div>`;
     }
 
-let filtered = [];
-
-    if (window.currentLectureFilter === 'محاضرات المشايخ') {
-        if (!window.currentSelectedSheikh || window.currentSelectedSheikh === 'الكل') {
-            filtered = window.lecturesData.filter(l => l.category === 'محاضرات المشايخ');
-        } else {
-            filtered = window.lecturesData.filter(l => l.category === 'محاضرات المشايخ' && l.title.includes(window.currentSelectedSheikh));
-        }
-    } else if (window.currentLectureFilter === 'all') {
-        filtered = [...window.lecturesData];
-    } else {
-        filtered = window.lecturesData.filter(l => l.category === window.currentLectureFilter);
-    }
+    let filtered = window.lecturesData.filter(l => l.category === window.selectedLectureCategory);
 
     if (window.lectureSearchQuery && window.lectureSearchInputText) {
         const q = window.lectureSearchInputText.trim().toLowerCase();
@@ -1541,14 +1561,13 @@ let filtered = [];
         return bPinned - aPinned;
     });
 
-    // 3. بناء كروت الدروس المصغرة والأنيقة
+    // 4. بناء كروت الدروس المصغرة والأنيقة
     const cardsHtml = filtered.map((lecture) => {
         const realIndex = window.lecturesData.indexOf(lecture);
         const isPinned = pinnedList.includes(lecture.title);
         const isVideo = lecture.type === 'video';
         const isThisPlaying = window.currentPlayingGlobalId === realIndex && window.currentPlayingLectureAudio && !window.currentPlayingLectureAudio.paused;
 
-        // 🔗 إضافة زر المشاركة فقط للمواعظ المتنوعة
         const shareBtnHtml = lecture.category === "مواعظ متنوعة"
             ? `<div class="athr-icon-btn" onclick="window.shareLectureAudio('${lecture.title.replace(/'/g, "\\'")}', '${lecture.src}', this)" style="width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:1px solid rgba(212,175,55,0.4); background:rgba(212,175,55,0.15); color:var(--gold, #d4af37); font-size:12px;" title="مشاركة الموعظة">🔗</div>`
             : '';
@@ -1597,6 +1616,49 @@ let filtered = [];
     listEl.innerHTML = sheikhBannerHtml + searchBarHtml + cardsHtml;
     setTimeout(markDownloadedLectures, 150);
 }
+
+// 📱 5. دالة عرض شبكة الشيوخ والدورات (3 في الصف)
+window.renderLecturesGrid = function(container) {
+  const categoriesSet = new Set();
+  window.lecturesData.forEach(item => { if (item.category) categoriesSet.add(item.category); });
+  const categories = Array.from(categoriesSet);
+
+  let gridHTML = `<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; direction: rtl; padding: 10px 0;">`;
+
+  categories.forEach(cat => {
+    const avatar = window.getLectureSheikhAvatar ? window.getLectureSheikhAvatar(cat) : '';
+    const count = window.lecturesData.filter(i => i.category === cat).length;
+
+    gridHTML += `
+      <div onclick="window.selectLectureCategory('${cat}')" style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 14px 6px; cursor: pointer; transition: transform 0.2s; text-align: center;">
+        <img src="${avatar}" alt="${cat}" style="width: 65px; height: 65px; border-radius: 50%; object-fit: cover; border: 2.5px solid var(--gold); box-shadow: 0 4px 10px rgba(0,0,0,0.3);" />
+        <div style="font-weight: bold; color: var(--text); font-family: 'Amiri', serif; font-size: 12px; margin-top: 8px; line-height: 1.3; height: 32px; display: flex; align-items: center; justify-content: center;">
+          ${cat}
+        </div>
+        <div style="font-size: 10px; color: var(--gold); margin-top: 2px; font-family: 'Amiri', serif;">
+          ${count} درس
+        </div>
+      </div>
+    `;
+  });
+
+  gridHTML += `</div>`;
+  container.innerHTML = gridHTML;
+};
+
+// تحديد الدورة والتنقل لدروسها
+window.selectLectureCategory = function(cat) {
+  window.selectedLectureCategory = cat;
+  window.currentLectureFilter = cat;
+  renderLectures();
+};
+
+// الرجوع لشبكة الدورات الشاملة
+window.backToLecturesGrid = function() {
+  window.selectedLectureCategory = null;
+  window.currentLectureFilter = 'all';
+  renderLectures();
+};
 
 // دالة الفلترة بالبحث المباشر
 window.filterLecturesBySearch = function(query) {
