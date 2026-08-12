@@ -2260,9 +2260,11 @@ body.hide-controls #quran {
   <!-- 1. رأس شاشة المكالمة مع عداد البركة -->
   <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
     <div>
-      <strong id="athrCallTitle" style="color: var(--gold); font-size: 15px; font-family: 'Amiri', serif;">غرفة التواصل الحي</strong>
+<strong id="athrCallTitle" style="color: var(--gold); font-size: 15px; font-family: 'Amiri', serif;">غرفة التواصل الحي</strong>
+      <small id="athrCallStatus" style="display: block; color: var(--text2); font-size: 11px; font-family: 'Amiri', serif; margin-top:2px;"></small>
       <small id="athrCallTimer" style="display: block; color: var(--green); font-size: 11px; font-family: monospace;">⏱️ 00:00 - مجلس مبارك</small>
-    </div>
+	
+	</div>
     
     <div style="display: flex; gap: 8px;">
       <button id="athrRecordBtn" onclick="window.toggleCallRecording()" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #ff6b6b; padding: 5px 12px; border-radius: 15px; font-size: 11px; cursor: pointer; font-family: 'Amiri', serif;">🔴 تسجيل</button>
