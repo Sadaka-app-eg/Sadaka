@@ -1515,6 +1515,7 @@ window.markConversationSeen = async function(roomId, myName) {
   
 
 window.renderPrivateChatDashboard = function() {
+  
   if (!window.activePrivateRoomId) {
     window.renderInboxList();
     return;
@@ -1541,8 +1542,10 @@ window.renderPrivateChatDashboard = function() {
   
   <!-- 📞 أزرار الاتصال الصوتي والفيديو المباشر -->
   <div style="display:flex; gap:8px; align-items:center;">
-    <button onclick="window.startOrJoinAthrCall(window.activePrivateRoomId, false, 'voice')" style="background:transparent; border:1px solid var(--gold); color:var(--gold); border-radius:50%; width:34px; height:34px; cursor:pointer; font-size:14px;" title="مكالمة صوتية">📞</button>
-    <button onclick="window.startOrJoinAthrCall(window.activePrivateRoomId, false, 'video')" style="background:transparent; border:1px solid var(--gold); color:var(--gold); border-radius:50%; width:34px; height:34px; cursor:pointer; font-size:14px;" title="مكالمة فيديو">📹</button>
+<button onclick="window.triggerPrivateCallSignal(window.currentPrivateTargetUser, 'voice')" style="background:transparent; border:1px solid var(--gold); color:var(--gold); border-radius:50%; width:36px; height:36px; cursor:pointer; font-size:15px;" title="اتصال ">📞</button>
+<button onclick="window.triggerPrivateCallSignal(window.currentPrivateTargetUser, 'video')" style="background:transparent; border:1px solid var(--gold); color:var(--gold); border-radius:50%; width:36px; height:36px; cursor:pointer; font-size:15px;" title="اتصال فيديو">📹</button>
+    
+    
     <button onclick="window.activePrivateRoomId=null; window.currentPrivateTargetUser=null; window.renderPrivateChatDashboard();" style="background:transparent; color:var(--text2); border:none; cursor:pointer; font-size:12px; text-decoration:underline; margin-right:5px;">‹ رجوع</button>
   </div>
 </div>
@@ -3531,3 +3534,101 @@ window.addVideoElement = function(userName, stream, isMuted = false) {
     grid.appendChild(vWrap);
   }
 };
+// =========================================================================
+// 🔔 نظام إرسال واستقبال الرنة المباشرة (Incoming Call Signaling)
+// =========================================================================
+window.athrIncomingCallData = null;
+
+// 1️⃣ إرسال إشارة الاتصال (الرنة) للحساب الآخر
+window.triggerPrivateCallSignal = async function(targetUser, callType = 'voice') {
+  const myName = localStorage.getItem('athr_user_name');
+  if (!myName || !targetUser) return;
+
+  const roomId = [myName, targetUser].sort().join("___");
+  
+  try {
+    // إنشاء وثيقة اتصال حي في الفايربيز
+    await setDoc(doc(db, "active_calls", targetUser), {
+      caller: myName,
+      receiver: targetUser,
+      roomId: roomId,
+      callType: callType,
+      status: "ringing",
+      createdAt: serverTimestamp()
+    });
+
+    // فتح شاشة الاتصال عند المتصل فوراً
+    window.startOrJoinAthrCall(roomId, false, callType);
+
+  } catch (e) {
+    console.error("Call trigger error:", e);
+  }
+};
+
+// 2️⃣ الاستماع المستمر للرنات الواردة لحسابك
+window.listenForIncomingCalls = function() {
+  const myName = localStorage.getItem('athr_user_name');
+  if (!myName) return;
+
+  const callDocRef = doc(db, "active_calls", myName);
+
+  if (window.unsubscribeIncomingCalls) window.unsubscribeIncomingCalls();
+
+  window.unsubscribeIncomingCalls = onSnapshot(callDocRef, (docSnap) => {
+    const sheet = document.getElementById('athrIncomingCallSheet');
+    if (!sheet) return;
+
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+
+      // لو المكالمة جديدة وفي حالة الرنين
+      if (data.status === "ringing" && data.receiver === myName) {
+        window.athrIncomingCallData = data;
+
+        document.getElementById('athrCallerName').textContent = `📞 ${data.caller} يتصل بك`;
+        document.getElementById('athrCallTypeLabel').textContent = data.callType === 'video' ? 'مكالمة فيديو مباشرة' : 'مكالمة صوتية مباشرة';
+        sheet.style.display = 'block';
+
+        // تشغيل نغمة اهتزاز إن أمكن
+        if (navigator.vibrate) navigator.vibrate([500, 200, 500, 200, 500]);
+      } else {
+        sheet.style.display = 'none';
+      }
+    } else {
+      sheet.style.display = 'none';
+    }
+  });
+};
+
+// 3️⃣ قبول المكالمة الواردة
+window.acceptIncomingCall = async function() {
+  const data = window.athrIncomingCallData;
+  if (!data) return;
+
+  const sheet = document.getElementById('athrIncomingCallSheet');
+  if (sheet) sheet.style.display = 'none';
+
+  const myName = localStorage.getItem('athr_user_name');
+
+  try {
+    // تحديث حالة المكالمة لمقبولة
+    await updateDoc(doc(db, "active_calls", myName), { status: "accepted" });
+  } catch(e) {}
+
+  // فتح غرفة المكالمة فوراً عند المستقبل
+  window.startOrJoinAthrCall(data.roomId, false, data.callType);
+};
+
+// 4️⃣ رفض المكالمة الواردة
+window.rejectIncomingCall = async function() {
+  const sheet = document.getElementById('athrIncomingCallSheet');
+  if (sheet) sheet.style.display = 'none';
+
+  const myName = localStorage.getItem('athr_user_name');
+  try {
+    await deleteDoc(doc(db, "active_calls", myName));
+  } catch(e) {}
+};
+
+// تشغيل الاستماع للرنات فور تسجيل الدخول
+setTimeout(() => { window.listenForIncomingCalls(); }, 1000);
