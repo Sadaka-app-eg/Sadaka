@@ -3320,10 +3320,19 @@ window.athrCallState = {
   callType: 'voice' // 'voice' أو 'video'
 };
 
+// =========================================================================
+// 🌐 سيرفرات العبور العالمية لفك حظر الصوت عبر شبكات 4G والواي فاي
+// =========================================================================
 const RTC_CONFIG = {
   iceServers: [
-    { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }
-  ]
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' },
+    { urls: 'stun:stun2.l.google.com:19302' },
+    { urls: 'stun:stun3.l.google.com:19302' },
+    { urls: 'stun:stun4.l.google.com:19302' },
+    { urls: 'stun:stun.services.mozilla.com' }
+  ],
+  iceCandidatePoolSize: 10
 };
 
 // 1️⃣ بدء أو الانضمام لمكالمة (خاص أو مجلس ذكر)
