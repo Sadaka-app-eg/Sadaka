@@ -1512,7 +1512,47 @@ window.markConversationSeen = async function(roomId, myName) {
     await setDoc(doc(db, "chat_rooms", roomId), { lastSeenBy: arrayUnion(myName) }, { merge: true });
   } catch(e) { console.error(e); }
 };  
-  
+  window.markConversationSeen = async function(roomId, myName) {
+  try {
+    await setDoc(doc(db, "chat_rooms", roomId), { lastSeenBy: arrayUnion(myName) }, { merge: true });
+  } catch(e) { console.error(e); }
+};  
+
+window.logCallToChat = async function(roomId, otherUser, callType, status, durationSeconds = 0) {
+  const myName = localStorage.getItem('athr_user_name');
+  if (!myName || !roomId) return;
+
+  const typeLabel = callType === 'video' ? 'مكالمة فيديو' : 'مكالمة صوتية';
+  let statusText = '', icon = callType === 'video' ? '📹' : '📞';
+
+  if (status === 'missed') { statusText = 'مكالمة فائتة'; icon = '❌'; }
+  else if (status === 'declined') { statusText = 'تم رفض المكالمة'; icon = '🚫'; }
+  else {
+    const mins = Math.floor(durationSeconds / 60);
+    const secs = durationSeconds % 60;
+    statusText = `${typeLabel} - ${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+  }
+
+  try {
+    await addDoc(collection(db, "private_chats", roomId, "messages"), {
+      sender: myName,
+      text: "",
+      messageType: "call_log",
+      callType: callType,
+      callStatus: status,
+      callDuration: durationSeconds,
+      createdAt: serverTimestamp()
+    });
+
+    await setDoc(doc(db, "chat_rooms", roomId), {
+      participants: [myName, otherUser],
+      lastMessage: `${icon} ${statusText}`,
+      lastSender: myName,
+      lastSeenBy: [myName],
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+  } catch(e) { console.error("Call log error:", e); }
+};
 
 window.renderPrivateChatDashboard = function() {
   
@@ -1706,9 +1746,31 @@ window.listenToPrivateMessages = function() {
     if(!area) return;
 
     let html = "";
-    snapshot.forEach((docSnap) => {
+snapshot.forEach((docSnap) => {
       const data = docSnap.data();
       const isMe = data.sender === localStorage.getItem('athr_user_name');
+
+      if (data.messageType === 'call_log') {
+        const icon = data.callType === 'video' ? '📹' : '📞';
+        let label = '', color = 'var(--text2)';
+        if (data.callStatus === 'missed') { label = isMe ? 'مكالمة فائتة (أنت)' : `مكالمة فائتة من ${data.sender}`; color = '#ff6b6b'; }
+        else if (data.callStatus === 'declined') { label = isMe ? 'تم رفض المكالمة' : `${data.sender} رفض المكالمة`; color = '#ff9d4d'; }
+        else {
+          const mins = Math.floor((data.callDuration||0) / 60);
+          const secs = (data.callDuration||0) % 60;
+          label = `${isMe ? 'مكالمة صادرة' : 'مكالمة واردة'} - ${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+          color = 'var(--gold)';
+        }
+        const timeStr = data.createdAt ? window.formatPostTime(data.createdAt) : '';
+        html += `
+          <div style="align-self:center; display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.03); border:1px solid var(--border); padding:8px 16px; border-radius:20px; margin:4px auto;">
+            <span style="font-size:16px;">${icon}</span>
+            <span style="font-size:12px; color:${color};">${label}</span>
+            <span style="font-size:10px; color:var(--text2);">${timeStr}</span>
+            <button onclick="window.triggerPrivateCallSignal('${window.currentPrivateTargetUser}', '${data.callType || 'voice'}')" style="background:transparent; border:none; color:var(--gold); font-size:14px; cursor:pointer; padding:2px 4px;" title="اتصال مرة أخرى">↩️</button>
+          </div>`;
+        return;
+      }
       
       let mediaHtml = "";
       if(data.mediaUrl && data.mediaType === 'image') {
@@ -3362,19 +3424,34 @@ window.startOrJoinAthrCall = async function(roomId, isGroup = false, callType = 
   overlay.style.display = 'flex';
   document.getElementById('athrCallStatus').textContent = '🟢 متصل - جاري تبادل البث...';
 
+let localStream;
   try {
-    // 1️⃣ فتح المايك والكاميرا المحلية
-    const localStream = await navigator.mediaDevices.getUserMedia({
-      audio: true,
-      video: callType === 'video'
-    });
-    
+    // 1️⃣ فتح المايك والكاميرا المحلية (لو الفيديو فشل، نرجع صوت بس تلقائياً)
+    try {
+      localStream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: callType === 'video'
+      });
+    } catch (mediaErr) {
+      console.warn('فشل فتح الكاميرا، جاري المحاولة بالصوت فقط:', mediaErr);
+      if (callType === 'video') {
+        callType = 'voice';
+        window.athrCallState.callType = 'voice';
+        localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        const statusEl = document.getElementById('athrCallStatus');
+        if (statusEl) statusEl.textContent = '⚠️ الكاميرا مش متاحة، هتكمل بالصوت فقط';
+      } else {
+        throw mediaErr;
+      }
+    }
+
     window.athrCallState.localStream = localStream;
 
-    // عرض صورتك في المربع المصغر العايم فوق (Local Video)
+    // عرض صورتك في المربع المصغر العايم فوق (Local Video) لو فيه فيديو فعلاً
     const localVid = document.getElementById('localVideo');
+    const localVidContainer = document.getElementById('localVideoContainer');
     if (localVid) localVid.srcObject = localStream;
-
+    if (localVidContainer) localVidContainer.style.display = (localStream.getVideoTracks().length > 0) ? 'block' : 'none';
     // 2️⃣ إنشاء اتصال الـ Peer Connection العابر للشبكات
     const pc = new RTCPeerConnection(RTC_CONFIG);
     window.athrPeerConnection = pc;
@@ -3462,9 +3539,13 @@ pc.ontrack = (event) => {
     // بدء عداد البركة وشريط الآيات
     if (typeof window.startCallTimerAndTicker === 'function') window.startCallTimerAndTicker();
 
-  } catch(err) {
+} catch(err) {
     console.error("Call error:", err);
-    alert("⚠️ تعذر بدء البث المباشر، يرجى إعطاء إذن المايك والكاميرا.");
+    let msg = "⚠️ تعذر بدء البث المباشر.";
+    if (err.name === 'NotFoundError') msg = "⚠️ الجهاز مفيهوش مايك أو كاميرا متاحة للاتصال.";
+    else if (err.name === 'NotAllowedError') msg = "⚠️ لازم تسمح للمتصفح بالوصول للمايك والكاميرا من إعدادات الجهاز.";
+    else if (err.name === 'NotReadableError') msg = "⚠️ المايك أو الكاميرا مستخدمة في تطبيق تاني حالياً.";
+    alert(msg);
     window.leaveAthrCall();
   }
 };
@@ -3563,10 +3644,20 @@ window.toggleAthrCam = function() {
 // =========================================================================
 // 🚪 دالة الخروج المباشرة والآمنة من المكالمة بدون أي أخطاء أو تعليق
 // =========================================================================
+// 2️⃣ دالة الخروج السريعة والمستقرة من المكالمة بدون تعليق
 window.leaveAthrCall = async function() {
   const st = window.athrCallState || {};
   const myName = localStorage.getItem('athr_user_name');
 
+  // 📝 تسجيل المكالمة كسجل في الشات لو كانت اتصلت فعلاً
+  if (st.activeRoomId && myName && st.activeRoomId !== 'group_dhikr_room') {
+    const otherUser = st.activeRoomId.split('___').find(n => n !== myName);
+    if (otherUser && typeof callSecondsElapsed !== 'undefined' && callSecondsElapsed > 0) {
+      window.logCallToChat(st.activeRoomId, otherUser, st.callType || 'voice', 'ended', callSecondsElapsed);
+    }
+  }
+
+  // إيقاف العدادات
   // 1️⃣ إيقاف جميع التايمرات والعدادات النشطة
   if (typeof callTimerInterval !== 'undefined' && callTimerInterval) {
     clearInterval(callTimerInterval);
@@ -3700,8 +3791,9 @@ window.triggerPrivateCallSignal = async function(targetUser, callType = 'voice')
     // ⏱️ تشغيل مهلة الرنين (30 ثانية) لو محدش رد
     if (window.athrOutgoingCallTimer) clearTimeout(window.athrOutgoingCallTimer);
     
-    window.athrOutgoingCallTimer = setTimeout(async () => {
+window.athrOutgoingCallTimer = setTimeout(async () => {
       await deleteDoc(callDocRef).catch(()=>{});
+      window.logCallToChat(roomId, targetUser, callType, 'missed');
       window.leaveAthrCall();
       alert(`🔇 لم يتم الرد من قبل ${targetUser}.`);
     }, 30000);
@@ -3803,16 +3895,22 @@ window.acceptIncomingCall = async function() {
   window.startOrJoinAthrCall(data.roomId, false, data.callType);
 };
 
-// 3️⃣ رفض المكالمة من المستلم (المستقبل)
+// 4️⃣ رفض المكالمة الواردة
 window.rejectIncomingCall = async function() {
   const sheet = document.getElementById('athrIncomingCallSheet');
   if (sheet) sheet.style.display = 'none';
 
   const myName = localStorage.getItem('athr_user_name');
+  const data = window.athrIncomingCallData;
+
   try {
-    // مسح وثيقة الاتصال لإلغاء الرنة عند الطرفين
     await deleteDoc(doc(db, "active_calls", myName));
   } catch(e) {}
+
+  if (data && data.roomId && data.caller) {
+    window.logCallToChat(data.roomId, data.caller, data.callType || 'voice', 'declined');
+  }
+  window.athrIncomingCallData = null;
 };
 
 // 2️⃣ الاستماع المستمر للرنات الواردة لحسابك
