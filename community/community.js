@@ -3531,17 +3531,44 @@ window.toggleAthrCam = function() {
     updateDoc(doc(db, "call_rooms", st.activeRoomId, "members", myName), { cam: st.camEnabled });
   }
 };
-
-// 5️⃣ الخروج التلقائي وإغلاق الميديا
+// =========================================================================
+// 🚪 دالة الخروج المباشرة والآمنة من المكالمة بدون أي أخطاء أو تعليق
+// =========================================================================
 window.leaveAthrCall = async function() {
-  const st = window.athrCallState;
+  const st = window.athrCallState || {};
   const myName = localStorage.getItem('athr_user_name');
 
+  // 1️⃣ إيقاف جميع التايمرات والعدادات النشطة
+  if (typeof callTimerInterval !== 'undefined' && callTimerInterval) {
+    clearInterval(callTimerInterval);
+    callTimerInterval = null;
+  }
+  if (typeof callTickerInterval !== 'undefined' && callTickerInterval) {
+    clearInterval(callTickerInterval);
+    callTickerInterval = null;
+  }
+  if (window.athrOutgoingCallTimer) {
+    clearTimeout(window.athrOutgoingCallTimer);
+    window.athrOutgoingCallTimer = null;
+  }
+
+  // 2️⃣ إيقاف وتفريغ الكاميرا والمايك المحلي
   if (st.localStream) {
-    st.localStream.getTracks().forEach(t => t.stop());
+    try {
+      st.localStream.getTracks().forEach(track => track.stop());
+    } catch(e) { console.error(e); }
     st.localStream = null;
   }
 
+  // 3️⃣ إغلاق اتصال WebRTC
+  if (window.athrPeerConnection) {
+    try {
+      window.athrPeerConnection.close();
+    } catch(e) { console.error(e); }
+    window.athrPeerConnection = null;
+  }
+
+  // 4️⃣ مسح تواجد العضو في الفايربيز للغرفة
   if (st.activeRoomId && myName) {
     try {
       await deleteDoc(doc(db, "call_rooms", st.activeRoomId, "members", myName));
@@ -3549,10 +3576,26 @@ window.leaveAthrCall = async function() {
   }
 
   if (window.unsubscribeCallMembers) window.unsubscribeCallMembers();
+  if (window.unsubscribeCallStatus) window.unsubscribeCallStatus();
 
-  document.getElementById('athrVideoGrid').innerHTML = "";
-  document.getElementById('athrCallOverlay').style.display = 'none';
-  st.activeRoomId = null;
+  // 5️⃣ تنظيف عناصر الفيديو بأمان تام بدون أخطاء null
+  const localVid = document.getElementById('localVideo');
+  if (localVid) localVid.srcObject = null;
+  
+  const remoteVid = document.getElementById('remoteVideo');
+  if (remoteVid) remoteVid.srcObject = null;
+
+  const videoGrid = document.getElementById('athrVideoGrid');
+  if (videoGrid) videoGrid.innerHTML = "";
+
+  // 6️⃣ إخفاء شاشة المكالمة فوراً
+  const overlay = document.getElementById('athrCallOverlay');
+  if (overlay) overlay.style.display = 'none';
+
+  // تصفير حالة الغرفة
+  if (window.athrCallState) {
+    window.athrCallState.activeRoomId = null;
+  }
 };
 
 // 6️⃣ إضافة شاشة فيديو العضو للشاشة
