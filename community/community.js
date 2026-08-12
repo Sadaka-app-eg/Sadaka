@@ -3327,10 +3327,21 @@ const RTC_CONFIG = {
   iceServers: [
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
-    { urls: 'stun:stun2.l.google.com:19302' },
-    { urls: 'stun:stun3.l.google.com:19302' },
-    { urls: 'stun:stun4.l.google.com:19302' },
-    { urls: 'stun:stun.services.mozilla.com' }
+    {
+      urls: 'turn:openrelay.metered.ca:80',
+      username: 'openrelayproject',
+      credential: 'openrelayproject'
+    },
+    {
+      urls: 'turn:openrelay.metered.ca:443',
+      username: 'openrelayproject',
+      credential: 'openrelayproject'
+    },
+    {
+      urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+      username: 'openrelayproject',
+      credential: 'openrelayproject'
+    }
   ],
   iceCandidatePoolSize: 10
 };
@@ -3379,7 +3390,25 @@ window.startOrJoinAthrCall = async function(roomId, isGroup = false, callType = 
         document.getElementById('remoteVideoLabel').textContent = "🎥 الطرف الآخر متصل المباشر";
       }
     };
+pc.ontrack = (event) => {
+      const remoteVid = document.getElementById('remoteVideo');
+      if (remoteVid && event.streams[0]) {
+        remoteVid.srcObject = event.streams[0];
+        document.getElementById('remoteVideoLabel').textContent = "🎥 الطرف الآخر متصل المباشر";
+      }
+    };
 
+    pc.onconnectionstatechange = () => {
+      const statusEl = document.getElementById('athrCallStatus');
+      if (!statusEl) return;
+      if (pc.connectionState === 'connected') {
+        statusEl.textContent = '✅ تم الاتصال بنجاح';
+      } else if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
+        statusEl.textContent = '❌ انقطع الاتصال، جاري إعادة المحاولة...';
+      }
+    };
+
+    // 4️⃣ تبادل إشارات الـ ICE Candidates عبر الفايربيز
     // 4️⃣ تبادل إشارات الـ ICE Candidates عبر الفايربيز
     const candidatesCol = collection(db, "call_rooms", roomId, "candidates");
     
@@ -3639,6 +3668,8 @@ window.athrOutgoingCallTimer = null;
 window.triggerPrivateCallSignal = async function(targetUser, callType = 'voice') {
   const myName = localStorage.getItem('athr_user_name');
   if (!myName || !targetUser) { alert("⚠️ تعذر تحديد العضو المراد الاتصال به."); return; }
+
+  if (navigator.vibrate) navigator.vibrate(200);
 
   const roomId = [myName, targetUser].sort().join("___");
   
