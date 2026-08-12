@@ -416,7 +416,13 @@ ${window.getSharedTabsHTML('feed')}
       </div>
 
       <div style="display:flex; flex-direction:column; height: 100%; min-height: 400px; justify-content:space-between; gap:10px;">
-        <div style="color: var(--gold); font-family: 'Amiri', serif; font-size: 14px; text-align: right; font-weight: bold;">📍 ${chatLabel}</div>
+<!-- 🎙️ هيدر مجلس الذكر مع زر الانضمام الصوتي الحي -->
+<div style="display:flex; justify-content:space-between; align-items:center; background:rgba(212,175,55,0.05); padding:8px 12px; border-radius:10px; border:1px solid var(--border);">
+  <div style="color: var(--gold); font-family: 'Amiri', serif; font-size: 14px; font-weight: bold;">📍 ${chatLabel}</div>
+  <button onclick="window.startOrJoinAthrCall('group_dhikr_room', true, 'voice')" style="background:var(--gold); color:#111; border:none; padding:6px 14px; border-radius:20px; font-weight:bold; cursor:pointer; font-family:'Amiri',serif; font-size:12px; box-shadow:0 2px 8px rgba(212,175,55,0.3);">
+    🎙️ الانضمام للمجلس الصوتي الحي
+  </button>
+</div>        
         <div id="chatMessages" style="flex:1; overflow-y:auto; padding:15px; background: rgba(0,0,0,0.3); border-radius: 12px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; max-height: 320px;">
           <p style="color: var(--text2); text-align:center;">جاري الاتصال بمجلس الذكر... 🕊️</p>
         </div>
@@ -1530,10 +1536,16 @@ window.renderPrivateChatDashboard = function() {
     </div>
 
     <div style="display:flex; flex-direction:column; height: 100%; min-height: 420px; justify-content:space-between; gap:10px; direction:rtl;">
-      <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(212,175,55,0.05); padding:10px; border-radius:8px; border:1px solid var(--border);">
-        <strong style="color:var(--gold);">💬 المحادثة الخاصة مع: ${target}</strong>
-        <button onclick="window.activePrivateRoomId=null; window.currentPrivateTargetUser=null; window.renderPrivateChatDashboard();" style="background:transparent; color:var(--text2); border:none; cursor:pointer; font-size:12px; text-decoration:underline;">‹ رجوع للصندوق</button>
-      </div>
+<div style="display:flex; justify-content:space-between; align-items:center; background:rgba(212,175,55,0.05); padding:10px; border-radius:8px; border:1px solid var(--border);">
+  <strong style="color:var(--gold);">💬 المحادثة الخاصة مع: ${target}</strong>
+  
+  <!-- 📞 أزرار الاتصال الصوتي والفيديو المباشر -->
+  <div style="display:flex; gap:8px; align-items:center;">
+    <button onclick="window.startOrJoinAthrCall(window.activePrivateRoomId, false, 'voice')" style="background:transparent; border:1px solid var(--gold); color:var(--gold); border-radius:50%; width:34px; height:34px; cursor:pointer; font-size:14px;" title="مكالمة صوتية">📞</button>
+    <button onclick="window.startOrJoinAthrCall(window.activePrivateRoomId, false, 'video')" style="background:transparent; border:1px solid var(--gold); color:var(--gold); border-radius:50%; width:34px; height:34px; cursor:pointer; font-size:14px;" title="مكالمة فيديو">📹</button>
+    <button onclick="window.activePrivateRoomId=null; window.currentPrivateTargetUser=null; window.renderPrivateChatDashboard();" style="background:transparent; color:var(--text2); border:none; cursor:pointer; font-size:12px; text-decoration:underline; margin-right:5px;">‹ رجوع</button>
+  </div>
+</div>
 
       <div id="privateChatMessages" style="flex:1; overflow-y:auto; padding:15px; background: rgba(0,0,0,0.4); border-radius: 12px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; max-height: 280px;">
         <p style="color:var(--text2); text-align:center;">جاري فتح صندوق الرسائل... 🔒</p>
@@ -3290,4 +3302,232 @@ window.downloadReelFromSheet = function() {
   const { mediaUrl, authorName } = window.currentReelOptionsData;
   window.closeReelOptionsSheet();
   window.downloadCommunityVideo(mediaUrl, `ريل_أثر_${authorName || ''}`);
+};
+// =========================================================================
+// 🎙️📹 محرك المكالمات المباشرة (WebRTC Live Voice & Video Engine)
+// =========================================================================
+window.athrCallState = {
+  activeRoomId: null,
+  isHost: false,
+  localStream: null,
+  peerConnections: {},
+  participants: {},
+  micEnabled: true,
+  camEnabled: true,
+  callType: 'voice' // 'voice' أو 'video'
+};
+
+const RTC_CONFIG = {
+  iceServers: [
+    { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }
+  ]
+};
+
+// 1️⃣ بدء أو الانضمام لمكالمة (خاص أو مجلس ذكر)
+window.startOrJoinAthrCall = async function(roomId, isGroup = false, callType = 'voice') {
+  const myName = localStorage.getItem('athr_user_name');
+  if (!myName) { alert('🔒 برجاء تسجيل دخولك أولاً.'); return; }
+
+  window.athrCallState.activeRoomId = roomId;
+  window.athrCallState.callType = callType;
+  window.athrCallState.micEnabled = true;
+  window.athrCallState.camEnabled = (callType === 'video');
+
+  const overlay = document.getElementById('athrCallOverlay');
+  overlay.style.display = 'flex';
+  document.getElementById('athrCallStatus').textContent = 'جاري إعداد المايك والكاميرا...';
+
+  try {
+    // طلب صلاحيات المايك والكاميرا
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: true,
+      video: callType === 'video'
+    });
+    
+    window.athrCallState.localStream = stream;
+
+    // عرض الفيديو المحلي لك
+    window.addVideoElement(myName, stream, true);
+
+    // تسجيل الدخول في الغرفة على Firestore
+    const roomRef = doc(db, "call_rooms", roomId);
+    const roomSnap = await getDoc(roomRef);
+
+    let isHost = false;
+    if (!roomSnap.exists()) {
+      isHost = true;
+      await setDoc(roomRef, {
+        host: myName,
+        createdAt: serverTimestamp(),
+        type: isGroup ? 'group' : 'private'
+      });
+    } else {
+      if (roomSnap.data().host === myName) isHost = true;
+    }
+    window.athrCallState.isHost = isHost;
+
+    // إضافة بياناتك في قائمة الحضور
+    const memberRef = doc(db, "call_rooms", roomId, "members", myName);
+    await setDoc(memberRef, {
+      name: myName,
+      isHost: isHost,
+      mic: true,
+      cam: callType === 'video',
+      joinedAt: serverTimestamp()
+    });
+
+    document.getElementById('athrCallTitle').textContent = isGroup ? '🎙️ مجلس الذكر الحي' : '💬 مكالمة خاصة';
+    document.getElementById('athrCallStatus').textContent = isHost ? '👑 أنت منشئ هذه الغرفة' : '🟢 متصل حالياً';
+
+    // الاستماع لأعضاء الغرفة والطرد اللحظي
+    window.listenToCallMembers(roomId, myName);
+
+  } catch(err) {
+    console.error("Call init error:", err);
+    alert("⚠️ تعذر الوصول للمايك أو الكاميرا. تأكد من إعطاء الإذن في المتصفح.");
+    window.leaveAthrCall();
+  }
+};
+
+// 2️⃣ الاستماع لأعضاء الغرفة ومراقبة إخراج أي عضو
+window.listenToCallMembers = function(roomId, myName) {
+  const membersRef = collection(db, "call_rooms", roomId, "members");
+  
+  if (window.unsubscribeCallMembers) window.unsubscribeCallMembers();
+  
+  window.unsubscribeCallMembers = onSnapshot(membersRef, (snapshot) => {
+    const listEl = document.getElementById('athrParticipantsList');
+    if (!listEl) return;
+
+    let html = "";
+    let amIKicked = true;
+
+    snapshot.docs.forEach((docSnap) => {
+      const m = docSnap.data();
+      if (m.name === myName) amIKicked = false; // ما زلت موجود بالرحبة
+
+      const isMe = m.name === myName;
+      const isHost = m.isHost;
+
+      html += `
+        <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); padding:4px 8px; border-radius:6px; font-size:12px;">
+          <span>${isHost ? '👑 ' : ''}<strong>${m.name}</strong> ${isMe ? '(أنت)' : ''}</span>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <span>${m.mic ? '🎙️' : '🔇'}</span>
+            <span>${m.cam ? '📹' : '📷'}</span>
+            ${(window.athrCallState.isHost && !isMe) ? `
+              <button onclick="window.kickMemberFromCall('${m.name}')" style="background:#ff4d4d; color:white; border:none; border-radius:4px; padding:2px 6px; font-size:10px; cursor:pointer;">🚫 طرد</button>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    });
+
+    listEl.innerHTML = html;
+
+    // لو المنشئ طردك
+    if (amIKicked && !window.athrCallState.isHost) {
+      alert("❌ تم إخراجك من هذه الغرفة بواسطة منشئ المجلس.");
+      window.leaveAthrCall();
+    }
+  });
+};
+
+// 3️⃣ طرد عضو من قبل المنشئ (Host)
+window.kickMemberFromCall = async function(targetName) {
+  if (!confirm(`هل أنت متأكد من طرد ${targetName} من المكالمة؟`)) return;
+  try {
+    const roomId = window.athrCallState.activeRoomId;
+    await deleteDoc(doc(db, "call_rooms", roomId, "members", targetName));
+  } catch(e) { console.error(e); }
+};
+
+// 4️⃣ التحكم بالمايك والكاميرا
+window.toggleAthrMic = function() {
+  const st = window.athrCallState;
+  if (!st.localStream) return;
+  
+  const audioTrack = st.localStream.getAudioTracks()[0];
+  if (audioTrack) {
+    audioTrack.enabled = !audioTrack.enabled;
+    st.micEnabled = audioTrack.enabled;
+    
+    const btn = document.getElementById('athrCallMicBtn');
+    btn.textContent = st.micEnabled ? '🎙️' : '🔇';
+    btn.style.background = st.micEnabled ? 'rgba(212,175,55,0.15)' : 'rgba(255,77,77,0.2)';
+
+    // تحديث الحالة في السيرفر
+    const myName = localStorage.getItem('athr_user_name');
+    updateDoc(doc(db, "call_rooms", st.activeRoomId, "members", myName), { mic: st.micEnabled });
+  }
+};
+
+window.toggleAthrCam = function() {
+  const st = window.athrCallState;
+  if (!st.localStream) return;
+  
+  const videoTrack = st.localStream.getVideoTracks()[0];
+  if (videoTrack) {
+    videoTrack.enabled = !videoTrack.enabled;
+    st.camEnabled = videoTrack.enabled;
+    
+    const btn = document.getElementById('athrCallCamBtn');
+    btn.textContent = st.camEnabled ? '📹' : '📷';
+    btn.style.background = st.camEnabled ? 'rgba(212,175,55,0.15)' : 'rgba(255,77,77,0.2)';
+
+    // تحديث الحالة في السيرفر
+    const myName = localStorage.getItem('athr_user_name');
+    updateDoc(doc(db, "call_rooms", st.activeRoomId, "members", myName), { cam: st.camEnabled });
+  }
+};
+
+// 5️⃣ الخروج التلقائي وإغلاق الميديا
+window.leaveAthrCall = async function() {
+  const st = window.athrCallState;
+  const myName = localStorage.getItem('athr_user_name');
+
+  if (st.localStream) {
+    st.localStream.getTracks().forEach(t => t.stop());
+    st.localStream = null;
+  }
+
+  if (st.activeRoomId && myName) {
+    try {
+      await deleteDoc(doc(db, "call_rooms", st.activeRoomId, "members", myName));
+    } catch(e) {}
+  }
+
+  if (window.unsubscribeCallMembers) window.unsubscribeCallMembers();
+
+  document.getElementById('athrVideoGrid').innerHTML = "";
+  document.getElementById('athrCallOverlay').style.display = 'none';
+  st.activeRoomId = null;
+};
+
+// 6️⃣ إضافة شاشة فيديو العضو للشاشة
+window.addVideoElement = function(userName, stream, isMuted = false) {
+  const grid = document.getElementById('athrVideoGrid');
+  if (!grid) return;
+
+  let vWrap = document.getElementById(`vwrap_${userName}`);
+  if (!vWrap) {
+    vWrap = document.createElement('div');
+    vWrap.id = `vwrap_${userName}`;
+    vWrap.style.cssText = "position:relative; width:100%; height:160px; background:#111; border-radius:12px; overflow:hidden; border:1px solid var(--gold);";
+    
+    const vEl = document.createElement('video');
+    vEl.autoplay = true;
+    vEl.playsInline = true;
+    if (isMuted) vEl.muted = true;
+    vEl.style.cssText = "width:100%; height:100%; object-fit:cover;";
+    vEl.srcObject = stream;
+
+    const nameLabel = document.createElement('span');
+    nameLabel.style.cssText = "position:absolute; bottom:5px; right:5px; background:rgba(0,0,0,0.6); color:var(--gold); padding:2px 8px; border-radius:4px; font-size:10px; font-family:'Amiri',serif;";
+    nameLabel.textContent = userName;
+
+    vWrap.appendChild(vEl);
+    vWrap.appendChild(nameLabel);
+    grid.appendChild(vWrap);
+  }
 };
