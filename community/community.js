@@ -3335,68 +3335,107 @@ const RTC_CONFIG = {
   iceCandidatePoolSize: 10
 };
 
-// 1️⃣ بدء أو الانضمام لمكالمة (خاص أو مجلس ذكر)
+// =========================================================================
+// 📹 محرك تبادل الفيديو والبث المباشر (WebRTC Full Stream Exchange)
+// =========================================================================
+window.athrPeerConnection = null;
+
 window.startOrJoinAthrCall = async function(roomId, isGroup = false, callType = 'voice') {
   const myName = localStorage.getItem('athr_user_name');
-  if (!myName) { alert('🔒 برجاء تسجيل دخولك أولاً.'); return; }
+  if (!myName) return;
 
   window.athrCallState.activeRoomId = roomId;
   window.athrCallState.callType = callType;
-  window.athrCallState.micEnabled = true;
-  window.athrCallState.camEnabled = (callType === 'video');
 
   const overlay = document.getElementById('athrCallOverlay');
   overlay.style.display = 'flex';
-  document.getElementById('athrCallStatus').textContent = 'جاري إعداد المايك والكاميرا...';
+  document.getElementById('athrCallStatus').textContent = '🟢 متصل - جاري تبادل البث...';
 
   try {
-    // طلب صلاحيات المايك والكاميرا
-    const stream = await navigator.mediaDevices.getUserMedia({
+    // 1️⃣ فتح المايك والكاميرا المحلية
+    const localStream = await navigator.mediaDevices.getUserMedia({
       audio: true,
       video: callType === 'video'
     });
     
-    window.athrCallState.localStream = stream;
+    window.athrCallState.localStream = localStream;
 
-    // عرض الفيديو المحلي لك
-    window.addVideoElement(myName, stream, true);
+    // عرض صورتك في المربع المصغر العايم فوق (Local Video)
+    const localVid = document.getElementById('localVideo');
+    if (localVid) localVid.srcObject = localStream;
 
-    // تسجيل الدخول في الغرفة على Firestore
+    // 2️⃣ إنشاء اتصال الـ Peer Connection العابر للشبكات
+    const pc = new RTCPeerConnection(RTC_CONFIG);
+    window.athrPeerConnection = pc;
+
+    // إضافة مسارات الصوت والفيديو المحلية للاتصال ليبثها للطرف الآخر
+    localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+
+    // 📡 3️⃣ استقبال بث الطرف الآخر وعرضه في الشاشة الكبيرة (Remote Video)
+    pc.ontrack = (event) => {
+      const remoteVid = document.getElementById('remoteVideo');
+      if (remoteVid && event.streams[0]) {
+        remoteVid.srcObject = event.streams[0];
+        document.getElementById('remoteVideoLabel').textContent = "🎥 الطرف الآخر متصل المباشر";
+      }
+    };
+
+    // 4️⃣ تبادل إشارات الـ ICE Candidates عبر الفايربيز
+    const candidatesCol = collection(db, "call_rooms", roomId, "candidates");
+    
+    pc.onicecandidate = async (event) => {
+      if (event.candidate) {
+        await addDoc(candidatesCol, { candidate: event.candidate.toJSON(), sender: myName });
+      }
+    };
+
+    // الاستماع للـ Candidates القادمة من الشخص الآخر
+    onSnapshot(candidatesCol, (snap) => {
+      snap.docChanges().forEach(async (change) => {
+        if (change.type === 'added') {
+          const data = change.doc.data();
+          if (data.sender !== myName && data.candidate) {
+            await pc.addIceCandidate(new RTCIceCandidate(data.candidate)).catch(e=>{});
+          }
+        }
+      });
+    });
+
+    // 5️⃣ إنشاء وإرسال العرض (Offer / Answer)
     const roomRef = doc(db, "call_rooms", roomId);
     const roomSnap = await getDoc(roomRef);
 
-    let isHost = false;
     if (!roomSnap.exists()) {
-      isHost = true;
-      await setDoc(roomRef, {
-        host: myName,
-        createdAt: serverTimestamp(),
-        type: isGroup ? 'group' : 'private'
+      // أنت المنشئ (Offer)
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      await setDoc(roomRef, { offer: { type: offer.type, sdp: offer.sdp }, host: myName });
+
+      // الاستماع لرد الطرف الآخر (Answer)
+      onSnapshot(roomRef, async (snapshot) => {
+        const data = snapshot.data();
+        if (data && data.answer && !pc.currentRemoteDescription) {
+          const rtcAnswer = new RTCSessionDescription(data.answer);
+          await pc.setRemoteDescription(rtcAnswer);
+        }
       });
     } else {
-      if (roomSnap.data().host === myName) isHost = true;
+      // أنت المستقبل (Answer)
+      const data = roomSnap.data();
+      if (data.offer) {
+        await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+        await updateDoc(roomRef, { answer: { type: answer.type, sdp: answer.sdp } });
+      }
     }
-    window.athrCallState.isHost = isHost;
 
-    // إضافة بياناتك في قائمة الحضور
-    const memberRef = doc(db, "call_rooms", roomId, "members", myName);
-    await setDoc(memberRef, {
-      name: myName,
-      isHost: isHost,
-      mic: true,
-      cam: callType === 'video',
-      joinedAt: serverTimestamp()
-    });
-
-    document.getElementById('athrCallTitle').textContent = isGroup ? '🎙️ مجلس الذكر الحي' : '💬 مكالمة خاصة';
-    document.getElementById('athrCallStatus').textContent = isHost ? '👑 أنت منشئ هذه الغرفة' : '🟢 متصل حالياً';
-
-    // الاستماع لأعضاء الغرفة والطرد اللحظي
-    window.listenToCallMembers(roomId, myName);
+    // بدء عداد البركة وشريط الآيات
+    if (typeof window.startCallTimerAndTicker === 'function') window.startCallTimerAndTicker();
 
   } catch(err) {
-    console.error("Call init error:", err);
-    alert("⚠️ تعذر الوصول للمايك أو الكاميرا. تأكد من إعطاء الإذن في المتصفح.");
+    console.error("Call error:", err);
+    alert("⚠️ تعذر بدء البث المباشر، يرجى إعطاء إذن المايك والكاميرا.");
     window.leaveAthrCall();
   }
 };
@@ -3548,16 +3587,30 @@ window.addVideoElement = function(userName, stream, isMuted = false) {
 // =========================================================================
 window.athrIncomingCallData = null;
 
-// 1️⃣ إرسال إشارة الاتصال (الرنة) للحساب الآخر
+// =========================================================================
+// 📞 نظام الاتصال الانتظاري الذكي (Outgoing Ringing & Timeout Logic)
+// =========================================================================
+window.athrOutgoingCallTimer = null;
+
+// 1️⃣ إرسال الرنة والانتظار في شاشة "جاري الاتصال..." دون دخول الغرفة
 window.triggerPrivateCallSignal = async function(targetUser, callType = 'voice') {
   const myName = localStorage.getItem('athr_user_name');
-  if (!myName || !targetUser) return;
+  if (!myName || !targetUser) { alert("⚠️ تعذر تحديد العضو المراد الاتصال به."); return; }
 
   const roomId = [myName, targetUser].sort().join("___");
   
+  // إظهار شاشة انتظار الاتصال للمتصل
+  const overlay = document.getElementById('athrCallOverlay');
+  if (overlay) {
+    overlay.style.display = 'flex';
+    document.getElementById('athrCallTitle').textContent = `📞 جاري الاتصال بـ ${targetUser}...`;
+    document.getElementById('athrCallStatus').textContent = '🔔 بانتظار موافقة الطرف الآخر...';
+  }
+
   try {
-    // إنشاء وثيقة اتصال حي في الفايربيز
-    await setDoc(doc(db, "active_calls", targetUser), {
+    // إرسال إشارة الرنة في الفايربيز
+    const callDocRef = doc(db, "active_calls", targetUser);
+    await setDoc(callDocRef, {
       caller: myName,
       receiver: targetUser,
       roomId: roomId,
@@ -3566,12 +3619,76 @@ window.triggerPrivateCallSignal = async function(targetUser, callType = 'voice')
       createdAt: serverTimestamp()
     });
 
-    // فتح شاشة الاتصال عند المتصل فوراً
-    window.startOrJoinAthrCall(roomId, false, callType);
+    // ⏱️ تشغيل مهلة الرنين (30 ثانية) لو محدش رد
+    if (window.athrOutgoingCallTimer) clearTimeout(window.athrOutgoingCallTimer);
+    
+    window.athrOutgoingCallTimer = setTimeout(async () => {
+      // لو مرت 30 ثانية ومحدش رد
+      await deleteDoc(callDocRef).catch(()=>{});
+      window.leaveAthrCall();
+      alert(`🔇 لم يتم الرد من قبل ${targetUser}.`);
+    }, 30000); // 30 ثانية مهلة الرنة
+
+    // 📡 الاستماع اللحظي لحالة المكالمة (هل قبل ولا رفض؟)
+    if (window.unsubscribeCallStatus) window.unsubscribeCallStatus();
+    
+    window.unsubscribeCallStatus = onSnapshot(callDocRef, (snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        
+        // أ) الطرف الثاني داس "قبول" 📞
+        if (data.status === "accepted") {
+          clearTimeout(window.athrOutgoingCallTimer);
+          if (window.unsubscribeCallStatus) window.unsubscribeCallStatus();
+          
+          // الآن فقط يدخل المتصل للغرفة المباشرة وتفتح الميديا!
+          window.startOrJoinAthrCall(roomId, false, callType);
+        }
+      } else {
+        // ب) الطرف الثاني داس "رفض" ❌ أو مسح الرنة
+        clearTimeout(window.athrOutgoingCallTimer);
+        if (window.unsubscribeCallStatus) window.unsubscribeCallStatus();
+        window.leaveAthrCall();
+        alert(`❌ تم رفض المكالمة أو إنهاؤها من قبل ${targetUser}.`);
+      }
+    });
 
   } catch (e) {
     console.error("Call trigger error:", e);
+    alert("⚠️ حدث خطأ أثناء إرسال إشارة الاتصال.");
+    window.leaveAthrCall();
   }
+};
+
+// 2️⃣ قبول المكالمة من المستلم (المستقبل)
+window.acceptIncomingCall = async function() {
+  const data = window.athrIncomingCallData;
+  if (!data) return;
+
+  const sheet = document.getElementById('athrIncomingCallSheet');
+  if (sheet) sheet.style.display = 'none';
+
+  const myName = localStorage.getItem('athr_user_name');
+
+  try {
+    // تغيير الحالة في الفايربيز لـ accepted لتنبيه المتصل
+    await updateDoc(doc(db, "active_calls", myName), { status: "accepted" });
+  } catch(e) {}
+
+  // دخول المستقبل فوراً للغرفة المباشرة
+  window.startOrJoinAthrCall(data.roomId, false, data.callType);
+};
+
+// 3️⃣ رفض المكالمة من المستلم (المستقبل)
+window.rejectIncomingCall = async function() {
+  const sheet = document.getElementById('athrIncomingCallSheet');
+  if (sheet) sheet.style.display = 'none';
+
+  const myName = localStorage.getItem('athr_user_name');
+  try {
+    // مسح وثيقة الاتصال لإلغاء الرنة عند الطرفين
+    await deleteDoc(doc(db, "active_calls", myName));
+  } catch(e) {}
 };
 
 // 2️⃣ الاستماع المستمر للرنات الواردة لحسابك
@@ -3641,3 +3758,203 @@ window.rejectIncomingCall = async function() {
 
 // تشغيل الاستماع للرنات فور تسجيل الدخول
 setTimeout(() => { window.listenForIncomingCalls(); }, 1000);
+// =========================================================================
+// 🔊 دالة التحكم والتنقل بين مكبر الصوت السبيكر وسماعة الأذن
+// =========================================================================
+window.athrSpeakerState = { isSpeakerOn: true };
+
+window.toggleAthrSpeaker = async function() {
+  const remoteVid = document.getElementById('remoteVideo');
+  const btn = document.getElementById('athrCallSpeakerBtn');
+  
+  window.athrSpeakerState.isSpeakerOn = !window.athrSpeakerState.isSpeakerOn;
+  const isSpeaker = window.athrSpeakerState.isSpeakerOn;
+
+  // 1️⃣ تحديث شكل الزرار
+  if (btn) {
+    btn.textContent = isSpeaker ? '🔊' : '🎧';
+    btn.style.background = isSpeaker ? 'rgba(212,175,55,0.2)' : 'rgba(255,255,255,0.05)';
+    btn.style.borderColor = isSpeaker ? 'var(--gold)' : 'var(--border)';
+  }
+
+  if (!remoteVid) return;
+
+  try {
+    // 2️⃣ البحث عن أجهزة الإخراج المتاحة (سبيكر vs سماعة أذن)
+    if (typeof remoteVid.setSinkId === 'function' && navigator.mediaDevices.enumerateDevices) {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const audioOutputs = devices.filter(device => device.kind === 'audiooutput');
+
+      if (audioOutputs.length > 1) {
+        // إذا وجد أكثر من مخرج صوتي، يتم التنقل بين الأجهزة المتاحة
+        const targetDevice = isSpeaker 
+          ? audioOutputs.find(d => d.label.toLowerCase().includes('speaker') || d.deviceId === 'default')
+          : audioOutputs.find(d => d.label.toLowerCase().includes('earpiece') || d.label.toLowerCase().includes('headset') || d.deviceId !== 'default');
+
+        if (targetDevice && targetDevice.deviceId) {
+          await remoteVid.setSinkId(targetDevice.deviceId);
+        }
+      }
+    } else {
+      // لو المتصفح لا يدعم setSinkId بشكل مباشر، يتم رفع/خفض مستوى الصوت الافتراضي
+      remoteVid.volume = isSpeaker ? 1.0 : 0.4;
+    }
+  } catch (err) {
+    console.warn("Speaker toggle notice:", err);
+  }
+};
+// =========================================================================
+// 🚀 محرك الميزات الـ 6 المتقدمة للمكالمات (أثر المطور)
+// =========================================================================
+
+// قائمة الآيات والأحاديث المأثورة للشريط المتحرك (الميزة 5)
+const ATHR_CALL_TICKERS = [
+  "📖 ﴿ أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ ﴾",
+  "📜 قال ﷺ: «مَا اجْتَمَعَ قَوْمٌ يَذْكُرُونَ اللَّهَ إِلاَّ حَفَّتْهُمُ المَلاَئِكَةُ»",
+  "📖 ﴿ وَتَعَاوَنُوا عَلَى الْبِرِّ وَالتَّقْوَىٰ ﴾",
+  "📜 قال ﷺ: «الْكَلِمَةُ الطَّيِّبَةُ صَدَقَةٌ»",
+  "📖 ﴿ إِنَّمَا الْمُؤْمِنُونَ إِخْوَةٌ ﴾",
+  "📜 قال ﷺ: «الدَّالُّ عَلَى الخَيْرِ كَفَاعِلِهِ»"
+];
+
+let callTimerInterval = null;
+let callSecondsElapsed = 0;
+let callTickerInterval = null;
+let callMediaRecorder = null;
+let recordedChunks = [];
+
+// ⏱️ 1. عداد البركة وتحديث الشريط (الميزة 5 و 8)
+window.startCallTimerAndTicker = function() {
+  callSecondsElapsed = 0;
+  clearInterval(callTimerInterval);
+  clearInterval(callTickerInterval);
+
+  // عداد الوقت بالثواني
+  callTimerInterval = setInterval(() => {
+    callSecondsElapsed++;
+    const m = Math.floor(callSecondsElapsed / 60);
+    const s = callSecondsElapsed % 60;
+    const timeStr = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    const timerEl = document.getElementById('athrCallTimer');
+    if (timerEl) timerEl.textContent = `⏱️ ${timeStr} - مجلس مبارك`;
+  }, 1000);
+
+  // تحديث الشريط كل 15 ثانية
+  let tickerIdx = 0;
+  callTickerInterval = setInterval(() => {
+    tickerIdx = (tickerIdx + 1) % ATHR_CALL_TICKERS.length;
+    const tickerEl = document.getElementById('athrCallTickerText');
+    if (tickerEl) tickerEl.textContent = ATHR_CALL_TICKERS[tickerIdx];
+  }, 15000);
+};
+
+// ✋ 2. رفع اليد لطلب الكلمة (الميزة 3)
+window.toggleRaiseHand = async function() {
+  const myName = localStorage.getItem('athr_user_name');
+  const roomId = window.athrCallState.activeRoomId;
+  if (!myName || !roomId) return;
+
+  window.athrCallState.handRaised = !window.athrCallState.handRaised;
+  const isRaised = window.athrCallState.handRaised;
+
+  const btn = document.getElementById('athrRaiseHandBtn');
+  if (btn) btn.style.background = isRaised ? 'rgba(212,175,55,0.4)' : 'rgba(255,255,255,0.05)';
+
+  try {
+    await updateDoc(doc(db, "call_rooms", roomId, "members", myName), { handRaised: isRaised });
+  } catch(e) {}
+};
+
+// 🛡️ 3. وضع الخصوصية العالية واستبدال الكاميرا ببطاقة أثر (الميزة 6 و 10)
+window.togglePrivacyShield = async function() {
+  const myName = localStorage.getItem('athr_user_name');
+  const roomId = window.athrCallState.activeRoomId;
+  if (!myName || !roomId) return;
+
+  window.athrCallState.privacyMode = !window.athrCallState.privacyMode;
+  const isPrivacy = window.athrCallState.privacyMode;
+
+  const btn = document.getElementById('athrPrivacyBtn');
+  if (btn) {
+    btn.style.background = isPrivacy ? 'rgba(76,175,80,0.4)' : 'rgba(255,255,255,0.05)';
+    btn.textContent = isPrivacy ? '🛡️' : '🛡️';
+  }
+
+  // إخفاء الفيديو الشخصي وإظهار البطاقة الإسلامية الأنيقة
+  const localVidWrap = document.getElementById(`vwrap_${myName}`);
+  if (localVidWrap) {
+    if (isPrivacy) {
+      localVidWrap.style.background = "linear-gradient(135deg, #122514, #070c07)";
+      localVidWrap.innerHTML = `
+        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; text-align:center; padding:10px;">
+          <div style="font-size:30px;">🕌</div>
+          <strong style="color:var(--gold); font-size:12px; margin-top:4px;">${myName}</strong>
+          <small style="color:var(--green); font-size:10px;">🛡️ في وضع الخصوصية والذكر</small>
+        </div>
+      `;
+    } else {
+      window.addVideoElement(myName, window.athrCallState.localStream, true);
+    }
+  }
+
+  try {
+    await updateDoc(doc(db, "call_rooms", roomId, "members", myName), { privacyMode: isPrivacy });
+  } catch(e) {}
+};
+
+// 🎙️ 4. تسجيل الجلسة وتحميل الملف أوفلاين (الميزة 7)
+window.toggleCallRecording = function() {
+  const btn = document.getElementById('athrRecordBtn');
+  
+  if (callMediaRecorder && callMediaRecorder.state === 'recording') {
+    callMediaRecorder.stop();
+    btn.textContent = "🔴 تسجيل";
+    btn.style.background = "rgba(255,255,255,0.05)";
+    alert("✅ تم إيقاف التسجيل وتجهيز ملف الصوت للتحميل.");
+    return;
+  }
+
+  const stream = window.athrCallState.localStream;
+  if (!stream) { alert("⚠️ لا يوجد بث صوتي لتسجيله."); return; }
+
+  try {
+    recordedChunks = [];
+    callMediaRecorder = new MediaRecorder(stream);
+    
+    callMediaRecorder.ondataavailable = (e) => {
+      if (e.data.size > 0) recordedChunks.push(e.data);
+    };
+
+    callMediaRecorder.onstop = () => {
+      const blob = new Blob(recordedChunks, { type: 'audio/webm' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `مجلس_أثر_${window.getTodayDateStr()}.webm`;
+      a.click();
+    };
+
+    callMediaRecorder.start();
+    btn.textContent = "⏹️ جارِ التسجيل...";
+    btn.style.background = "rgba(255,77,77,0.3)";
+  } catch(e) {
+    console.error(e);
+    alert("⚠️ تعذر بدء التسجيل على متصفحك.");
+  }
+};
+
+// 5. التعديل على دالة الخروج لعرض رسالة البركة (الميزة 8)
+const originalLeaveCall = window.leaveAthrCall;
+window.leaveAthrCall = async function() {
+  const mins = Math.floor(callSecondsElapsed / 60);
+  const secs = callSecondsElapsed % 60;
+  
+  clearInterval(callTimerInterval);
+  clearInterval(callTickerInterval);
+
+  if (typeof originalLeaveCall === 'function') await originalLeaveCall();
+
+  if (callSecondsElapsed > 10) {
+    alert(`✨ تقبل الله طاعتك ورَفَع قدرك!\n⏱️ قضيت في هذا المجلس المبارك (${mins} دقيقة و ${secs} ثانية).\nكتب الله أثرك وبارك في وقتك 🤍`);
+  }
+};
