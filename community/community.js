@@ -3588,7 +3588,7 @@ window.addVideoElement = function(userName, stream, isMuted = false) {
 window.athrIncomingCallData = null;
 
 // =========================================================================
-// 📞 نظام الاتصال الانتظاري الذكي (Outgoing Ringing & Timeout Logic)
+// 📞 نظام الاتصال الانتظاري المطور مع حماية الواجهة
 // =========================================================================
 window.athrOutgoingCallTimer = null;
 
@@ -3603,8 +3603,12 @@ window.triggerPrivateCallSignal = async function(targetUser, callType = 'voice')
   const overlay = document.getElementById('athrCallOverlay');
   if (overlay) {
     overlay.style.display = 'flex';
-    document.getElementById('athrCallTitle').textContent = `📞 جاري الاتصال بـ ${targetUser}...`;
-    document.getElementById('athrCallStatus').textContent = '🔔 بانتظار موافقة الطرف الآخر...';
+    
+    const titleEl = document.getElementById('athrCallTitle');
+    if (titleEl) titleEl.textContent = `📞 جاري الاتصال بـ ${targetUser}...`;
+    
+    const statusEl = document.getElementById('athrCallStatus');
+    if (statusEl) statusEl.textContent = '🔔 بانتظار موافقة الطرف الآخر...';
   }
 
   try {
@@ -3623,13 +3627,12 @@ window.triggerPrivateCallSignal = async function(targetUser, callType = 'voice')
     if (window.athrOutgoingCallTimer) clearTimeout(window.athrOutgoingCallTimer);
     
     window.athrOutgoingCallTimer = setTimeout(async () => {
-      // لو مرت 30 ثانية ومحدش رد
       await deleteDoc(callDocRef).catch(()=>{});
       window.leaveAthrCall();
       alert(`🔇 لم يتم الرد من قبل ${targetUser}.`);
-    }, 30000); // 30 ثانية مهلة الرنة
+    }, 30000);
 
-    // 📡 الاستماع اللحظي لحالة المكالمة (هل قبل ولا رفض؟)
+    // 📡 الاستماع اللحظي لحالة المكالمة
     if (window.unsubscribeCallStatus) window.unsubscribeCallStatus();
     
     window.unsubscribeCallStatus = onSnapshot(callDocRef, (snap) => {
@@ -3641,7 +3644,6 @@ window.triggerPrivateCallSignal = async function(targetUser, callType = 'voice')
           clearTimeout(window.athrOutgoingCallTimer);
           if (window.unsubscribeCallStatus) window.unsubscribeCallStatus();
           
-          // الآن فقط يدخل المتصل للغرفة المباشرة وتفتح الميديا!
           window.startOrJoinAthrCall(roomId, false, callType);
         }
       } else {
@@ -3649,7 +3651,6 @@ window.triggerPrivateCallSignal = async function(targetUser, callType = 'voice')
         clearTimeout(window.athrOutgoingCallTimer);
         if (window.unsubscribeCallStatus) window.unsubscribeCallStatus();
         window.leaveAthrCall();
-        alert(`❌ تم رفض المكالمة أو إنهاؤها من قبل ${targetUser}.`);
       }
     });
 
@@ -3657,6 +3658,55 @@ window.triggerPrivateCallSignal = async function(targetUser, callType = 'voice')
     console.error("Call trigger error:", e);
     alert("⚠️ حدث خطأ أثناء إرسال إشارة الاتصال.");
     window.leaveAthrCall();
+  }
+};
+
+// 2️⃣ دالة الخروج السريعة والمستقرة من المكالمة بدون تعليق
+window.leaveAthrCall = async function() {
+  const st = window.athrCallState || {};
+  const myName = localStorage.getItem('athr_user_name');
+
+  // إيقاف العدادات
+  if (typeof callTimerInterval !== 'undefined' && callTimerInterval) clearInterval(callTimerInterval);
+  if (typeof callTickerInterval !== 'undefined' && callTickerInterval) clearInterval(callTickerInterval);
+  if (window.athrOutgoingCallTimer) clearTimeout(window.athrOutgoingCallTimer);
+
+  // إيقاف البث والمايك والكاميرا
+  if (st.localStream) {
+    try {
+      st.localStream.getTracks().forEach(t => t.stop());
+    } catch(e) {}
+    st.localStream = null;
+  }
+
+  if (window.athrPeerConnection) {
+    try {
+      window.athrPeerConnection.close();
+    } catch(e) {}
+    window.athrPeerConnection = null;
+  }
+
+  // حذف التواجد في الغرفة على الفايربيز
+  if (st.activeRoomId && myName) {
+    try {
+      await deleteDoc(doc(db, "call_rooms", st.activeRoomId, "members", myName));
+    } catch(e) {}
+  }
+
+  if (window.unsubscribeCallMembers) window.unsubscribeCallMembers();
+
+  // إغلاق الواجهة فوراً
+  const overlay = document.getElementById('athrCallOverlay');
+  if (overlay) overlay.style.display = 'none';
+
+  const localVid = document.getElementById('localVideo');
+  if (localVid) localVid.srcObject = null;
+  
+  const remoteVid = document.getElementById('remoteVideo');
+  if (remoteVid) remoteVid.srcObject = null;
+
+  if (window.athrCallState) {
+    window.athrCallState.activeRoomId = null;
   }
 };
 
@@ -3943,18 +3993,4 @@ window.toggleCallRecording = function() {
   }
 };
 
-// 5. التعديل على دالة الخروج لعرض رسالة البركة (الميزة 8)
-const originalLeaveCall = window.leaveAthrCall;
-window.leaveAthrCall = async function() {
-  const mins = Math.floor(callSecondsElapsed / 60);
-  const secs = callSecondsElapsed % 60;
-  
-  clearInterval(callTimerInterval);
-  clearInterval(callTickerInterval);
 
-  if (typeof originalLeaveCall === 'function') await originalLeaveCall();
-
-  if (callSecondsElapsed > 10) {
-    alert(`✨ تقبل الله طاعتك ورَفَع قدرك!\n⏱️ قضيت في هذا المجلس المبارك (${mins} دقيقة و ${secs} ثانية).\nكتب الله أثرك وبارك في وقتك 🤍`);
-  }
-};
