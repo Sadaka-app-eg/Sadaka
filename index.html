@@ -278,15 +278,16 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
   margin: 1px 0;
 }
 .qcf-word {
-display: inline-flex;
-align-items: center; 
+  display: inline-flex;
+  align-items: center; 
   cursor: pointer;
   padding: 0 1px;
   border-radius: 3px;
   transition: background 0.15s;
   line-height: 1.4 !important;
-  font-weight: 700;
-  -webkit-text-stroke: 0.5px currentColor;
+  font-weight: normal;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 .qcf-word:active, .qcf-word.selected {
   background: rgba(76,175,80,0.25);
@@ -1361,7 +1362,6 @@ body.hide-controls #quran {
       <div style="flex: 1; display: flex; align-items: center; justify-content: space-between; padding: 0 10px;">
         <h2 id="surahScreenTitle" style="margin: 0; font-size: 16px; text-align: center;">السورة</h2>
       </div>
-      <button class="icon-btn" onclick="openMushafSearch()" title="بحث">🔍</button>
       <button class="icon-btn" id="bookmarkJumpBtn" onclick="jumpToBookmark()" style="display:none;">🔖</button>
       <button class="icon-btn" onclick="toggleFavSurah()" id="favSurahBtn">🤍</button>
       <button class="icon-btn" id="nightModeBtn" onclick="toggleMushafNight()">🌙</button>
@@ -2371,17 +2371,7 @@ body.hide-controls #quran {
     <button class="modal-close" onclick="closeModals()">إغلاق</button>
   </div>
 </div>
-<div class="modal-overlay" id="mushafSearchModal">
-  <div class="modal">
-    <h3>🔍 اذهب إلى سورة أو آية</h3>
-    <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:14px;">
-      <input id="searchSurahInput" placeholder="اسم السورة أو رقمها" class="search-box" style="margin-bottom:0;">
-      <input id="searchAyahInput" type="number" placeholder="رقم الآية (اختياري)" class="search-box" style="margin-bottom:0;">
-    </div>
-    <button class="modal-close" onclick="submitMushafSearch()">🔍 اذهب</button>
-    <button class="modal-close" style="background:transparent;border:1px solid var(--border);color:var(--text2);margin-top:8px;" onclick="closeModals()">إلغاء</button>
-  </div>
-</div>
+
 
 <div id="share-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; align-items:center; justify-content:center;">
   <div style="background:#1a1a1a; padding:25px; border-radius:20px; text-align:center; width:80%; border:2px solid #c5a059;">
@@ -3990,7 +3980,7 @@ html += `<div style="display:flex; flex-direction:row; ${lineJustify} align-item
       const ayahIndex = currentAyahsData.findIndex(a => a.surahNumber === w.vSurah && a.numberInSurah === w.vAyah);
      
 html += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}"
-  style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:1.2; font-weight:bold; -webkit-text-stroke:0.5px currentColor; display:inline-flex; align-items:center; user-select:none; white-space:nowrap;"
+  style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:1.2; font-weight:bold;  display:inline-flex; align-items:center; user-select:none; white-space:nowrap;"
   ontouchstart="startPress(event, ${ayahIndex})"
   ontouchmove="cancelPress(event)"
   ontouchend="cancelPress(event); if(!isScrolling && window.isPickingEndAyah){ handleAyahClick(${ayahIndex}); }">
@@ -4174,7 +4164,7 @@ const lineJustify = isSpecialPage ? 'justify-content:center;gap:8px;' : 'justify
      lineWords.forEach(w => {
      const ayahIndex = currentAyahsData.findIndex(a => a.surahNumber === w.vSurah && a.numberInSurah === w.vAyah);
 sliderHtml += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}"
-  style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:1.4; font-weight:bold; -webkit-text-stroke:0.5px currentColor; display:inline-flex; align-items:center; user-select:none; white-space:nowrap;"
+  style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:1.4; font-weight:bold;  display:inline-flex; align-items:center; user-select:none; white-space:nowrap;"
   ontouchstart="startPress(event, ${ayahIndex})"
   ontouchmove="cancelPress(event)"
   ontouchend="cancelPress(event); if(!isScrolling && window.isPickingEndAyah){ handleAyahClick(${ayahIndex}); }">
@@ -4573,30 +4563,7 @@ function closeModals() {
   document.getElementById('tafseerModal').classList.remove('show');
   document.getElementById('mushafSearchModal').classList.remove('show');
 }
-function openMushafSearch() {
-  document.getElementById('searchSurahInput').value = currentSurah ? currentSurah.name : '';
-  document.getElementById('searchAyahInput').value = '';
-  
-  const modal = document.getElementById('mushafSearchModal');
-  modal.style.zIndex = '1000005'; // 👈 رفع طبقة نافذة البحث لظهورها فوق شاشة المصحف
-  modal.classList.add('show');
-}
 
-function submitMushafSearch() {
-  const sInput = document.getElementById('searchSurahInput').value.trim();
-  const aInput = parseInt(document.getElementById('searchAyahInput').value) || null;
-
-  let target = surahs.find(s => s.name === sInput) || surahs.find(s => s.n === parseInt(sInput));
-  if (!target) target = surahs.find(s => s.name.includes(sInput));
-
-  if (!target) {
-    alert('لم يتم العثور على السورة، تأكد من الاسم أو الرقم 🙏');
-    return;
-  }
-
-  document.getElementById('mushafSearchModal').classList.remove('show');
-  openSurah(target.n, aInput);
-}
 
 // ===========================
 // Audio
