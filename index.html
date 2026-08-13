@@ -408,11 +408,7 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
   -webkit-touch-callout: none;
 }
 
-/* في الوضع الليلي للمصحف تحويل جميع الكلمات والرموز إلى الذهبي الفاتح الداكن */
-#surahScreen.night-mode .qcf-word, 
-#surahScreen.night-mode .ayah-span {
-  color: #f0d090 !important;
-}
+
 .ayah-span.selected{background:rgba(76,175,80,0.25);border-radius:4px;}
 .ayah-span.playing{background:rgba(255,215,0,0.35);border-radius:4px;}
 .ayah-sign{color:#8b6914;margin:0 3px;font-size:20px;}
@@ -1047,9 +1043,28 @@ body.hide-controls #quran {
   background: #0b120c !important;
 }
 
+/* ضبط اللون الأبيض الناصع والصريح للوضع الليلي للمصحف */
+#surahScreen.night-mode {
+  background: #0b120c !important;
+}
+
 #surahScreen.night-mode .mushaf-page {
   background: #0b120c !important;
-  color: #f0d090 !important;
+  color: #ffffff !important;
+}
+
+#surahScreen.night-mode .qcf-word, 
+#surahScreen.night-mode .ayah-span {
+  color: #ffffff !important; /* تغيير لون النص والرموز إلى الأبيض الصافي */
+}
+
+/* 💻 تحسين استجابة المصحف للشاشات الكبيرة والكمبيوتر لتظهر الصفحة كاملة وباحترافية */
+@media (min-width: 768px) {
+  .mushaf-page {
+    max-width: 650px !important; /* تحديد أقصى عرض مناسب لشكل صفحة المصحف الحقيقية على الكمبيوتر */
+    margin: 0 auto !important; /* توسيط صفحة المصحف في منتصف شاشة الكمبيوتر */
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5) !important;
+  }
 }
 
 #surahScreen.night-mode .qcf-img {
@@ -4008,8 +4023,8 @@ html += `<div style="flex:1; display:flex; flex-direction:column; justify-conten
     const lineWords = pagesDict[pageNum][lineNum];
     const lineJustify = isSpecialPage ? 'justify-content:center;gap:8px;' : 'justify-content:space-between;';
    
-const fontSize = isSpecialPage ? 'clamp(22px, 6vw, 34px)' : 'clamp(18px, 5.2vw, 30px)';
-    const firstWord = lineWords[0];
+const fontSize = isSpecialPage ? 'clamp(20px, 3.5vh, 32px)' : 'clamp(16px, 2.7vh, 26px)';
+	  const firstWord = lineWords[0];
     if (firstWord && firstWord.vAyah === 1 && !renderedSurahHeaders.has(firstWord.vSurah)) {
       renderedSurahHeaders.add(firstWord.vSurah);
       const sObj = surahs.find(s => s.n === firstWord.vSurah);
