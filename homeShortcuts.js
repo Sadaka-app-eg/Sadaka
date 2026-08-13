@@ -100,7 +100,8 @@ window.initHomeShortcuts = function() {
     <div style="direction: rtl; font-family: 'Amiri', serif; margin: 15px 0 20px;">
       
       <!-- 📖 1. كارت القرآن الكريم المصور الصريح -->
-      <div onclick="showPage('quran', null)" class="quran-banner-card" style="background-image: linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.85) 100%), url('${data.quran.img}');">
+<div onclick="openQuranFromMenu(this)" class="quran-banner-card" style="background-image: linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.85) 100%), url('${data.quran.img}');">
+      
         <div style="display: flex; align-items: center; gap: 14px; position: relative; z-index: 2;">
           <div style="background: var(--gold); color: #111; width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 26px; box-shadow: 0 4px 12px rgba(212,175,55,0.4); flex-shrink: 0;">📖</div>
           <div>
