@@ -282,7 +282,10 @@ window.rareRecitations = [
 
 
 // تلاوات الشيخ ياسر الدوسري
-{ name: "ياسر الدوسري: قل الحمد لله وسلام على عباده 🎙️", url: "https://archive.org/download/asir425/Asir4251.mp3", desc: "", tag: "ياسر الدوسري" }, // رقم 1 في القائمة (04:07)
+
+  
+  { name: "ياسر الدوسري: تلاوة كردية تنفض الهموم من القلوب 🎙️", url: "audio_2/yaser1.mp3", desc: "", tag: "ياسر الدوسري" },
+  { name: "ياسر الدوسري: قل الحمد لله وسلام على عباده 🎙️", url: "https://archive.org/download/asir425/Asir4251.mp3", desc: "", tag: "ياسر الدوسري" }, // رقم 1 في القائمة (04:07)
 { name: "ياسر الدوسري: ولله غيب السماوات والأرض 🎙️", url: "https://archive.org/download/asir425/Asir42510.mp3", desc: "", tag: "ياسر الدوسري" }, // رقم 2 في القائمة (02:09)
 { name: "ياسر الدوسري: من يهد الله فهو المهتد 🎙️", url: "https://archive.org/download/asir425/Asir42511.mp3", desc: "", tag: "ياسر الدوسري" }, // رقم 3 في القائمة (02:54)
 { name: "ياسر الدوسري: إن في خلق السماوات والأرض 🎙️", url: "https://archive.org/download/asir425/Asir42512.mp3", desc: "", tag: "ياسر الدوسري" }, // رقم 4 في القائمة (01:20)
