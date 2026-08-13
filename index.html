@@ -277,18 +277,7 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
   width: 100%;
   margin: 1px 0;
 }
-.qcf-word {
-  display: inline-flex;
-  align-items: center; 
-  cursor: pointer;
-  padding: 0 1px;
-  border-radius: 3px;
-  transition: background 0.15s;
-  line-height: 1.4 !important;
-  font-weight: normal;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-}
+
 .qcf-word:active, .qcf-word.selected {
   background: rgba(76,175,80,0.25);
 }
@@ -345,14 +334,14 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
   width: 100vw !important;
   height: 100vh !important;
   max-height: 100vh !important;
-  padding: 10px 12px 12px !important;
+  padding: 4px 2px 6px !important; /* تقليل الحواف الجانبية جداً لإعطاء الصفحة العرض الكامل */
   display: flex !important;
   flex-direction: column !important;
   justify-content: space-between !important;
   box-sizing: border-box !important;
   overflow: hidden !important;
- scroll-snap-align: center !important;
-scroll-snap-stop: always !important; /* 👈 السطر ده اللي بيمنع جريان الصفحات ويوقفها صفحة صفحة */
+  scroll-snap-align: center !important;
+  scroll-snap-stop: always !important;
   background: var(--mushaf-bg);
   color: var(--mushaf-text);
 }
@@ -400,11 +389,29 @@ scroll-snap-stop: always !important; /* 👈 السطر ده اللي بيمنع
 }
 .juz-label{font-size:12px;color:#8b6914;text-align:left;margin-bottom:6px;font-family:'Amiri',serif;}
 
-/* Ayah spans */
-.ayah-span{
-  cursor:pointer;transition:background 0.2s;
-  border-radius:4px;user-select:none;
-  -webkit-touch-callout:none;padding:0 1px;
+/* ضبط وضوح خط المصحف العثماني QCF بدون بهتان وبأسود داكن صريح */
+.qcf-word, .ayah-span {
+  display: inline-flex;
+  align-items: center; 
+  justify-content: center;
+  cursor: pointer;
+  padding: 0 !important; /* إلغاء أي بادينج جانبي للكلمات */
+  margin: 0 !important;
+  border-radius: 3px;
+  transition: background 0.15s;
+  line-height: 1.35 !important;
+  font-weight: 600 !important;
+  color: #1a1008 !important;
+  text-rendering: precisionQuality !important;
+  -webkit-font-smoothing: subpixel-antialiased !important;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* في الوضع الليلي للمصحف تحويل جميع الكلمات والرموز إلى الذهبي الفاتح الداكن */
+#surahScreen.night-mode .qcf-word, 
+#surahScreen.night-mode .ayah-span {
+  color: #f0d090 !important;
 }
 .ayah-span.selected{background:rgba(76,175,80,0.25);border-radius:4px;}
 .ayah-span.playing{background:rgba(255,215,0,0.35);border-radius:4px;}
@@ -4001,8 +4008,7 @@ html += `<div style="flex:1; display:flex; flex-direction:column; justify-conten
     const lineWords = pagesDict[pageNum][lineNum];
     const lineJustify = isSpecialPage ? 'justify-content:center;gap:8px;' : 'justify-content:space-between;';
    
-  const fontSize = isSpecialPage ? 'clamp(22px, 5.5vw, 32px)' : 'clamp(20px, 4.8vw, 28px)';
-
+const fontSize = isSpecialPage ? 'clamp(22px, 6vw, 34px)' : 'clamp(18px, 5.2vw, 30px)';
     const firstWord = lineWords[0];
     if (firstWord && firstWord.vAyah === 1 && !renderedSurahHeaders.has(firstWord.vSurah)) {
       renderedSurahHeaders.add(firstWord.vSurah);
@@ -4024,7 +4030,8 @@ html += `<div style="display:flex; flex-direction:row; ${lineJustify} align-item
       const ayahIndex = currentAyahsData.findIndex(a => a.surahNumber === w.vSurah && a.numberInSurah === w.vAyah);
      
 html += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}"
-  style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:1.2; font-weight:bold;  display:inline-flex; align-items:center; user-select:none; white-space:nowrap;"
+style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:1.4; font-weight:600 !important; color:inherit; display:inline-flex; align-items:center; user-select:none; white-space:nowrap;"
+	
   ontouchstart="startPress(event, ${ayahIndex})"
   ontouchmove="cancelPress(event)"
   ontouchend="cancelPress(event); if(!isScrolling && window.isPickingEndAyah){ handleAyahClick(${ayahIndex}); }">
@@ -4203,8 +4210,7 @@ const lineJustify = isSpecialPage ? 'justify-content:center;gap:8px;' : 'justify
         }
 
         // 🎯 الضمان الثاني: تثبيت السطر أفقي محذى 100% بدون انكسار
-        sliderHtml += `<div style="display:flex; flex-direction:row; ${lineJustify} align-items:center; width:100%; min-height: calc(100% / 15); overflow:visible; white-space:nowrap;">`;
-        
+sliderHtml += `<div style="display:flex; flex-direction:row; ${lineJustify} align-items:center; width:100%; min-height: calc(100% / 15); overflow:visible; white-space:nowrap; padding: 0 2px; box-sizing: border-box;">`;        
      lineWords.forEach(w => {
      const ayahIndex = currentAyahsData.findIndex(a => a.surahNumber === w.vSurah && a.numberInSurah === w.vAyah);
 sliderHtml += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}"
