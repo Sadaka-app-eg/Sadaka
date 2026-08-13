@@ -4319,6 +4319,9 @@ window.navSurah = function(direction) {
   } else {
     openSurah(nextNum);
   }
+	if (targetAyahNum) {
+    scrollToTargetAyahIfNeeded(targetAyahNum);
+  }
 };
 
 
@@ -4376,7 +4379,7 @@ function prefetchFullQuranData() {
   }, 2000);
 }
  
-    function scrollToTargetAyahIfNeeded(targetAyahNum) {
+function scrollToTargetAyahIfNeeded(targetAyahNum) {
   if (!targetAyahNum) return;
   const idx = currentAyahsData.findIndex(a => a.numberInSurah === targetAyahNum);
   if (idx === -1) return;
@@ -4384,9 +4387,9 @@ function prefetchFullQuranData() {
     const words = document.querySelectorAll(`.ayah-group_${idx}`);
     if (words.length === 0) return;
     words[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
-    highlightAyah(idx, 'flash');
-    setTimeout(() => clearHighlightBars('flash'), 2500);
-  }, 400);
+    highlightAyah(idx, 'flash'); // تلوين أخضر خفيف للآية
+    setTimeout(() => clearHighlightBars('flash'), 3000); // إزالة التلوين بعد 3 ثوانٍ
+  }, 500);
 }
       
 
@@ -5858,7 +5861,7 @@ async function globalSearch(q) {
         `).join('');
       }
 
-      if (matchedAyahs.length > 0) {
+if (matchedAyahs.length > 0) {
         html += `<div style="color:var(--green);font-size:15px;margin-top:20px;margin-bottom:10px;font-family:Amiri,serif;font-weight:bold;border-bottom:1px solid var(--border);padding-bottom:5px;">✨ نتائج بحث الآيات أوفلاين — [${toAr(matchedAyahs.length)} آية]:</div>`;
         
         html += matchedAyahs.slice(0, 50).map(m => `
@@ -6298,7 +6301,6 @@ function restoreLastState() {
   }
 }
 function openQuranFromMenu(el) {
-  // إغلاق المنيو الجانبي
   const menu = document.getElementById('tabsMenu');
   const overlay = document.getElementById('menuOverlay');
   if (menu) menu.classList.remove('open');
@@ -6310,12 +6312,13 @@ function openQuranFromMenu(el) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   if (el && el.classList) el.classList.add('active');
 
-  // جلب آخر سورة وصفحة تم التوقف عندهما
   const lastSurah = parseInt(localStorage.getItem('last_active_surah')) || 1;
   const lastPage = parseInt(localStorage.getItem('last_active_page')) || null;
 
-  // فتح شاشة المصحف المباشرة
-  openSurah(lastSurah, null, lastPage);
+  const targetSurah = (lastPage && getSurahByPageNumber(lastPage)) || surahs.find(s => s.n === lastSurah) || surahs[0];
+  
+  // فتح المصحف فوراً على أحدث صفحة وسورة
+  openSurah(targetSurah.n, null, lastPage || null);
 }
 // دالة ذكية لإنشاء الصفحة وزرار الضغط تلقائياً في الـ HTML بدون ما تدور عليهم
 function setupNafahatSystem() {
