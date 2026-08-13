@@ -4831,9 +4831,12 @@ mushafExtendTimer = setTimeout(() => {
   }, 4200);
 
 
-  // 7️⃣ استعادة آخر تبويب وحالة كانت مفتوحة (مرة واحدة فقط بدون تكرار)
+// 7️⃣ استعادة آخر تبويب وحالة كانت مفتوحة (مرة واحدة فقط بدون تكرار)
+  const wasSurahOpen = localStorage.getItem('surah_screen_open') === '1';
   const lastTab = localStorage.getItem('last_opened_tab');
-  if (lastTab && document.getElementById(lastTab)) {
+  
+  // لو كان المصحف مفتوح آخر مرة، منعرضش الفهرس خالص عشان مايحصلش فلاش قبل ما المصحف يفتح
+  if (!wasSurahOpen && lastTab && document.getElementById(lastTab)) {
     showPage(lastTab, null);
   }
 
@@ -6278,7 +6281,7 @@ function restoreLastState() {
   if (wasOpen && lastSurah) {
     window._restoreTimeoutId = setTimeout(async () => {
       await openSurah(parseInt(lastSurah), null, lastPage ? parseInt(lastPage) : null);
-    }, 1000);
+    }, 100);
   }
 }
 function openQuranFromMenu(el) {
