@@ -937,16 +937,20 @@ const overlayHTML = `
         </div>
       </div>
 
-      <!-- نافذة تايمر النوم المنبثقة -->
-      <div id="npSleepModal" style="display:none; position:absolute; inset:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); z-index:10; flex-direction:column; align-items:center; justify-content:center; padding:30px;">
-        <h3 style="color:var(--gold); font-family:'Amiri',serif; margin-bottom:20px;">⏱️ اختيار مؤقت النوم</h3>
-        <button class="np-modal-option" onclick="window.startSleepTimer(15)">15 دقيقة</button>
-        <button class="np-modal-option" onclick="window.startSleepTimer(30)">30 دقيقة</button>
-        <button class="np-modal-option" onclick="window.startSleepTimer(45)">45 دقيقة</button>
-        <button class="np-modal-option" onclick="window.startSleepTimer(60)">ساعة كاملة</button>
-        <button class="np-modal-option" onclick="window.startSleepTimer(0, true)">عند نهاية التلاوة الحالية</button>
-        <button class="np-modal-option" style="background:rgba(255,0,0,0.2); color:#ff6b6b;" onclick="window.cancelSleepTimer()">إلغاء المؤقت</button>
-        <button style="background:none; border:none; color:var(--text2); margin-top:10px; cursor:pointer;" onclick="window.closeSleepModal()">إغلاق</button>
+<!-- نافذة تايمر النوم المنبثقة المظبوطة -->
+      <div id="npSleepModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(10px); z-index:99999999; flex-direction:column; align-items:center; justify-content:center; padding:20px; direction:rtl; font-family:'Amiri',serif;">
+        <div style="width:100%; max-width:340px; background:#121813; border:1px solid var(--gold); border-radius:20px; padding:20px; display:flex; flex-direction:column; gap:10px; align-items:center; box-shadow:0 10px 30px rgba(0,0,0,0.8);">
+          <h3 style="color:var(--gold); font-family:'Amiri',serif; margin:0 0 10px 0; font-size:18px;">⏱️ اختيار مؤقت النوم</h3>
+          
+          <button onclick="window.startSleepTimer(15)" style="width:100%; background:rgba(255,255,255,0.07); border:1px solid rgba(212,175,55,0.2); color:var(--text); padding:12px; border-radius:12px; font-family:'Amiri',serif; font-size:15px; cursor:pointer;">15 دقيقة</button>
+          <button onclick="window.startSleepTimer(30)" style="width:100%; background:rgba(255,255,255,0.07); border:1px solid rgba(212,175,55,0.2); color:var(--text); padding:12px; border-radius:12px; font-family:'Amiri',serif; font-size:15px; cursor:pointer;">30 دقيقة</button>
+          <button onclick="window.startSleepTimer(45)" style="width:100%; background:rgba(255,255,255,0.07); border:1px solid rgba(212,175,55,0.2); color:var(--text); padding:12px; border-radius:12px; font-family:'Amiri',serif; font-size:15px; cursor:pointer;">45 دقيقة</button>
+          <button onclick="window.startSleepTimer(60)" style="width:100%; background:rgba(255,255,255,0.07); border:1px solid rgba(212,175,55,0.2); color:var(--text); padding:12px; border-radius:12px; font-family:'Amiri',serif; font-size:15px; cursor:pointer;">ساعة كاملة</button>
+          <button onclick="window.startSleepTimer(0, true)" style="width:100%; background:rgba(255,255,255,0.07); border:1px solid rgba(212,175,55,0.2); color:var(--text); padding:12px; border-radius:12px; font-family:'Amiri',serif; font-size:15px; cursor:pointer;">عند نهاية التلاوة الحالية</button>
+          <button onclick="window.cancelSleepTimer()" style="width:100%; background:rgba(255,0,0,0.15); border:1px solid rgba(255,0,0,0.3); color:#ff6b6b; padding:12px; border-radius:12px; font-family:'Amiri',serif; font-size:15px; cursor:pointer;">إلغاء المؤقت</button>
+          
+          <button onclick="window.closeSleepModal()" style="background:none; border:none; color:var(--text2); margin-top:5px; cursor:pointer; font-family:'Amiri',serif; font-size:14px;">إغلاق</button>
+        </div>
       </div>
 
     </div>
