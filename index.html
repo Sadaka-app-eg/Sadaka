@@ -1058,12 +1058,26 @@ body.hide-controls #quran {
   color: #ffffff !important; /* تغيير لون النص والرموز إلى الأبيض الصافي */
 }
 
-/* 💻 تحسين استجابة المصحف للشاشات الكبيرة والكمبيوتر لتظهر الصفحة كاملة وباحترافية */
+/* 💻 ضبط عرض المصحف على الكمبيوتر والشاشات الكبيرة (صفحة واحدة متمركزة فقط) */
 @media (min-width: 768px) {
-  .mushaf-page {
-    max-width: 650px !important; /* تحديد أقصى عرض مناسب لشكل صفحة المصحف الحقيقية على الكمبيوتر */
-    margin: 0 auto !important; /* توسيط صفحة المصحف في منتصف شاشة الكمبيوتر */
-    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5) !important;
+  #surahScreen .mushaf-pages-wrap {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    background: #000000 !important;
+  }
+
+  #surahScreen .mushaf-slider {
+    width: 100% !important;
+    max-width: 550px !important;
+    margin: 0 auto !important;
+  }
+
+  #surahScreen .mushaf-page {
+    flex: 0 0 100% !important;
+    width: 100% !important;
+    max-width: 550px !important;
+    box-shadow: 0 0 25px rgba(0, 0, 0, 0.6) !important;
   }
 }
 
@@ -3472,11 +3486,7 @@ function showPage(id, el) {
     }
   }
 
-if (id === 'quran') {
-    const lastSurah = parseInt(localStorage.getItem('last_active_surah')) || 1;
-    openSurah(lastSurah);
-    return;
-  }
+
 
   // 3️⃣ استدعاءات الأقسام بعد تنظيف التكرار
   if (id === 'favPage') renderFav();
@@ -4023,7 +4033,10 @@ html += `<div style="flex:1; display:flex; flex-direction:column; justify-conten
     const lineWords = pagesDict[pageNum][lineNum];
     const lineJustify = isSpecialPage ? 'justify-content:center;gap:8px;' : 'justify-content:space-between;';
    
-const fontSize = isSpecialPage ? 'clamp(20px, 3.5vh, 32px)' : 'clamp(16px, 2.7vh, 26px)';
+// حساب حجم خط مرن يحمي الأسطر الأخيرة من النزول فوق رقم الصفحة
+const fontSize = isSpecialPage 
+  ? 'clamp(18px, 3.2vh, 28px)' 
+  : (extraLines > 0 ? 'clamp(14px, 2.2vh, 22px)' : 'clamp(15px, 2.5vh, 24px)');	  
 	  const firstWord = lineWords[0];
     if (firstWord && firstWord.vAyah === 1 && !renderedSurahHeaders.has(firstWord.vSurah)) {
       renderedSurahHeaders.add(firstWord.vSurah);
@@ -4205,8 +4218,7 @@ sliderHtml += `<div style="flex:1; display:flex; flex-direction:column; justify-
       lines.forEach(lineNum => {
         const lineWords = pagesDict[pageNum][lineNum];
 const lineJustify = isSpecialPage ? 'justify-content:center;gap:8px;' : 'justify-content:space-between;';
-        const fontSize = isSpecialPage ? 'clamp(22px, 5.5vw, 32px)' : 'clamp(20px, 4.8vw, 28px)';
-
+sliderHtml += `<div style="flex:1; display:flex; flex-direction:column; justify-content:${isSpecialPage ? 'center' : 'space-between'}; width:100%; height:calc(100% - 60px); overflow:hidden; padding-bottom:10px; box-sizing:border-box;">`;
         const firstWord = lineWords[0];
         if (firstWord && firstWord.vAyah === 1 && !renderedSurahHeaders.has(firstWord.vSurah)) {
           renderedSurahHeaders.add(firstWord.vSurah);
