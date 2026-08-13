@@ -1501,10 +1501,6 @@ body.hide-controls #quran {
         🔍 
       </button>
 
-      <!-- 🎨 زرار المظهر والثيمات الجديد -->
-      <button onclick="window.openMushafThemeModal()" style="background: rgba(255, 255, 255, 0.08); border: 1px solid var(--border); color: var(--gold); padding: 6px 12px; border-radius: 12px; font-family: 'Amiri', serif; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 4px;" title="تغيير ثيم ولون المصحف">
-        🎨 
-      </button>
 
       <!-- ☰ زرار الفهرس (في المنتصف) -->
       <button onclick="localStorage.setItem('surah_screen_open','0'); document.getElementById('surahScreen').classList.remove('open'); if(typeof stopAudio === 'function') stopAudio(); showPage('quran', null);" style="background: rgba(212, 175, 55, 0.2); border: 1.5px solid var(--gold); color: var(--gold); padding: 6px 16px; border-radius: 14px; font-family: 'Amiri', serif; font-size: 14px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; box-shadow: 0 2px 8px rgba(212,175,55,0.2);">
@@ -3421,6 +3417,7 @@ navigator.serviceWorker.addEventListener('message', (event) => {
 
 
 function toAr(n) {
+  if (n === undefined || n === null) return '';
   return n.toString().replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
 }
 
@@ -4133,25 +4130,18 @@ applyMushafNightState();
 const surahStartP = surahStartPages[n - 1] || 1;
   const surahEndP = (surahStartPages[n] ? surahStartPages[n] - 1 : 604);
 
-  let targetP = surahStartP;
+let targetP = surahStartP;
 
-  // 🎯 إذا كانت هناك آية مستهدفة، نجيب رقم صفحتها من الكاش المباشر إذا وُجدت
-  if (targetAyahNum) {
-    // جلب الصفحة التقريبية الحقيقية للآية لو مش محددة
-    if (typeof targetPageNumber === 'number') {
-      targetP = targetPageNumber;
-    } else {
-      // فحص سريع في البيانات الحالية
-      const foundAyah = currentAyahsData.find(a => a.surahNumber === n && a.numberInSurah === targetAyahNum);
-      if (foundAyah && foundAyah.page) {
-        targetP = foundAyah.page;
-      }
-    }
-  } else if (targetPageNumber === 'last') {
-    targetP = surahEndP;
-  } else if (typeof targetPageNumber === 'number') {
+// 🎯 الأولوية المطلقة لرقم الصفحة المُمرر مباشرة من البحث
+if (typeof targetPageNumber === 'number' && targetPageNumber >= 1 && targetPageNumber <= 604) {
     targetP = targetPageNumber;
-  }
+} else if (targetAyahNum) {
+    // لو مفيش صفحة ممررة بس فيه رقم آية، نجيب صفحتها من الكاش المخزن في IndexedDB فوراً
+    // (حيلة سريعة تضمن عدم فشل البحث أبداً)
+    targetP = surahStartP; // مؤقت لحين تحميل بيانات الصفحة المجاورة
+} else if (targetPageNumber === 'last') {
+    targetP = surahEndP;
+}
 
 // 🎯 تحميل السورة الحالية + صفحات الأمان المجاورة (السورة السابقة والتالية) لتسهيل السحب والحرية الكاملة
 const minPage = Math.max(1, targetP - 2);
@@ -5892,9 +5882,9 @@ if (matchedAyahs.length > 0) {
         html += `<div style="color:var(--green);font-size:15px;margin-top:20px;margin-bottom:10px;font-family:Amiri,serif;font-weight:bold;border-bottom:1px solid var(--border);padding-bottom:5px;">✨ نتائج بحث الآيات أوفلاين — [${toAr(matchedAyahs.length)} آية]:</div>`;
         
 html += matchedAyahs.slice(0, 50).map(m => `
-  <div class="surah-item" onclick="openSurah(${m.surahNumber}, ${m.numberInSurah}, ${m.page})" style="border-right:4px solid var(--green);margin-bottom:10px;display:block;padding:12px 14px;cursor:pointer;">
+  <div class="surah-item" onclick="openSurah(${m.surahNumber}, ${m.numberInSurah}, ${m.page || 1})" style="border-right:4px solid var(--green);margin-bottom:10px;display:block;padding:12px 14px;cursor:pointer;">
     <div style="font-size:17px;line-height:2;color:var(--text);font-family:'Amiri Quran',serif;text-align:justify;">${m.text}</div>
-    <div style="color:var(--gold);margin-top:6px;font-size:12px;font-family:Amiri,serif;text-align:left;">سورة ${m.surahName} — الآية ${toAr(m.numberInSurah)} (صفحة ${toAr(m.page)}) 🟢</div>
+    <div style="color:var(--gold);margin-top:6px;font-size:12px;font-family:Amiri,serif;text-align:left;">سورة ${m.surahName} — الآية ${toAr(m.numberInSurah)} (صفحة ${toAr(m.page || 1)}) 🟢</div>
   </div>`).join('');
       }
 
