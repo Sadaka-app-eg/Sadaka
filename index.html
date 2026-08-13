@@ -1338,14 +1338,21 @@ body.hide-controls #quran {
 
 <!-- QURAN -->
 <div class="page" id="quran">
-  <!-- تعديل السطر ده لتغيير النص واستدعاء الدالة الجديدة globalSearch -->
- <!-- النص التوضيحي المضاف لميزة الضغط المطول -->
-<div style="text-align: center; margin-bottom: 12px; font-family: 'Amiri', serif; direction: rtl;">
-  <p style="color: var(--text2); font-size: 13px;">✨ اضغط للقراءة العادية.. و<span style="color:var(--gold); font-weight:bold;">اضغط ضغطة مطولة</span> لأسباب النزول والتدبر</p>
+<!-- هيدر الفهرس المزود بزر رجوع للشاشة الرئيسية -->
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; direction: rtl;">
+  <button onclick="showPage('home', null)" style="background: var(--card); border: 1px solid var(--border); color: var(--gold); padding: 6px 14px; border-radius: 16px; font-family: 'Amiri', serif; font-size: 13px; font-weight: bold; cursor: pointer;">
+    ← الرجوع للرئيسية
+  </button>
+  <h2 style="color: var(--gold); font-family: 'Amiri', serif; font-size: 18px; margin: 0;">📖 فهرس السور والبحث الشامل</h2>
+  <span style="width: 80px;"></span>
 </div>
 
-<input class="search-box" placeholder="🔍 ابحث عن سورة أو آية..." oninput="globalSearch(this.value)">
+<!-- صندوق البحث المطور للكلمات والآيات بالسورة والآية -->
+<input class="search-box" placeholder="🔍 ابحث عن سورة أو كلمة/آية في المصحف..." oninput="globalSearch(this.value)">
 
+<div style="text-align: center; margin-bottom: 12px; font-family: 'Amiri', serif; direction: rtl;">
+  <p style="color: var(--text2); font-size: 12px;">✨ اضغط للقراءة العادية.. و<span style="color:var(--gold); font-weight:bold;">اضغط ضغطة مطولة</span> لأسباب النزول والتدبر</p>
+</div>
     
   <!-- السطر الجديد ده: مكان مخصص لظهور نتائج البحث في الآيات -->
   <div id="ayahSearchResults" style="display:none; margin-bottom:14px;"></div>
@@ -1357,11 +1364,18 @@ body.hide-controls #quran {
 <!-- SURAH SCREEN -->
 <div class="surah-screen" id="surahScreen">
   <div class="mushaf-top-controls" id="mushafTopControls">
-    <div class="surah-header" style="position: relative;">
-      <button class="back-btn" onclick="closeSurah()">→</button>
-      <div style="flex: 1; display: flex; align-items: center; justify-content: space-between; padding: 0 10px;">
+<div class="surah-header" style="position: relative;">
+      <!-- زر الرجوع للشاشة الرئيسية -->
+      <button class="back-btn" onclick="showPage('home', null); closeSurah();" title="الرجوع للرئيسية">→</button>
+      
+      <!-- منتصف الهيدر: عنوان السورة + زرار الفهرس الأنيق -->
+      <div style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 10px;">
         <h2 id="surahScreenTitle" style="margin: 0; font-size: 16px; text-align: center;">السورة</h2>
+        <button onclick="showPage('quran', null)" style="background: rgba(212, 175, 55, 0.15); border: 1px solid var(--gold); color: var(--gold); padding: 4px 12px; border-radius: 14px; font-family: 'Amiri', serif; font-size: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+          ☰ الفهرس
+        </button>
       </div>
+
       <button class="icon-btn" id="bookmarkJumpBtn" onclick="jumpToBookmark()" style="display:none;">🔖</button>
       <button class="icon-btn" onclick="toggleFavSurah()" id="favSurahBtn">🤍</button>
       <button class="icon-btn" id="nightModeBtn" onclick="toggleMushafNight()">🌙</button>
@@ -3410,7 +3424,11 @@ function showPage(id, el) {
     }
   }
 
-
+if (id === 'quran') {
+    const lastSurah = parseInt(localStorage.getItem('last_active_surah')) || 1;
+    openSurah(lastSurah);
+    return;
+  }
 
   // 3️⃣ استدعاءات الأقسام بعد تنظيف التكرار
   if (id === 'favPage') renderFav();
