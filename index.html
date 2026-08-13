@@ -4242,19 +4242,24 @@ window.navSurah = function(direction) {
 
 
 // =========================================================================
-// 🚀 محرك التحميل الأوفلاين الشامل (بيانات الآيات + خطوط الـ 604 صفحة)
+// 🚀 محرك التحميل الأوفلاين الشامل (مُصلح: يفحص الحفظ أولاً لمنع استهلاك النت)
 // =========================================================================
 function prefetchFullQuranData() {
   setTimeout(async () => {
     if (!('caches' in window)) return;
     
+    // 🛡️ 1. فحص حاسم: لو المصحف اتحمل قبل كدة، اخرج فوراً بدون أي طلبات شبكة
+    if (localStorage.getItem('quran_full_downloaded') === '1') {
+      console.log("✅ المصحف محفوط بالكامل أوفلاين في IndexedDB والـ Cache (لم يتم سحب أي بيانات من النت).");
+      return;
+    }
+
     try {
-      // فتح الكاش الخاص بالخطوط المعتمد في الـ Service Worker
       const fontCache = await caches.open('athr-audio-cache-v1'); 
-      console.log("🚀 جاري بدء التحميل الأوفلاين الشامل لخطوط وبيانات المصحف (604 صفحة)...");
+      console.log("🚀 جاري بدء التحميل الأوفلاين لأول مرة فقط لخطوط وبيانات المصحف (604 صفحة)...");
 
       for (let p = 1; p <= 604; p++) {
-        // 1. فحص وتخزين بيانات الآيات في IndexedDB
+        // فحص IndexedDB
         const existingData = await getCachedSurahDB(`page_${p}`);
         if (!existingData) {
           try {
@@ -4266,7 +4271,7 @@ function prefetchFullQuranData() {
           } catch(e) {}
         }
 
-        // 2. 🎯 تخزين ملف الخط العثماني (WOFF2) للصفحة في الكاش
+        // فحص كاش الخطوط
         const fontUrl = `https://verses.quran.foundation/fonts/quran/hafs/v2/woff2/p${p}.woff2`;
         const fontMatch = await fontCache.match(fontUrl);
         if (!fontMatch) {
@@ -4278,14 +4283,16 @@ function prefetchFullQuranData() {
           } catch(e) {}
         }
 
-        // مهلة بسيطة بين كل صفحة وصفحة حتى لا يسخن الموبايل
-        await new Promise(r => setTimeout(r, 35));
+        await new Promise(r => setTimeout(r, 15));
       }
-      console.log("✅ تم حفظ خطوط وبيانات ٦٠٤ صفحة أوفلاين بنجاح! لن تظهر شفرات بعد اليوم.");
+
+      // 🎯 وضع علامة القفل لمنع إعادة التحميل نهائياً في المرات القادمة
+      localStorage.setItem('quran_full_downloaded', '1');
+      console.log("✅ تم حفظ خطوط وبيانات ٦٠٤ صفحة أوفلاين بنجاح! لن يتم سحب أي بيانات في المرات القادمة.");
     } catch (e) {
       console.error("خطأ التحميل الخلفي للمصحف:", e);
     }
-  }, 3000);
+  }, 2000);
 }
  
     function scrollToTargetAyahIfNeeded(targetAyahNum) {
