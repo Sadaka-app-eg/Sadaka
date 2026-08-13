@@ -4215,10 +4215,15 @@ sliderHtml += `<div style="flex:1; display:flex; flex-direction:column; justify-
       const lines = Object.keys(pagesDict[pageNum]).map(Number).sort((a, b) => a - b);
       let renderedSurahHeaders = new Set();
 
-      lines.forEach(lineNum => {
+lines.forEach(lineNum => {
         const lineWords = pagesDict[pageNum][lineNum];
-const lineJustify = isSpecialPage ? 'justify-content:center;gap:8px;' : 'justify-content:space-between;';
-sliderHtml += `<div style="flex:1; display:flex; flex-direction:column; justify-content:${isSpecialPage ? 'center' : 'space-between'}; width:100%; height:calc(100% - 60px); overflow:hidden; padding-bottom:10px; box-sizing:border-box;">`;
+        const lineJustify = isSpecialPage ? 'justify-content:center;gap:8px;' : 'justify-content:space-between;';
+        
+        // 🎯 هذا هو السطر المفقود الذي كان يسبب خطأ الشاشة السوداء
+        const fontSize = isSpecialPage 
+          ? 'clamp(18px, 3.2vh, 28px)' 
+          : (extraLines > 0 ? 'clamp(14px, 2.2vh, 22px)' : 'clamp(15px, 2.5vh, 24px)');
+
         const firstWord = lineWords[0];
         if (firstWord && firstWord.vAyah === 1 && !renderedSurahHeaders.has(firstWord.vSurah)) {
           renderedSurahHeaders.add(firstWord.vSurah);
