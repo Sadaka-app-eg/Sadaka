@@ -5761,8 +5761,22 @@ window.openNearestMosque = function() {
  }
   // يجب تعريف المتغير خارج الدالة ليحتفظ بقيمته بين الاستدعاءات
 let searchTimeout; 
+// دالة ذكية لتنظيف النص العربي من التشكيل والهمزات والألفات
+function normalizeArabicText(text) {
+  if (!text) return "";
+  return text
+    .replace(/[\u064B-\u0652\u0670\u0653\u0654\u0655]/g, "") // إزالة التشكيل والتطويل
+    .replace(/[أإآٱٲٳٵ]/g, "ا")                         // توحيد الألفات
+    .replace(/ى/g, "ي")                               // توحيد الياء
+    .replace(/ؤ/g, "و")                               // توحيد الواو
+    .replace(/ئ/g, "ي")                               // توحيد النبرة
+    .replace(/ة/g, "ه")                               // توحيد التاء المربوطة
+    .trim()
+    .toLowerCase();
+}
+
 // =========================================================================
-// 🔍 محرك البحث الشامل للآيات والسور (بحث أوفلاين مجاني 100% من IndexedDB)
+// 🔍 محرك البحث الشامل الذكي (يبحث أوفلاين بالتشكيل وبدونه)
 // =========================================================================
 async function globalSearch(q) {
   clearTimeout(searchTimeout);
@@ -5786,12 +5800,13 @@ async function globalSearch(q) {
       if (surahListEl) surahListEl.style.display = 'none';
       resultsDiv.innerHTML = '<div style="color:var(--gold);padding:10px;font-size:13px;font-family:Amiri,serif;text-align:center;">⏳ جاري البحث في الآيات أوفلاين...</div>';
 
-      const query = q.trim();
+      const queryRaw = q.trim();
+      const cleanQuery = normalizeArabicText(queryRaw);
 
       // 1️⃣ البحث في أسماء السور
-      const matchedSurahs = surahs.filter(s => s.name.includes(query));
+      const matchedSurahs = surahs.filter(s => normalizeArabicText(s.name).includes(cleanQuery));
 
-      // 2️⃣ البحث أوفلاين المباشر والسريع داخل صفحات المصحف المخزنة في IndexedDB
+      // 2️⃣ البحث أوفلاين المباشر في IndexedDB
       let matchedAyahs = [];
       
       const db = await openQuranDB();
@@ -5810,12 +5825,9 @@ async function globalSearch(q) {
         if (pageData && pageData.verses) {
           for (const verse of pageData.verses) {
             const verseText = verse.words ? verse.words.map(w => w.text_uthmani).join(" ") : (verse.text_uthmani || "");
-            
-            // تنظيف النص المقارن للبحث المرن بدون تشكيل
-            const cleanText = verseText.replace(/[\u064B-\u0652]/g, "");
-            const cleanQuery = query.replace(/[\u064B-\u0652]/g, "");
+            const cleanVerseText = normalizeArabicText(verseText);
 
-            if (verseText.includes(query) || cleanText.includes(cleanQuery)) {
+            if (cleanVerseText.includes(cleanQuery)) {
               const [vSurah, vAyah] = verse.verse_key.split(':').map(Number);
               const sObj = surahs.find(s => s.n === vSurah);
               matchedAyahs.push({
@@ -5829,7 +5841,7 @@ async function globalSearch(q) {
         }
       }
 
-      // 3️⃣ بناء وعرض النتائج أوفلاين
+      // 3️⃣ رندر النتائج
       let html = '';
 
       if (matchedSurahs.length > 0) {
@@ -6286,6 +6298,7 @@ function restoreLastState() {
   }
 }
 function openQuranFromMenu(el) {
+  // إغلاق المنيو الجانبي
   const menu = document.getElementById('tabsMenu');
   const overlay = document.getElementById('menuOverlay');
   if (menu) menu.classList.remove('open');
@@ -6293,18 +6306,16 @@ function openQuranFromMenu(el) {
   document.body.style.overflow = '';
   document.body.style.position = '';
   document.body.style.width = '';
+
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  if (el) el.classList.add('active');
+  if (el && el.classList) el.classList.add('active');
 
-  const lastSurah = parseInt(localStorage.getItem('last_active_surah'));
-  const lastPage = parseInt(localStorage.getItem('last_active_page'));
+  // جلب آخر سورة وصفحة تم التوقف عندهما
+  const lastSurah = parseInt(localStorage.getItem('last_active_surah')) || 1;
+  const lastPage = parseInt(localStorage.getItem('last_active_page')) || null;
 
-  if (lastSurah) {
-    const targetSurah = (lastPage && getSurahByPageNumber(lastPage)) || surahs.find(s => s.n === lastSurah);
-    openSurah(targetSurah.n, null, lastPage || null);
-  } else {
-    showPage('quran', el);
-  }
+  // فتح شاشة المصحف المباشرة
+  openSurah(lastSurah, null, lastPage);
 }
 // دالة ذكية لإنشاء الصفحة وزرار الضغط تلقائياً في الـ HTML بدون ما تدور عليهم
 function setupNafahatSystem() {
