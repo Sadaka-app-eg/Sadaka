@@ -24,14 +24,22 @@
     }
     
     if (totalSize > 4 * 1024 * 1024) {
-      const keysToKeep = [
+const keysToKeep = [
         'user_display_name', 
         'athr_user_name', 
         'athr_user_gender', 
         'theme_choice', 
         'athr_current_theme', 
         'active_quran_theme',
-        'quran_bookmark'
+        'quran_bookmark',
+        'last_active_surah',
+        'last_active_page',
+        'surah_screen_open',
+        'mushaf_night_mode',
+        'notif_selected',
+        'notif_custom',
+        'answer_times_selected',
+        'selected_dhikr_sound'
       ];
        
       const backupData = {};
