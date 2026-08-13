@@ -4134,12 +4134,18 @@ const surahStartP = surahStartPages[n - 1] || 1;
   const surahEndP = (surahStartPages[n] ? surahStartPages[n] - 1 : 604);
 
   let targetP = surahStartP;
-  
-  // 🎯 إذا جاء المريض بطلب البحث برقم آية معينة، نحسب رقم صفحتها الحقيقي أوفلاين
-  if (targetAyahNum && currentAyahsData && currentAyahsData.length > 0) {
-    const matchedAyahData = currentAyahsData.find(a => a.surahNumber === n && a.numberInSurah === targetAyahNum);
-    if (matchedAyahData && matchedAyahData.page) {
-      targetP = matchedAyahData.page;
+
+  // 🎯 إذا كانت هناك آية مستهدفة، نجيب رقم صفحتها من الكاش المباشر إذا وُجدت
+  if (targetAyahNum) {
+    // جلب الصفحة التقريبية الحقيقية للآية لو مش محددة
+    if (typeof targetPageNumber === 'number') {
+      targetP = targetPageNumber;
+    } else {
+      // فحص سريع في البيانات الحالية
+      const foundAyah = currentAyahsData.find(a => a.surahNumber === n && a.numberInSurah === targetAyahNum);
+      if (foundAyah && foundAyah.page) {
+        targetP = foundAyah.page;
+      }
     }
   } else if (targetPageNumber === 'last') {
     targetP = surahEndP;
@@ -4398,15 +4404,19 @@ function prefetchFullQuranData() {
  
 function scrollToTargetAyahIfNeeded(targetAyahNum) {
   if (!targetAyahNum) return;
-  const idx = currentAyahsData.findIndex(a => a.numberInSurah === targetAyahNum);
-  if (idx === -1) return;
   setTimeout(() => {
+    const idx = currentAyahsData.findIndex(a => a.numberInSurah === targetAyahNum);
+    if (idx === -1) return;
     const words = document.querySelectorAll(`.ayah-group_${idx}`);
     if (words.length === 0) return;
+    
+    // النزول السلس للآية في نص الشاشة
     words[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
-    highlightAyah(idx, 'flash'); // تلوين أخضر خفيف للآية
-    setTimeout(() => clearHighlightBars('flash'), 3000); // إزالة التلوين بعد 3 ثوانٍ
-  }, 500);
+    
+    // تظليل وميض خفيف بالأخضر
+    highlightAyah(idx, 'flash');
+    setTimeout(() => clearHighlightBars('flash'), 3500);
+  }, 700);
 }
       
 
@@ -5881,11 +5891,11 @@ async function globalSearch(q) {
 if (matchedAyahs.length > 0) {
         html += `<div style="color:var(--green);font-size:15px;margin-top:20px;margin-bottom:10px;font-family:Amiri,serif;font-weight:bold;border-bottom:1px solid var(--border);padding-bottom:5px;">✨ نتائج بحث الآيات أوفلاين — [${toAr(matchedAyahs.length)} آية]:</div>`;
         
-        html += matchedAyahs.slice(0, 50).map(m => `
-          <div class="surah-item" onclick="openSurah(${m.surahNumber}, ${m.numberInSurah})" style="border-right:4px solid var(--green);margin-bottom:10px;display:block;padding:12px 14px;cursor:pointer;">
-            <div style="font-size:17px;line-height:2;color:var(--text);font-family:'Amiri Quran',serif;text-align:justify;">${m.text}</div>
-            <div style="color:var(--gold);margin-top:6px;font-size:12px;font-family:Amiri,serif;text-align:left;">سورة ${m.surahName} — الآية ${toAr(m.numberInSurah)} 🟢</div>
-          </div>`).join('');
+html += matchedAyahs.slice(0, 50).map(m => `
+  <div class="surah-item" onclick="openSurah(${m.surahNumber}, ${m.numberInSurah}, ${m.page})" style="border-right:4px solid var(--green);margin-bottom:10px;display:block;padding:12px 14px;cursor:pointer;">
+    <div style="font-size:17px;line-height:2;color:var(--text);font-family:'Amiri Quran',serif;text-align:justify;">${m.text}</div>
+    <div style="color:var(--gold);margin-top:6px;font-size:12px;font-family:Amiri,serif;text-align:left;">سورة ${m.surahName} — الآية ${toAr(m.numberInSurah)} (صفحة ${toAr(m.page)}) 🟢</div>
+  </div>`).join('');
       }
 
       if (matchedSurahs.length === 0 && matchedAyahs.length === 0) {
@@ -6164,60 +6174,79 @@ function selectHomeBg(id) {
   renderBgPicker();
 }
 // =========================================================================
-// 🎨 نظام تغيير ثيم وألوان المصحف اللحظي المطور
+// 🎨 نافذة ثيمات المصحف الورقية الجاهزة
 // =========================================================================
 window.openMushafThemeModal = function() {
   const existingModal = document.getElementById('mushafThemeModal');
   if (existingModal) existingModal.remove();
 
   const modalHTML = `
-    <div id="mushafThemeModal" style="position:fixed; inset:0; background:rgba(0,0,0,0.8); backdrop-filter:blur(8px); z-index:9999999; display:flex; align-items:center; justify-content:center; padding:20px; font-family:'Amiri', serif; direction:rtl;">
-      <div style="background:#121813; border:1px solid var(--gold); border-radius:20px; width:100%; max-width:380px; padding:22px; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.6);">
+    <div id="mushafThemeModal" style="position:fixed; inset:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); z-index:9999999; display:flex; align-items:center; justify-content:center; padding:20px; font-family:'Amiri', serif; direction:rtl;">
+      <div style="background:#121813; border:1px solid var(--gold); border-radius:20px; width:100%; max-width:400px; padding:22px; text-align:center; box-shadow:0 10px 40px rgba(0,0,0,0.8);">
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:10px; margin-bottom:15px;">
-          <h3 style="color:var(--gold); margin:0; font-size:18px;">🎨 تخصيص مظهر المصحف</h3>
+          <h3 style="color:var(--gold); margin:0; font-size:18px;">🎨 اختر ثيم القراءة المناسب لعنيك</h3>
           <button onclick="document.getElementById('mushafThemeModal').remove()" style="background:none; border:none; color:var(--text2); font-size:24px; cursor:pointer;">✕</button>
         </div>
 
-        <!-- 1️⃣ ألوان الخط الداكنة والفاتحة -->
-        <div style="text-align:right; font-size:13px; color:var(--gold); margin-bottom:8px; font-weight:bold;">لون الكلمات والخط:</div>
-        <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; margin-bottom:16px;">
-          <button onclick="window.changeMushafTextColor('#1a1008')" style="background:#1a1008; color:#fff; border:1px solid #d4af37; padding:8px; border-radius:10px; font-size:11px; cursor:pointer;">أسود</button>
-          <button onclick="window.changeMushafTextColor('#ffffff')" style="background:#ffffff; color:#000; border:1px solid #ccc; padding:8px; border-radius:10px; font-size:11px; cursor:pointer;">أبيض</button>
-          <button onclick="window.changeMushafTextColor('#d4af37')" style="background:#222; color:#d4af37; border:1px solid #d4af37; padding:8px; border-radius:10px; font-size:11px; cursor:pointer;">ذهبي</button>
-          <button onclick="window.changeMushafTextColor('#6fbf73')" style="background:#112211; color:#6fbf73; border:1px solid #6fbf73; padding:8px; border-radius:10px; font-size:11px; cursor:pointer;">أخضر</button>
+        <div style="display:grid; grid-template-columns:1fr; gap:10px; margin-bottom:20px;">
+          <!-- 1. كريمي تقليدي -->
+          <button onclick="window.applyMushafFullTheme('#fbf7ed', '#1a1008', '#cda869')" style="background:#fbf7ed; color:#1a1008; border:2px solid #cda869; padding:12px; border-radius:14px; font-size:14px; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:space-between;">
+            <span>🟡 كريمي تقليدي (أوراق المصحف)</span>
+            <span style="font-size:11px; opacity:0.8;">خط داكن</span>
+          </button>
+
+          <!-- 2. ليلي فاخر -->
+          <button onclick="window.applyMushafFullTheme('#0b120c', '#ffffff', '#6fbf73')" style="background:#0b120c; color:#ffffff; border:2px solid #6fbf73; padding:12px; border-radius:14px; font-size:14px; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:space-between;">
+            <span>⚫ ليلي فاخر (مريح للعين ليلاً)</span>
+            <span style="font-size:11px; color:#6fbf73;">خط أبيض</span>
+          </button>
+
+          <!-- 3. البيج الدافئ -->
+          <button onclick="window.applyMushafFullTheme('#f4ecd8', '#2b1d0c', '#8b6914')" style="background:#f4ecd8; color:#2b1d0c; border:2px solid #8b6914; padding:12px; border-radius:14px; font-size:14px; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:space-between;">
+            <span>📙 بيج دافئ (نمط المخطوطات)</span>
+            <span style="font-size:11px; opacity:0.8;">خط بني</span>
+          </button>
+
+          <!-- 4. أزرق كحلي داكن -->
+          <button onclick="window.applyMushafFullTheme('#0a1128', '#fefefe', '#f4d35e')" style="background:#0a1128; color:#fefefe; border:2px solid #f4d35e; padding:12px; border-radius:14px; font-size:14px; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:space-between;">
+            <span>🔵 أزرق كحلي (قراءة هادئة)</span>
+            <span style="font-size:11px; color:#f4d35e;">خط أبيض</span>
+          </button>
+
+          <!-- 5. أبيض ناصع -->
+          <button onclick="window.applyMushafFullTheme('#ffffff', '#111111', '#b58900')" style="background:#ffffff; color:#111111; border:2px solid #aaa; padding:12px; border-radius:14px; font-size:14px; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:space-between;">
+            <span>⚪ أبيض ناصع (إضاءة قوية)</span>
+            <span style="font-size:11px; opacity:0.8;">خط أسود</span>
+          </button>
         </div>
 
-        <!-- 2️⃣ ثيمات ورقية جاهزة خلف الصفحة -->
-        <div style="text-align:right; font-size:13px; color:var(--gold); margin-bottom:8px; font-weight:bold;">خلفية الورق المعتمدة:</div>
-        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-bottom:20px;">
-          <button onclick="window.applyMushafPaperTheme('#fbf7ed', '#1a1008')" style="background:#fbf7ed; color:#1a1008; border:1px solid #cda869; padding:10px 4px; border-radius:10px; font-size:12px; font-weight:bold; cursor:pointer;">🟡 كريمي تقليدي</button>
-          <button onclick="window.applyMushafPaperTheme('#0b120c', '#ffffff')" style="background:#0b120c; color:#ffffff; border:1px solid #6fbf73; padding:10px 4px; border-radius:10px; font-size:12px; font-weight:bold; cursor:pointer;">⚫ ليلي فاخر</button>
-          <button onclick="window.applyMushafPaperTheme('#ffffff', '#111111')" style="background:#ffffff; color:#111111; border:1px solid #aaa; padding:10px 4px; border-radius:10px; font-size:12px; font-weight:bold; cursor:pointer;">⚪ أبيض ناصع</button>
-        </div>
-
-        <button onclick="document.getElementById('mushafThemeModal').remove()" style="background:var(--gold); color:#111; border:none; padding:10px 25px; border-radius:20px; font-weight:bold; cursor:pointer; font-family:'Amiri',serif; width:100%;">تم الحفظ ✓</button>
+        <button onclick="document.getElementById('mushafThemeModal').remove()" style="background:var(--gold); color:#111; border:none; padding:11px 25px; border-radius:20px; font-weight:bold; cursor:pointer; font-family:'Amiri',serif; width:100%;">تم الحفظ ✓</button>
       </div>
     </div>
   `;
   document.body.insertAdjacentHTML('beforeend', modalHTML);
 };
 
-window.changeMushafTextColor = function(colorHex) {
-  localStorage.setItem('mushaf_custom_text_color', colorHex);
-  document.querySelectorAll('.qcf-word, .ayah-span').forEach(el => {
-    el.style.setProperty('color', colorHex, 'important');
-  });
-};
-
-window.applyMushafPaperTheme = function(bgColor, textColor) {
+window.applyMushafFullTheme = function(bgColor, textColor, borderColor) {
   localStorage.setItem('mushaf_custom_bg_color', bgColor);
   localStorage.setItem('mushaf_custom_text_color', textColor);
-  
+  localStorage.setItem('mushaf_custom_border_color', borderColor || '#d4af37');
+
+  const root = document.documentElement;
+  root.style.setProperty('--mushaf-bg', bgColor);
+  root.style.setProperty('--mushaf-text', textColor);
+
   document.querySelectorAll('.mushaf-page').forEach(el => {
     el.style.setProperty('background', bgColor, 'important');
+    el.style.setProperty('color', textColor, 'important');
   });
-  
-  window.changeMushafTextColor(textColor);
+
+  document.querySelectorAll('.qcf-word, .ayah-span').forEach(el => {
+    el.style.setProperty('color', textColor, 'important');
+  });
+
+  const modal = document.getElementById('mushafThemeModal');
+  if (modal) modal.remove();
 };
 function applyHomeBg(id) {
   const hero = document.getElementById('homeHeroCard');
