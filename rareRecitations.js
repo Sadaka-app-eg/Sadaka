@@ -143,29 +143,22 @@ window.rareRecitations = [
 
 
 // ==========================================
-  // تلاوات الشيخ محمد نادي (20 تلاوة) 🎙️
+  // تلاوات الشيخ محمد نادي المرفوعة على الأرشيف 🎙️
   // ==========================================
-  { name: "محمد نادي: تلاوة خاشعة 01 🎙️", url: "audio_2/nadi_1.mp3", desc: "", tag: "محمد نادي" },
-  { name: "محمد نادي: تلاوة خاشعة 02 🎙️", url: "audio_2/nadi_2.mp3", desc: "", tag: "محمد نادي" },
-  { name: "محمد نادي: تلاوة خاشعة 03 🎙️", url: "audio_2/nadi_3.mp3", desc: "", tag: "محمد نادي" },
-  { name: "محمد نادي: تلاوة خاشعة 04 🎙️", url: "audio_2/nadi_4.mp3", desc: "", tag: "محمد نادي" },
-  { name: "محمد نادي: تلاوة خاشعة 05 🎙️", url: "audio_2/nadi_5.mp3", desc: "", tag: "محمد نادي" },
-  { name: "محمد نادي: تلاوة خاشعة 06 🎙️", url: "audio_2/nadi_6.mp3", desc: "", tag: "محمد نادي" },
-  { name: "محمد نادي: تلاوة خاشعة 07 🎙️", url: "audio_2/nadi_7.mp3", desc: "", tag: "محمد نادي" },
-  { name: "محمد نادي: تلاوة خاشعة 08 🎙️", url: "audio_2/nadi_8.mp3", desc: "", tag: "محمد نادي" },
-  { name: "محمد نادي: تلاوة خاشعة 09 🎙️", url: "audio_2/nadi_9.mp3", desc: "", tag: "محمد نادي" },
-  { name: "محمد نادي: تلاوة خاشعة 10 🎙️", url: "audio_2/nadi_10.mp3", desc: "", tag: "محمد نادي" },
-  { name: "محمد نادي: تلاوة خاشعة 11 🎙️", url: "audio_2/nadi_11.mp3", desc: "", tag: "محمد نادي" },
-  { name: "محمد نادي: تلاوة خاشعة 12 🎙️", url: "audio_2/nadi_12.mp3", desc: "", tag: "محمد نادي" },
-  { name: "محمد نادي: تلاوة خاشعة 13 🎙️", url: "audio_2/nadi_13.mp3", desc: "", tag: "محمد نادي" },
-  { name: "محمد نادي: تلاوة خاشعة 14 🎙️", url: "audio_2/nadi_14.mp3", desc: "", tag: "محمد نادي" },
-  { name: "محمد نادي: تلاوة خاشعة 15 🎙️", url: "audio_2/nadi_15.mp3", desc: "", tag: "محمد نادي" },
-  { name: "محمد نادي: تلاوة خاشعة 16 🎙️", url: "audio_2/nadi_16.mp3", desc: "", tag: "محمد نادي" },
-  { name: "محمد نادي: تلاوة خاشعة 17 🎙️", url: "audio_2/nadi_17.mp3", desc: "", tag: "محمد نادي" },
-  { name: "محمد نادي: تلاوة خاشعة 18 🎙️", url: "audio_2/nadi_18.mp3", desc: "", tag: "محمد نادي" },
-  { name: "محمد نادي: تلاوة خاشعة 19 🎙️", url: "audio_2/nadi_19.mp3", desc: "", tag: "محمد نادي" },
-  { name: "محمد نادي: تلاوة خاشعة 20 🎙️", url: "audio_2/nadi_20.mp3", desc: "", tag: "محمد نادي" },
-
+  { name: "محمد نادي: تلاوة خاشعة 01 🎙️", url: "https://archive.org/download/mohamed_nadi_athr_2026/nadi1.mp3", desc: "", tag: "محمد نادي" },
+  { name: "محمد نادي: تلاوة خاشعة 02 🎙️", url: "https://archive.org/download/mohamed_nadi_athr_2026/nadi2.mp3", desc: "", tag: "محمد نادي" },
+  { name: "محمد نادي: تلاوة خاشعة 03 🎙️", url: "https://archive.org/download/mohamed_nadi_athr_2026/nadi3.mp3", desc: "", tag: "محمد نادي" },
+  { name: "محمد نادي: تلاوة خاشعة 04 🎙️", url: "https://archive.org/download/mohamed_nadi_athr_2026/nadi4.mp3", desc: "", tag: "محمد نادي" },
+  { name: "محمد نادي: تلاوة خاشعة 05 🎙️", url: "https://archive.org/download/mohamed_nadi_athr_2026/nadi5.mp3", desc: "", tag: "محمد نادي" },
+  { name: "محمد نادي: تلاوة خاشعة 06 🎙️", url: "https://archive.org/download/mohamed_nadi_athr_2026/nadi6.mp3", desc: "", tag: "محمد نادي" },
+  { name: "محمد نادي: تلاوة خاشعة 07 🎙️", url: "https://archive.org/download/mohamed_nadi_athr_2026/nadi7.mp3", desc: "", tag: "محمد نادي" },
+  { name: "محمد نادي: تلاوة خاشعة 08 🎙️", url: "https://archive.org/download/mohamed_nadi_athr_2026/nadi8.mp3", desc: "", tag: "محمد نادي" },
+  { name: "محمد نادي: تلاوة خاشعة 09 🎙️", url: "https://archive.org/download/mohamed_nadi_athr_2026/nadi9.mp3", desc: "", tag: "محمد نادي" },
+  { name: "محمد نادي: تلاوة خاشعة 10 🎙️", url: "https://archive.org/download/mohamed_nadi_athr_2026/nadi10.mp3", desc: "", tag: "محمد نادي" },
+  { name: "محمد نادي: تلاوة خاشعة 11 🎙️", url: "https://archive.org/download/mohamed_nadi_athr_2026/nadi11.mp3", desc: "", tag: "محمد نادي" },
+  { name: "محمد نادي: تلاوة خاشعة 12 🎙️", url: "https://archive.org/download/mohamed_nadi_athr_2026/nadi12.mp3", desc: "", tag: "محمد نادي" },
+  { name: "محمد نادي: تلاوة خاشعة 13 🎙️", url: "https://archive.org/download/mohamed_nadi_athr_2026/nadi13.mp3", desc: "", tag: "محمد نادي" },
+  { name: "محمد نادي: تلاوة خاشعة 14 🎙️", url: "https://archive.org/download/mohamed_nadi_athr_2026/nadi14.mp3", desc: "", tag: "محمد نادي" },
 
   
     // تلاوات الشيخ أحمد كاسب (6 تلاوات)
