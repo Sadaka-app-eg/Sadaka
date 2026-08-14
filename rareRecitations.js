@@ -1236,9 +1236,9 @@ html += filteredList.map((item) => {
 // =========================================================================
 // 🔀 نظام ترتيب المشايخ بالسحب والإفلات السحابي (خاص بالمشرفين فقط)
 // =========================================================================
-let draggedSheikhTag = null;
-let touchDragItem = null;
-let longPressTimer = null;
+window.draggedSheikhTag = null;
+window.touchDragItem = null;
+window.longPressTimer = null;
 
 // 1️⃣ دالة جلب ترتيب المشايخ المخصص من السيرفر
 window.getSheikhOrderFromCloud = async function() {
@@ -1801,71 +1801,7 @@ window.loadCloudRecitations = async function() {
   }
 };
 
-// 2️⃣ رندر شبكة القراء مع زر الحذف وبيان (تمت الإضافة بواسطة)
-window.renderSheikhsGrid = async function (container) {
-  await window.loadCloudRecitations();
 
-  const myName = localStorage.getItem('athr_user_name') || "";
-  const isMeAdmin = typeof window.isAdminUser === 'function' ? window.isAdminUser() : false;
-
-  const tagsSet = new Set();
-  window.rareRecitations.forEach(item => { if (item.tag) tagsSet.add(item.tag); });
-  const sheikhs = Array.from(tagsSet);
-
-  let gridHTML = `
-    <!-- زر إضافة شيخ وتلاوة جديدة بالإذن السري -->
-    <div style="margin-bottom: 15px; text-align: center;">
-      <button onclick="window.openAddSheikhModal()" style="background: rgba(212,175,55,0.12); color: var(--gold); border: 1px dashed var(--gold); padding: 10px 20px; border-radius: 25px; font-family: 'Amiri', serif; font-size: 14px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
-        <span>➕</span> إضافة قارئ أو تلاوة جديدة (بإذن المشرف)
-      </button>
-    </div>
-
-    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; direction: rtl; padding: 10px 0;">
-  `;
-
-  sheikhs.forEach(sheikh => {
-    const avatar = window.getSheikhAvatar(sheikh);
-    const count = window.rareRecitations.filter(i => i.tag === sheikh).length;
-
-    // فحص هل هذا الشيخ تمت إضافته سحابياً ومعرفة من أضافه
-    const cloudItem = window.cloudRecitationsList.find(i => i.tag === sheikh);
-    const addedBy = cloudItem ? cloudItem.addedBy : null;
-
-    // الصلاحية: هل المستخدم مشرف أو هو نفسه اللي رفع الشيخ؟
-    const canDelete = cloudItem && (isMeAdmin || (myName && addedBy === myName));
-
-    gridHTML += `
-      <div style="position: relative; display: flex; flex-direction: column; align-items: center; justify-content: space-between; background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 12px 6px; cursor: pointer; text-align: center;" onclick="window.selectSheikh('${sheikh}')">
-        
-        ${canDelete ? `
-          <!-- زر حذف القارئ السحابي للمشرف أو الناشر فقط -->
-          <button onclick="event.stopPropagation(); window.deleteCloudSheikh('${sheikh}')" style="position: absolute; top: 6px; left: 6px; background: rgba(255,77,77,0.2); border: 1px solid #ff4d4d; color: #ff4d4d; border-radius: 50%; width: 22px; height: 22px; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="حذف هذا القارئ وتلاواته">🗑️</button>
-        ` : ''}
-
-        <img src="${avatar}" alt="${sheikh}" style="width: 65px; height: 65px; border-radius: 50%; object-fit: cover; border: 2px solid var(--gold); box-shadow: 0 4px 10px rgba(0,0,0,0.3);" />
-        
-        <div style="font-weight: bold; color: var(--text); font-family: 'Amiri', serif; font-size: 12px; margin-top: 8px; line-height: 1.2;">
-          ${sheikh}
-        </div>
-
-        <div style="font-size: 10px; color: var(--gold); margin-top: 2px;">
-          ${count} مقطع
-        </div>
-
-        ${addedBy ? `
-          <!-- بيان اسم الناشر -->
-          <div style="font-size: 8px; color: var(--text2); margin-top: 4px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 3px; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-            بواسطة: <span style="color:var(--gold);">${addedBy}</span>
-          </div>
-        ` : ''}
-
-      </div>
-    `;
-  });
-
-  gridHTML += `</div>`;
-  container.innerHTML = gridHTML;
-};
 
 // 3️⃣ النشر السحابي بعد التعديل لتسجيل اسم الرافع وحفظ الداتا
 window.publishAllBatchToCloud = async function() {
