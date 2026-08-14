@@ -22,7 +22,7 @@ window.sheikhAvatars = {
   "عمر بن ضياء الدين": "https://play-lh.googleusercontent.com/aMdy6D3a21LnpSR9CBAQXnFQ9w-ULXRGSYSgdXTgMnTJl_V3iiD4xIsodo4MLewh7V0",
   "عبدالله الخلف": "https://pbs.twimg.com/media/HBeinXFWMAAp-ZS.jpg",
   "باسل مؤنس": "https://i1.sndcdn.com/artworks-yURv8TR3ocKFULGx-NMCd6g-t500x500.jpg",
-  "محمد نادي": "https://i.ytimg.com/vi/Wk9a7oK8rF8/hqdefault.jpg",
+  "محمد نادي": "image/nadi1.png",
   "جابر القيطان": "https://tse4.mm.bing.net/th/id/OIP.TpwlSEi81TO7u_jjsvI3DAHaHY?r=0&pid=Api&h=220&P=0",
   "أحمد عبدالرازق نصر": "https://i.ytimg.com/vi/oO2jLz7xu-0/maxresdefault.jpg?sqp=-oaymwEmCIAKENAF8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGGUgZShVMA8=&rs=AOn4CLB6pMha95nYql7ibocN-I46RfkeuQ",
   "حسن صالح": "https://media.unitedmuslimworld.com/img/24/01/02/12913_1704169256.jpg",
