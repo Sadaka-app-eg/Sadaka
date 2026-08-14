@@ -8,7 +8,7 @@
 window.sheikhAvatars = {
   "محمد عباده": "https://i.ytimg.com/vi/FcPmE_h5Tkw/maxresdefault.jpg",
   "أحمد السعيد مندور": "https://i1.sndcdn.com/artworks-5w5jicQ4DMTl6uWy-3zhzAA-t1080x1080.jpg",
-  "أسامة عمران": "https://scontent.fcai23-1.fna.fbcdn.net/v/t39.30808-6/481356579_122163936878297909_4465087355139742659_n.jpg?stp=dst-jpg_tt6&cstp=mx960x960&ctp=s960x960&_nc_cat=108&ccb=1-7&_nc_sid=a5f93a&_nc_ohc=KLGkiGhS1bUQ7kNvwE2fkOK&_nc_oc=Adp55Bxghyp2HshGxgwjydegz0p0nIWzNZDCgFcxd3cBLvzgLFAdSkoFFG0WxjWIOG8&_nc_zt=23&_nc_ht=scontent.fcai23-1.fna&_nc_gid=wDUY9e6uATvU93XEBg9dDw&_nc_ss=7b289&oh=00_AQG32_KVXOp2zq8nIGTY5vE-uMUf16sc0JOV-tgm87klzw&oe=6A7BBBC1",
+  "أسامة عمران": "image/khorma.jpg",
   "ناصر القطامي": "https://i.pinimg.com/564x/6f/2d/35/6f2d3586e913233f1f03ade207398949.jpg",
   "أحمد النفيس": "https://tse1.mm.bing.net/th/id/OIP.MhKlQ2QDTAeZOW_A89YyqAHaJ4?r=0&pid=Api&h=220&P=0",
   "حسن فهمي": "https://i.ytimg.com/vi/TwtOQ324r2A/oar2.jpg",
@@ -22,7 +22,8 @@ window.sheikhAvatars = {
   "عمر بن ضياء الدين": "https://play-lh.googleusercontent.com/aMdy6D3a21LnpSR9CBAQXnFQ9w-ULXRGSYSgdXTgMnTJl_V3iiD4xIsodo4MLewh7V0",
   "عبدالله الخلف": "https://pbs.twimg.com/media/HBeinXFWMAAp-ZS.jpg",
   "باسل مؤنس": "https://i1.sndcdn.com/artworks-yURv8TR3ocKFULGx-NMCd6g-t500x500.jpg",
-  "محمد نادي": "image/nadi1.png",
+"محمد نادي": "image/nadi1.jpg",
+  
   "جابر القيطان": "https://tse4.mm.bing.net/th/id/OIP.TpwlSEi81TO7u_jjsvI3DAHaHY?r=0&pid=Api&h=220&P=0",
   "أحمد عبدالرازق نصر": "https://i.ytimg.com/vi/oO2jLz7xu-0/maxresdefault.jpg?sqp=-oaymwEmCIAKENAF8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGGUgZShVMA8=&rs=AOn4CLB6pMha95nYql7ibocN-I46RfkeuQ",
   "حسن صالح": "https://media.unitedmuslimworld.com/img/24/01/02/12913_1704169256.jpg",
