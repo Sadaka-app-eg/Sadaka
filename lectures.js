@@ -1661,41 +1661,7 @@ return `
   if (typeof markDownloadedLectures === 'function') setTimeout(markDownloadedLectures, 150);
 }
 
-// 📱 دالة عرض شبكة الشيوخ والدورات لقسم الدروس والمواعظ
-window.renderLecturesGrid = function(container) {
-  const categoriesSet = new Set();
-  if (window.lecturesData) {
-      window.lecturesData.forEach(item => { if (item.category) categoriesSet.add(item.category); });
-  }
-  const categories = Array.from(categoriesSet);
 
-  if (categories.length === 0) {
-      container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text2); font-family:\'Amiri\',serif;">لا توجد دروس مضافة حالياً.</div>';
-      return;
-  }
-
-  let gridHTML = `<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; direction: rtl; padding: 10px 0;">`;
-
-  categories.forEach(cat => {
-    const avatar = window.getLectureSheikhAvatar ? window.getLectureSheikhAvatar(cat) : '';
-    const count = window.lecturesData.filter(i => i.category === cat).length;
-
-    gridHTML += `
-      <div onclick="window.selectLectureCategory('${cat}')" style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--card, #121813); border: 1px solid var(--border, #222); border-radius: 16px; padding: 14px 6px; cursor: pointer; transition: transform 0.2s; text-align: center;">
-        <img src="${avatar}" alt="${cat}" style="width: 65px; height: 65px; border-radius: 50%; object-fit: cover; border: 2.5px solid var(--gold, #d4af37); box-shadow: 0 4px 10px rgba(0,0,0,0.3);" />
-        <div style="font-weight: bold; color: var(--text, #fff); font-family: 'Amiri', serif; font-size: 12px; margin-top: 8px; line-height: 1.3; height: 32px; display: flex; align-items: center; justify-content: center;">
-          ${cat}
-        </div>
-        <div style="font-size: 10px; color: var(--gold, #d4af37); margin-top: 2px; font-family: 'Amiri', serif;">
-          ${count} درس
-        </div>
-      </div>
-    `;
-  });
-
-  gridHTML += `</div>`;
-  container.innerHTML = gridHTML;
-};
 
 // تحديد الدورة والتنقل لدروسها
 window.selectLectureCategory = function(cat) {
@@ -2942,4 +2908,562 @@ window.playPrevLectureTrack = function() {
   let idx = list.findIndex(item => item.src === window.currentLectureUrl);
   let prevIdx = (idx <= 0) ? list.length - 1 : idx - 1;
   window.openLectureNowPlaying(list[prevIdx].src);
+};
+// =========================================================================
+// 🎙️ نظام إدارة ونشر وترتيب الدروس والمواعظ السحابي (أثر المطور 2026)
+// =========================================================================
+window.LECTURE_PUBLISH_CODE = "AthrSheikh2026";
+window.MANAGER_WHATSAPP_NUMBER = "201069168725";
+
+window.sessionBatchLessons = [];
+window.selectedLectureAvatarFile = null;
+window.cloudLecturesList = [];
+
+window.draggedLectureCat = null;
+window.touchDragLectureItem = null;
+window.longPressLectureTimer = null;
+
+// 1️⃣ جلب الدروس السحابية من Firestore
+window.loadCloudLectures = async function() {
+  try {
+    const firestoreDb = window.db || (typeof db !== 'undefined' ? db : null);
+    if (!firestoreDb) return;
+
+    const q = window.query(window.collection(firestoreDb, "custom_lectures"), window.orderBy("addedAt", "desc"));
+    const snap = await window.getDocs(q);
+
+    window.cloudLecturesList = [];
+    snap.forEach((docSnap) => {
+      const data = docSnap.data();
+      const item = {
+        id: docSnap.id,
+        category: data.category,
+        title: data.title,
+        src: data.src,
+        type: data.type || "audio",
+        avatar: data.avatar,
+        sheikh: data.sheikh || "",
+        desc: data.desc || "",
+        addedBy: data.addedBy || "أحد أهل الخير",
+        addedAt: data.addedAt
+      };
+      window.cloudLecturesList.push(item);
+
+      // دمج الدرس في مصفوفة الدروس العامة
+      if (!window.lecturesData.some(l => l.src === item.src)) {
+        window.lecturesData.push(item);
+        if (item.avatar) {
+          window.lectureSheikhAvatars[item.category] = item.avatar;
+        }
+        if (item.sheikh && window.sheikhsInfoData && !window.sheikhsInfoData[item.category]) {
+          window.sheikhsInfoData[item.category] = {
+            sheikh: item.sheikh,
+            title: item.category,
+            icon: "🎙️",
+            desc: item.desc || "سلسلة دروس علمية نافعة."
+          };
+        }
+      }
+    });
+  } catch(e) {
+    console.warn("Cloud lectures load notice:", e);
+  }
+};
+
+// 2️⃣ جلب وحفظ ترتيب الأقسام سحابياً
+window.getLecturesOrderFromCloud = async function() {
+  try {
+    const firestoreDb = window.db || (typeof db !== 'undefined' ? db : null);
+    if (!firestoreDb) return null;
+    const docRef = window.doc(firestoreDb, "app_settings", "lectures_order");
+    const docSnap = await window.getDoc(docRef);
+    if (docSnap.exists()) return docSnap.data().order || [];
+  } catch(e) {
+    console.warn("Could not load custom lectures order:", e);
+  }
+  return null;
+};
+
+window.saveLecturesOrderToCloud = async function(orderedList) {
+  try {
+    const firestoreDb = window.db || (typeof db !== 'undefined' ? db : null);
+    if (!firestoreDb) return;
+    const docRef = window.doc(firestoreDb, "app_settings", "lectures_order");
+    if (typeof setDoc === 'function') {
+      await setDoc(docRef, { order: orderedList, updatedAt: new Date() });
+    } else if (window.setDoc) {
+      await window.setDoc(docRef, { order: orderedList, updatedAt: new Date() });
+    }
+  } catch(e) {
+    console.error("Failed to save lectures order:", e);
+  }
+};
+
+// 3️⃣ رندر شبكة الدورات والأقسام (مع دعم السحب والإفلات للمشرفين)
+window.renderLecturesGrid = async function(container) {
+  await window.loadCloudLectures();
+
+  const isMeAdmin = typeof window.isAdminUser === 'function' ? window.isAdminUser() : false;
+  const myName = localStorage.getItem('athr_user_name') || "";
+
+  const categoriesSet = new Set();
+  if (window.lecturesData) {
+    window.lecturesData.forEach(item => { if (item.category) categoriesSet.add(item.category); });
+  }
+  let categories = Array.from(categoriesSet);
+
+  // ترتيب الأقسام بناءً على الترتيب السحابي المعتمد
+  const savedOrder = await window.getLecturesOrderFromCloud();
+  if (savedOrder && Array.isArray(savedOrder)) {
+    categories.sort((a, b) => {
+      const idxA = savedOrder.indexOf(a);
+      const idxB = savedOrder.indexOf(b);
+      if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+      if (idxA !== -1) return -1;
+      if (idxB !== -1) return 1;
+      return 0;
+    });
+  }
+
+  let gridHTML = `
+    <!-- زر إضافة دورة / دروس جديدة بإذن المشرف -->
+    <div style="margin-bottom: 15px; text-align: center;">
+      <button onclick="window.openAddLectureModal()" style="background: rgba(212,175,55,0.12); color: var(--gold); border: 1px dashed var(--gold); padding: 10px 20px; border-radius: 25px; font-family: 'Amiri', serif; font-size: 14px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+        <span>➕</span> إضافة دورة أو دروس علمية جديدة (بإذن المشرف)
+      </button>
+      ${isMeAdmin ? `<div style="color:var(--gold); font-size:11px; margin-top:6px; opacity:0.8;">👑 وضع المشرف: اضغط مطولاً لنقل وتغيير ترتيب الدورات للجميع</div>` : ''}
+    </div>
+
+    <div id="lecturesGridContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); gap: 12px; direction: rtl; padding: 10px 0;">
+  `;
+
+  categories.forEach(cat => {
+    const avatar = window.getLectureSheikhAvatar ? window.getLectureSheikhAvatar(cat) : '';
+    const count = window.lecturesData.filter(i => i.category === cat).length;
+
+    const cloudItem = window.cloudLecturesList ? window.cloudLecturesList.find(i => i.category === cat) : null;
+    const addedBy = cloudItem ? cloudItem.addedBy : null;
+    const canDelete = cloudItem && (isMeAdmin || (myName && addedBy === myName));
+
+    gridHTML += `
+      <div class="lecture-card-item"
+           data-category="${cat}"
+           ${isMeAdmin ? `draggable="true"` : ''}
+           style="position: relative; display: flex; flex-direction: column; align-items: center; justify-content: space-between; background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 12px 6px; cursor: pointer; text-align: center; user-select: none; transition: transform 0.2s, box-shadow 0.2s;"
+           onclick="window.selectLectureCategory('${cat}')">
+        
+        ${canDelete ? `
+          <button onclick="event.stopPropagation(); window.deleteCloudLectureCategory('${cat}')" style="position: absolute; top: 5px; left: 5px; background: rgba(255,77,77,0.2); border: 1px solid #ff4d4d; color: #ff4d4d; border-radius: 50%; width: 22px; height: 22px; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10;" title="حذف هذه الدورة ودروسها">🗑️</button>
+        ` : ''}
+
+        <img src="${avatar}" alt="${cat}" style="width: 65px; height: 65px; border-radius: 50%; object-fit: cover; border: 2.5px solid var(--gold); box-shadow: 0 4px 10px rgba(0,0,0,0.3); pointer-events: none;" />
+        
+        <div style="font-weight: bold; color: var(--text); font-family: 'Amiri', serif; font-size: 12px; margin-top: 8px; line-height: 1.3; height: 32px; display: flex; align-items: center; justify-content: center; pointer-events: none;">
+          ${cat}
+        </div>
+
+        <div style="font-size: 10px; color: var(--gold); margin-top: 2px; pointer-events: none;">
+          ${count} درس
+        </div>
+
+        ${addedBy ? `
+          <div style="font-size: 8px; color: var(--text2); margin-top: 4px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 3px; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; pointer-events: none;">
+            بواسطة: <span style="color:var(--gold);">${addedBy}</span>
+          </div>
+        ` : ''}
+
+      </div>
+    `;
+  });
+
+  gridHTML += `</div>`;
+  container.innerHTML = gridHTML;
+
+  if (isMeAdmin) {
+    window.attachAdminLectureDragEvents();
+  }
+};
+
+// 4️⃣ ربط أحداث السحب والضغط المطول للمشرفين
+window.attachAdminLectureDragEvents = function() {
+  const cards = document.querySelectorAll('.lecture-card-item');
+  const container = document.getElementById('lecturesGridContainer');
+
+  cards.forEach(card => {
+    // ماوس
+    card.addEventListener('dragstart', (e) => {
+      window.draggedLectureCat = card.getAttribute('data-category');
+      card.style.opacity = '0.4';
+    });
+
+    card.addEventListener('dragend', () => {
+      card.style.opacity = '1';
+      window.handleLectureOrderChanged();
+    });
+
+    card.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      const targetCard = card;
+      if (targetCard && targetCard.getAttribute('data-category') !== window.draggedLectureCat) {
+        const draggingEl = document.querySelector(`[data-category="${window.draggedLectureCat}"]`);
+        if (draggingEl && targetCard !== draggingEl) {
+          const bounding = targetCard.getBoundingClientRect();
+          const offset = e.clientY - bounding.top;
+          if (offset > bounding.height / 2) targetCard.after(draggingEl);
+          else targetCard.before(draggingEl);
+        }
+      }
+    });
+
+    // لمس وموبايل
+    card.addEventListener('touchstart', (e) => {
+      window.longPressLectureTimer = setTimeout(() => {
+        window.touchDragLectureItem = card;
+        card.style.opacity = '0.5';
+        card.style.transform = 'scale(1.08)';
+        card.style.borderColor = 'var(--gold)';
+        if (navigator.vibrate) navigator.vibrate(50);
+      }, 500);
+    }, { passive: true });
+
+    card.addEventListener('touchmove', (e) => {
+      if (!window.touchDragLectureItem) {
+        clearTimeout(window.longPressLectureTimer);
+        return;
+      }
+      e.preventDefault();
+      const touch = e.touches[0];
+      const targetEl = document.elementFromPoint(touch.clientX, touch.clientY);
+      const targetCard = targetEl ? targetEl.closest('.lecture-card-item') : null;
+
+      if (targetCard && targetCard !== window.touchDragLectureItem && container.contains(targetCard)) {
+        const bounding = targetCard.getBoundingClientRect();
+        if (touch.clientY > bounding.top + bounding.height / 2) targetCard.after(window.touchDragLectureItem);
+        else targetCard.before(window.touchDragLectureItem);
+      }
+    }, { passive: false });
+
+    card.addEventListener('touchend', () => {
+      clearTimeout(window.longPressLectureTimer);
+      if (window.touchDragLectureItem) {
+        window.touchDragLectureItem.style.opacity = '1';
+        window.touchDragLectureItem.style.transform = 'scale(1)';
+        window.touchDragLectureItem = null;
+        window.handleLectureOrderChanged();
+      }
+    });
+  });
+};
+
+window.handleLectureOrderChanged = async function() {
+  const cards = document.querySelectorAll('.lecture-card-item');
+  const newOrder = [];
+  cards.forEach(c => {
+    const cat = c.getAttribute('data-category');
+    if (cat) newOrder.push(cat);
+  });
+  await window.saveLecturesOrderToCloud(newOrder);
+};
+
+// 5️⃣ بوابة إدخال كود الإذن
+window.openAddLectureModal = function() {
+  let modal = document.getElementById('addLectureModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'addLectureModal';
+    modal.style.cssText = "position:fixed; inset:0; background:rgba(0,0,0,0.9); backdrop-filter:blur(10px); z-index:99999999; display:flex; align-items:center; justify-content:center; padding:15px; direction:rtl; font-family:'Amiri', serif;";
+    document.body.appendChild(modal);
+  }
+
+  modal.innerHTML = `
+    <div style="width:100%; max-width:420px; background:#0f1510; border:1px solid var(--gold); border-radius:24px; padding:25px; display:flex; flex-direction:column; gap:15px; box-shadow:0 15px 40px rgba(0,0,0,0.9); text-align:right;">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:10px;">
+        <strong style="color:var(--gold); font-size:18px;">📚 بوابة نشر الدورات والدروس العلمية</strong>
+        <button onclick="document.getElementById('addLectureModal').style.display='none'" style="background:none; border:none; color:#ff4d4d; font-size:20px; cursor:pointer;">✕</button>
+      </div>
+
+      <p style="color:var(--text2); font-size:13px; line-height:1.5; margin:0;">
+        لإضافة سلاسل ودروس علمية جديدة لتظهر لجميع طلاب العلم في التطبيق، أدخل كود الإذن الممنوح لك.
+      </p>
+
+      <div>
+        <label style="color:var(--text); font-size:13px; display:block; margin-bottom:6px;">🔑 كود إذن النشر السري:</label>
+        <input id="lecturePassCodeInp" type="password" placeholder="أدخل الكود هنا..." style="width:100%; padding:12px; background:#000; border:1px solid var(--border); color:var(--text); border-radius:10px; outline:none; font-size:15px; text-align:center;" />
+      </div>
+
+      <button onclick="window.verifyLecturePassCode()" style="background:var(--gold); color:#111; border:none; padding:14px; border-radius:12px; font-weight:bold; font-size:16px; cursor:pointer; font-family:'Amiri',serif; box-shadow:0 4px 15px rgba(212,175,55,0.3);">
+        🚀 دخول لوحة نشر الدروس
+      </button>
+
+      <div style="text-align:center; margin-top:10px; border-top:1px dashed var(--border); padding-top:15px;">
+        <p style="color:var(--text2); font-size:12px; margin-bottom:8px;">ليس لديك كود إذن؟</p>
+        <a href="https://wa.me/${window.MANAGER_WHATSAPP_NUMBER || '201069168725'}?text=${encodeURIComponent('السلام عليكم، أطلب كود إذن النشر لإضافة دروس وسلاسل علمية في تطبيق أثر 🤍')}" target="_blank" style="display:block; background:#25D366; color:#fff; text-decoration:none; padding:10px; border-radius:10px; font-weight:bold; font-size:13px; box-shadow:0 4px 12px rgba(37,211,102,0.3);">
+          💬 اضغط هنا للتواصل مع المشرف (طلب الكود)
+        </a>
+      </div>
+    </div>
+  `;
+  modal.style.display = 'flex';
+};
+
+window.verifyLecturePassCode = function() {
+  const codeInp = document.getElementById('lecturePassCodeInp');
+  if (!codeInp || codeInp.value.trim() !== window.LECTURE_PUBLISH_CODE) {
+    alert("❌ كود الإذن غير صحيح! تواصل مع المشرف عبر واتساب للحصول عليه.");
+    return;
+  }
+  window.sessionBatchLessons = [];
+  window.selectedLectureAvatarFile = null;
+  window.renderFullLectureDashboard();
+};
+
+// 6️⃣ شاشة إدارة ونشر الدروس الكاملة (Full Dashboard)
+window.renderFullLectureDashboard = function() {
+  const modal = document.getElementById('addLectureModal');
+  if (!modal) return;
+
+  modal.innerHTML = `
+    <div style="width:100%; max-width:650px; height:90vh; background:#0b0f0c; border:1px solid var(--gold); border-radius:24px; padding:20px 25px; display:flex; flex-direction:column; justify-content:space-between; box-shadow:0 20px 50px rgba(0,0,0,0.95); direction:rtl; font-family:'Amiri',serif; overflow:hidden;">
+      
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:12px;">
+        <h3 style="color:var(--gold); margin:0; font-size:20px;">✨ لوحة إضافة الدورة والدروس العلمية</h3>
+        <button onclick="document.getElementById('addLectureModal').style.display='none'" style="background:none; border:none; color:#ff4d4d; font-size:20px; cursor:pointer;">✕ إغلاق</button>
+      </div>
+
+      <div style="flex:1; overflow-y:auto; padding:10px 0; display:flex; flex-direction:column; gap:18px;">
+        
+        <!-- بيانات الدورة والشيخ -->
+        <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:14px; padding:15px;">
+          <h4 style="color:var(--gold); margin:0 0 10px 0; font-size:15px;">👤 بيانات السلسلة والشيخ</h4>
+          
+          <div style="display:flex; gap:10px; margin-bottom:12px;">
+            <input id="dashCourseName" type="text" placeholder="عنوان الدورة (مثال: شرح كتاب التوحيد)" style="flex:1; padding:11px; background:#000; border:1px solid var(--border); color:var(--text); border-radius:8px; outline:none;" />
+            <input id="dashCourseSheikh" type="text" placeholder="اسم الشيخ (مثال: الشيخ صالح الفوزان)" style="flex:1; padding:11px; background:#000; border:1px solid var(--border); color:var(--text); border-radius:8px; outline:none;" />
+          </div>
+
+          <div>
+            <label style="color:var(--text); font-size:13px; display:block; margin-bottom:5px;">صورة غلاف الدورة / الشيخ:</label>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <label style="background:rgba(212,175,55,0.1); border:1px solid var(--gold); color:var(--gold); padding:8px 15px; border-radius:8px; font-size:13px; cursor:pointer;">
+                📸 اختر صورة من الهاتف
+                <input type="file" id="dashLectureAvatarFile" accept="image/*" style="display:none;" onchange="window.handleLectureAvatarSelect(this)" />
+              </label>
+              <span id="dashLectureAvatarStatus" style="color:var(--text2); font-size:12px;">لم يتم اختيار صورة</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- إضافة الدروس -->
+        <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:14px; padding:15px;">
+          <h4 style="color:var(--gold); margin:0 0 10px 0; font-size:15px;">🎧 قائمة الدروس والمحاضرات (أضف حتى 20+ درساً)</h4>
+          
+          <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:12px;">
+            <input id="dashLessonTitle" type="text" placeholder="عنوان الدرس (مثال: الدرس 01 - فضل التوحيد وما يكفر من الذنوب)" style="width:100%; padding:11px; background:#000; border:1px solid var(--border); color:var(--text); border-radius:8px; outline:none;" />
+            
+            <div style="display:flex; gap:10px; align-items:center;">
+              <input id="dashLessonUrl" type="url" placeholder="رابط مباشر (صوت/فيديو) أو ارفع MP3 من هاتفك 👇" style="flex:1; padding:11px; background:#000; border:1px solid var(--border); color:var(--text); border-radius:8px; outline:none;" />
+              <label style="background:rgba(255,255,255,0.05); border:1px solid var(--border); color:var(--gold); padding:10px 14px; border-radius:8px; font-size:12px; cursor:pointer; white-space:nowrap;">
+                📁 رفع MP3
+                <input type="file" accept="audio/*" style="display:none;" onchange="window.handleLectureAudioUpload(this)" />
+              </label>
+            </div>
+          </div>
+
+          <button onclick="window.addLessonToBatch()" style="width:100%; background:rgba(212,175,55,0.15); border:1px solid var(--gold); color:var(--gold); padding:10px; border-radius:8px; font-weight:bold; cursor:pointer; font-family:'Amiri',serif;">
+            ➕ إضافة هذا الدرس للقائمة المؤقتة
+          </button>
+
+          <div id="sessionLessonsList" style="margin-top:12px; display:flex; flex-direction:column; gap:6px; max-height:130px; overflow-y:auto;">
+            <span style="color:var(--text2); font-size:12px; text-align:center;">لم تقم بإضافة أي درس للقائمة بعد.</span>
+          </div>
+        </div>
+
+      </div>
+
+      <div style="border-top:1px solid var(--border); padding-top:12px;">
+        <button id="finalPublishLectureBtn" onclick="window.publishAllLessonsToCloud()" style="width:100%; background:var(--gold); color:#111; border:none; padding:14px; border-radius:12px; font-weight:bold; font-size:16px; cursor:pointer; font-family:'Amiri',serif; box-shadow:0 4px 15px rgba(212,175,55,0.3);">
+          ✨ نشر السلسلة وجميع دروسها للجميع
+        </button>
+      </div>
+
+    </div>
+  `;
+};
+
+// 7️⃣ دوال معالجة رفع الصور والصوت
+window.handleLectureAvatarSelect = function(input) {
+  if (input.files && input.files[0]) {
+    window.selectedLectureAvatarFile = input.files[0];
+    document.getElementById('dashLectureAvatarStatus').textContent = "✓ تم اختيار الصورة بنجاح";
+    document.getElementById('dashLectureAvatarStatus').style.color = "var(--gold)";
+  }
+};
+
+window.handleLectureAudioUpload = async function(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const urlInp = document.getElementById('dashLessonUrl');
+  urlInp.value = "جاري رفع ملف الصوت سحابياً... ⏳";
+  urlInp.disabled = true;
+
+  let uploadedUrl = null;
+
+  for (let i = 0; i < window.CLOUDINARY_ACCOUNTS.length; i++) {
+    const acc = window.CLOUDINARY_ACCOUNTS[i];
+    try {
+      urlInp.value = `جاري الرفع على السيرفر السحابي (${i + 1})... ⏳`;
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", acc.uploadPreset);
+
+      const response = await fetch(`https://api.cloudinary.com/v1_1/${acc.cloudName}/video/upload`, {
+        method: "POST",
+        body: formData
+      });
+      const resData = await response.json();
+
+      if (resData.secure_url) {
+        uploadedUrl = resData.secure_url;
+        break;
+      }
+    } catch(err) {
+      console.warn(`Failed uploading to Cloudinary ${i + 1}`, err);
+    }
+  }
+
+  if (uploadedUrl) {
+    urlInp.value = uploadedUrl;
+    alert("✅ تم رفع ملف الصوت بنجاح وحفظه سحابياً!");
+  } else {
+    alert("⚠️ تعذر رفع الملف، تأكد من الاتصال أو استخدم رابطاً مباشراً.");
+    urlInp.value = "";
+  }
+  urlInp.disabled = false;
+};
+
+// 8️⃣ إدارة القائمة المؤقتة
+window.addLessonToBatch = function() {
+  const titleInp = document.getElementById('dashLessonTitle');
+  const urlInp = document.getElementById('dashLessonUrl');
+  const title = titleInp.value.trim();
+  const url = urlInp.value.trim();
+
+  if (!title || !url) {
+    alert("⚠️ يرجى كتابة عنوان الدرس ورابط الصوت/الفيديو.");
+    return;
+  }
+
+  window.sessionBatchLessons.push({ title, src: url });
+  titleInp.value = "";
+  urlInp.value = "";
+  window.renderSessionLessonsList();
+};
+
+window.renderSessionLessonsList = function() {
+  const listEl = document.getElementById('sessionLessonsList');
+  if (!listEl) return;
+  if (window.sessionBatchLessons.length === 0) {
+    listEl.innerHTML = `<span style="color:var(--text2); font-size:12px; text-align:center;">لم تقم بإضافة أي درس للقائمة بعد.</span>`;
+    return;
+  }
+  listEl.innerHTML = window.sessionBatchLessons.map((l, idx) => `
+    <div style="background:rgba(0,0,0,0.5); padding:6px 10px; border-radius:6px; font-size:12px; display:flex; justify-content:space-between; align-items:center;">
+      <span>${idx + 1}. ${l.title}</span>
+      <button onclick="window.sessionBatchLessons.splice(${idx},1); window.renderSessionLessonsList();" style="background:none; border:none; color:#ff4d4d; cursor:pointer;">✕ حذف</button>
+    </div>
+  `).join('');
+};
+
+// 9️⃣ النشر النهائي لـ Firestore
+window.publishAllLessonsToCloud = async function() {
+  const courseInp = document.getElementById('dashCourseName');
+  const sheikhInp = document.getElementById('dashCourseSheikh');
+  const courseName = courseInp ? courseInp.value.trim() : "";
+  const sheikhName = sheikhInp ? sheikhInp.value.trim() : "";
+  const myName = localStorage.getItem('athr_user_name') || "محب للعلم";
+
+  if (!courseName) {
+    alert("⚠️ يرجى كتابة عنوان الدورة / السلسلة العلمية.");
+    return;
+  }
+  if (window.sessionBatchLessons.length === 0) {
+    alert("⚠️ يرجى إضافة درس واحد على الأقل للقائمة.");
+    return;
+  }
+
+  const btn = document.getElementById('finalPublishLectureBtn');
+
+  try {
+    btn.disabled = true;
+    btn.textContent = "جاري حفظ الدورة ونشر الدروس سحابياً... ⏳";
+
+    let avatarUrl = window.lectureSheikhAvatars["default"] || "image/moha.png";
+
+    if (window.selectedLectureAvatarFile) {
+      const formData = new FormData();
+      formData.append("image", window.selectedLectureAvatarFile);
+      const res = await fetch(`https://api.imgbb.com/1/upload?key=3b0e9c0cb3ddf5475324fa1a126a4e3e`, { method: "POST", body: formData });
+      const resData = await res.json();
+      if (resData.success) {
+        avatarUrl = resData.data.url;
+      }
+    }
+
+    const firestoreDb = window.db || db;
+
+    for (const lesson of window.sessionBatchLessons) {
+      await window.addDoc(window.collection(firestoreDb, "custom_lectures"), {
+        category: courseName,
+        title: lesson.title,
+        src: lesson.src,
+        type: lesson.src.endsWith(".mp4") ? "video" : "audio",
+        avatar: avatarUrl,
+        sheikh: sheikhName,
+        desc: `سلسلة ${courseName} للشيخ ${sheikhName}`,
+        addedBy: myName,
+        addedAt: window.serverTimestamp ? window.serverTimestamp() : new Date()
+      });
+    }
+
+    window.lectureSheikhAvatars[courseName] = avatarUrl;
+
+    alert(`🎉 تقبل الله أثرك يا ${myName}!\nتم نشر الدورة (${courseName}) وجميع دروسها بنجاح للجميع.`);
+    document.getElementById('addLectureModal').style.display = 'none';
+
+    renderLectures();
+
+  } catch(e) {
+    console.error("Cloud lecture publish error:", e);
+    alert("⚠️ حدث خطأ أثناء النشر السحابي: " + e.message);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = "✨ نشر السلسلة وجميع دروسها للجميع";
+    }
+  }
+};
+
+// 🔟 حذف الدورة السحابية (للمشرفين أو صاحب الرفع)
+window.deleteCloudLectureCategory = async function(categoryName) {
+  if (!confirm(`هل أنت متأكد من حذف الدورة (${categoryName}) وجميع دروسها من السيرفر؟`)) return;
+
+  try {
+    const firestoreDb = window.db || db;
+    const q = window.query(window.collection(firestoreDb, "custom_lectures"), window.where("category", "==", categoryName));
+    const snap = await window.getDocs(q);
+
+    for (const docSnap of snap.docs) {
+      await window.deleteDoc(window.doc(firestoreDb, "custom_lectures", docSnap.id));
+    }
+
+    window.lecturesData = window.lecturesData.filter(l => l.category !== categoryName);
+    window.cloudLecturesList = window.cloudLecturesList.filter(l => l.category !== categoryName);
+
+    alert(`✅ تم حذف الدورة (${categoryName}) بنجاح.`);
+    renderLectures();
+  } catch(e) {
+    console.error("Delete lecture error:", e);
+    alert("⚠️ حدث خطأ أثناء حذف الدورة.");
+  }
 };
