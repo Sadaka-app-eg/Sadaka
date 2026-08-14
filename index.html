@@ -1431,7 +1431,6 @@ body.hide-controls #quran {
       <div style="display: flex; align-items: center; gap: 6px;">
         <button class="icon-btn" id="bookmarkJumpBtn" onclick="jumpToBookmark()" style="display:none;">🔖</button>
         <button class="icon-btn" onclick="toggleFavSurah()" id="favSurahBtn">🤍</button>
-        <button class="icon-btn" id="nightModeBtn" onclick="toggleMushafNight()">🌙</button>
       </div>
     </div>
 
@@ -5847,14 +5846,15 @@ async function globalSearch(q) {
             const verseText = verse.words ? verse.words.map(w => w.text_uthmani).join(" ") : (verse.text_uthmani || "");
             const cleanVerseText = normalizeArabicText(verseText);
 
-            if (cleanVerseText.includes(cleanQuery)) {
+if (cleanVerseText.includes(cleanQuery)) {
               const [vSurah, vAyah] = verse.verse_key.split(':').map(Number);
               const sObj = surahs.find(s => s.n === vSurah);
               matchedAyahs.push({
                 surahNumber: vSurah,
                 surahName: sObj ? sObj.name : '',
                 numberInSurah: vAyah,
-                text: verseText
+                text: verseText,
+                page: verse.page_number || 1
               });
             }
           }
@@ -6203,10 +6203,28 @@ window.openMushafThemeModal = function() {
             <span style="font-size:11px; color:#f4d35e;">خط أبيض</span>
           </button>
 
-          <!-- 5. أبيض ناصع -->
+<!-- 5. أبيض ناصع -->
           <button onclick="window.applyMushafFullTheme('#ffffff', '#111111', '#b58900')" style="background:#ffffff; color:#111111; border:2px solid #aaa; padding:12px; border-radius:14px; font-size:14px; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:space-between;">
             <span>⚪ أبيض ناصع (إضاءة قوية)</span>
             <span style="font-size:11px; opacity:0.8;">خط أسود</span>
+          </button>
+
+          <!-- 6. أخضر زيتوني هادئ -->
+          <button onclick="window.applyMushafFullTheme('#eef2e6', '#1c2b1a', '#6b8e4e')" style="background:#eef2e6; color:#1c2b1a; border:2px solid #6b8e4e; padding:12px; border-radius:14px; font-size:14px; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:space-between;">
+            <span>🟢 أخضر زيتوني (هدوء طبيعي)</span>
+            <span style="font-size:11px; opacity:0.8;">خط داكن</span>
+          </button>
+
+          <!-- 7. بنفسجي ملكي ليلي -->
+          <button onclick="window.applyMushafFullTheme('#14101f', '#f0e6ff', '#a78bfa')" style="background:#14101f; color:#f0e6ff; border:2px solid #a78bfa; padding:12px; border-radius:14px; font-size:14px; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:space-between;">
+            <span>🟣 بنفسجي ملكي (ليلي مميز)</span>
+            <span style="font-size:11px; color:#a78bfa;">خط بنفسجي فاتح</span>
+          </button>
+
+          <!-- 8. رملي صحراوي -->
+          <button onclick="window.applyMushafFullTheme('#e8d9b5', '#3a2a12', '#b8860b')" style="background:#e8d9b5; color:#3a2a12; border:2px solid #b8860b; padding:12px; border-radius:14px; font-size:14px; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:space-between;">
+            <span>🟤 رملي صحراوي (دفء الطبيعة)</span>
+            <span style="font-size:11px; opacity:0.8;">خط بني داكن</span>
           </button>
         </div>
 
