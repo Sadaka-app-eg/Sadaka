@@ -1239,9 +1239,6 @@ html += filteredList.map((item) => {
   setTimeout(markAlreadyDownloadedRareButtons, 100);
 };
 
-// دالة عرض شبكة القراء (3 شيوخ في الصف)
-// كود الإذن السري للنشر (غيره للكلمة اللي تعجبك)
-const SHEIKH_PUBLISH_CODE = "AthrSheikh2026";
 
 // دالة عرض شبكة القراء مع زر الإضافة السحابي
 window.renderSheikhsGrid = async function (container) {
