@@ -107,59 +107,145 @@ btn.style.cssText = "position:absolute; top:10px; right:14px; z-index:500; backg
   return btn;
 };
  
-// =========================================================
-// 🛠️ 1️⃣ نظام التحقق وإدارة الحسابات الذكي
-// =========================================================
-// 🛠️ 1️⃣ نظام التحقق وإدارة الحسابات الذكي (حفظ دائم واسترجاع تلقائي للإيميل والصورة)
+// =========================================================================
+// 🔒 نظام التحقق والربط العضوي الوثيق بحساب جوجل (Google Auth Sync)
+// =========================================================================
 window.checkCommunityUser = async function() {
   const contentArea = document.getElementById('communityContent');
   if (!contentArea) return;
 
-  // جلب الإيميل المسجل بجوجل
-  const googleEmail = localStorage.getItem('user_email') || (window.firebaseAuth?.currentUser?.email) || "";
+  // 1️⃣ استخراج الإيميل الحقيقي لحساب جوجل
+  const googleEmail = (localStorage.getItem('user_email') || window.firebaseAuth?.currentUser?.email || "").trim().toLowerCase();
   const googleUser = localStorage.getItem('user_display_name');
 
-  // إذا لم يكن هناك تسجيل دخول بجوجل في الأقسام المغلقة
+  // إذا لم يسجل دخول بجوجل أصلاً
   if (window.currentCommunityTab !== 'feed' && !googleUser && !googleEmail) {
     window.renderAuthRequiredBlock();
     return;
   }
 
-  // 🚀 فحص سحري: لو المسجل له حساب سابق في الفايربيز بريده أو اسمه
+  // 2️⃣ استرجاع وتثبيت الحساب من السيرفر فوراً عبر إيميل جوجل
   if (googleEmail) {
     try {
-      // البحث عن الملف الشخصي بـ Firestore
-      const q = query(collection(db, "users_profiles"), where("email", "==", googleEmail.toLowerCase()));
-      const querySnap = await getDocs(q);
+      // البحث أولاً بالإيميل المباشر
+      let q = query(collection(db, "users_profiles"), where("email", "==", googleEmail));
+      let querySnap = await getDocs(q);
+
+      // لو ملقاش بالإيميل (للحسابات القديمة)، نبحث بالاسم
+      if (querySnap.empty && googleUser) {
+        q = query(collection(db, "users_profiles"), where("name", "==", googleUser));
+        querySnap = await getDocs(q);
+      }
 
       if (!querySnap.empty) {
-        // الحساب موجود بالفعل! استرجاع البيانات وتثبيتها للأبد
         const userData = querySnap.docs[0].data();
+
+        // إعادة تثبيت بيانات الحساب في الذاكرة تلقائياً
         localStorage.setItem('athr_user_name', userData.name);
         localStorage.setItem('user_display_name', userData.name);
-        localStorage.setItem('athr_user_gender', userData.gender);
-        localStorage.setItem('user_email', userData.email);
+        localStorage.setItem('athr_user_gender', userData.gender || 'male');
+        localStorage.setItem('user_email', userData.email || googleEmail);
 
         if (userData.avatar && typeof setAppData === 'function') {
           await setAppData('athr_user_avatar', userData.avatar);
         }
 
+        // الدخول المباشر للمجتمع واسترجاع البروفايل كامل
         window.renderCommunityBody();
-        return; // الدخول المباشر بدون فتح شاشة الإعداد!
+        return;
       }
     } catch (e) {
-      console.log("فحص الحساب أوفلاين/سيرفر:", e);
+      console.warn("جاري استخدام البيانات المحلية أثناء فحص السيرفر:", e);
     }
   }
 
-  // إذا كان مسجل بجوجل ولسه ملهوش حساب في الفايربيز -> يفتح شاشة الإعداد لأول مرة فقط!
+  // 3️⃣ لو المستخدم جديد كلياً على السيرفر ولسه معندوش بروفايل
   const userGender = localStorage.getItem('athr_user_gender');
   const userName = localStorage.getItem('athr_user_name');
 
-  if (googleUser && (!userGender || !userName)) {
+  if (googleEmail && (!userGender || !userName)) {
     window.renderSetupScreen();
   } else {
     window.renderCommunityBody();
+  }
+};
+
+// =========================================================================
+// 🚀 حفظ وإنشاء الملف الشخصي برابط دائم بحساب جوجل
+// =========================================================================
+window.processCommunitySubmit = async function() {
+  const nameInp = document.getElementById('commUserNameInp');
+  const bioInp = document.getElementById('commUserBioInp');
+  const submitBtn = document.getElementById('submitSetupBtn');
+
+  if (!nameInp || !nameInp.value.trim()) { alert('فضلاً، اكتب اسمك أولاً.'); return; }
+  
+  const trimmedName = nameInp.value.trim();
+  if (!trimmedName.includes(" ") || trimmedName.split(" ").filter(Boolean).length < 2) {
+    alert("⚠️ يرجى كتابة اسمك ثنائياً (الاسم واسم الأب) لتوثيق الحساب.");
+    return;
+  }
+
+  if (!window.selectedSetupGender) { alert('من فضلك حدد نوع المجلس أولاً.'); return; }
+
+  if (window.selectedSetupGender === 'female') {
+    const codeInp = document.getElementById('commFemaleCodeInp');
+    if (!codeInp || codeInp.value.trim() !== WOMEN_SECRET_CODE) {
+      alert('❌ كود التفعيل للأخوات غير صحيح.');
+      return;
+    }
+  }
+
+  try {
+    submitBtn.disabled = true;
+    submitBtn.textContent = "جاري ربط وتوثيق الحساب بحساب جوجل... ⏳";
+    
+    let avatarUrl = "https://www.gstatic.com/firebasejs/ui/2.0.0/images/temporary-avatar.png"; 
+    if (selectedProfileFile) {
+      const formData = new FormData();
+      formData.append("image", selectedProfileFile);
+      const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: formData });
+      const resData = await res.json();
+      if (resData.success) avatarUrl = resData.data.url;
+    }
+
+    const myEmail = (localStorage.getItem('user_email') || window.firebaseAuth?.currentUser?.email || "").toLowerCase();
+    const userBio = bioInp ? bioInp.value.trim() : "ذاكر لله ومحب للأثر الطيب";
+    
+    // 🎯 الحفظ في Firestore بالاسم وتضمين الإيميل بشكل غير قابل للفصل
+    await setDoc(doc(db, "users_profiles", trimmedName), {
+      name: trimmedName,
+      email: myEmail, // 👈 ربط دائم بالبريد الإلكتروني
+      bio: userBio,
+      avatar: avatarUrl,
+      gender: window.selectedSetupGender,
+      points: 10, 
+      friends: [],
+      sentRequests: [],
+      receivedRequests: [],
+      createdAt: serverTimestamp()
+    }, { merge: true });
+
+    // تثبيت محلي
+    localStorage.setItem('user_email', myEmail);
+    localStorage.setItem('user_display_name', trimmedName);
+    localStorage.setItem('athr_user_name', trimmedName);
+    localStorage.setItem('athr_user_gender', window.selectedSetupGender);
+
+    if (typeof setAppData === 'function') {
+      await setAppData('athr_user_avatar', avatarUrl);
+      await setAppData('athr_user_bio', userBio);
+    }
+
+    window.triggerSparksEffect();
+    window.renderCommunityBody();
+    
+  } catch(e) {
+    console.error("Setup error:", e);
+    alert("حدث خطأ أثناء حفظ البيانات، يرجى المحاولة ثانية.");
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = "حفظ الملف ودخول المجتمع 🚀";
   }
 };
 
@@ -274,91 +360,6 @@ window.selectGenderSetup = function(gender) {
   }
 };
 
-window.processCommunitySubmit = async function() {
-  const nameInp = document.getElementById('commUserNameInp');
-  const bioInp = document.getElementById('commUserBioInp');
-  const submitBtn = document.getElementById('submitSetupBtn');
-
-  if (!nameInp || !nameInp.value.trim()) { alert('فضلاً، اكتب اسمك أولاً.'); return; }
-  
-  const trimmedName = nameInp.value.trim();
-  if (!trimmedName.includes(" ") || trimmedName.split(" ").filter(Boolean).length < 2) {
-    alert("⚠️ عذراً يا أخي، يرجى كتابة اسمك ثنائياً (اسمك واسم الأب) بشكل صحيح وموثق.");
-    return;
-  }
-
-  if (!window.selectedSetupGender) { alert('من فضلك حدد نوع المجلس أولاً.'); return; }
-
-  if (window.selectedSetupGender === 'female') {
-    const codeInp = document.getElementById('commFemaleCodeInp');
-    if (!codeInp || codeInp.value.trim() !== WOMEN_SECRET_CODE) {
-      alert('❌ كود التفعيل للأخوات غير صحيح.');
-      return;
-    }
-  }
-
-  try {
-    submitBtn.disabled = true;
-    submitBtn.textContent = "جاري إنشاء وتوثيق الحساب... ⏳";
-    
-    let avatarUrl = "https://www.gstatic.com/firebasejs/ui/2.0.0/images/temporary-avatar.png"; 
-    if (selectedProfileFile) {
-      const formData = new FormData();
-      formData.append("image", selectedProfileFile);
-      const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: formData });
-      const resData = await res.json();
-      if(resData.success) avatarUrl = resData.data.url;
-    }
-
-const myEmail = (localStorage.getItem('user_email') || window.firebaseAuth?.currentUser?.email || trimmedName).toLowerCase();
-    const userBio = bioInp.value.trim() || "ذاكر لله ومحب للأثر الطيب";
-    
-    // 1️⃣ حفظ الملف الأساسي في السيرفر (Firestore) مع الإيميل الصريح
-// 1️⃣ حفظ الملف الأساسي في السيرفر (Firestore)
-    await setDoc(doc(db, "users_profiles", trimmedName), {
-      name: trimmedName,
-      email: myEmail,
-      bio: userBio,
-      avatar: avatarUrl,
-      gender: window.selectedSetupGender,
-      points: 10, 
-      friends: [],
-      sentRequests: [],
-      receivedRequests: [],
-      createdAt: serverTimestamp()
-    });
-
-    // 2️⃣ تخزين البيانات الخفيفة في LocalStorage بكتلة واحدة آمنة
-    try {
-      localStorage.setItem('user_email', myEmail);
-      localStorage.setItem('user_display_name', trimmedName);
-      localStorage.setItem('athr_user_name', trimmedName);
-      localStorage.setItem('athr_user_gender', window.selectedSetupGender);
-      localStorage.setItem('athr_app_version', "v2_profile_update");
-
-      localStorage.removeItem('athr_user_avatar');
-      localStorage.removeItem('user_photo_url');
-    } catch(err) {
-      console.warn("Storage warning:", err);
-    }
-
-    // 3️⃣ تخزين البيانات أوفلاين عبر IndexedDB
-    if (typeof setAppData === 'function') {
-      await setAppData('athr_user_avatar', avatarUrl);
-      await setAppData('athr_user_bio', userBio);
-    }
-
-    window.triggerSparksEffect();
-    window.renderCommunityBody();
-    
-  } catch(e) {
-    console.error(e);
-    alert("حدث مشكلة أثناء إنشاء الحساب، يرجى إعادة المحاولة.");
-  } finally {
-    submitBtn.disabled = false;
-    submitBtn.textContent = "حفظ الملف ودخول المجتمع 🚀";
-  }
-};
 
 // =========================================================
 // 🎨 2️⃣ بناء واجهات المجتمع والربط الفوري والتفاعلي
