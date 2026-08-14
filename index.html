@@ -25,6 +25,7 @@
     
     if (totalSize > 4 * 1024 * 1024) {
 const keysToKeep = [
+	'user_email', // 👈 ضيف السطر ده هنا ضروري جداً
         'user_display_name', 
         'athr_user_name', 
         'athr_user_gender', 
@@ -58,8 +59,7 @@ const keysToKeep = [
   }
 })();
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></scr
- 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/fix-webm-duration@1.0.1/fix-webm-duration.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mp4-muxer@5/build/mp4-muxer.js"></script>
  
@@ -9057,61 +9057,63 @@ if (savedName) {
     }
   });
 
-  // 8️⃣ دالة تسجيل الدخول الهجينة (Popup للأجهزة والـ PWA مع fallback)
 // 8️⃣ دالة تسجيل الدخول والخروج المضمونة
-  window.triggerHeaderGoogleLogin = function() {
-    const savedName = localStorage.getItem('user_display_name');
+window.triggerHeaderGoogleLogin = function() {
+  const savedName = localStorage.getItem('user_display_name');
 
-    if (savedName || (auth && auth.currentUser)) {
-      if (confirm('هل ترغب في تسجيل الخروج من الحساب وتطهير الجلسة الحالية؟')) {
-        
-        // 🎯 1. مسح جميع المفاتيح المتعلقة بالمستخدم فوراً من الذاكرة
-        localStorage.removeItem('user_display_name');
-        localStorage.removeItem('athr_user_name');
-        localStorage.removeItem('athr_user_gender');
-        localStorage.removeItem('user_email');
-        localStorage.removeItem('user_photo_url');
-        localStorage.removeItem('athr_user_avatar');
-        sessionStorage.clear();
-
-        // 🎯 2. خروج من الفايربيز وإعادة تحميل نظيفة
-        if (auth) {
-          signOut(auth).then(() => {
-            alert("🔒 تم تسجيل الخروج بنجاح.");
-            window.location.reload();
-          }).catch(err => {
-            console.error('خطأ أثناء الخروج:', err);
-            window.location.reload();
-          });
-        } else {
-          window.location.reload();
-        }
+  if (savedName || (auth && auth.currentUser)) {
+    if (confirm('هل ترغب في تسجيل الخروج من الحساب والمجتمع؟')) {
+      
+      // 1. مسح نبضات الأونلاين لو شغالة
+      if (window.athrHeartbeatInterval) {
+        clearInterval(window.athrHeartbeatInterval);
+        window.athrHeartbeatInterval = null;
       }
-      return;
-    }
 
-    const provider = new GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: 'select_account' });
+      // 2. مسح كل المفاتيح
+      const keysToRemove = [
+        'user_email', 'user_display_name', 'user_photo_url',
+        'athr_user_name', 'athr_user_gender', 'athr_user_avatar',
+        'athr_user_bio', 'athr_family_room_code', 'firebase:authUser'
+      ];
+      keysToRemove.forEach(k => localStorage.removeItem(k));
+      sessionStorage.clear();
 
-    signInWithPopup(auth, provider)
-      .then((result) => {
-        const user = result.user;
-        const firstName = user.displayName ? user.displayName.split(' ')[0] : 'المستخدم';
-        try {
-          localStorage.setItem('user_display_name', firstName);
-          localStorage.setItem('athr_user_name', firstName);
-          if (user.email) localStorage.setItem('user_email', user.email.toLowerCase());
-        } catch(e) {}
-        window.location.reload();
-      })
-      .catch((err) => {
-        console.warn("Popup blocked or failed, trying redirect...", err);
-        signInWithRedirect(auth, provider).catch(rErr => {
-          console.error("Redirect Error:", rErr);
-          alert("⚠️ تعذر الاتصال بجوجل، تحقق من شبكة الإنترنت لديك.");
+      // 3. خروج صريح من Firebase Auth
+      if (auth) {
+        signOut(auth).finally(() => {
+          alert("🔒 تم تسجيل الخروج بنجاح.");
+          window.location.reload();
         });
+      } else {
+        window.location.reload();
+      }
+    }
+    return;
+  }
+
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+
+  signInWithPopup(auth, provider)
+    .then((result) => {
+      const user = result.user;
+      const firstName = user.displayName ? user.displayName.split(' ')[0] : 'المستخدم';
+      try {
+        localStorage.setItem('user_display_name', firstName);
+        localStorage.setItem('athr_user_name', firstName);
+        if (user.email) localStorage.setItem('user_email', user.email.toLowerCase());
+      } catch(e) {}
+      window.location.reload();
+    })
+    .catch((err) => {
+      console.warn("Popup blocked, trying redirect...", err);
+      signInWithRedirect(auth, provider).catch(rErr => {
+        console.error("Redirect Error:", rErr);
+        alert("⚠️ تعذر الاتصال بجوجل، تحقق من شبكة الإنترنت.");
       });
-  };
+    });
+};
 </script>
 <script>
 (function(){
