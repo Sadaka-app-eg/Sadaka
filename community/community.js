@@ -27,8 +27,21 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// 👇 هنا بالظبط:
+window.db = db;
+window.collection = collection;
+window.addDoc = addDoc;
+window.doc = doc;
+window.deleteDoc = deleteDoc;
+window.getDocs = getDocs;
+window.getDoc = getDoc;
+window.query = query;
+window.where = where;
+window.orderBy = orderBy;
+window.serverTimestamp = serverTimestamp;
+
 const IMGBB_API_KEY = "3b0e9c0cb3ddf5475324fa1a126a4e3e";
-const WOMEN_SECRET_CODE = "Athr2026"; 
+const WOMEN_SECRET_CODE = "Athr2026";
 const FAJR_VOLUNTEER_CODE = "Fajr2026"; // 🔑 الكود السري لتفعيل لوحة التطوع
 const MANAGER_WHATSAPP = "201069168725"; // 📞 رقم واتس مشرف التطبيق
 // 🎲 أرقام إعجابات عشوائية للمشرفين (لإظهار تفاعل واقعي متغير فوق الألف)
