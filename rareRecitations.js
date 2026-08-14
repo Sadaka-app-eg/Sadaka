@@ -1233,45 +1233,228 @@ html += filteredList.map((item) => {
 };
 
 
-// دالة عرض شبكة القراء مع زر الإضافة السحابي
+// =========================================================================
+// 🔀 نظام ترتيب المشايخ بالسحب والإفلات السحابي (خاص بالمشرفين فقط)
+// =========================================================================
+let draggedSheikhTag = null;
+let touchDragItem = null;
+let longPressTimer = null;
+
+// 1️⃣ دالة جلب ترتيب المشايخ المخصص من السيرفر
+window.getSheikhOrderFromCloud = async function() {
+  try {
+    const firestoreDb = window.db || (typeof db !== 'undefined' ? db : null);
+    if (!firestoreDb) return null;
+    const docRef = window.doc(firestoreDb, "app_settings", "sheikhs_order");
+    const docSnap = await window.getDoc(docRef);
+    if (docSnap.exists()) {
+      return docSnap.data().order || [];
+    }
+  } catch(e) {
+    console.warn("Could not load custom sheikh order:", e);
+  }
+  return null;
+};
+
+// 2️⃣ دالة حفظ الترتيب الجديد في السيرفر (تُستدعى عند انتهاء المشرف من السحب)
+window.saveSheikhOrderToCloud = async function(orderedList) {
+  try {
+    const firestoreDb = window.db || (typeof db !== 'undefined' ? db : null);
+    if (!firestoreDb) return;
+    
+    // حفظ أو تحديث المستند في Firestore
+    const docRef = window.doc(firestoreDb, "app_settings", "sheikhs_order");
+    await window.addDoc ? window.addDoc : null; // للتأكد
+    
+    // استخدام setDoc لحفظ الترتيب
+    if (typeof setDoc === 'function') {
+      await setDoc(docRef, { order: orderedList, updatedAt: new Date() });
+    } else if (window.setDoc) {
+      await window.setDoc(docRef, { order: orderedList, updatedAt: new Date() });
+    }
+  } catch(e) {
+    console.error("Failed to save sheikhs order:", e);
+  }
+};
+
+// 3️⃣ رندر شبكة القراء بدعم السحب والضغط المطول للمشرفين
 window.renderSheikhsGrid = async function (container) {
-  // 1. جلب التلاوات السحابية من Firestore إن وجدت
   await window.loadCloudRecitations();
 
+  const isMeAdmin = typeof window.isAdminUser === 'function' ? window.isAdminUser() : false;
+  const myName = localStorage.getItem('athr_user_name') || "";
+
+  // استخراج قائمة كل القراء المتاحين
   const tagsSet = new Set();
   window.rareRecitations.forEach(item => { if (item.tag) tagsSet.add(item.tag); });
-  const sheikhs = Array.from(tagsSet);
+  let sheikhs = Array.from(tagsSet);
+
+  // ترتيب القراء حسب الترتيب السحابي المعتمد إن وجد
+  const savedOrder = await window.getSheikhOrderFromCloud();
+  if (savedOrder && Array.isArray(savedOrder)) {
+    sheikhs.sort((a, b) => {
+      const idxA = savedOrder.indexOf(a);
+      const idxB = savedOrder.indexOf(b);
+      if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+      if (idxA !== -1) return -1;
+      if (idxB !== -1) return 1;
+      return 0;
+    });
+  }
 
   let gridHTML = `
     <!-- زر إضافة شيخ وتلاوة جديدة بالإذن السري -->
     <div style="margin-bottom: 15px; text-align: center;">
-      <button onclick="window.openAddSheikhModal()" style="background: rgba(212,175,55,0.12); color: var(--gold); border: 1px dashed var(--gold); padding: 10px 20px; border-radius: 25px; font-family: 'Amiri', serif; font-size: 14px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s;">
+      <button onclick="window.openAddSheikhModal()" style="background: rgba(212,175,55,0.12); color: var(--gold); border: 1px dashed var(--gold); padding: 10px 20px; border-radius: 25px; font-family: 'Amiri', serif; font-size: 14px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
         <span>➕</span> إضافة قارئ أو تلاوة جديدة (بإذن المشرف)
       </button>
+      ${isMeAdmin ? `<div style="color:var(--gold); font-size:11px; margin-top:6px; opacity:0.8;">👑 وضع المشرف: يمكنك سحب كارت أي قارئ لتغيير الترتيب للجميع</div>` : ''}
     </div>
 
-    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; direction: rtl; padding: 10px 0;">
+    <div id="sheikhsGridContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); gap: 12px; direction: rtl; padding: 10px 0;">
   `;
 
   sheikhs.forEach(sheikh => {
     const avatar = window.getSheikhAvatar(sheikh);
     const count = window.rareRecitations.filter(i => i.tag === sheikh).length;
 
+    const cloudItem = window.cloudRecitationsList ? window.cloudRecitationsList.find(i => i.tag === sheikh) : null;
+    const addedBy = cloudItem ? cloudItem.addedBy : null;
+    const canDelete = cloudItem && (isMeAdmin || (myName && addedBy === myName));
+
     gridHTML += `
-      <div onclick="window.selectSheikh('${sheikh}')" style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 15px 8px; cursor: pointer; transition: transform 0.2s, border-color 0.2s; text-align: center;">
-        <img src="${avatar}" alt="${sheikh}" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 2.5px solid var(--gold); box-shadow: 0 4px 10px rgba(0,0,0,0.3);" />
-        <div style="font-weight: bold; color: var(--text); font-family: 'Amiri', serif; font-size: 13px; margin-top: 10px; line-height: 1.3; height: 34px; display: flex; align-items: center; justify-content: center;">
+      <div class="sheikh-card-item"
+           data-sheikh="${sheikh}"
+           ${isMeAdmin ? `draggable="true"` : ''}
+           style="position: relative; display: flex; flex-direction: column; align-items: center; justify-content: space-between; background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 12px 6px; cursor: pointer; text-align: center; user-select: none; transition: transform 0.2s, box-shadow 0.2s;"
+           onclick="window.selectSheikh('${sheikh}')">
+        
+        ${canDelete ? `
+          <button onclick="event.stopPropagation(); window.deleteCloudSheikh('${sheikh}')" style="position: absolute; top: 5px; left: 5px; background: rgba(255,77,77,0.2); border: 1px solid #ff4d4d; color: #ff4d4d; border-radius: 50%; width: 22px; height: 22px; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10;" title="حذف القارئ">🗑️</button>
+        ` : ''}
+
+        <img src="${avatar}" alt="${sheikh}" pointer-events="none" style="width: 65px; height: 65px; border-radius: 50%; object-fit: cover; border: 2px solid var(--gold); box-shadow: 0 4px 10px rgba(0,0,0,0.3); pointer-events: none;" />
+        
+        <div style="font-weight: bold; color: var(--text); font-family: 'Amiri', serif; font-size: 12px; margin-top: 8px; line-height: 1.2; pointer-events: none;">
           ${sheikh}
         </div>
-        <div style="font-size: 10px; color: var(--gold); margin-top: 2px; font-family: 'Amiri', serif;">
+
+        <div style="font-size: 10px; color: var(--gold); margin-top: 2px; pointer-events: none;">
           ${count} مقطع
         </div>
+
+        ${addedBy ? `
+          <div style="font-size: 8px; color: var(--text2); margin-top: 4px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 3px; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; pointer-events: none;">
+            بواسطة: <span style="color:var(--gold);">${addedBy}</span>
+          </div>
+        ` : ''}
+
       </div>
     `;
   });
 
   gridHTML += `</div>`;
   container.innerHTML = gridHTML;
+
+  // تفعيل أحداث السحب واللمس للمشرف فقط
+  if (isMeAdmin) {
+    window.attachAdminDragEvents();
+  }
+};
+
+// 4️⃣ ربط أحداث الماوس واللمس (Drag & Drop + Touch Events) للمشرف
+window.attachAdminDragEvents = function() {
+  const cards = document.querySelectorAll('.sheikh-card-item');
+  const container = document.getElementById('sheikhsGridContainer');
+
+  cards.forEach(card => {
+    // --- سحب بالماوس (للكمبيوتر) ---
+    card.addEventListener('dragstart', (e) => {
+      draggedSheikhTag = card.getAttribute('data-sheikh');
+      card.style.opacity = '0.4';
+      card.style.transform = 'scale(0.95)';
+    });
+
+    card.addEventListener('dragend', () => {
+      card.style.opacity = '1';
+      card.style.transform = 'scale(1)';
+      window.handleOrderChanged();
+    });
+
+    card.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      const targetCard = card;
+      if (targetCard && targetCard !== draggedSheikhTag) {
+        const draggingEl = document.querySelector(`[data-sheikh="${draggedSheikhTag}"]`);
+        if (draggingEl && targetCard !== draggingEl) {
+          const bounding = targetCard.getBoundingClientRect();
+          const offset = e.clientY - bounding.top;
+          if (offset > bounding.height / 2) {
+            targetCard.after(draggingEl);
+          } else {
+            targetCard.before(draggingEl);
+          }
+        }
+      }
+    });
+
+    // --- ضغط مطول وسحب باللمس (لهواتف الموبايل) ---
+    card.addEventListener('touchstart', (e) => {
+      longPressTimer = setTimeout(() => {
+        touchDragItem = card;
+        card.style.opacity = '0.5';
+        card.style.transform = 'scale(1.08)';
+        card.style.borderColor = 'var(--gold)';
+        card.style.boxShadow = '0 0 20px var(--gold)';
+        if (navigator.vibrate) navigator.vibrate(50); // اهتزاز خفيف لتأكيد التفعيل
+      }, 500); // تفعيل السحب بعد ضغطة مطولة لنصف ثانية
+    }, { passive: true });
+
+    card.addEventListener('touchmove', (e) => {
+      if (!touchDragItem) {
+        clearTimeout(longPressTimer);
+        return;
+      }
+      e.preventDefault(); // منع سكرول الصفحة أثناء السحب
+
+      const touch = e.touches[0];
+      const targetEl = document.elementFromPoint(touch.clientX, touch.clientY);
+      const targetCard = targetEl ? targetEl.closest('.sheikh-card-item') : null;
+
+      if (targetCard && targetCard !== touchDragItem && container.contains(targetCard)) {
+        const bounding = targetCard.getBoundingClientRect();
+        if (touch.clientY > bounding.top + bounding.height / 2) {
+          targetCard.after(touchDragItem);
+        } else {
+          targetCard.before(touchDragItem);
+        }
+      }
+    }, { passive: false });
+
+    card.addEventListener('touchend', () => {
+      clearTimeout(longPressTimer);
+      if (touchDragItem) {
+        touchDragItem.style.opacity = '1';
+        touchDragItem.style.transform = 'scale(1)';
+        touchDragItem.style.boxShadow = 'none';
+        touchDragItem = null;
+        window.handleOrderChanged();
+      }
+    });
+  });
+};
+
+// 5️⃣ حفظ الترتيب الجديد عند انتهاء السحب
+window.handleOrderChanged = async function() {
+  const cards = document.querySelectorAll('.sheikh-card-item');
+  const newOrder = [];
+  cards.forEach(c => {
+    const tag = c.getAttribute('data-sheikh');
+    if (tag) newOrder.push(tag);
+  });
+
+  // حفظ الترتيب في السيرفر فوراً
+  await window.saveSheikhOrderToCloud(newOrder);
 };
 
 // تحديد الشيخ المختار والتنقل لتلاواته
