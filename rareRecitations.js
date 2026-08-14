@@ -2093,44 +2093,69 @@ window.handleDashboardAvatarSelect = function(input) {
   }
 };
 
+// =========================================================================
+// 🚀 نظام التخزين السحابي المزدوج الموزع (Dual Cloudinary - 50GB)
+// =========================================================================
+window.CLOUDINARY_ACCOUNTS = [
+  {
+    cloudName: "ktya2tgk",        // السيرفر الأول (25GB)
+    uploadPreset: "athr_preset"
+  },
+  {
+    cloudName: "eb7yvora",        // السيرفر الثاني الجديد (25GB)
+    uploadPreset: "athr_preset2"
+  }
+];
+
+// دالة الرفع الذكية (تجرب السيرفر الأول، ولو ممتلئ تنقل على الثاني تلقائياً)
 window.handleDashboardAudioSelect = async function(input) {
   const file = input.files[0];
   if (!file) return;
 
   const urlInp = document.getElementById('dashTrackUrl');
-  urlInp.value = "جاري رفع ملف الصوت للسيرفر... ⏳";
+  urlInp.value = "جاري رفع ملف الصوت سحابياً... ⏳";
   urlInp.disabled = true;
 
-  try {
-    const CLOUD_NAME = "ktya2tgk";
-    const UPLOAD_PRESET = "athr_preset";
+  let uploadedUrl = null;
 
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", UPLOAD_PRESET);
+  for (let i = 0; i < window.CLOUDINARY_ACCOUNTS.length; i++) {
+    const acc = window.CLOUDINARY_ACCOUNTS[i];
 
-    const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`, {
-      method: "POST",
-      body: formData
-    });
-    const resData = await response.json();
+    try {
+      urlInp.value = `جاري الرفع على السيرفر السحابي (${i + 1})... ⏳`;
 
-    if (resData.secure_url) {
-      urlInp.value = resData.secure_url;
-      alert("✅ تم رفع ملف الصوت بنجاح من هاتفك!");
-    } else {
-      alert("⚠️ فشل رفع ملف الصوت، حاول مجدداً.");
-      urlInp.value = "";
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", acc.uploadPreset);
+
+      const response = await fetch(`https://api.cloudinary.com/v1_1/${acc.cloudName}/video/upload`, {
+        method: "POST",
+        body: formData
+      });
+
+      const resData = await response.json();
+
+      if (resData.secure_url) {
+        uploadedUrl = resData.secure_url;
+        break; // نجح الرفع، توقف عن المحاولة
+      } else {
+        console.warn(`Cloudinary Account ${i + 1} rejected upload:`, resData);
+      }
+    } catch (err) {
+      console.warn(`Failed connecting to Cloudinary ${i + 1}, trying next...`, err);
     }
-  } catch(e) {
-    console.error(e);
-    alert("⚠️ خطأ أثناء رفع الصوت.");
-    urlInp.value = "";
-  } finally {
-    urlInp.disabled = false;
   }
-};
 
+  if (uploadedUrl) {
+    urlInp.value = uploadedUrl;
+    alert("✅ تم رفع ملف الصوت بنجاح وحفظه سحابياً!");
+  } else {
+    alert("⚠️ تعذر الرفع على السيرفرات، يرجى التأكد من اتصال الإنترنت أو استخدام رابط مباشر من Archive.org.");
+    urlInp.value = "";
+  }
+
+  urlInp.disabled = false;
+};
 window.addTrackToSessionBatch = function() {
   const titleInp = document.getElementById('dashTrackTitle');
   const urlInp = document.getElementById('dashTrackUrl');
