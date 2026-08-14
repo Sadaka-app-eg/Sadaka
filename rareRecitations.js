@@ -1777,3 +1777,205 @@ window.deleteCloudSheikh = async function(sheikhTag) {
     alert("⚠️ حدث خطأ أثناء حذف القارئ.");
   }
 };
+// =========================================================================
+// 🎙️ بوابة إدخال كود النشر وفتح لوحة الإدارة
+// =========================================================================
+window.openAddSheikhModal = function() {
+  let modal = document.getElementById('addSheikhModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'addSheikhModal';
+    modal.style.cssText = "position:fixed; inset:0; background:rgba(0,0,0,0.9); backdrop-filter:blur(10px); z-index:99999999; display:flex; align-items:center; justify-content:center; padding:15px; direction:rtl; font-family:'Amiri', serif;";
+    document.body.appendChild(modal);
+  }
+
+  modal.innerHTML = `
+    <div style="width:100%; max-width:420px; background:#0f1510; border:1px solid var(--gold); border-radius:24px; padding:25px; display:flex; flex-direction:column; gap:15px; box-shadow:0 15px 40px rgba(0,0,0,0.9); text-align:right;">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:10px;">
+        <strong style="color:var(--gold); font-size:18px;">🎙️ بوابة نشر التلاوات الحصرية</strong>
+        <button onclick="document.getElementById('addSheikhModal').style.display='none'" style="background:none; border:none; color:#ff4d4d; font-size:20px; cursor:pointer;">✕</button>
+      </div>
+
+      <p style="color:var(--text2); font-size:13px; line-height:1.5; margin:0;">
+        لإضافة قراء وتلاوات جديدة لتظهر لجميع مستخدمي التطبيق، يرجى إدخال كود الإذن الممنوح لك من المشرف.
+      </p>
+
+      <div>
+        <label style="color:var(--text); font-size:13px; display:block; margin-bottom:6px;">🔑 كود إذن النشر السري:</label>
+        <input id="sheikhPassCodeInp" type="password" placeholder="أدخل الكود هنا..." style="width:100%; padding:12px; background:#000; border:1px solid var(--border); color:var(--text); border-radius:10px; outline:none; font-size:15px; text-align:center;" />
+      </div>
+
+      <button onclick="window.verifySheikhPassCode()" style="background:var(--gold); color:#111; border:none; padding:14px; border-radius:12px; font-weight:bold; font-size:16px; cursor:pointer; font-family:'Amiri',serif; box-shadow:0 4px 15px rgba(212,175,55,0.3);">
+        🚀 دخول لوحة النشر الشاملة
+      </button>
+
+      <div style="text-align:center; margin-top:10px; border-top:1px dashed var(--border); padding-top:15px;">
+        <p style="color:var(--text2); font-size:12px; margin-bottom:8px;">ليس لديك كود إذن؟</p>
+        <a href="https://wa.me/${window.MANAGER_WHATSAPP_NUMBER || '201069168725'}?text=${encodeURIComponent('السلام عليكم، أطلب كود إذن النشر لإضافة تلاوات وقراء في شبكة أثر 🤍')}" target="_blank" style="display:block; background:#25D366; color:#fff; text-decoration:none; padding:10px; border-radius:10px; font-weight:bold; font-size:13px; box-shadow:0 4px 12px rgba(37,211,102,0.3);">
+          💬 اضغط هنا للتواصل مع المشرف (طلب الكود)
+        </a>
+      </div>
+    </div>
+  `;
+  modal.style.display = 'flex';
+};
+
+window.verifySheikhPassCode = function() {
+  const codeInp = document.getElementById('sheikhPassCodeInp');
+  if (!codeInp || codeInp.value.trim() !== (window.SHEIKH_PUBLISH_CODE || "AthrSheikh2026")) {
+    alert("❌ كود الإذن غير صحيح! تواصل مع المشرف عبر واتساب للحصول عليه.");
+    return;
+  }
+
+  sessionBatchTracks = [];
+  selectedSheikhAvatarFile = null;
+  window.renderFullDashboardScreen();
+};
+
+window.renderFullDashboardScreen = function() {
+  const modal = document.getElementById('addSheikhModal');
+  if (!modal) return;
+
+  modal.innerHTML = `
+    <div style="width:100%; max-width:650px; height:90vh; background:#0b0f0c; border:1px solid var(--gold); border-radius:24px; padding:20px 25px; display:flex; flex-direction:column; justify-content:space-between; box-shadow:0 20px 50px rgba(0,0,0,0.95); direction:rtl; font-family:'Amiri',serif; overflow:hidden;">
+      
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:12px;">
+        <h3 style="color:var(--gold); margin:0; font-size:20px;">✨ لوحة إضافة القارئ والتلاوات المتعددة</h3>
+        <button onclick="document.getElementById('addSheikhModal').style.display='none'" style="background:none; border:none; color:#ff4d4d; font-size:20px; cursor:pointer;">✕ إغلاق</button>
+      </div>
+
+      <div style="flex:1; overflow-y:auto; padding:10px 0; display:flex; flex-direction:column; gap:18px;">
+        
+        <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:14px; padding:15px;">
+          <h4 style="color:var(--gold); margin:0 0 10px 0; font-size:15px;">👤 بيانات القارئ الأساسية</h4>
+          
+          <div style="margin-bottom:12px;">
+            <label style="color:var(--text); font-size:13px; display:block; margin-bottom:5px;">اسم الشيخ / القارئ:</label>
+            <input id="dashSheikhName" type="text" placeholder="مثال: الشيخ محمد صديق المنشاوي" style="width:100%; padding:11px; background:#000; border:1px solid var(--border); color:var(--text); border-radius:8px; outline:none;" />
+          </div>
+
+          <div>
+            <label style="color:var(--text); font-size:13px; display:block; margin-bottom:5px;">صورة الشيخ الشخصية (من الهاتف):</label>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <label style="background:rgba(212,175,55,0.1); border:1px solid var(--gold); color:var(--gold); padding:8px 15px; border-radius:8px; font-size:13px; cursor:pointer;">
+                📸 اختر صورة من الهاتف
+                <input type="file" id="dashAvatarFile" accept="image/*" style="display:none;" onchange="window.handleDashboardAvatarSelect(this)" />
+              </label>
+              <span id="dashAvatarStatus" style="color:var(--text2); font-size:12px;">لم يتم اختيار صورة</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:14px; padding:15px;">
+          <h4 style="color:var(--gold); margin:0 0 10px 0; font-size:15px;">🎧 قائمة التلاوات (أضف ما شئت حتى 20+ تلاوة)</h4>
+          
+          <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:12px;">
+            <input id="dashTrackTitle" type="text" placeholder="عنوان التلاوة / اسم السورة" style="width:100%; padding:11px; background:#000; border:1px solid var(--border); color:var(--text); border-radius:8px; outline:none;" />
+            
+            <div style="display:flex; gap:10px; align-items:center;">
+              <input id="dashTrackUrl" type="url" placeholder="رابط مباشر للصوت أو ارفع ملف MP3 من هاتفك 👇" style="flex:1; padding:11px; background:#000; border:1px solid var(--border); color:var(--text); border-radius:8px; outline:none;" />
+              <label style="background:rgba(255,255,255,0.05); border:1px solid var(--border); color:var(--gold); padding:10px 14px; border-radius:8px; font-size:12px; cursor:pointer; white-space:nowrap;">
+                📁 رفع MP3
+                <input type="file" id="dashAudioFile" accept="audio/*" style="display:none;" onchange="window.handleDashboardAudioSelect(this)" />
+              </label>
+            </div>
+          </div>
+
+          <button onclick="window.addTrackToSessionBatch()" style="width:100%; background:rgba(212,175,55,0.15); border:1px solid var(--gold); color:var(--gold); padding:10px; border-radius:8px; font-weight:bold; cursor:pointer; font-family:'Amiri',serif;">
+            ➕ إضافة هذه التلاوة للقائمة المؤقتة
+          </button>
+
+          <div id="sessionTracksList" style="margin-top:12px; display:flex; flex-direction:column; gap:6px; max-height:130px; overflow-y:auto;">
+            <span style="color:var(--text2); font-size:12px; text-align:center;">لم تقم بإضافة أي تلاوة للقائمة بعد.</span>
+          </div>
+        </div>
+
+      </div>
+
+      <div style="border-top:1px solid var(--border); padding-top:12px;">
+        <button id="finalPublishBtn" onclick="window.publishAllBatchToCloud()" style="width:100%; background:var(--gold); color:#111; border:none; padding:14px; border-radius:12px; font-weight:bold; font-size:16px; cursor:pointer; font-family:'Amiri',serif; box-shadow:0 4px 15px rgba(212,175,55,0.3);">
+          ✨ نشر الشيخ وجميع تلاواته في التطبيق للجميع
+        </button>
+      </div>
+
+    </div>
+  `;
+};
+
+window.handleDashboardAvatarSelect = function(input) {
+  if (input.files && input.files[0]) {
+    selectedSheikhAvatarFile = input.files[0];
+    document.getElementById('dashAvatarStatus').textContent = "✓ تم اختيار الصورة";
+    document.getElementById('dashAvatarStatus').style.color = "var(--gold)";
+  }
+};
+
+window.handleDashboardAudioSelect = async function(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const urlInp = document.getElementById('dashTrackUrl');
+  urlInp.value = "جاري رفع ملف الصوت للسيرفر... ⏳";
+  urlInp.disabled = true;
+
+  try {
+    const CLOUD_NAME = "ktya2tgk";
+    const UPLOAD_PRESET = "athr_preset";
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", UPLOAD_PRESET);
+
+    const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`, {
+      method: "POST",
+      body: formData
+    });
+    const resData = await response.json();
+
+    if (resData.secure_url) {
+      urlInp.value = resData.secure_url;
+      alert("✅ تم رفع ملف الصوت بنجاح من هاتفك!");
+    } else {
+      alert("⚠️ فشل رفع ملف الصوت، حاول مجدداً.");
+      urlInp.value = "";
+    }
+  } catch(e) {
+    console.error(e);
+    alert("⚠️ خطأ أثناء رفع الصوت.");
+    urlInp.value = "";
+  } finally {
+    urlInp.disabled = false;
+  }
+};
+
+window.addTrackToSessionBatch = function() {
+  const titleInp = document.getElementById('dashTrackTitle');
+  const urlInp = document.getElementById('dashTrackUrl');
+  const title = titleInp.value.trim();
+  const url = urlInp.value.trim();
+
+  if (!title || !url) {
+    alert("⚠️ فضلاً أدخل عنوان التلاوة ورابط الصوت.");
+    return;
+  }
+
+  sessionBatchTracks.push({ title, url });
+  titleInp.value = "";
+  urlInp.value = "";
+  window.renderSessionTracksList();
+};
+
+window.renderSessionTracksList = function() {
+  const listEl = document.getElementById('sessionTracksList');
+  if (!listEl) return;
+  if (sessionBatchTracks.length === 0) {
+    listEl.innerHTML = `<span style="color:var(--text2); font-size:12px; text-align:center;">لم تقم بإضافة أي تلاوة للقائمة بعد.</span>`;
+    return;
+  }
+  listEl.innerHTML = sessionBatchTracks.map((t, idx) => `
+    <div style="background:rgba(0,0,0,0.5); padding:6px 10px; border-radius:6px; font-size:12px; display:flex; justify-content:space-between; align-items:center;">
+      <span>${idx + 1}. ${t.title}</span>
+      <button onclick="sessionBatchTracks.splice(${idx},1); window.renderSessionTracksList();" style="background:none; border:none; color:#ff4d4d; cursor:pointer;">✕ حذف</button>
+    </div>
+  `).join('');
+};
