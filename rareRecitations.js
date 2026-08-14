@@ -22,12 +22,14 @@ window.sheikhAvatars = {
   "عمر بن ضياء الدين": "https://play-lh.googleusercontent.com/aMdy6D3a21LnpSR9CBAQXnFQ9w-ULXRGSYSgdXTgMnTJl_V3iiD4xIsodo4MLewh7V0",
   "عبدالله الخلف": "https://pbs.twimg.com/media/HBeinXFWMAAp-ZS.jpg",
   "باسل مؤنس": "https://i1.sndcdn.com/artworks-yURv8TR3ocKFULGx-NMCd6g-t500x500.jpg",
+  "محمد نادي": "https://i.ytimg.com/vi/Wk9a7oK8rF8/hqdefault.jpg",
   "جابر القيطان": "https://tse4.mm.bing.net/th/id/OIP.TpwlSEi81TO7u_jjsvI3DAHaHY?r=0&pid=Api&h=220&P=0",
   "أحمد عبدالرازق نصر": "https://i.ytimg.com/vi/oO2jLz7xu-0/maxresdefault.jpg?sqp=-oaymwEmCIAKENAF8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGGUgZShVMA8=&rs=AOn4CLB6pMha95nYql7ibocN-I46RfkeuQ",
   "حسن صالح": "https://media.unitedmuslimworld.com/img/24/01/02/12913_1704169256.jpg",
   "سلمان المطيري": "https://i.ytimg.com/vi/VDTxSejzhYE/maxresdefault.jpg?sqp=-oaymwEmCIAKENAF8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGHIgSyg5MA8=&rs=AOn4CLDk3eegsL4TNzbERxPSCC9Jh8Z7IA",
   "أحمد بن طالب": "https://elmanshar.com/wp-content/uploads/2025/05/%D8%A7%D9%84%D8%B4%D9%8A%D8%AE-%D8%A3%D8%AD%D9%85%D8%AF-%D8%A8%D9%86-%D8%B7%D8%A7%D9%84%D8%A8.png",
   "أدعية خاشعة": "https://play-lh.googleusercontent.com/X7OramGgMltrow8scevlj2jzhOeasariHXw4kbA-KNqQ1hJleM5QZt-ztcw4h4Q_yGRE",
+  
   "أناشيد": "https://play-lh.googleusercontent.com/KSq79Pzx-LDvGRu11w3YigpaQJDLn0zTcx_3b9koIwmfgO1y9wQPyQZl3RjuO2OkSo8",
   // الصورة الافتراضية في حال عدم وجود صورة للشيخ
   "default": "https://images.unsplash.com/photo-1609599006353-e629aaabfeae?q=80&w=500&auto=format&fit=crop"
@@ -138,7 +140,34 @@ window.rareRecitations = [
   { name: "أحمد السعيد مندور: تلاوة خاشعة 10 🎙️", url: "audio_2/ahmed_10.mp3", desc: "", tag: "أحمد السعيد مندور" },
   { name: "أحمد السعيد مندور: تلاوة خاشعة 11 🎙️", url: "audio_2/ahmed_11.mp3", desc: "", tag: "أحمد السعيد مندور" },
   { name: "أحمد السعيد مندور: تلاوة خاشعة 12 🎙️", url: "audio_2/ahmed_12.mp3", desc: "", tag: "أحمد السعيد مندور" },
- 
+
+
+// ==========================================
+  // تلاوات الشيخ محمد نادي (20 تلاوة) 🎙️
+  // ==========================================
+  { name: "محمد نادي: تلاوة خاشعة 01 🎙️", url: "audio_2/nadi_1.mp3", desc: "", tag: "محمد نادي" },
+  { name: "محمد نادي: تلاوة خاشعة 02 🎙️", url: "audio_2/nadi_2.mp3", desc: "", tag: "محمد نادي" },
+  { name: "محمد نادي: تلاوة خاشعة 03 🎙️", url: "audio_2/nadi_3.mp3", desc: "", tag: "محمد نادي" },
+  { name: "محمد نادي: تلاوة خاشعة 04 🎙️", url: "audio_2/nadi_4.mp3", desc: "", tag: "محمد نادي" },
+  { name: "محمد نادي: تلاوة خاشعة 05 🎙️", url: "audio_2/nadi_5.mp3", desc: "", tag: "محمد نادي" },
+  { name: "محمد نادي: تلاوة خاشعة 06 🎙️", url: "audio_2/nadi_6.mp3", desc: "", tag: "محمد نادي" },
+  { name: "محمد نادي: تلاوة خاشعة 07 🎙️", url: "audio_2/nadi_7.mp3", desc: "", tag: "محمد نادي" },
+  { name: "محمد نادي: تلاوة خاشعة 08 🎙️", url: "audio_2/nadi_8.mp3", desc: "", tag: "محمد نادي" },
+  { name: "محمد نادي: تلاوة خاشعة 09 🎙️", url: "audio_2/nadi_9.mp3", desc: "", tag: "محمد نادي" },
+  { name: "محمد نادي: تلاوة خاشعة 10 🎙️", url: "audio_2/nadi_10.mp3", desc: "", tag: "محمد نادي" },
+  { name: "محمد نادي: تلاوة خاشعة 11 🎙️", url: "audio_2/nadi_11.mp3", desc: "", tag: "محمد نادي" },
+  { name: "محمد نادي: تلاوة خاشعة 12 🎙️", url: "audio_2/nadi_12.mp3", desc: "", tag: "محمد نادي" },
+  { name: "محمد نادي: تلاوة خاشعة 13 🎙️", url: "audio_2/nadi_13.mp3", desc: "", tag: "محمد نادي" },
+  { name: "محمد نادي: تلاوة خاشعة 14 🎙️", url: "audio_2/nadi_14.mp3", desc: "", tag: "محمد نادي" },
+  { name: "محمد نادي: تلاوة خاشعة 15 🎙️", url: "audio_2/nadi_15.mp3", desc: "", tag: "محمد نادي" },
+  { name: "محمد نادي: تلاوة خاشعة 16 🎙️", url: "audio_2/nadi_16.mp3", desc: "", tag: "محمد نادي" },
+  { name: "محمد نادي: تلاوة خاشعة 17 🎙️", url: "audio_2/nadi_17.mp3", desc: "", tag: "محمد نادي" },
+  { name: "محمد نادي: تلاوة خاشعة 18 🎙️", url: "audio_2/nadi_18.mp3", desc: "", tag: "محمد نادي" },
+  { name: "محمد نادي: تلاوة خاشعة 19 🎙️", url: "audio_2/nadi_19.mp3", desc: "", tag: "محمد نادي" },
+  { name: "محمد نادي: تلاوة خاشعة 20 🎙️", url: "audio_2/nadi_20.mp3", desc: "", tag: "محمد نادي" },
+
+
+  
     // تلاوات الشيخ أحمد كاسب (6 تلاوات)
   { name: "أحمد كاسب:  وَرَبُّكَ يَخْلُقُ مَا يَشَاءُ وَيَخْتَارُ (سورة القصص) 🎙️", url: "audio/kaseb_1.mp3", desc: "", tag: "أحمد كاسب" },
   { name: "أحمد كاسب: تلاوة خاشعة (سورة الشوري) 🎙️", url: "audio/kaseb_2.mp3", desc: "", tag: "أحمد كاسب" },
@@ -1211,13 +1240,26 @@ html += filteredList.map((item) => {
 };
 
 // دالة عرض شبكة القراء (3 شيوخ في الصف)
-window.renderSheikhsGrid = function (container) {
-  // استخراج القراء دون تكرار
+// كود الإذن السري للنشر (غيره للكلمة اللي تعجبك)
+const SHEIKH_PUBLISH_CODE = "AthrSheikh2026";
+
+// دالة عرض شبكة القراء مع زر الإضافة السحابي
+window.renderSheikhsGrid = async function (container) {
+  // 1. جلب التلاوات السحابية من Firestore إن وجدت
+  await window.loadCloudRecitations();
+
   const tagsSet = new Set();
   window.rareRecitations.forEach(item => { if (item.tag) tagsSet.add(item.tag); });
   const sheikhs = Array.from(tagsSet);
 
   let gridHTML = `
+    <!-- زر إضافة شيخ وتلاوة جديدة بالإذن السري -->
+    <div style="margin-bottom: 15px; text-align: center;">
+      <button onclick="window.openAddSheikhModal()" style="background: rgba(212,175,55,0.12); color: var(--gold); border: 1px dashed var(--gold); padding: 10px 20px; border-radius: 25px; font-family: 'Amiri', serif; font-size: 14px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s;">
+        <span>➕</span> إضافة قارئ أو تلاوة جديدة (بإذن المشرف)
+      </button>
+    </div>
+
     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; direction: rtl; padding: 10px 0;">
   `;
 
@@ -1540,3 +1582,143 @@ window.setRingtone = async function(url, name) {
 // ربط تحديث الميني بليير بأحداث التشغيل والإغلاق
 window.rareAudioPlayer.addEventListener('play', window.updateMiniPlayerUI);
 window.rareAudioPlayer.addEventListener('pause', window.updateMiniPlayerUI);
+// =========================================================================
+// ☁️ دوال إضافة واستقبال التلاوات السحابية الجديدة
+// =========================================================================
+
+// دالة فتح نافذة إضافة التلاوة
+window.openAddSheikhModal = function() {
+  let modal = document.getElementById('addSheikhModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'addSheikhModal';
+    modal.style.cssText = "position:fixed; inset:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); z-index:99999999; display:flex; align-items:center; justify-content:center; padding:15px; direction:rtl; font-family:'Amiri', serif;";
+    document.body.appendChild(modal);
+  }
+
+  modal.innerHTML = `
+    <div style="width:100%; max-width:380px; background:#0f1510; border:1px solid var(--gold); border-radius:20px; padding:22px; display:flex; flex-direction:column; gap:12px; box-shadow:0 10px 30px rgba(0,0,0,0.9); text-align:right;">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:8px;">
+        <strong style="color:var(--gold); font-size:16px;">🎙️ إضافة تلاوة / قارئ جديد</strong>
+        <button onclick="document.getElementById('addSheikhModal').style.display='none'" style="background:none; border:none; color:#ff4d4d; font-size:18px; cursor:pointer;">✕</button>
+      </div>
+
+      <div>
+        <label style="color:var(--text); font-size:12px; display:block; margin-bottom:4px;">🔑 كود إذن النشر (من المشرف):</label>
+        <input id="sheikhPassCodeInp" type="password" placeholder="أدخل الكود السري الممنوح لك..." style="width:100%; padding:10px; background:#000; border:1px solid var(--border); color:var(--text); border-radius:8px; outline:none;" />
+      </div>
+
+      <div>
+        <label style="color:var(--text); font-size:12px; display:block; margin-bottom:4px;">👤 اسم الشيخ / القارئ:</label>
+        <input id="sheikhNameInp" type="text" placeholder="مثال: الشيخ محمد صديق المنشاوي" style="width:100%; padding:10px; background:#000; border:1px solid var(--border); color:var(--text); border-radius:8px; outline:none;" />
+      </div>
+
+      <div>
+        <label style="color:var(--text); font-size:12px; display:block; margin-bottom:4px;">🖼️ رابط صورة الشيخ (اختياري):</label>
+        <input id="sheikhAvatarInp" type="url" placeholder="https://... رابط صورة الشيخ" style="width:100%; padding:10px; background:#000; border:1px solid var(--border); color:var(--text); border-radius:8px; outline:none;" />
+      </div>
+
+      <div>
+        <label style="color:var(--text); font-size:12px; display:block; margin-bottom:4px;">📖 اسم السورة أو عنوان التلاوة:</label>
+        <input id="trackTitleInp" type="text" placeholder="مثال: تلاوة خاشعة من سورة الرحمن" style="width:100%; padding:10px; background:#000; border:1px solid var(--border); color:var(--text); border-radius:8px; outline:none;" />
+      </div>
+
+      <div>
+        <label style="color:var(--text); font-size:12px; display:block; margin-bottom:4px;">🎵 رابط ملف الصوت (MP3 المباشر):</label>
+        <input id="trackAudioUrlInp" type="url" placeholder="https://archive.org/.../audio.mp3" style="width:100%; padding:10px; background:#000; border:1px solid var(--border); color:var(--text); border-radius:8px; outline:none;" />
+      </div>
+
+      <button id="saveSheikhBtn" onclick="window.processAddSheikhSubmit()" style="background:var(--gold); color:#111; border:none; padding:12px; border-radius:10px; font-weight:bold; font-size:15px; cursor:pointer; font-family:'Amiri',serif; margin-top:8px;">
+        ✨ نشر التلاوة في التطبيق للجميع
+      </button>
+    </div>
+  `;
+  modal.style.display = 'flex';
+};
+
+// دالة التحقق والحفظ في الفايربيز
+window.processAddSheikhSubmit = async function() {
+  const passInp = document.getElementById('sheikhPassCodeInp');
+  const nameInp = document.getElementById('sheikhNameInp');
+  const avatarInp = document.getElementById('sheikhAvatarInp');
+  const titleInp = document.getElementById('trackTitleInp');
+  const urlInp = document.getElementById('trackAudioUrlInp');
+  const btn = document.getElementById('saveSheikhBtn');
+
+  if (!passInp || passInp.value.trim() !== SHEIKH_PUBLISH_CODE) {
+    alert("❌ كود الإذن غير صحيح! يرجى أخذ الكود من مشرف التطبيق أولاً.");
+    return;
+  }
+
+  const sheikhName = nameInp.value.trim();
+  const trackTitle = titleInp.value.trim();
+  const audioUrl = urlInp.value.trim();
+  const avatarUrl = avatarInp.value.trim() || window.sheikhAvatars["default"];
+
+  if (!sheikhName || !trackTitle || !audioUrl) {
+    alert("⚠️ فضلاً أدخل اسم الشيخ، عنوان التلاوة، ورابط الصوت.");
+    return;
+  }
+
+  try {
+    btn.disabled = true;
+    btn.textContent = "جاري النشر السحابي... ⏳";
+
+    // 1️⃣ حفظ التلاوة في الفايرستور
+    await addDoc(collection(db, "custom_recitations"), {
+      tag: sheikhName,
+      name: `${sheikhName}: ${trackTitle} 🎙️`,
+      url: audioUrl,
+      avatar: avatarUrl,
+      desc: "",
+      addedAt: serverTimestamp()
+    });
+
+    // 2️⃣ إضافة صورة الشيخ إن وجدت في الذاكرة
+    if (avatarUrl) {
+      window.sheikhAvatars[sheikhName] = avatarUrl;
+    }
+
+    alert("✅ تم نشر التلاوة بنجاح وأصبحت متاحة للجميع في التطبيق!");
+    document.getElementById('addSheikhModal').style.display = 'none';
+    
+    // إعادة تحميل الواجهة فوراً
+    window.renderRareRecitations();
+
+  } catch(e) {
+    console.error(e);
+    alert("⚠️ حدث خطأ أثناء الحفظ على السيرفر.");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "✨ نشر التلاوة في التطبيق للجميع";
+  }
+};
+
+// دالة جلب التلاوات السحابية ودمجها مع المصفوفة الثابتة
+window.loadCloudRecitations = async function() {
+  if (window.cloudRecitationsLoaded) return;
+  try {
+    const q = query(collection(db, "custom_recitations"), orderBy("addedAt", "desc"));
+    const snap = await getDocs(q);
+    
+    snap.forEach((docSnap) => {
+      const data = docSnap.data();
+      // منع التكرار
+      if (!window.rareRecitations.some(r => r.url === data.url)) {
+        window.rareRecitations.push({
+          name: data.name,
+          url: data.url,
+          desc: data.desc || "",
+          tag: data.tag
+        });
+
+        if (data.avatar) {
+          window.sheikhAvatars[data.tag] = data.avatar;
+        }
+      }
+    });
+    window.cloudRecitationsLoaded = true;
+  } catch(e) {
+    console.warn("Cloud recitations load:", e);
+  }
+};
