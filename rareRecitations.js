@@ -1873,3 +1873,38 @@ window.publishAllBatchToCloud = async function() {
     btn.textContent = "✨ نشر الشيخ وجميع تلاواته في التطبيق للجميع";
   }
 };
+// =========================================================================
+// ☁️ دالة جلب ودمج التلاوات السحابية من Firestore بأمان تام
+// =========================================================================
+window.cloudRecitationsLoaded = false;
+
+window.loadCloudRecitations = async function() {
+  if (window.cloudRecitationsLoaded) return;
+  
+  try {
+    // التأكد من وجود كائن قاعدة البيانات Firestore
+    if (typeof db !== 'undefined' && typeof collection === 'function' && typeof getDocs === 'function') {
+      const q = query(collection(db, "custom_recitations"), orderBy("addedAt", "desc"));
+      const snap = await getDocs(q);
+      
+      snap.forEach((docSnap) => {
+        const data = docSnap.data();
+        if (!window.rareRecitations.some(r => r.url === data.url)) {
+          window.rareRecitations.push({
+            name: data.name,
+            url: data.url,
+            desc: data.desc || "",
+            tag: data.tag
+          });
+
+          if (data.avatar) {
+            window.sheikhAvatars[data.tag] = data.avatar;
+          }
+        }
+      });
+      window.cloudRecitationsLoaded = true;
+    }
+  } catch(e) {
+    console.warn("Notice: Cloud recitations skipped or offline:", e);
+  }
+};
