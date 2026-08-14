@@ -1241,40 +1241,91 @@ window.draggedSheikhTag = null;
 window.touchDragItem = null;
 window.longPressTimer = null;
 
-// 1️⃣ دالة جلب ترتيب المشايخ المخصص من السيرفر
+
+
+// =========================================================================
+// 🔀 نظام حفظ وجلب ترتيب المشايخ (حفظ محلي فوري + مزامنة سحابية)
+// =========================================================================
+
+// 1️⃣ جلب الترتيب (من الذاكرة المحلية أولاً ثم من السيرفر)
 window.getSheikhOrderFromCloud = async function() {
+  // أ) قراءة فورية من الكاش المحلي لمنع إعادة الترتيب للافتراضي
+  let localOrder = null;
+  try {
+    const cached = localStorage.getItem('athr_sheikhs_order');
+    if (cached) localOrder = JSON.parse(cached);
+  } catch(e) {}
+
+  // ب) محاولة المزامنة مع السيرفر السحابي
   try {
     const firestoreDb = window.db || (typeof db !== 'undefined' ? db : null);
-    if (!firestoreDb) return null;
-    const docRef = window.doc(firestoreDb, "app_settings", "sheikhs_order");
-    const docSnap = await window.getDoc(docRef);
-    if (docSnap.exists()) {
-      return docSnap.data().order || [];
+    if (firestoreDb) {
+      let cloudOrder = null;
+      
+      // دعم نظام Firebase الحديث (Modular SDK)
+      if (window.doc && window.getDoc) {
+        const docRef = window.doc(firestoreDb, "app_settings", "sheikhs_order");
+        const docSnap = await window.getDoc(docRef);
+        if (docSnap.exists()) cloudOrder = docSnap.data().order;
+      } 
+      // دعم نظام Firebase الكلاسيكي
+      else if (firestoreDb.collection) {
+        const docSnap = await firestoreDb.collection("app_settings").doc("sheikhs_order").get();
+        if (docSnap.exists) cloudOrder = docSnap.data().order;
+      }
+
+      if (cloudOrder && Array.isArray(cloudOrder) && cloudOrder.length > 0) {
+        localStorage.setItem('athr_sheikhs_order', JSON.stringify(cloudOrder));
+        return cloudOrder;
+      }
     }
   } catch(e) {
-    console.warn("Could not load custom sheikh order:", e);
+    console.warn("تعذر جلب الترتيب من السيرفر، تم الاعتماد على الترتيب المحلي:", e);
   }
-  return null;
+
+  return localOrder;
 };
 
-// 2️⃣ دالة حفظ الترتيب الجديد في السيرفر (تُستدعى عند انتهاء المشرف من السحب)
+// 2️⃣ حفظ الترتيب الجديد (محلياً فوراً + سحابياً للجميع)
 window.saveSheikhOrderToCloud = async function(orderedList) {
+  if (!orderedList || !Array.isArray(orderedList)) return;
+
+  // أ) الحفظ الفوري في جهاز المستخدم
+  try {
+    localStorage.setItem('athr_sheikhs_order', JSON.stringify(orderedList));
+  } catch(e) {}
+
+  // ب) الرفع للسيرفر ليظهر الترتيب لكل المستخدمين
   try {
     const firestoreDb = window.db || (typeof db !== 'undefined' ? db : null);
     if (!firestoreDb) return;
-    
-    // حفظ أو تحديث المستند في Firestore
-    const docRef = window.doc(firestoreDb, "app_settings", "sheikhs_order");
-    await window.addDoc ? window.addDoc : null; // للتأكد
-    
-    // استخدام setDoc لحفظ الترتيب
-    if (typeof setDoc === 'function') {
-      await setDoc(docRef, { order: orderedList, updatedAt: new Date() });
-    } else if (window.setDoc) {
-      await window.setDoc(docRef, { order: orderedList, updatedAt: new Date() });
+
+    if (window.doc && (window.setDoc || typeof setDoc === 'function')) {
+      const setDocFunc = window.setDoc || setDoc;
+      const docRef = window.doc(firestoreDb, "app_settings", "sheikhs_order");
+      await setDocFunc(docRef, { order: orderedList, updatedAt: new Date() }, { merge: true });
+    } else if (firestoreDb.collection) {
+      await firestoreDb.collection("app_settings").doc("sheikhs_order").set({
+        order: orderedList,
+        updatedAt: new Date()
+      }, { merge: true });
     }
   } catch(e) {
-    console.error("Failed to save sheikhs order:", e);
+    console.error("خطأ في مزامنة الترتيب مع السيرفر:", e);
+  }
+};
+
+// 3️⃣ معالجة انتهاء السحب وتحديث الترتيب
+window.handleOrderChanged = async function() {
+  const cards = document.querySelectorAll('.sheikh-card-item');
+  const newOrder = [];
+  cards.forEach(c => {
+    const tag = c.getAttribute('data-sheikh');
+    if (tag) newOrder.push(tag);
+  });
+
+  if (newOrder.length > 0) {
+    await window.saveSheikhOrderToCloud(newOrder);
   }
 };
 
@@ -1445,18 +1496,7 @@ window.attachAdminDragEvents = function() {
   });
 };
 
-// 5️⃣ حفظ الترتيب الجديد عند انتهاء السحب
-window.handleOrderChanged = async function() {
-  const cards = document.querySelectorAll('.sheikh-card-item');
-  const newOrder = [];
-  cards.forEach(c => {
-    const tag = c.getAttribute('data-sheikh');
-    if (tag) newOrder.push(tag);
-  });
 
-  // حفظ الترتيب في السيرفر فوراً
-  await window.saveSheikhOrderToCloud(newOrder);
-};
 
 // تحديد الشيخ المختار والتنقل لتلاواته
 window.selectSheikh = function(sheikhTag) {
