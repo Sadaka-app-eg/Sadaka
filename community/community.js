@@ -557,6 +557,9 @@ window.getUserNameClassAndStyle = function(points) {
   }
 };
 
+// =========================================================
+// 3️⃣ كارت البروفايل عند الضغط على أي شخص (مع أزرار الواتس والتيلجرام)
+// =========================================================
 window.openUserProfileCard = async function(userName) {
   const menus = document.querySelectorAll('[id^="reactionMenu-"]');
   menus.forEach(m => m.style.display = 'none');
@@ -577,9 +580,8 @@ window.openUserProfileCard = async function(userName) {
     if(!docSnap.exists()) {
       modal.innerHTML = `
         <div class="comm-card" style="width:100%; max-width:360px; text-align:center; border:1px solid var(--gold); padding:20px; background:#0b0f0b;">
-          <h4 style="color:var(--gold);">الملف الشخصي غير مسجل وثائقياً</h4>
-          <p style="color:var(--text2); font-size:13px; margin:10px 0;">هذا المستخدم يتصفح كزائر ولم يقم بإنشاء حساب مستقل حتى الآن.</p>
-          <button onclick="document.getElementById('athrProfileModal').style.display='none'" style="background:var(--border); color:white; border:none; padding:6px 20px; border-radius:8px; cursor:pointer;">اغلاق</button>
+          <h4 style="color:var(--gold);">الملف الشخصي غير مسجل</h4>
+          <button onclick="document.getElementById('athrProfileModal').style.display='none'" style="background:var(--border); color:white; border:none; padding:6px 20px; border-radius:8px; cursor:pointer; margin-top:10px;">إغلاق</button>
         </div>`;
       return;
     }
@@ -595,72 +597,76 @@ window.openUserProfileCard = async function(userName) {
       if (myDocSnap.exists()) myDataForFriend = myDocSnap.data();
     }
     const friendStatus = window.getFriendStatus(myDataForFriend, userName);
+    const isMeAdmin = window.isAdminUser();
+    const userEmailClean = (u.email || "").toLowerCase();
+    const isUserAdmin = window.ADMIN_EMAILS.some(e => e.toLowerCase() === userEmailClean);
 
-const isMeAdmin = window.isAdminUser();
-const userEmailClean = (u.email || "").toLowerCase();
-const isUserAdmin = window.ADMIN_EMAILS.some(e => e.toLowerCase() === userEmailClean);
-  modal.innerHTML = `
-    <div class="comm-card" style="width:100%; max-width:360px; text-align:center; border:1px solid var(--gold); padding:25px 15px; background:#070c07; position:relative; animation:fadeIn 0.3s;">
-      <button onclick="document.getElementById('athrProfileModal').style.display='none'" style="position:absolute; top:12px; left:12px; background:transparent; color:#ff4d4d; border:none; font-size:18px; cursor:pointer; font-weight:bold;">✕</button>
-      
-      <img src="${u.avatar || 'https://www.gstatic.com/firebasejs/ui/2.0.0/images/temporary-avatar.png'}" style="width:90px; height:90px; border-radius:50%; border:2px solid var(--gold); object-fit:cover; margin-bottom:12px; box-shadow:0 4px 15px rgba(212,175,55,0.2);" />
-      
-      <h3 class="${styleInfo.class}" style="font-family:'Amiri', serif; font-size:20px; margin-bottom:4px; display:flex; align-items:center; justify-content:center; gap:6px;">
-        ${u.name} ${online ? '<span class="online-dot"></span>' : ''}
-      </h3>
-${isUserAdmin ? `
-  <div style="margin-bottom:10px;">
-    <span style="color:#111; background:var(--gold); font-size:12px; font-weight:bold; padding:4px 12px; border-radius:15px; box-shadow:0 0 10px rgba(212,175,55,0.5); display:inline-block;">👑 المشرف العام</span>
-  </div>
-` : ''}
+    modal.innerHTML = `
+      <div class="comm-card" style="width:100%; max-width:360px; text-align:center; border:1px solid var(--gold); padding:25px 15px; background:#070c07; position:relative; animation:fadeIn 0.3s;">
+        <button onclick="document.getElementById('athrProfileModal').style.display='none'" style="position:absolute; top:12px; left:12px; background:transparent; color:#ff4d4d; border:none; font-size:18px; cursor:pointer; font-weight:bold;">✕</button>
+        
+        <img src="${u.avatar || 'https://www.gstatic.com/firebasejs/ui/2.0.0/images/temporary-avatar.png'}" style="width:90px; height:90px; border-radius:50%; border:2px solid var(--gold); object-fit:cover; margin-bottom:12px; box-shadow:0 4px 15px rgba(212,175,55,0.2);" />
+        
+        <h3 class="${styleInfo.class}" style="font-family:'Amiri', serif; font-size:20px; margin-bottom:4px; display:flex; align-items:center; justify-content:center; gap:6px;">
+          ${u.name} ${online ? '<span class="online-dot"></span>' : ''}
+        </h3>
 
-<!-- 👑 زر حظر وحذف الحساب للمشرفين فقط عند تصفح حسابات الآخرين -->
-${window.isAdminUser() && !window.ADMIN_EMAILS.includes(u.email ? u.email.toLowerCase() : "") ? `
-  <button onclick="window.adminDeleteUserAccount('${u.name}')" style="width:100%; background:rgba(255,77,77,0.15); border:1px solid #ff4d4d; color:#ff4d4d; padding:10px; border-radius:25px; font-weight:bold; cursor:pointer; font-size:12px; margin-bottom:10px;">⚠️ حظر وحذف الحساب بالكامل (إدارة)</button>
-` : ''}
-      ${isUserAdmin ? `
-        <div style="margin-bottom:10px;">
-          <span style="color:#111; background:var(--gold); font-size:12px; font-weight:bold; padding:4px 12px; border-radius:15px; box-shadow:0 0 10px rgba(212,175,55,0.5); display:inline-block;">👑 المشرف العام</span>
+        ${isUserAdmin ? `
+          <div style="margin-bottom:10px;">
+            <span style="color:#111; background:var(--gold); font-size:12px; font-weight:bold; padding:4px 12px; border-radius:15px; box-shadow:0 0 10px rgba(212,175,55,0.5); display:inline-block;">👑 المشرف العام</span>
+          </div>
+        ` : ''}
+
+        <div style="margin-bottom:15px;">
+          <span class="profile-badge ${u.gender === 'male' ? 'badge-male' : 'badge-female'}">${u.gender === 'male' ? '🧔 مجلس الرجال' : '🧕 مجلس العفيفات'}</span>
+          <span style="color:var(--gold); font-size:12px; font-weight:bold;">🎖️ ${styleInfo.label} (${u.points || 0} أثر)</span>
         </div>
-      ` : ''}
 
-      <div style="margin-bottom:15px;">
-        <span class="profile-badge ${u.gender === 'male' ? 'badge-male' : 'badge-female'}">${u.gender === 'male' ? '🧔 مجلس الرجال' : '🧕 مجلس العفيفات'}</span>
-        <span style="color:var(--gold); font-size:12px; font-weight:bold;">🎖️ ${styleInfo.label} (${u.points || 0} أثر)</span>
-        ${u.streakCount > 0 ? `<span style="color:#ff9d4d; font-size:12px; font-weight:bold; margin-right:8px;">🔥 ${u.streakCount} يوم متتالي</span>` : ''}
-      </div>
-
-      <div style="background:rgba(0,0,0,0.4); border:1px solid var(--border); padding:10px; border-radius:8px; text-align:right; margin-bottom:20px;">
-        <small style="color:var(--gold); display:block; margin-bottom:4px; font-size:11px;">✍️ النبذة التعريفية (Bio):</small>
-        <p style="color:var(--text); font-size:13px; font-family:'Amiri', serif; line-height:1.5; margin:0; white-space:pre-wrap;">${u.bio || 'لا توجد نبذة حالياً'}</p>
-      </div>
-
-      <!-- 👑 أزرار الحظر والحذف الإداري الخاصة بك فقط عند تصفح حسابات الآخرين -->
-      ${isMeAdmin && !isUserAdmin ? `
-        <button onclick="window.adminDeleteUserAccount('${u.name}')" style="width:100%; background:rgba(255,77,77,0.15); border:1px solid #ff4d4d; color:#ff4d4d; padding:10px; border-radius:25px; font-weight:bold; cursor:pointer; font-size:12px; margin-bottom:10px;">⚠️ حظر وحذف الحساب بالكامل (إدارة)</button>
-      ` : ''}
-
-      ${myName && myName !== u.name ? `
-        <div style="margin-bottom:10px;">
-          ${friendStatus === 'none' ? `
-            <button onclick="window.sendFriendRequest('${u.name}')" style="width:100%; background:transparent; border:1px solid var(--gold); color:var(--gold); padding:10px; border-radius:25px; font-weight:bold; cursor:pointer; font-size:13px;">➕ إضافة صديق</button>
-          ` : friendStatus === 'sent' ? `
-            <button disabled style="width:100%; background:rgba(255,255,255,0.03); border:1px solid var(--border); color:var(--text2); padding:10px; border-radius:25px; font-weight:bold; font-size:13px;">⏳ تم إرسال طلب الصداقة</button>
-          ` : friendStatus === 'received' ? `
-            <div style="display:flex; gap:8px;">
-              <button onclick="window.acceptFriendRequest('${u.name}')" style="flex:1; background:var(--gold); color:#111; border:none; padding:10px; border-radius:25px; font-weight:bold; cursor:pointer; font-size:13px;">✓ قبول الطلب</button>
-              <button onclick="window.declineFriendRequest('${u.name}')" style="flex:1; background:transparent; border:1px solid #ff4d4d; color:#ff4d4d; padding:10px; border-radius:25px; font-weight:bold; cursor:pointer; font-size:13px;">✕ رفض</button>
-            </div>
-          ` : `
-            <button onclick="window.removeFriend('${u.name}')" style="width:100%; background:rgba(76,175,80,0.1); border:1px solid #4CAF50; color:#4CAF50; padding:10px; border-radius:25px; font-weight:bold; cursor:pointer; font-size:13px;">🤝 أصدقاء (اضغط للإزالة)</button>
-          `}
+        <div style="background:rgba(0,0,0,0.4); border:1px solid var(--border); padding:10px; border-radius:8px; text-align:right; margin-bottom:15px;">
+          <small style="color:var(--gold); display:block; margin-bottom:4px; font-size:11px;">✍️ النبذة التعريفية (Bio):</small>
+          <p style="color:var(--text); font-size:13px; font-family:'Amiri', serif; line-height:1.5; margin:0; white-space:pre-wrap;">${u.bio || 'لا توجد نبذة حالياً'}</p>
         </div>
-        <button onclick="window.startPrivateChatWithUser('${u.name}')" style="width:100%; background:var(--gold); color:#111; border:none; padding:12px; border-radius:25px; font-weight:bold; font-family:'Amiri',serif; cursor:pointer; font-size:14px; box-shadow:0 4px 12px rgba(212,175,55,0.25);">
-          💬 بدء محادثة خاصة (واتساب ستايل)
-        </button>
-      ` : ''}
-    </div>
-  `;
+
+        <!-- 🚀 أزرار التواصل المباشر (واتساب + تيلجرام) -->
+        <div style="display: flex; gap: 8px; margin-bottom: 15px;">
+          ${u.whatsapp ? `
+            <a href="https://wa.me/${u.whatsapp}?text=${encodeURIComponent('السلام عليكم ورحمة الله وبركاته 🤍')}" target="_blank" style="flex: 1; background: #25D366; color: #fff; text-decoration: none; padding: 9px; border-radius: 20px; font-size: 12px; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 10px rgba(37,211,102,0.3);">
+              <span>💬</span> واتساب
+            </a>
+          ` : ''}
+          
+          ${u.telegram ? `
+            <a href="https://t.me/${u.telegram}" target="_blank" style="flex: 1; background: #0088cc; color: #fff; text-decoration: none; padding: 9px; border-radius: 20px; font-size: 12px; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 10px rgba(0,136,204,0.3);">
+              <span>✈️</span> تيلجرام
+            </a>
+          ` : ''}
+        </div>
+
+        ${isMeAdmin && !isUserAdmin ? `
+          <button onclick="window.adminDeleteUserAccount('${u.name}')" style="width:100%; background:rgba(255,77,77,0.15); border:1px solid #ff4d4d; color:#ff4d4d; padding:10px; border-radius:25px; font-weight:bold; cursor:pointer; font-size:12px; margin-bottom:10px;">⚠️ حظر وحذف الحساب بالكامل (إدارة)</button>
+        ` : ''}
+
+        ${myName && myName !== u.name ? `
+          <div style="margin-bottom:10px;">
+            ${friendStatus === 'none' ? `
+              <button onclick="window.sendFriendRequest('${u.name}')" style="width:100%; background:transparent; border:1px solid var(--gold); color:var(--gold); padding:10px; border-radius:25px; font-weight:bold; cursor:pointer; font-size:13px;">➕ إضافة صديق</button>
+            ` : friendStatus === 'sent' ? `
+              <button disabled style="width:100%; background:rgba(255,255,255,0.03); border:1px solid var(--border); color:var(--text2); padding:10px; border-radius:25px; font-weight:bold; font-size:13px;">⏳ تم إرسال طلب الصداقة</button>
+            ` : friendStatus === 'received' ? `
+              <div style="display:flex; gap:8px;">
+                <button onclick="window.acceptFriendRequest('${u.name}')" style="flex:1; background:var(--gold); color:#111; border:none; padding:10px; border-radius:25px; font-weight:bold; cursor:pointer; font-size:13px;">✓ قبول الطلب</button>
+                <button onclick="window.declineFriendRequest('${u.name}')" style="flex:1; background:transparent; border:1px solid #ff4d4d; color:#ff4d4d; padding:10px; border-radius:25px; font-weight:bold; cursor:pointer; font-size:13px;">✕ رفض</button>
+              </div>
+            ` : `
+              <button onclick="window.removeFriend('${u.name}')" style="width:100%; background:rgba(76,175,80,0.1); border:1px solid #4CAF50; color:#4CAF50; padding:10px; border-radius:25px; font-weight:bold; cursor:pointer; font-size:13px;">🤝 أصدقاء (اضغط للإزالة)</button>
+            `}
+          </div>
+          <button onclick="window.startPrivateChatWithUser('${u.name}')" style="width:100%; background:var(--gold); color:#111; border:none; padding:12px; border-radius:25px; font-weight:bold; font-family:'Amiri',serif; cursor:pointer; font-size:14px; box-shadow:0 4px 12px rgba(212,175,55,0.25);">
+            💬 رسالة خاصة داخل أثر
+          </button>
+        ` : ''}
+      </div>
+    `;
   } catch(e) { console.error(e); }
 };
 
@@ -811,6 +817,9 @@ window.removeFriend = async function(targetName) {
 let selectedAccountAvatarFile = null;
 const NAME_CHANGE_COOLDOWN_DAYS = 60;
 
+// =========================================================
+// 4️⃣ نافذة "حسابي" لتعديل بيانات الواتس والتيلجرام
+// =========================================================
 window.openMyAccountModal = async function() {
   const myName = localStorage.getItem('athr_user_name');
   if(!myName) { alert("🔒 برجاء تسجيل حسابك أولاً."); return; }
@@ -834,14 +843,6 @@ window.openMyAccountModal = async function() {
     const u = docSnap.data();
     const styleInfo = window.getUserNameClassAndStyle(u.points);
 
-    let daysRemaining = 0;
-    if (u.lastNameChange && u.lastNameChange.toDate) {
-      const lastChange = u.lastNameChange.toDate();
-      const diffDays = Math.floor((new Date() - lastChange) / (1000 * 60 * 60 * 24));
-      daysRemaining = Math.max(0, NAME_CHANGE_COOLDOWN_DAYS - diffDays);
-    }
-    const nameLocked = daysRemaining > 0;
-
     modal.innerHTML = `
       <div class="comm-card" style="width:100%; max-width:380px; text-align:center; border:1px solid var(--gold); padding:25px 18px; background:#070c07; position:relative; animation:fadeIn 0.3s;">
         <button onclick="document.getElementById('athrMyAccountModal').style.display='none'" style="position:absolute; top:12px; left:12px; background:transparent; color:#ff4d4d; border:none; font-size:18px; cursor:pointer; font-weight:bold;">✕</button>
@@ -856,31 +857,27 @@ window.openMyAccountModal = async function() {
         </div>
         <div id="accAvatarStatus" style="color:var(--text2); font-size:11px; margin-bottom:15px;"></div>
 
-        <div style="margin-bottom:12px;">
-          <span class="${styleInfo.class}" style="font-size:12px; font-weight:bold;">🎖️ ${styleInfo.label}</span>
-          <span style="color:var(--gold); font-size:12px; font-weight:bold; margin-right:10px;">✨ ${u.points || 0} نقطة أثر</span>
-          ${u.streakCount > 0 ? `<span style="color:#ff9d4d; font-size:12px; font-weight:bold; margin-right:10px;">🔥 ${u.streakCount} يوم</span>` : ''}
-        </div>
-
         <div style="margin-bottom:15px; text-align:right;">
-          <label style="color:var(--text); display:block; margin-bottom:6px; font-size:13px;">الاسم:</label>
-          <input id="accNameInp" type="text" value="${u.name}" ${nameLocked ? 'disabled' : ''} style="width:100%; padding:10px; background:${nameLocked ? '#111' : '#000'}; border:1px solid var(--border); color:${nameLocked ? 'var(--text2)' : 'var(--text)'}; border-radius:8px; outline:none; font-family:'Amiri', serif;" />
-          ${nameLocked 
-            ? `<small style="color:#ff9d4d; display:block; margin-top:5px;">⏳ يمكنك تغيير اسمك بعد ${daysRemaining} يوم</small>` 
-            : `<small style="color:var(--text2); display:block; margin-top:5px;">⚠️ تغيير الاسم يتيح مرة كل ${NAME_CHANGE_COOLDOWN_DAYS} يوم</small>`}
-        </div>
-
-        <div style="margin-bottom:18px; text-align:right;">
           <label style="color:var(--text); display:block; margin-bottom:6px; font-size:13px;">النبذة التعريفية (Bio):</label>
           <textarea id="accBioInp" style="width:100%; height:60px; padding:10px; background:#000; border:1px solid var(--border); color:var(--text); border-radius:8px; outline:none; font-family:'Amiri', serif; resize:none;">${u.bio || ''}</textarea>
         </div>
 
-        <button id="accSaveBtn" onclick="window.saveAccountChanges(${nameLocked})" style="width:100%; background:var(--gold); color:#111; border:none; padding:12px; border-radius:8px; font-weight:bold; font-family:'Amiri', serif; font-size:15px; cursor:pointer;">💾 حفظ التعديلات</button>
+        <div style="display: flex; gap: 8px; margin-bottom: 18px;">
+          <div style="flex: 1; text-align: right;">
+            <label style="color: #25D366; display: block; margin-bottom: 4px; font-size: 12px;">💬 رقم الواتساب:</label>
+            <input id="accWhatsappInp" type="tel" value="${u.whatsapp || ''}" placeholder="010..." style="width: 100%; padding: 8px; background: #000; border: 1px solid var(--border); color: var(--text); border-radius: 6px; outline: none; direction: ltr; text-align: right; font-size: 12px;" />
+          </div>
+          <div style="flex: 1; text-align: right;">
+            <label style="color: #0088cc; display: block; margin-bottom: 4px; font-size: 12px;">✈️ يوزر التيلجرام:</label>
+            <input id="accTelegramInp" type="text" value="${u.telegram || ''}" placeholder="username" style="width: 100%; padding: 8px; background: #000; border: 1px solid var(--border); color: var(--text); border-radius: 6px; outline: none; direction: ltr; text-align: right; font-size: 12px;" />
+          </div>
+        </div>
+
+        <button id="accSaveBtn" onclick="window.saveAccountChanges()" style="width:100%; background:var(--gold); color:#111; border:none; padding:12px; border-radius:8px; font-weight:bold; font-family:'Amiri', serif; font-size:15px; cursor:pointer;">💾 حفظ التعديلات</button>
       </div>
     `;
   } catch(e) { console.error(e); modal.style.display = 'none'; }
 };
-
 window.handleAccountAvatarSelection = function(input) {
   const file = input.files[0];
   if(!file) return;
@@ -894,26 +891,29 @@ window.handleAccountAvatarSelection = function(input) {
   reader.readAsDataURL(file);
 };
 
-window.saveAccountChanges = async function(nameLocked) {
+window.saveAccountChanges = async function() {
   const myName = localStorage.getItem('athr_user_name');
-  const nameInp = document.getElementById('accNameInp');
   const bioInp = document.getElementById('accBioInp');
+  const whatsappInp = document.getElementById('accWhatsappInp');
+  const telegramInp = document.getElementById('accTelegramInp');
   const saveBtn = document.getElementById('accSaveBtn');
-  const newName = nameInp ? nameInp.value.trim() : myName;
-
-  if (!nameLocked && newName !== myName) {
-    if (!newName.includes(" ") || newName.split(" ").filter(Boolean).length < 2) {
-      alert("⚠️ يرجى كتابة اسم ثنائي صحيح.");
-      return;
-    }
-  }
 
   try {
     saveBtn.disabled = true;
     saveBtn.textContent = "جاري الحفظ... ⏳";
 
-    const newBio = bioInp.value.trim();
-    const updates = { bio: newBio };
+    let whatsappNum = whatsappInp ? whatsappInp.value.trim().replace(/[^0-9]/g, '') : "";
+    let telegramUser = telegramInp ? telegramInp.value.trim().replace('@', '') : "";
+
+    if (whatsappNum.startsWith('01')) {
+      whatsappNum = '2' + whatsappNum;
+    }
+
+    const updates = { 
+      bio: bioInp ? bioInp.value.trim() : "",
+      whatsapp: whatsappNum,
+      telegram: telegramUser
+    };
 
     if (selectedAccountAvatarFile) {
       const formData = new FormData();
@@ -921,37 +921,22 @@ window.saveAccountChanges = async function(nameLocked) {
       const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: formData });
       const resData = await res.json();
       if(resData.success) { updates.avatar = resData.data.url; }
-      else { alert("⚠️ فشل رفع الصورة الجديدة: " + (resData.error?.message || "خطأ غير معروف")); }
-    }
-
-    if (!nameLocked && newName !== myName) {
-      updates.name = newName;
-      updates.lastNameChange = serverTimestamp();
     }
 
     await updateDoc(doc(db, "users_profiles", myName), updates);
 
-    // 🚀 تحديث الـ IndexedDB أوفلاين
     if (typeof setAppData === 'function') {
       if (updates.avatar) await setAppData('athr_user_avatar', updates.avatar);
-      await setAppData('athr_user_bio', newBio);
+      await setAppData('athr_user_bio', updates.bio);
     }
 
-    if (!nameLocked && newName !== myName) {
-      localStorage.setItem('user_display_name', newName);
-      localStorage.setItem('athr_user_name', newName);
-    }
-
-    alert(updates.name 
-      ? "✅ تم تحديث اسمك بنجاح." 
-      : "✅ تم حفظ التعديلات بنجاح.");
-
+    alert("✅ تم حفظ التعديلات بنجاح!");
     selectedAccountAvatarFile = null;
     document.getElementById('athrMyAccountModal').style.display = 'none';
     window.renderCommunityBody();
   } catch(e) {
     console.error(e);
-    alert("حدث خطأ أثناء الحفظ، يرجى إعادة المحاولة.");
+    alert("حدث خطأ أثناء الحفظ.");
   } finally {
     saveBtn.disabled = false;
     saveBtn.textContent = "💾 حفظ التعديلات";
