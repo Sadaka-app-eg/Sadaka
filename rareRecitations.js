@@ -1580,242 +1580,122 @@ window.setRingtone = async function(url, name) {
 window.rareAudioPlayer.addEventListener('play', window.updateMiniPlayerUI);
 window.rareAudioPlayer.addEventListener('pause', window.updateMiniPlayerUI);
 // =========================================================================
-// 🎙️ نظام لوحة الإدارة والنشر الشامل (شاشة كاملة + رفع الصور والصوت من الهاتف + 20 تلاوة)
+// 🎙️ نظام لوحة الإدارة والنشر السحابي والحذف المخصص (أثر المطور)
 // =========================================================================
-const SHEIKH_PUBLISH_CODE = "AthrSheikh2026";
-const MANAGER_WHATSAPP_NUMBER = "201069168725";
+window.SHEIKH_PUBLISH_CODE = "AthrSheikh2026";
+window.MANAGER_WHATSAPP_NUMBER = "201069168725";
 
-// مؤقت لتخزين التلاوات اللي بيضيفها الشخص قبل الضغط على حفظ نهائي
 let sessionBatchTracks = []; 
 let selectedSheikhAvatarFile = null;
+window.cloudRecitationsList = []; // مصفوفة لتخزين تلاوات السيرفر مع بيانات الرافع
 
-// 1️⃣ فتح نافذة التحقق من الكود (الخطوة الأولى)
-window.openAddSheikhModal = function() {
-  let modal = document.getElementById('addSheikhModal');
-  if (!modal) {
-    modal = document.createElement('div');
-    modal.id = 'addSheikhModal';
-    modal.style.cssText = "position:fixed; inset:0; background:rgba(0,0,0,0.9); backdrop-filter:blur(10px); z-index:99999999; display:flex; align-items:center; justify-content:center; padding:15px; direction:rtl; font-family:'Amiri', serif;";
-    document.body.appendChild(modal);
-  }
-
-  modal.innerHTML = `
-    <div style="width:100%; max-width:420px; background:#0f1510; border:1px solid var(--gold); border-radius:24px; padding:25px; display:flex; flex-direction:column; gap:15px; box-shadow:0 15px 40px rgba(0,0,0,0.9); text-align:right;">
-      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:10px;">
-        <strong style="color:var(--gold); font-size:18px;">🎙️ بوابة نشر التلاوات الحصرية</strong>
-        <button onclick="document.getElementById('addSheikhModal').style.display='none'" style="background:none; border:none; color:#ff4d4d; font-size:20px; cursor:pointer;">✕</button>
-      </div>
-
-      <p style="color:var(--text2); font-size:13px; line-height:1.5; margin:0;">
-        لإضافة قراء وتلاوات جديدة لتظهر لجميع مستخدمي التطبيق، يرجى إدخال كود الإذن الممنوح لك من المشرف.
-      </p>
-
-      <div>
-        <label style="color:var(--text); font-size:13px; display:block; margin-bottom:6px;">🔑 كود إذن النشر السري:</label>
-        <input id="sheikhPassCodeInp" type="password" placeholder="أدخل الكود هنا..." style="width:100%; padding:12px; background:#000; border:1px solid var(--border); color:var(--text); border-radius:10px; outline:none; font-size:15px; text-align:center;" />
-      </div>
-
-      <button onclick="window.verifySheikhPassCode()" style="background:var(--gold); color:#111; border:none; padding:14px; border-radius:12px; font-weight:bold; font-size:16px; cursor:pointer; font-family:'Amiri',serif; box-shadow:0 4px 15px rgba(212,175,55,0.3);">
-        🚀 دخول لوحة النشر الشاملة
-      </button>
-
-      <!-- زر التواصل المباشر معك عبر الواتساب -->
-      <div style="text-align:center; margin-top:10px; border-top:1px dashed var(--border); pt:15px;">
-        <p style="color:var(--text2); font-size:12px; margin-bottom:8px;">ليس لديك كود إذن؟</p>
-        <a href="https://wa.me/${MANAGER_WHATSAPP_NUMBER}?text=${encodeURIComponent('السلام عليكم، أطلب كود إذن النشر لإضافة تلاوات وقراء في شبكة أثر 🤍')}" target="_blank" style="display:block; background:#25D366; color:#fff; text-decoration:none; padding:10px; border-radius:10px; font-weight:bold; font-size:13px; box-shadow:0 4px 12px rgba(37,211,102,0.3);">
-          💬 اضغط هنا للتواصل مع المشرف (طلب الكود)
-        </a>
-      </div>
-    </div>
-  `;
-  modal.style.display = 'flex';
-};
-
-// 2️⃣ التحقق من الكود وفتح "الشاشة الكاملة للإدارة"
-window.verifySheikhPassCode = function() {
-  const codeInp = document.getElementById('sheikhPassCodeInp');
-  if (!codeInp || codeInp.value.trim() !== SHEIKH_PUBLISH_CODE) {
-    alert("❌ كود الإذن غير صحيح! تواصل مع المشرف عبر واتساب للحصول عليه.");
-    return;
-  }
-
-  sessionBatchTracks = [];
-  selectedSheikhAvatarFile = null;
-  window.renderFullDashboardScreen();
-};
-
-// 3️⃣ بناء الشاشة الكاملة (Dashboard) لإضافة الشيخ ورفع الصور والـ 20 تلاوة براحته
-window.renderFullDashboardScreen = function() {
-  const modal = document.getElementById('addSheikhModal');
-  if (!modal) return;
-
-  modal.innerHTML = `
-    <div style="width:100%; max-width:650px; height:90vh; background:#0b0f0c; border:1px solid var(--gold); border-radius:24px; padding:20px 25px; display:flex; flex-direction:column; justify-content:space-between; box-shadow:0 20px 50px rgba(0,0,0,0.95); direction:rtl; font-family:'Amiri',serif; overflow:hidden;">
-      
-      <!-- الهيدر -->
-      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:12px;">
-        <h3 style="color:var(--gold); margin:0; font-size:20px;">✨ لوحة إضافة القارئ والتلاوات المتعددة</h3>
-        <button onclick="document.getElementById('addSheikhModal').style.display='none'" style="background:none; border:none; color:#ff4d4d; font-size:20px; cursor:pointer;">✕ إغلاق</button>
-      </div>
-
-      <!-- محتوى الشاشة القابل للتمرير -->
-      <div style="flex:1; overflow-y:auto; padding:10px 0; display:flex; flex-direction:column; gap:18px;">
-        
-        <!-- بيانات الشيخ الأساسية -->
-        <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:14px; padding:15px;">
-          <h4 style="color:var(--gold); margin:0 0 10px 0; font-size:15px;">👤 بيانات القارئ الأساسية</h4>
-          
-          <div style="margin-bottom:12px;">
-            <label style="color:var(--text); font-size:13px; display:block; margin-bottom:5px;">اسم الشيخ / القارئ:</label>
-            <input id="dashSheikhName" type="text" placeholder="مثال: الشيخ محمد صديق المنشاوي" style="width:100%; padding:11px; background:#000; border:1px solid var(--border); color:var(--text); border-radius:8px; outline:none;" />
-          </div>
-
-          <div>
-            <label style="color:var(--text); font-size:13px; display:block; margin-bottom:5px;">صورة الشيخ الشخصية (من هاتف):</label>
-            <div style="display:flex; align-items:center; gap:10px;">
-              <label style="background:rgba(212,175,55,0.1); border:1px solid var(--gold); color:var(--gold); padding:8px 15px; border-radius:8px; font-size:13px; cursor:pointer;">
-                📸 اختر صورة من الهاتف
-                <input type="file" id="dashAvatarFile" accept="image/*" style="display:none;" onchange="window.handleDashboardAvatarSelect(this)" />
-              </label>
-              <span id="dashAvatarStatus" style="color:var(--text2); font-size:12px;">لم يتم اختيار صورة</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- إضافة التلاوات (يقدر يضيف لحد 20 تلاوة وأكتر) -->
-        <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:14px; padding:15px;">
-          <h4 style="color:var(--gold); margin:0 0 10px 0; font-size:15px;">🎧 قائمة التلاوات (أضف ما شئت حتى 20+ تلاوة)</h4>
-          
-          <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:12px;">
-            <input id="dashTrackTitle" type="text" placeholder="عنوان التلاوة / اسم السورة (مثال: سورة الرحمن تلاوة خاشعة)" style="width:100%; padding:11px; background:#000; border:1px solid var(--border); color:var(--text); border-radius:8px; outline:none;" />
-            
-            <div style="display:flex; gap:10px; align-items:center;">
-              <input id="dashTrackUrl" type="url" placeholder="رابط مباشر للصوت أو ارفع ملف MP3 من هاتفك 👇" style="flex:1; padding:11px; background:#000; border:1px solid var(--border); color:var(--text); border-radius:8px; outline:none;" />
-              <label style="background:rgba(255,255,255,0.05); border:1px solid var(--border); color:var(--gold); padding:10px 14px; border-radius:8px; font-size:12px; cursor:pointer; white-space:nowrap;">
-                📁 رفع MP3
-                <input type="file" id="dashAudioFile" accept="audio/*" style="display:none;" onchange="window.handleDashboardAudioSelect(this)" />
-              </label>
-            </div>
-          </div>
-
-          <button onclick="window.addTrackToSessionBatch()" style="width:100%; background:rgba(212,175,55,0.15); border:1px solid var(--gold); color:var(--gold); padding:10px; border-radius:8px; font-weight:bold; cursor:pointer; font-family:'Amiri',serif;">
-            ➕ إضافة هذه التلاوة للقائمة المؤقتة
-          </button>
-
-          <!-- قائمة التلاوات المضافة حالياً -->
-          <div id="sessionTracksList" style="margin-top:12px; display:flex; flex-direction:column; gap:6px; max-height:130px; overflow-y:auto;">
-            <span style="color:var(--text2); font-size:12px; text-align:center;">لم تقم بإضافة أي تلاوة للقائمة بعد.</span>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- الفوتر وزر الحفظ النهائي -->
-      <div style="border-top:1px solid var(--border); paddingTop:12px;">
-        <button id="finalPublishBtn" onclick="window.publishAllBatchToCloud()" style="width:100%; background:var(--gold); color:#111; border:none; padding:14px; border-radius:12px; font-weight:bold; font-size:16px; cursor:pointer; font-family:'Amiri',serif; box-shadow:0 4px 15px rgba(212,175,55,0.3);">
-          ✨ نشر الشيخ وجميع تلاواته في التطبيق للجميع
-        </button>
-      </div>
-
-    </div>
-  `;
-};
-
-// 4️⃣ التعامل مع اختيار صورة الشيخ من الهاتف
-window.handleDashboardAvatarSelect = function(input) {
-  if (input.files && input.files[0]) {
-    selectedSheikhAvatarFile = input.files[0];
-    document.getElementById('dashAvatarStatus').textContent = "✓ تم اختيار الصورة من الهاتف";
-    document.getElementById('dashAvatarStatus').style.color = "var(--gold)";
-  }
-};
-
-// 5️⃣ التعامل مع اختيار ملف الصوت MP3 من الهاتف ورفع لـ Cloudinary أوتوماتيك
-window.handleDashboardAudioSelect = async function(input) {
-  const file = input.files[0];
-  if (!file) return;
-
-  const urlInp = document.getElementById('dashTrackUrl');
-  urlInp.value = "جاري رفع ملف الصوت للسيرفر... ⏳";
-  urlInp.disabled = true;
-
+// 1️⃣ جلب التلاوات السحابية من Firestore
+window.loadCloudRecitations = async function() {
   try {
-    const CLOUD_NAME = "ktya2tgk";
-    const UPLOAD_PRESET = "athr_preset";
+    const firestoreDb = window.db || (typeof db !== 'undefined' ? db : null);
+    if (!firestoreDb) return;
 
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", UPLOAD_PRESET);
+    const q = window.query(window.collection(firestoreDb, "custom_recitations"), window.orderBy("addedAt", "desc"));
+    const snap = await window.getDocs(q);
+    
+    window.cloudRecitationsList = [];
+    snap.forEach((docSnap) => {
+      const data = docSnap.data();
+      const item = {
+        id: docSnap.id,
+        tag: data.tag,
+        name: data.name,
+        url: data.url,
+        avatar: data.avatar,
+        addedBy: data.addedBy || "أحد أهل الخير",
+        addedAt: data.addedAt
+      };
+      window.cloudRecitationsList.push(item);
 
-    const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`, {
-      method: "POST",
-      body: formData
+      // دمجها في القائمة العامة للعرض والتشغيل
+      if (!window.rareRecitations.some(r => r.url === item.url)) {
+        window.rareRecitations.push(item);
+        if (item.avatar) {
+          window.sheikhAvatars[item.tag] = item.avatar;
+        }
+      }
     });
-    const resData = await response.json();
-
-    if (resData.secure_url) {
-      urlInp.value = resData.secure_url;
-      alert("✅ تم رفع ملف الصوت بنجاح من هاتفك!");
-    } else {
-      alert("⚠️ فشل رفع ملف الصوت، حاول مجدداً.");
-      urlInp.value = "";
-    }
   } catch(e) {
-    console.error(e);
-    alert("⚠️ خطأ في الاتصال أثناء رفع الصوت.");
-    urlInp.value = "";
-  } finally {
-    urlInp.disabled = false;
+    console.warn("Cloud load notice:", e);
   }
 };
 
-// 6️⃣ إضافة تلاوة للقائمة المؤقتة (حتى 20+ تلاوة)
-window.addTrackToSessionBatch = function() {
-  const titleInp = document.getElementById('dashTrackTitle');
-  const urlInp = document.getElementById('dashTrackUrl');
+// 2️⃣ رندر شبكة القراء مع زر الحذف وبيان (تمت الإضافة بواسطة)
+window.renderSheikhsGrid = async function (container) {
+  await window.loadCloudRecitations();
 
-  const title = titleInp.value.trim();
-  const url = urlInp.value.trim();
+  const myName = localStorage.getItem('athr_user_name') || "";
+  const isMeAdmin = typeof window.isAdminUser === 'function' ? window.isAdminUser() : false;
 
-  if (!title || !url) {
-    alert("⚠️ فضلاً أدخل عنوان التلاوة ورابط الصوت (أو ارفع ملف من هاتفك).");
-    return;
-  }
+  const tagsSet = new Set();
+  window.rareRecitations.forEach(item => { if (item.tag) tagsSet.add(item.tag); });
+  const sheikhs = Array.from(tagsSet);
 
-  sessionBatchTracks.push({ title, url });
-  
-  titleInp.value = "";
-  urlInp.value = "";
-
-  // تحديث عرض القائمة المؤقتة
-  const listEl = document.getElementById('sessionTracksList');
-  listEl.innerHTML = sessionBatchTracks.map((t, idx) => `
-    <div style="background:rgba(0,0,0,0.5); padding:6px 10px; border-radius:6px; font-size:12px; display:flex; justify-content:space-between; align-items:center;">
-      <span>${idx + 1}. ${t.title}</span>
-      <button onclick="sessionBatchTracks.splice(${idx},1); window.renderSessionTracksList();" style="background:none; border:none; color:#ff4d4d; cursor:pointer;">✕ حذف</button>
+  let gridHTML = `
+    <!-- زر إضافة شيخ وتلاوة جديدة بالإذن السري -->
+    <div style="margin-bottom: 15px; text-align: center;">
+      <button onclick="window.openAddSheikhModal()" style="background: rgba(212,175,55,0.12); color: var(--gold); border: 1px dashed var(--gold); padding: 10px 20px; border-radius: 25px; font-family: 'Amiri', serif; font-size: 14px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+        <span>➕</span> إضافة قارئ أو تلاوة جديدة (بإذن المشرف)
+      </button>
     </div>
-  `).join('');
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; direction: rtl; padding: 10px 0;">
+  `;
+
+  sheikhs.forEach(sheikh => {
+    const avatar = window.getSheikhAvatar(sheikh);
+    const count = window.rareRecitations.filter(i => i.tag === sheikh).length;
+
+    // فحص هل هذا الشيخ تمت إضافته سحابياً ومعرفة من أضافه
+    const cloudItem = window.cloudRecitationsList.find(i => i.tag === sheikh);
+    const addedBy = cloudItem ? cloudItem.addedBy : null;
+
+    // الصلاحية: هل المستخدم مشرف أو هو نفسه اللي رفع الشيخ؟
+    const canDelete = cloudItem && (isMeAdmin || (myName && addedBy === myName));
+
+    gridHTML += `
+      <div style="position: relative; display: flex; flex-direction: column; align-items: center; justify-content: space-between; background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 12px 6px; cursor: pointer; text-align: center;" onclick="window.selectSheikh('${sheikh}')">
+        
+        ${canDelete ? `
+          <!-- زر حذف القارئ السحابي للمشرف أو الناشر فقط -->
+          <button onclick="event.stopPropagation(); window.deleteCloudSheikh('${sheikh}')" style="position: absolute; top: 6px; left: 6px; background: rgba(255,77,77,0.2); border: 1px solid #ff4d4d; color: #ff4d4d; border-radius: 50%; width: 22px; height: 22px; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="حذف هذا القارئ وتلاواته">🗑️</button>
+        ` : ''}
+
+        <img src="${avatar}" alt="${sheikh}" style="width: 65px; height: 65px; border-radius: 50%; object-fit: cover; border: 2px solid var(--gold); box-shadow: 0 4px 10px rgba(0,0,0,0.3);" />
+        
+        <div style="font-weight: bold; color: var(--text); font-family: 'Amiri', serif; font-size: 12px; margin-top: 8px; line-height: 1.2;">
+          ${sheikh}
+        </div>
+
+        <div style="font-size: 10px; color: var(--gold); margin-top: 2px;">
+          ${count} مقطع
+        </div>
+
+        ${addedBy ? `
+          <!-- بيان اسم الناشر -->
+          <div style="font-size: 8px; color: var(--text2); margin-top: 4px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 3px; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            بواسطة: <span style="color:var(--gold);">${addedBy}</span>
+          </div>
+        ` : ''}
+
+      </div>
+    `;
+  });
+
+  gridHTML += `</div>`;
+  container.innerHTML = gridHTML;
 };
 
-window.renderSessionTracksList = function() {
-  const listEl = document.getElementById('sessionTracksList');
-  if (!listEl) return;
-  if (sessionBatchTracks.length === 0) {
-    listEl.innerHTML = `<span style="color:var(--text2); font-size:12px; text-align:center;">لم تقم بإضافة أي تلاوة للقائمة بعد.</span>`;
-    return;
-  }
-  listEl.innerHTML = sessionBatchTracks.map((t, idx) => `
-    <div style="background:rgba(0,0,0,0.5); padding:6px 10px; border-radius:6px; font-size:12px; display:flex; justify-content:space-between; align-items:center;">
-      <span>${idx + 1}. ${t.title}</span>
-      <button onclick="sessionBatchTracks.splice(${idx},1); window.renderSessionTracksList();" style="background:none; border:none; color:#ff4d4d; cursor:pointer;">✕ حذف</button>
-    </div>
-  `).join('');
-};
-
-// 7️⃣ النشر النهائي لكل التلاوات (الـ 20 تلاوة دفعة واحدة) لسيرفر الفايربيز
+// 3️⃣ النشر السحابي بعد التعديل لتسجيل اسم الرافع وحفظ الداتا
 window.publishAllBatchToCloud = async function() {
   const nameInp = document.getElementById('dashSheikhName');
   const sheikhName = nameInp ? nameInp.value.trim() : "";
+  const myName = localStorage.getItem('athr_user_name') || "محب للخير";
 
   if (!sheikhName) {
     alert("⚠️ يرجى كتابة اسم الشيخ / القارئ أولاً.");
@@ -1834,7 +1714,7 @@ window.publishAllBatchToCloud = async function() {
 
     let avatarUrl = window.sheikhAvatars["default"];
 
-    // رفع صورة الشيخ لو تم اختيارها من الهاتف
+    // 1. رفع صورة الشيخ لو اختارها من التليفون
     if (selectedSheikhAvatarFile) {
       const formData = new FormData();
       formData.append("image", selectedSheikhAvatarFile);
@@ -1845,66 +1725,62 @@ window.publishAllBatchToCloud = async function() {
       }
     }
 
-    // رفع كل التلاوات دفعة واحدة في الفايربيز
+    const firestoreDb = window.db || db;
+
+    // 2. رفع كل التلاوات مع ختم اسم الناشر (addedBy)
     for (const track of sessionBatchTracks) {
-      await addDoc(collection(db, "custom_recitations"), {
+      await window.addDoc(window.collection(firestoreDb, "custom_recitations"), {
         tag: sheikhName,
         name: `${sheikhName}: ${track.title} 🎙️`,
         url: track.url,
         avatar: avatarUrl,
+        addedBy: myName, // 👈 اسم الشخص اللي رفع
         desc: "",
-        addedAt: serverTimestamp()
+        addedAt: window.serverTimestamp ? window.serverTimestamp() : new Date()
       });
     }
 
     window.sheikhAvatars[sheikhName] = avatarUrl;
 
-    alert(`🎉 تم نشر الشيخ (${sheikhName}) وجميع تلاواته (${sessionBatchTracks.length} تلاوة) بنجاح للجميع!`);
+    alert(`🎉 تقبل الله أثرك يا ${myName}!\nتم نشر الشيخ (${sheikhName}) وجميع تلاواته بنجاح للجميع.`);
     document.getElementById('addSheikhModal').style.display = 'none';
     
     // إعادة تحميل الواجهة فوراً
     window.renderRareRecitations();
 
   } catch(e) {
-    console.error(e);
-    alert("⚠️ حدث خطأ أثناء النشر السحابي.");
+    console.error("Cloud publish error:", e);
+    alert("⚠️ حدث خطأ أثناء النشر السحابي: " + e.message);
   } finally {
-    btn.disabled = false;
-    btn.textContent = "✨ نشر الشيخ وجميع تلاواته في التطبيق للجميع";
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = "✨ نشر الشيخ وجميع تلاواته في التطبيق للجميع";
+    }
   }
 };
-// =========================================================================
-// ☁️ دالة جلب ودمج التلاوات السحابية من Firestore بأمان تام
-// =========================================================================
-window.cloudRecitationsLoaded = false;
 
-window.loadCloudRecitations = async function() {
-  if (window.cloudRecitationsLoaded) return;
-  
+// 4️⃣ دالة حذف القارئ وتلاواته السحابية (للمشرفين أو صاحب الرفع)
+window.deleteCloudSheikh = async function(sheikhTag) {
+  if (!confirm(`هل أنت متأكد من حذف القارئ (${sheikhTag}) وجميع تلاواته من السيرفر؟`)) return;
+
   try {
-    // التأكد من وجود كائن قاعدة البيانات Firestore
-    if (typeof db !== 'undefined' && typeof collection === 'function' && typeof getDocs === 'function') {
-      const q = query(collection(db, "custom_recitations"), orderBy("addedAt", "desc"));
-      const snap = await getDocs(q);
-      
-      snap.forEach((docSnap) => {
-        const data = docSnap.data();
-        if (!window.rareRecitations.some(r => r.url === data.url)) {
-          window.rareRecitations.push({
-            name: data.name,
-            url: data.url,
-            desc: data.desc || "",
-            tag: data.tag
-          });
+    const firestoreDb = window.db || db;
+    const q = window.query(window.collection(firestoreDb, "custom_recitations"), window.where("tag", "==", sheikhTag));
+    const snap = await window.getDocs(q);
 
-          if (data.avatar) {
-            window.sheikhAvatars[data.tag] = data.avatar;
-          }
-        }
-      });
-      window.cloudRecitationsLoaded = true;
+    // حذف كل تلاوات الشيخ من Firestore
+    for (const docSnap of snap.docs) {
+      await window.deleteDoc(window.doc(firestoreDb, "custom_recitations", docSnap.id));
     }
+
+    // إزالة التلاوات من المصفوفة المحلية
+    window.rareRecitations = window.rareRecitations.filter(i => i.tag !== sheikhTag);
+    window.cloudRecitationsList = window.cloudRecitationsList.filter(i => i.tag !== sheikhTag);
+
+    alert(`✅ تم حذف القارئ (${sheikhTag}) بنجاح.`);
+    window.renderRareRecitations();
   } catch(e) {
-    console.warn("Notice: Cloud recitations skipped or offline:", e);
+    console.error("Delete sheikh error:", e);
+    alert("⚠️ حدث خطأ أثناء حذف القارئ.");
   }
 };
