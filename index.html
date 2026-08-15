@@ -4339,14 +4339,14 @@ lines.forEach(lineNum => {
           sliderHtml += `
             <div class="surah-name-header-img-wrap">
               <img src="image/surah_header_frame.png" onerror="this.src='surah_header_frame.png'; this.onerror=null;" class="surah-frame-img" alt="إطار السورة" />
-              <div class="surah-title-overlay">
-                <span class="surah-title-text">سُورَةُ ${sName}</span>
+<div class="surah-title-overlay">
+                <span class="surah-title-text" style="font-family:'QCF_SurahHeader', 'Amiri Quran' !important; font-size: 26px; line-height: 1;">${String(firstWord.vSurah).padStart(3, '0')}</span>
               </div>
             </div>`;
           
           if (firstWord.vSurah !== 1 && firstWord.vSurah !== 9) {
             sliderHtml += `
-              <div class="bismillah" style="font-family:'Amiri Quran', 'Amiri', serif !important; font-size:clamp(22px, 3.8vh, 30px); margin:0 auto 2px; line-height:1; text-align:center; color:#5a3e00; flex-shrink:0; letter-spacing:0;">
+<div class="bismillah" style="font-family:'Amiri Quran', serif; font-size: 24px; margin: 4px auto 10px; line-height: 1.2; text-align: center; color: #5a3e00; flex-shrink: 0;">
                 ﷽
               </div>
             `;
@@ -4370,9 +4370,15 @@ sliderHtml += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}"
 
       sliderHtml += `</div>`;
 
-      // الفوتر السفلي
-      sliderHtml += `<div class="page-footer" style="text-align:center; font-weight:bold; font-size:12px; color:var(--gold); padding-top:2px; margin-top:auto; border-top:1px solid rgba(212,175,55,0.12); flex-shrink:0;">صفحة ${toAr(pageNum)}</div>`;
-      
+// الفوتر السفلي
+      sliderHtml += `
+        <div style="width:100%; text-align:center; margin-top:auto; padding-top:1px; flex-shrink:0; z-index:10;">
+          <div class="page-footer-frame" style="display:inline-flex; align-items:center; justify-content:center; margin:0 auto; padding:1px 10px; background:#142018; border:1.5px solid #cda869; border-radius:8px; font-size:10px; font-weight:bold; color:#f4ecd8; font-family:'Amiri', serif; box-shadow:0 2px 5px rgba(0,0,0,0.3);">
+            <span style="color:#cda869; font-size:8px; margin-left:3px;">⚜️</span>
+            ${toAr(pageNum)}
+            <span style="color:#cda869; font-size:8px; margin-right:3px;">⚜️</span>
+          </div>
+        </div>`;   
       sliderHtml += `</div>`;
     });
 
