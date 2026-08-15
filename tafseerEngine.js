@@ -1,25 +1,20 @@
 // =========================================================================
-// 📖 محرك التفاسير العشرة الموحّد - تطبيق أثر
-// يحلّ أرقام التفاسير ديناميكيًا من API الحقيقي (مش أرقام مخمّنة)
-// + عين إخفاء/إظهار الآية + نسخ + تحميل أوفلاين بشريط تقدم + سحب باليد
+// 📖 محرك التفاسير العشرة الموحّد والمباشر - تطبيق أثر
 // =========================================================================
 
-// الأسماء العشرة المطلوبة، وكلمات المطابقة اللي هيدور بيها على الـ ID الصحيح
+// قائمة التفاسير العشرة بمعرفاتها الرسمية المباشرة (بدون الحاجة لطلب خارجي للبحث عن الـ ID)
 const TAFSIR_TARGETS = [
-  { key: 'muyassar',   label: 'الميسر',             match: ['ميسر'] },
-  { key: 'mukhtasar',  label: 'المختصر في التفسير', match: ['مختصر في التفسير'] },
-  { key: 'ibnkathir',  label: 'ابن كثير',           match: ['ابن كثير'] },
-  { key: 'qurtubi',    label: 'القرطبي',            match: ['قرطبي'] },
-  { key: 'tabari',     label: 'الطبري',             match: ['طبري'] },
-  { key: 'saadi',      label: 'السعدي',             match: ['سعدي'] },
-  { key: 'baghawi',    label: 'البغوي',             match: ['بغوي'] },
-  { key: 'jalalayn',   label: 'الجلالين',           match: ['جلالين'] },
-  { key: 'ibnashur',   label: 'التحرير والتنوير',   match: ['ابن عاشور', 'التحرير والتنوير'] },
-  { key: 'wasit',      label: 'الوسيط',             match: ['وسيط'] }
+  { key: 'muyassar',   id: 16,  label: 'التفسير الميسر' },
+  { key: 'mukhtasar', id: 817, label: 'المختصر في التفسير' },
+  { key: 'saadi',     id: 91,  label: 'تفسير السعدي' },
+  { key: 'ibnkathir', id: 14,  label: 'تفسير ابن كثير' },
+  { key: 'baghawi',   id: 90,  label: 'تفسير البغوي' },
+  { key: 'qurtubi',   id: 15,  label: 'تفسير القرطبي' },
+  { key: 'tabari',    id: 93,  label: 'تفسير الطبري' },
+  { key: 'jalalayn',  id: 94,  label: 'تفسير الجلالين' },
+  { key: 'ibnashur',  id: 95,  label: 'التحرير والتنوير (ابن عاشور)' },
+  { key: 'wasit',     id: 92,  label: 'الوسيط لطنطاوي' }
 ];
-
-const TAFSIR_IDS_CACHE_KEY = 'tafsir_ids_map_v2';
-let tafsirIdsMap = null; // { key: numericResourceId } — بيتحل مرة واحدة من الـ API الحقيقي
 
 window.currentTafseerBookKey = 'muyassar';
 window.isAyahTextVisibleInTafseer = localStorage.getItem('athr_show_ayah_tafseer') !== '0';
@@ -27,71 +22,60 @@ window.currentTafseerAyahIndex = 0;
 window.isDownloadingTafseer = false;
 
 // -------------------------------------------------------------------------
-// 1) حلّ أرقام التفاسير الحقيقية من API مرة واحدة (بدل التخمين)
-// -------------------------------------------------------------------------
-async function resolveTafsirIds() {
-  if (tafsirIdsMap) return tafsirIdsMap;
-
-  try {
-    const cached = await getAppData(TAFSIR_IDS_CACHE_KEY);
-    if (cached && Object.keys(cached).length >= 5) {
-      tafsirIdsMap = cached;
-      return tafsirIdsMap;
-    }
-  } catch (e) {}
-
-  const map = {};
-  try {
-    const res = await fetch('https://api.quran.com/api/v4/resources/tafsirs?language=ar');
-    const data = await res.json();
-    const list = (data && data.tafsirs) ? data.tafsirs : [];
-
-    TAFSIR_TARGETS.forEach(target => {
-      const found = list.find(t => {
-        const name = (t.name || '') + ' ' + (t.author_name || '');
-        return target.match.some(m => name.includes(m));
-      });
-      if (found) map[target.key] = found.id;
-    });
-  } catch (e) {
-    console.error('خطأ جلب قائمة التفاسير:', e);
-  }
-
-  tafsirIdsMap = map;
-  try { await setAppData(TAFSIR_IDS_CACHE_KEY, map); } catch (e) {}
-  return map;
-}
-
-// -------------------------------------------------------------------------
-// 2) جلب نص تفسير معين لآية معينة (بكاش دائم أوفلاين)
+// 1) جلب نص التفسير المباشر مع دعم الكاش وسيرفرات النسخ الاحتياطي
 // -------------------------------------------------------------------------
 async function fetchTafsirTextByKey(key, surahNum, ayahNum) {
   const cacheKey = `tafseer_${key}_${surahNum}_${ayahNum}`;
 
-  const cached = await getAppData(cacheKey).catch(() => null);
-  if (cached) return cached;
-
-  const idsMap = await resolveTafsirIds();
-  const resourceId = idsMap[key];
-  if (!resourceId) return null; // التفسير مش متاح في المصدر حاليًا
-
+  // فحص الكاش المحلي أولاً
   try {
-    const res = await fetch(`https://api.quran.com/api/v4/tafsirs/${resourceId}/by_ayah/${surahNum}:${ayahNum}`);
-    const data = await res.json();
-    const raw = (data && data.tafsir && data.tafsir.text) ? data.tafsir.text : null;
-    if (!raw) return null;
+    const cached = localStorage.getItem(cacheKey) || (typeof getAppData === 'function' ? await getAppData(cacheKey) : null);
+    if (cached) return cached;
+  } catch (e) {}
 
-    const clean = raw.replace(/<[^>]*>?/gm, '').trim();
-    setAppData(cacheKey, clean).catch(() => {});
-    return clean;
+  const target = TAFSIR_TARGETS.find(t => t.key === key) || TAFSIR_TARGETS[0];
+  const resourceId = target.id;
+
+  // جلب التفسير من السيرفر السريع (QuranCDN)
+  try {
+    const res = await fetch(`https://api.qurancdn.com/api/v4/tafsirs/${resourceId}/by_ayah/${surahNum}:${ayahNum}`);
+    if (res.ok) {
+      const data = await res.json();
+      const raw = data?.tafsir?.text || data?.tafsirs?.[0]?.text;
+      if (raw) {
+        const clean = raw.replace(/<[^>]*>?/gm, '').trim();
+        try {
+          localStorage.setItem(cacheKey, clean);
+          if (typeof setAppData === 'function') setAppData(cacheKey, clean);
+        } catch (e) {}
+        return clean;
+      }
+    }
   } catch (e) {
-    console.error('خطأ جلب نص التفسير:', e);
-    return null;
+    console.warn("جاري محاولة الرابط البديل للتفسير...", e);
   }
+
+  // سيرفر بديل (Quran.com API v4) في حال تعذر السيرفر الأول
+  try {
+    const res2 = await fetch(`https://api.quran.com/api/v4/quran/tafsirs/${resourceId}?verse_key=${surahNum}:${ayahNum}`);
+    if (res2.ok) {
+      const data2 = await res2.json();
+      const raw2 = data2?.tafsirs?.[0]?.text || data2?.tafsir?.text;
+      if (raw2) {
+        const clean2 = raw2.replace(/<[^>]*>?/gm, '').trim();
+        try { localStorage.setItem(cacheKey, clean2); } catch (e) {}
+        return clean2;
+      }
+    }
+  } catch (err) {
+    console.error("تعذر جلب التفسير:", err);
+  }
+
+  return null;
 }
 
 // -------------------------------------------------------------------------
-// 3) فتح نافذة التفسير
+// 2) فتح نافذة التفسير
 // -------------------------------------------------------------------------
 window.actionTafseer = function () {
   if (typeof closeActionMenu === 'function') closeActionMenu();
@@ -101,7 +85,7 @@ window.actionTafseer = function () {
 };
 
 // -------------------------------------------------------------------------
-// 4) بناء واجهة المودال (مرة واحدة فقط)
+// 3) بناء واجهة المودال
 // -------------------------------------------------------------------------
 window.ensureTafseerModalDOM = function () {
   if (document.getElementById('athrTafseerModal')) return;
@@ -139,7 +123,7 @@ window.ensureTafseerModalDOM = function () {
           </div>
         </div>
 
-        <!-- منطقة السحب -->
+        <!-- منطقة السحب وعرض التفسير -->
         <div id="tafseerSwipeZone" style="flex:1; overflow-y:auto; padding:14px 4px; display:flex; flex-direction:column; gap:12px; user-select:none;">
           <div id="tafseerAyahContainer" style="display:${window.isAyahTextVisibleInTafseer ? 'block' : 'none'}; background:rgba(212,175,55,0.06); border-right:4px solid var(--gold, #d4af37); border-radius:14px; padding:14px; text-align:justify; line-height:2.1; font-family:'Amiri Quran', serif; font-size:19px; color:#fff;">
             <span id="tafseerAyahText"></span>
@@ -168,7 +152,7 @@ window.ensureTafseerModalDOM = function () {
 };
 
 // -------------------------------------------------------------------------
-// 5) السحب باليد يمين/شمال
+// 4) أحداث السحب باللمس
 // -------------------------------------------------------------------------
 window.attachTafseerSwipeEvents = function () {
   const zone = document.getElementById('tafseerSwipeZone');
@@ -190,7 +174,7 @@ window.attachTafseerSwipeEvents = function () {
 };
 
 // -------------------------------------------------------------------------
-// 6) عرض التفسير الحالي
+// 5) عرض محتوى التفسير الفعلي
 // -------------------------------------------------------------------------
 window.renderTafseerContent = async function () {
   const modal = document.getElementById('athrTafseerModal');
@@ -220,11 +204,10 @@ window.renderTafseerContent = async function () {
 };
 
 // -------------------------------------------------------------------------
-// 7) تحميل تفسير السورة كاملة أوفلاين (لكل ايات السورة الحالية فقط)
+// 6) تحميل تفسير السورة كاملة للعمل أوفلاين
 // -------------------------------------------------------------------------
 window.downloadFullTafseerBook = async function () {
-  if (window.isDownloadingTafseer) return;
-  if (!window.currentSurah) return;
+  if (window.isDownloadingTafseer || !window.currentSurah) return;
 
   const target = TAFSIR_TARGETS.find(t => t.key === window.currentTafseerBookKey);
   const bookName = target ? target.label : 'التفسير';
@@ -267,7 +250,7 @@ window.downloadFullTafseerBook = async function () {
 };
 
 // -------------------------------------------------------------------------
-// 8) التنقل والتحكم
+// 7) أزرار التنقل والخيارات
 // -------------------------------------------------------------------------
 window.navTafseerSwipe = function (direction) {
   const newIndex = window.currentTafseerAyahIndex + direction;
