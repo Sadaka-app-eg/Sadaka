@@ -1128,24 +1128,26 @@ body.hide-controls #quran {
 #surahScreen.night-mode .qcf-img {
   filter: invert(0.93) hue-rotate(180deg) contrast(1.1) brightness(0.95) !important;
 }
-	/* 🕌 إطار السورة بالصورة المفرغة */
+/* 🕌 إطار السورة واخد العرض الكامل الموزون للسطر */
 .surah-name-header-img-wrap {
   position: relative;
-  width: 100%;
-  max-width: 440px;
-  margin: 4px auto 6px;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 2px 0 !important;
+  padding: 0 4px !important;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
   flex-shrink: 0;
 }
 
 .surah-frame-img {
-  width: 100%;
-  height: auto;
-  max-height: 48px;
+  width: 100% !important;
+  height: 38px !important; /* ارتفاع ثابت متناسق */
   display: block;
-  object-fit: contain;
+  object-fit: fill !important; /* تمديد الزخرفة لكامل عرض الصفحة */
+  border-radius: 4px;
 }
 
 .surah-title-overlay {
@@ -1153,6 +1155,7 @@ body.hide-controls #quran {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  width: 60%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1161,22 +1164,12 @@ body.hide-controls #quran {
 
 .surah-title-text {
   font-family: 'Amiri Quran', 'Amiri', serif !important;
-  font-size: clamp(16px, 3vh, 21px);
+  font-size: clamp(14px, 2.3vh, 18px) !important;
   font-weight: bold;
   color: #7b581e;
   text-shadow: 0 1px 1px rgba(255, 255, 255, 0.9), 0 -1px 1px rgba(0, 0, 0, 0.25);
   white-space: nowrap;
-  letter-spacing: 0.5px;
 }
-
-#surahScreen.night-mode .surah-frame-img {
-  filter: invert(0.92) hue-rotate(180deg) brightness(1.05) contrast(1.1);
-}
-
-#surahScreen.night-mode .surah-title-text {
-  color: #f7eed8 !important;
-  text-shadow: 0 0 6px rgba(212, 175, 55, 0.4);
-} 
 </style>  
 
  <link rel="stylesheet" href="community/community.css">
@@ -4100,17 +4093,18 @@ function buildSinglePageHTML(pageNum, pagesDict, allVerses) {
     }
   });
 
-  // حساب المساحات الموزونة رأسياً
   const hasHeaders = pageHasNewSurahStart || pageHasBismillah;
-  const fontSize = isSpecialPage 
-    ? 'clamp(17px, 3vh, 26px)' 
-    : (hasHeaders ? 'clamp(13px, 2.05vh, 18px)' : 'clamp(14.5px, 2.35vh, 21px)');
 
-  let html = `<div class="mushaf-page" id="mpage_${pageNum}" data-page="${pageNum}" style="position:relative; width:100vw; height:100vh; max-height:100vh; display:flex; flex-direction:column; justify-content:space-between; padding:2px 8px 32px; box-sizing:border-box; overflow:hidden;">`;
+  // ضبط دقيق لحجم الخط لجمع كل السطور داخل الشاشة
+  const fontSize = isSpecialPage 
+    ? 'clamp(16px, 2.8vh, 24px)' 
+    : (hasHeaders ? 'clamp(11.5px, 1.85vh, 16.5px)' : 'clamp(13.5px, 2.2vh, 19.5px)');
+
+  let html = `<div class="mushaf-page" id="mpage_${pageNum}" data-page="${pageNum}" style="position:relative; width:100vw; height:100vh; max-height:100vh; display:flex; flex-direction:column; justify-content:space-between; padding:2px 8px 6px; box-sizing:border-box; overflow:hidden;">`;
 
   // الهيدر العلوي (الجزء والسورة)
   html += `
-    <div style="display:flex; justify-content:space-between; align-items:center; width:100%; padding:2px 6px; font-size:11px; font-weight:bold; color:var(--text2); border-bottom:1px solid rgba(212,175,55,0.12); margin-bottom:2px; font-family:'Amiri', serif; flex-shrink:0; white-space:nowrap; overflow:hidden;">
+    <div style="display:flex; justify-content:space-between; align-items:center; width:100%; padding:1px 6px; font-size:11px; font-weight:bold; color:var(--text2); border-bottom:1px solid rgba(212,175,55,0.12); margin-bottom:1px; font-family:'Amiri', serif; flex-shrink:0; white-space:nowrap; overflow:hidden;">
       <span style="overflow:hidden; text-overflow:ellipsis; max-width:65%;">${headerRightText}</span>
       <span style="flex-shrink:0;">سُورَةُ ${pageSurah ? pageSurah.name : ''}</span>
     </div>
@@ -4124,7 +4118,7 @@ function buildSinglePageHTML(pageNum, pagesDict, allVerses) {
 
   lines.forEach(lineNum => {
     const lineWords = pagesDict[pageNum][lineNum];
-    const lineJustify = isSpecialPage ? 'justify-content:center; gap:8px;' : 'justify-content:space-between;';
+    const lineJustify = isSpecialPage ? 'justify-content:center; gap:6px;' : 'justify-content:space-between;';
     
     const firstWord = lineWords[0];
     if (firstWord && firstWord.vAyah === 1 && !renderedSurahHeaders.has(firstWord.vSurah)) {
@@ -4132,30 +4126,30 @@ function buildSinglePageHTML(pageNum, pagesDict, allVerses) {
       const sObj = surahs.find(s => s.n === firstWord.vSurah);
       const sName = sObj ? sObj.name : '';
 
-      // إطار السورة الملكي (مع fallback ذكي لو تعذر تحميل مسار الصورة)
+      // إطار السورة بحجم متناسق لا يزاحم الآيات
       html += `
-        <div class="surah-name-header-img-wrap" style="position:relative; width:100%; max-width:440px; margin:2px auto 2px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-          <img src="Image/surah_header_frame.png" onerror="this.src='surah_header_frame.png'; this.onerror=null;" class="surah-frame-img" style="width:100%; height:auto; max-height:36px; display:block; object-fit:fill;" alt="إطار السورة" />
+        <div class="surah-name-header-img-wrap" style="position:relative; width:100%; max-width:390px; margin:1px auto 1px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+          <img src="Image/surah_header_frame.png" onerror="this.src='surah_header_frame.png'; this.onerror=null;" class="surah-frame-img" style="width:100%; height:auto; max-height:30px; display:block; object-fit:fill;" alt="إطار السورة" />
           <div class="surah-title-overlay" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); display:flex; align-items:center; justify-content:center; pointer-events:none;">
-            <span class="surah-title-text" style="font-family:'Amiri Quran', 'Amiri', serif !important; font-size:clamp(14px, 2.2vh, 18px); font-weight:bold; color:#7b581e; white-space:nowrap;">سُورَةُ ${sName}</span>
+            <span class="surah-title-text" style="font-family:'Amiri Quran', 'Amiri', serif !important; font-size:clamp(13px, 1.9vh, 16px); font-weight:bold; color:#7b581e; white-space:nowrap;">سُورَةُ ${sName}</span>
           </div>
         </div>`;
 
       if (firstWord.vSurah !== 1 && firstWord.vSurah !== 9) {
         html += `
-          <div class="bismillah" style="font-family:'Amiri Quran', serif; font-size:clamp(15px, 3.2vw, 19px); margin:0 0 2px; line-height:1.1; text-align:center; color:#5a3e00; flex-shrink:0;">
+          <div class="bismillah" style="font-family:'Amiri Quran', serif; font-size:clamp(13px, 2.5vw, 16px); margin:0 auto 1px; line-height:1; text-align:center; color:#5a3e00; flex-shrink:0;">
             بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ
           </div>
         `;
       }
     }
 
-    html += `<div style="display:flex; flex-direction:row; ${lineJustify} align-items:center; width:100%; overflow:visible; white-space:nowrap; flex:1; min-height:0; line-height:1.1;">`;
+    html += `<div style="display:flex; flex-direction:row; ${lineJustify} align-items:center; width:100%; overflow:visible; white-space:nowrap; flex:1; min-height:0; line-height:1;">`;
     
     lineWords.forEach(w => {
       const ayahIndex = currentAyahsData.findIndex(a => a.surahNumber === w.vSurah && a.numberInSurah === w.vAyah);
       html += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}"
-        style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:1.15; font-weight:bold; display:inline-flex; align-items:center; user-select:none; white-space:nowrap;"
+        style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:1; font-weight:bold; display:inline-flex; align-items:center; user-select:none; white-space:nowrap;"
         ontouchstart="startPress(event, ${ayahIndex})"
         ontouchmove="cancelPress(event)"
         ontouchend="cancelPress(event); if(!isScrolling && window.isPickingEndAyah){ handleAyahClick(${ayahIndex}); }">
@@ -4169,11 +4163,11 @@ function buildSinglePageHTML(pageNum, pagesDict, allVerses) {
   
   // رقم الصفحة في الأسفل
   html += `
-    <div style="width:100%; text-align:center; margin-top:auto; padding-top:2px; flex-shrink:0; z-index:10;">
-      <div class="page-footer-frame" style="display:inline-flex; align-items:center; justify-content:center; margin:0 auto; padding:1px 12px; background:#142018; border:1.5px solid #cda869; border-radius:10px; font-size:11px; font-weight:bold; color:#f4ecd8; font-family:'Amiri', serif; box-shadow:0 2px 6px rgba(0,0,0,0.35);">
-        <span style="color:#cda869; font-size:9px; margin-left:3px;">⚜️</span>
+    <div style="width:100%; text-align:center; margin-top:auto; padding-top:1px; flex-shrink:0; z-index:10;">
+      <div class="page-footer-frame" style="display:inline-flex; align-items:center; justify-content:center; margin:0 auto; padding:1px 10px; background:#142018; border:1.5px solid #cda869; border-radius:8px; font-size:10px; font-weight:bold; color:#f4ecd8; font-family:'Amiri', serif; box-shadow:0 2px 5px rgba(0,0,0,0.3);">
+        <span style="color:#cda869; font-size:8px; margin-left:3px;">⚜️</span>
         ${toAr(pageNum)}
-        <span style="color:#cda869; font-size:9px; margin-right:3px;">⚜️</span>
+        <span style="color:#cda869; font-size:8px; margin-right:3px;">⚜️</span>
       </div>
     </div>`;
 
@@ -4341,13 +4335,13 @@ lines.forEach(lineNum => {
           const sObj = surahs.find(s => s.n === firstWord.vSurah);
           const sName = sObj ? sObj.name : '';
           
-sliderHtml += `
+html += `
   <div class="surah-name-header-img-wrap">
-    <img src="image/surah_header_frame.png" class="surah-frame-img" alt="إطار السورة" />
+    <img src="Image/surah_header_frame.png" onerror="this.src='surah_header_frame.png'; this.onerror=null;" class="surah-frame-img" alt="إطار السورة" />
     <div class="surah-title-overlay">
       <span class="surah-title-text">سُورَةُ ${sName}</span>
     </div>
-  </div>
+  </div>`;
 `;          
           if (firstWord.vSurah !== 1 && firstWord.vSurah !== 9) {
             sliderHtml += `
