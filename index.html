@@ -1420,8 +1420,40 @@ body.hide-controls #quran {
 <!-- SURAH SCREEN -->
 <div class="surah-screen" id="surahScreen">
   <div class="mushaf-top-controls" id="mushafTopControls">
-<div class="surah-header" style="position: relative; display: flex; align-items: center; justify-content: space-between; padding: 8px 12px;">
-      <!-- زر الرجوع المباشر للرئيسية -->
+
+	  
+<div class="surah-header-frame" style="position: relative; width: 100%; max-width: 380px; margin: 4px auto 6px; text-align: center; display: flex; align-items: center; justify-content: center;">
+  <!-- خلفية الإطار الزخرفي SVG المتجاوب -->
+  <svg viewBox="0 0 450 60" style="width: 100%; height: auto; display: block; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.3));">
+    <!-- خلفية خضراء زيتونية داكنة بنمط المصحف -->
+    <rect x="5" y="5" width="440" height="50" rx="10" fill="#142018" stroke="#cda869" stroke-width="2.5" />
+    
+    <!-- الزخارف الجانبية الأرابيسك المذهبة -->
+    <g fill="none" stroke="#cda869" stroke-width="1.8">
+      <!-- زخرفة اليمين -->
+      <path d="M 20,30 Q 35,15 50,30 Q 35,45 20,30 Z" fill="#1e3325" />
+      <circle cx="35" cy="30" r="4" fill="#cda869" />
+      <path d="M 50,30 C 65,18 80,42 95,30" />
+      <circle cx="95" cy="30" r="3" fill="#cda869" />
+
+      <!-- زخرفة اليسار المتطابقة -->
+      <path d="M 430,30 Q 415,15 400,30 Q 415,45 430,30 Z" fill="#1e3325" />
+      <circle cx="415" cy="30" r="4" fill="#cda869" />
+      <path d="M 400,30 C 385,18 370,42 355,30" />
+      <circle cx="355" cy="30" r="3" fill="#cda869" />
+    </g>
+
+    <!-- إطار النص الداخلي -->
+    <rect x="120" y="10" width="210" height="40" rx="6" fill="#0b130e" stroke="#cda869" stroke-width="1.2" stroke-dasharray="4,2" />
+  </svg>
+
+  <!-- نص السورة بخط الثلث المذهب فوق الإطار -->
+  <div style="position: absolute; color: #f4ecd8; font-size: 22px; font-family: 'Amiri Quran', 'Amiri', serif; font-weight: bold; text-shadow: 0 1px 3px #000; letter-spacing: 0.5px; z-index: 2;">
+    سُورَةُ ${sName}
+  </div>
+</div>  
+	
+	<!-- زر الرجوع المباشر للرئيسية -->
       <button class="back-btn" onclick="showPage('home', null); closeSurah();" title="الرجوع للرئيسية">→</button>
 
       <!-- عنوان السورة في النص -->
@@ -4094,7 +4126,15 @@ style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:1.4;
   });
 
   html += `</div>`;
-  html += `<div class="page-footer">صفحة ${toAr(pageNum)}</div>`;
+html += `
+  <div style="width: 100%; text-align: center; margin-top: auto; padding-top: 4px; flex-shrink: 0; z-index: 10;">
+    <div class="page-footer-frame" style="display: inline-flex; align-items: center; justify-content: center; margin: 0 auto; padding: 2px 14px; background: #142018; border: 1.5px solid #cda869; border-radius: 12px; font-size: 13px; font-weight: bold; color: #f4ecd8; font-family: 'Amiri', serif; box-shadow: 0 2px 8px rgba(0,0,0,0.4);">
+      <span style="color: #cda869; font-size: 10px; margin-left: 4px;">⚜️</span>
+      ${toAr(pageNum)}
+      <span style="color: #cda869; font-size: 10px; margin-right: 4px;">⚜️</span>
+    </div>
+  </div>`;
+	
   html += `</div>`;
   return html;
 }
@@ -4287,9 +4327,14 @@ sliderHtml += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}"
 
       sliderHtml += `</div>`;
 
-      // الفوتر السفلي
-      sliderHtml += `<div class="page-footer" style="text-align:center; font-weight:bold; font-size:12px; color:var(--gold); padding-top:2px; margin-top:auto; border-top:1px solid rgba(212,175,55,0.12); flex-shrink:0;">صفحة ${toAr(pageNum)}</div>`;
-      
+sliderHtml += `
+  <div style="width: 100%; text-align: center; margin-top: auto; padding-top: 4px; flex-shrink: 0; z-index: 10;">
+    <div class="page-footer-frame" style="display: inline-flex; align-items: center; justify-content: center; margin: 0 auto; padding: 2px 14px; background: #142018; border: 1.5px solid #cda869; border-radius: 12px; font-size: 13px; font-weight: bold; color: #f4ecd8; font-family: 'Amiri', serif; box-shadow: 0 2px 8px rgba(0,0,0,0.4);">
+      <span style="color: #cda869; font-size: 10px; margin-left: 4px;">⚜️</span>
+      ${toAr(pageNum)}
+      <span style="color: #cda869; font-size: 10px; margin-right: 4px;">⚜️</span>
+    </div>
+  </div>`;      
       sliderHtml += `</div>`;
     });
 
