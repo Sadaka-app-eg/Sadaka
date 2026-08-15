@@ -2488,20 +2488,7 @@ body.hide-controls #quran {
   <button class="action-btn action-cancel" onclick="closeActionMenu()"><span>✕</span> إغلاق</button>
 </div>
 
-<!-- TAFSEER MODAL -->
-<div class="modal-overlay" id="tafseerModal">
-  <div class="modal">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
-      <button class="icon-btn" onclick="window.navTafseer(-1)" style="font-size: 14px; border-radius: 8px; width: 30px; height: 30px;" title="الآية السابقة">▶</button>
-      <h3 id="modalTitle" style="margin: 0; font-size: 15px;">📖 التفسير الميسر</h3>
-      <button class="icon-btn" onclick="window.navTafseer(1)" style="font-size: 14px; border-radius: 8px; width: 30px; height: 30px;" title="الآية التالية">◀</button>
-    </div>
-    <div class="modal-ayah" id="modalAyahText"></div>
-    <p id="modalText"></p>
-    <div class="modal-source" id="modalSource"></div>
-    <button class="modal-close" onclick="closeModals()">إغلاق</button>
-  </div>
-</div>
+
 
 
 <div id="share-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; align-items:center; justify-content:center;">
@@ -4532,84 +4519,7 @@ function closeActionMenu() {
   document.getElementById('actionSheet').classList.remove('show');
 }
 
-async function actionTafseer() {
-  closeActionMenu();
-  const a = currentAyahsData[activeAyahIndex];
-  
-  // تنظيف البسملة من أول آية
-  let cleanText = a.text;
-  if (currentSurah.n !== 1 && currentSurah.n !== 9 && a.numberInSurah === 1) {
-    cleanText = cleanText.replace(/^بِسْمِ[\s\S]+?رَّحِيمِ\s*/, '');
-    cleanText = cleanText.replace(/^بِسْمِ[\s\S]+?الرَّحِيمِ\s*/, '');
-  }
 
-  document.getElementById('modalTitle').textContent = `📖 التفسير الميسر — سورة ${currentSurah.name} (آية ${toAr(a.numberInSurah)})`;
-  document.getElementById('modalAyahText').textContent = cleanText;
-  document.getElementById('modalText').textContent = '⏳ جاري جلب التفسير الميسر...';
-  document.getElementById('modalSource').textContent = '📚 المصدر: التفسير الميسر (مجمع الملك فهد)';
-
-  const modal = document.getElementById('tafseerModal');
-  modal.style.zIndex = '1000005'; // رفع الطبقة لظهور النافذة فوراً فوق المصحف
-  modal.classList.add('show');
-
-  try {
-    // ⚡ جلب التفسير الميسر المعتمد برقم السورة والآية
-    const ayahKey = `${currentSurah.n}:${a.numberInSurah}`;
-    const res = await fetch(`https://api.quran.com/api/v4/tafsirs/ar-tafsir-muyassar/by_ayah/${ayahKey}`);
-    const data = await res.json();
-
-    if (data && data.tafsir && data.tafsir.text) {
-      // تنظيف أي وسوم HTML إضافية لو وجدت
-      const cleanTafseer = data.tafsir.text.replace(/<[^>]*>?/gm, '');
-      document.getElementById('modalText').textContent = cleanTafseer;
-      a.tafseer = cleanTafseer; // حفظه في الكاش المحلي للآية
-    } else {
-      document.getElementById('modalText').textContent = 'تعذر جلب التفسير، تأكد من الاتصال بالإنترنت.';
-    }
-  } catch (err) {
-    console.error('خطأ جلب التفسير:', err);
-    document.getElementById('modalText').textContent = 'تحتاج اتصال بالإنترنت لعرض التفسير الميسر 🌐';
-  }
-}
-window.navTafseer = async function(direction) {
-  if (activeAyahIndex === null || !currentAyahsData.length) return;
-  
-  let nextIndex = activeAyahIndex + direction;
-  
-  if (nextIndex < 0) { alert("📢 هذه هي الآية الأولى في السورة!"); return; }
-  if (nextIndex >= currentAyahsData.length) { alert("📢 هذه هي الآية الأخيرة في السورة!"); return; }
-  
-  activeAyahIndex = nextIndex;
-  const a = currentAyahsData[activeAyahIndex];
-
-  let cleanText = a.text;
-  if (currentSurah.n !== 1 && currentSurah.n !== 9 && a.numberInSurah === 1) {
-    cleanText = cleanText.replace(/^بِسْمِ[\s\S]+?رَّحِيمِ\s*/, '');
-    cleanText = cleanText.replace(/^بِسْمِ[\s\S]+?الرَّحِيمِ\s*/, '');
-  }
-
-  document.getElementById('modalTitle').textContent = `📖 التفسير الميسر — سورة ${currentSurah.name} (آية ${toAr(a.numberInSurah)})`;
-  document.getElementById('modalAyahText').textContent = cleanText;
-
-  // فحص هل التفسير موجود كاش ولا نجيبه؟
-  if (a.tafseer && !a.tafseer.startsWith('تفسير سورة')) {
-    document.getElementById('modalText').textContent = a.tafseer;
-  } else {
-    document.getElementById('modalText').textContent = '⏳ جاري جلب التفسير...';
-    try {
-      const ayahKey = `${currentSurah.n}:${a.numberInSurah}`;
-      const res = await fetch(`https://api.quran.com/api/v4/tafsirs/ar-tafsir-muyassar/by_ayah/${ayahKey}`);
-      const data = await res.json();
-      if (data && data.tafsir && data.tafsir.text) {
-        const cleanTafseer = data.tafsir.text.replace(/<[^>]*>?/gm, '');
-        document.getElementById('modalText').textContent = cleanTafseer;
-        a.tafseer = cleanTafseer;
-      }
-    } catch (e) {
-      document.getElementById('modalText').textContent = 'تحتاج اتصال بالإنترنت لعرض التفسير 🌐';
-    }
-  }
-};
 
   
 // متغيرات عالمية للتحكم في وضع التحديد الذكي
@@ -8972,7 +8882,7 @@ window.closeSurah = function() {
 <script src="downloadsManager.js"></script>
  <!-- مكتبة موزيلا الرسمية لقراءة ملفات الـ PDF داخلياً -->
 <script src="homeShortcuts.js"></script>
- 
+ <script src="tafseerEngine.js"></script>
 <script type="module">
   // 1️⃣ إلغاء مفعول دالة الـ load القديمة
   window.finishLogin = function(name) { 
