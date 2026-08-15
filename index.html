@@ -1128,6 +1128,55 @@ body.hide-controls #quran {
 #surahScreen.night-mode .qcf-img {
   filter: invert(0.93) hue-rotate(180deg) contrast(1.1) brightness(0.95) !important;
 }
+	/* 🕌 إطار السورة بالصورة المفرغة */
+.surah-name-header-img-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+  margin: 4px auto 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.surah-frame-img {
+  width: 100%;
+  height: auto;
+  max-height: 48px;
+  display: block;
+  object-fit: contain;
+}
+
+.surah-title-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.surah-title-text {
+  font-family: 'Amiri Quran', 'Amiri', serif !important;
+  font-size: clamp(16px, 3vh, 21px);
+  font-weight: bold;
+  color: #7b581e;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.9), 0 -1px 1px rgba(0, 0, 0, 0.25);
+  white-space: nowrap;
+  letter-spacing: 0.5px;
+}
+
+#surahScreen.night-mode .surah-frame-img {
+  filter: invert(0.92) hue-rotate(180deg) brightness(1.05) contrast(1.1);
+}
+
+#surahScreen.night-mode .surah-title-text {
+  color: #f7eed8 !important;
+  text-shadow: 0 0 6px rgba(212, 175, 55, 0.4);
+} 
 </style>  
 
  <link rel="stylesheet" href="community/community.css">
@@ -4076,7 +4125,14 @@ const fontSize = isSpecialPage
       renderedSurahHeaders.add(firstWord.vSurah);
       const sObj = surahs.find(s => s.n === firstWord.vSurah);
       const sName = sObj ? sObj.name : '';
-      html += `<div class="surah-name-header" style="margin: 3px 0 2px; padding: 3px 10px; font-size: 15px;">سُورَةُ ${sName}</div>`;
+html += `
+  <div class="surah-name-header-img-wrap">
+    <img src="Image/surah_header_frame.png" class="surah-frame-img" alt="إطار السورة" />
+    <div class="surah-title-overlay">
+      <span class="surah-title-text">سُورَةُ ${sName}</span>
+    </div>
+  </div>
+`;		
       if (firstWord.vSurah !== 1 && firstWord.vSurah !== 9) {
         html += `
 <div class="bismillah" style="text-align:center;font-size:26px;margin:6px 0 14px;color:#5a3e00;display:block;font-family:'Amiri Quran',serif;">
@@ -4269,8 +4325,14 @@ lines.forEach(lineNum => {
           const sObj = surahs.find(s => s.n === firstWord.vSurah);
           const sName = sObj ? sObj.name : '';
           
-          sliderHtml += `<div class="surah-name-header" style="margin: 1px 0; padding: 2px 8px; font-size: 15px; line-height: 1.1;">سُورَةُ ${sName}</div>`;
-          
+sliderHtml += `
+  <div class="surah-name-header-img-wrap">
+    <img src="Image/surah_header_frame.png" class="surah-frame-img" alt="إطار السورة" />
+    <div class="surah-title-overlay">
+      <span class="surah-title-text">سُورَةُ ${sName}</span>
+    </div>
+  </div>
+`;          
           if (firstWord.vSurah !== 1 && firstWord.vSurah !== 9) {
             sliderHtml += `
 <div class="bismillah" style="text-align:center;font-size:26px;margin:6px 0 14px;color:#5a3e00;display:block;font-family:'Amiri Quran',serif;">
