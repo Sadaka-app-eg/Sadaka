@@ -4086,7 +4086,6 @@ function buildSinglePageHTML(pageNum, pagesDict, allVerses) {
   const headerRightText = getHeaderJuzText(pageNum, allVerses);
   const pageSurah = getSurahByPageNumber(pageNum);
 
-  // فحص هل الصفحة بها بداية سورة جديدة وبسملة
   let pageHasNewSurahStart = false, pageHasBismillah = false;
   Object.values(pagesDict[pageNum]).forEach(lineWords => {
     const fw = lineWords[0];
@@ -4097,15 +4096,12 @@ function buildSinglePageHTML(pageNum, pagesDict, allVerses) {
   });
 
   const hasHeaders = pageHasNewSurahStart || pageHasBismillah;
-
-  // ضبط دقيق لحجم الخط لجمع كل السطور داخل الشاشة
   const fontSize = isSpecialPage 
     ? 'clamp(16px, 2.8vh, 24px)' 
-    : (hasHeaders ? 'clamp(11.5px, 1.85vh, 16.5px)' : 'clamp(13.5px, 2.2vh, 19.5px)');
+    : (hasHeaders ? 'clamp(11.5px, 1.85vh, 16px)' : 'clamp(13.5px, 2.2vh, 19.5px)');
 
   let html = `<div class="mushaf-page" id="mpage_${pageNum}" data-page="${pageNum}" style="position:relative; width:100vw; height:100vh; max-height:100vh; display:flex; flex-direction:column; justify-content:space-between; padding:2px 8px 6px; box-sizing:border-box; overflow:hidden;">`;
 
-  // الهيدر العلوي (الجزء والسورة)
   html += `
     <div style="display:flex; justify-content:space-between; align-items:center; width:100%; padding:1px 6px; font-size:11px; font-weight:bold; color:var(--text2); border-bottom:1px solid rgba(212,175,55,0.12); margin-bottom:1px; font-family:'Amiri', serif; flex-shrink:0; white-space:nowrap; overflow:hidden;">
       <span style="overflow:hidden; text-overflow:ellipsis; max-width:65%;">${headerRightText}</span>
@@ -4113,7 +4109,6 @@ function buildSinglePageHTML(pageNum, pagesDict, allVerses) {
     </div>
   `;
 
-  // وعاء أسطر المصحف
   html += `<div style="flex:1; display:flex; flex-direction:column; justify-content:${isSpecialPage ? 'center' : 'space-between'}; width:100%; overflow:hidden; padding:0; box-sizing:border-box;">`;
   
   const lines = Object.keys(pagesDict[pageNum]).map(Number).sort((a, b) => a - b);
@@ -4129,22 +4124,21 @@ function buildSinglePageHTML(pageNum, pagesDict, allVerses) {
       const sObj = surahs.find(s => s.n === firstWord.vSurah);
       const sName = sObj ? sObj.name : '';
 
-      // إطار السورة بحجم متناسق لا يزاحم الآيات
       html += `
-        <div class="surah-name-header-img-wrap" style="position:relative; width:100%; max-width:390px; margin:1px auto 1px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-          <img src="Image/surah_header_frame.png" onerror="this.src='surah_header_frame.png'; this.onerror=null;" class="surah-frame-img" style="width:100%; height:auto; max-height:30px; display:block; object-fit:fill;" alt="إطار السورة" />
-          <div class="surah-title-overlay" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); display:flex; align-items:center; justify-content:center; pointer-events:none;">
-            <span class="surah-title-text" style="font-family:'Amiri Quran', 'Amiri', serif !important; font-size:clamp(13px, 1.9vh, 16px); font-weight:bold; color:#7b581e; white-space:nowrap;">سُورَةُ ${sName}</span>
+        <div class="surah-name-header-img-wrap">
+          <img src="Image/surah_header_frame.png" onerror="this.src='surah_header_frame.png'; this.onerror=null;" class="surah-frame-img" alt="إطار السورة" />
+          <div class="surah-title-overlay">
+            <span class="surah-title-text">سُورَةُ ${sName}</span>
           </div>
         </div>`;
 
-if (firstWord.vSurah !== 1 && firstWord.vSurah !== 9) {
-            sliderHtml += `
-              <div class="bismillah" style="font-family:'Amiri Quran', 'Amiri', serif !important; font-size:clamp(22px, 3.8vh, 30px); margin:0 auto 2px; line-height:1; text-align:center; color:#5a3e00; flex-shrink:0;">
-                ﷽
-              </div>
-            `;
-          }
+      if (firstWord.vSurah !== 1 && firstWord.vSurah !== 9) {
+        html += `
+          <div class="bismillah" style="font-family:'Amiri Quran', 'Amiri', serif !important; font-size:clamp(22px, 3.8vh, 30px); margin:0 auto 2px; line-height:1; text-align:center; color:#5a3e00; flex-shrink:0; letter-spacing:0;">
+            ﷽
+          </div>
+        `;
+      }
     }
 
     html += `<div style="display:flex; flex-direction:row; ${lineJustify} align-items:center; width:100%; overflow:visible; white-space:nowrap; flex:1; min-height:0; line-height:1;">`;
@@ -4164,7 +4158,6 @@ if (firstWord.vSurah !== 1 && firstWord.vSurah !== 9) {
 
   html += `</div>`;
   
-  // رقم الصفحة في الأسفل
   html += `
     <div style="width:100%; text-align:center; margin-top:auto; padding-top:1px; flex-shrink:0; z-index:10;">
       <div class="page-footer-frame" style="display:inline-flex; align-items:center; justify-content:center; margin:0 auto; padding:1px 10px; background:#142018; border:1.5px solid #cda869; border-radius:8px; font-size:10px; font-weight:bold; color:#f4ecd8; font-family:'Amiri', serif; box-shadow:0 2px 5px rgba(0,0,0,0.3);">
@@ -4338,21 +4331,22 @@ lines.forEach(lineNum => {
           const sObj = surahs.find(s => s.n === firstWord.vSurah);
           const sName = sObj ? sObj.name : '';
           
-html += `
-  <div class="surah-name-header-img-wrap">
-    <img src="Image/surah_header_frame.png" onerror="this.src='surah_header_frame.png'; this.onerror=null;" class="surah-frame-img" alt="إطار السورة" />
-    <div class="surah-title-overlay">
-      <span class="surah-title-text">سُورَةُ ${sName}</span>
-    </div>
-  </div>`;
-`;          
-if (firstWord.vSurah !== 1 && firstWord.vSurah !== 9) {
-        html += `
-          <div class="bismillah" style="font-family:'Amiri Quran', 'Amiri', serif !important; font-size:clamp(22px, 3.8vh, 30px); margin:0 auto 2px; line-height:1; text-align:center; color:#5a3e00; flex-shrink:0; letter-spacing:0;">
-            ﷽
-          </div>
-        `;
-      }
+// ✅ ضع هذا مكانه
+          sliderHtml += `
+            <div class="surah-name-header-img-wrap">
+              <img src="Image/surah_header_frame.png" onerror="this.src='surah_header_frame.png'; this.onerror=null;" class="surah-frame-img" alt="إطار السورة" />
+              <div class="surah-title-overlay">
+                <span class="surah-title-text">سُورَةُ ${sName}</span>
+              </div>
+            </div>`;
+          
+          if (firstWord.vSurah !== 1 && firstWord.vSurah !== 9) {
+            sliderHtml += `
+              <div class="bismillah" style="font-family:'Amiri Quran', 'Amiri', serif !important; font-size:clamp(22px, 3.8vh, 30px); margin:0 auto 2px; line-height:1; text-align:center; color:#5a3e00; flex-shrink:0; letter-spacing:0;">
+                ﷽
+              </div>
+            `;
+          }
         }
 
         // 🎯 الضمان الثاني: تثبيت السطر أفقي محذى 100% بدون انكسار
@@ -9016,112 +9010,123 @@ try {
     });
 
   // 7️⃣ فحص الجلسة اللحظي (onAuthStateChanged)
+// 5️⃣ تثبيت الجلسة محلياً للأبد
+  setPersistence(auth, browserLocalPersistence).catch(err => console.error("Persistence Error:", err));
+
+  // 6️⃣ التقاط نتيجة التوجيه على الموبايل
+  getRedirectResult(auth)
+    .then((result) => {
+      if (result && result.user) {
+        const user = result.user;
+        const firstName = user.displayName ? user.displayName.split(' ')[0] : 'المستخدم';
+        
+        localStorage.setItem('user_display_name', firstName);
+        localStorage.setItem('athr_user_name', firstName);
+        if (user.email) localStorage.setItem('user_email', user.email.toLowerCase());
+
+        if (window.firebaseDb) {
+          setDoc(doc(window.firebaseDb, "users", user.uid), {
+            name: firstName,
+            email: user.email || "",
+            lastSeen: new Date().toISOString()
+          }, { merge: true });
+        }
+        
+        if (typeof window.realFinishLogin === 'function') window.realFinishLogin(firstName);
+        if (typeof updateSettingsAccountBox === 'function') updateSettingsAccountBox();
+      }
+    })
+    .catch((error) => console.error("Redirect Result Error:", error));
+
+  // 7️⃣ مراقبة حالة الحساب بدون تصفير مفاجئ
   onAuthStateChanged(auth, async (user) => {
     if (user) {
       let displayName = user.displayName ? user.displayName.split(' ')[0] : 'المستخدم';
       const savedName = localStorage.getItem('user_display_name');
       
-if (savedName) {
+      if (savedName) {
         displayName = savedName;
       } else {
-        try {
-          localStorage.setItem('user_display_name', displayName);
-          localStorage.setItem('athr_user_name', displayName);
-        } catch(e) {}
+        localStorage.setItem('user_display_name', displayName);
+        localStorage.setItem('athr_user_name', displayName);
       }
-      try {
-        if (user.email) localStorage.setItem('user_email', user.email.toLowerCase());
-      } catch(e) {}
+      if (user.email) localStorage.setItem('user_email', user.email.toLowerCase());
 
-      if (typeof window.realFinishLogin === 'function') {
-        window.realFinishLogin(displayName);
+      if (typeof window.realFinishLogin === 'function') window.realFinishLogin(displayName);
+      if (typeof updateSettingsAccountBox === 'function') updateSettingsAccountBox();
+
+      if (window.firebaseDb) {
+        setDoc(doc(window.firebaseDb, "users", user.uid), {
+          name: displayName,
+          email: user.email || "",
+          lastSeen: new Date().toISOString()
+        }, { merge: true });
       }
-      
-      if (typeof updateSettingsAccountBox === 'function') {
-        updateSettingsAccountBox();
-      }
-
-      try {
-        if (window.firebaseDb) {
-          setDoc(doc(window.firebaseDb, "users", user.uid), {
-            name: displayName,
-            email: user.email || "",
-            lastSeen: new Date().toISOString()
-          }, { merge: true });
-        }
-      } catch(e) {}
-
     } else {
-      localStorage.removeItem('user_display_name');
-      localStorage.removeItem('athr_user_name');
-      localStorage.removeItem('athr_user_gender');
-      
-      const overlay = document.getElementById('authOverlay');
-      if (overlay) overlay.remove();
-
-      if (typeof updateSettingsAccountBox === 'function') {
-        updateSettingsAccountBox();
+      // لا نحذف الاسم إلا إذا لم يكن هناك اسم محفوظ يدوياً
+      const savedName = localStorage.getItem('user_display_name');
+      if (!savedName) {
+        const overlay = document.getElementById('authOverlay');
+        if (overlay) overlay.remove();
+        if (typeof updateSettingsAccountBox === 'function') updateSettingsAccountBox();
       }
     }
   });
 
-// 8️⃣ دالة تسجيل الدخول والخروج المضمونة
-window.triggerHeaderGoogleLogin = function() {
-  const savedName = localStorage.getItem('user_display_name');
+  // 8️⃣ تسجيل الدخول بنافذة منبثقة مع التحديث السلس بدون Reload مكسور
+  window.triggerHeaderGoogleLogin = function() {
+    const savedName = localStorage.getItem('user_display_name');
 
-  if (savedName || (auth && auth.currentUser)) {
-    if (confirm('هل ترغب في تسجيل الخروج من الحساب والمجتمع؟')) {
-      
-      // 1. مسح نبضات الأونلاين لو شغالة
-      if (window.athrHeartbeatInterval) {
-        clearInterval(window.athrHeartbeatInterval);
-        window.athrHeartbeatInterval = null;
-      }
+    if (savedName || (auth && auth.currentUser)) {
+      if (confirm('هل ترغب في تسجيل الخروج من الحساب والمجتمع؟')) {
+        if (window.athrHeartbeatInterval) {
+          clearInterval(window.athrHeartbeatInterval);
+          window.athrHeartbeatInterval = null;
+        }
 
-      // 2. مسح كل المفاتيح
-      const keysToRemove = [
-        'user_email', 'user_display_name', 'user_photo_url',
-        'athr_user_name', 'athr_user_gender', 'athr_user_avatar',
-        'athr_user_bio', 'athr_family_room_code', 'firebase:authUser'
-      ];
-      keysToRemove.forEach(k => localStorage.removeItem(k));
-      sessionStorage.clear();
+        const keysToRemove = [
+          'user_email', 'user_display_name', 'user_photo_url',
+          'athr_user_name', 'athr_user_gender', 'athr_user_avatar',
+          'athr_user_bio', 'athr_family_room_code'
+        ];
+        keysToRemove.forEach(k => localStorage.removeItem(k));
+        sessionStorage.clear();
 
-      // 3. خروج صريح من Firebase Auth
-      if (auth) {
-        signOut(auth).finally(() => {
-          alert("🔒 تم تسجيل الخروج بنجاح.");
+        if (auth) {
+          signOut(auth).finally(() => {
+            alert("🔒 تم تسجيل الخروج بنجاح.");
+            window.location.reload();
+          });
+        } else {
           window.location.reload();
-        });
-      } else {
-        window.location.reload();
+        }
       }
+      return;
     }
-    return;
-  }
 
-  const provider = new GoogleAuthProvider();
-  provider.setCustomParameters({ prompt: 'select_account' });
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
 
-  signInWithPopup(auth, provider)
-    .then((result) => {
-      const user = result.user;
-      const firstName = user.displayName ? user.displayName.split(' ')[0] : 'المستخدم';
-      try {
+    signInWithPopup(auth, provider)
+      .then((result) => {
+        const user = result.user;
+        const firstName = user.displayName ? user.displayName.split(' ')[0] : 'المستخدم';
+        
         localStorage.setItem('user_display_name', firstName);
         localStorage.setItem('athr_user_name', firstName);
         if (user.email) localStorage.setItem('user_email', user.email.toLowerCase());
-      } catch(e) {}
-      window.location.reload();
-    })
-    .catch((err) => {
-      console.warn("Popup blocked, trying redirect...", err);
-      signInWithRedirect(auth, provider).catch(rErr => {
-        console.error("Redirect Error:", rErr);
-        alert("⚠️ تعذر الاتصال بجوجل، تحقق من شبكة الإنترنت.");
+
+        if (typeof window.realFinishLogin === 'function') window.realFinishLogin(firstName);
+        if (typeof updateSettingsAccountBox === 'function') updateSettingsAccountBox();
+      })
+      .catch((err) => {
+        console.warn("Popup blocked, trying redirect...", err);
+        signInWithRedirect(auth, provider).catch(rErr => {
+          console.error("Redirect Error:", rErr);
+          alert("⚠️ تعذر الاتصال بجوجل، تحقق من شبكة الإنترنت.");
+        });
       });
-    });
-};
+  };
 </script>
 <script>
 (function(){
