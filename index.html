@@ -389,11 +389,35 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
   
   .mushaf-page:first-child{border-right:none;}
 .surah-name-header{
-  text-align:center;font-size:20px;font-weight:700;
-  color:#5a3e00;margin:0 0 8px;padding:8px 20px;
-  background:linear-gradient(90deg,transparent,rgba(200,169,110,0.3),transparent);
-  border-top:2px solid var(--mushaf-border);border-bottom:2px solid var(--mushaf-border);
+  position:relative;
+  display:table;
+  margin:14px auto 16px;
+  padding:10px 34px 6px;
+  text-align:center;
+  font-size:20px;
+  font-weight:700;
+  color:#5a3e00;
   font-family:'Amiri',serif;
+  background:rgba(200,169,110,0.07);
+  border:2px solid var(--mushaf-border);
+  border-radius:3px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.06);
+}
+.surah-name-header::before{
+  content:'✥';
+  display:block;
+  font-size:13px;
+  color:var(--mushaf-border);
+  letter-spacing:8px;
+  margin-bottom:3px;
+}
+.surah-name-header::after{
+  content:'';
+  position:absolute;
+  inset:-6px;
+  border:1px solid var(--mushaf-border);
+  border-radius:2px;
+  pointer-events:none;
 }
 .bismillah{
   text-align:center;font-size:22px;margin:8px 0 16px;
@@ -4055,9 +4079,9 @@ const fontSize = isSpecialPage
       html += `<div class="surah-name-header" style="margin: 3px 0 2px; padding: 3px 10px; font-size: 15px;">سُورَةُ ${sName}</div>`;
       if (firstWord.vSurah !== 1 && firstWord.vSurah !== 9) {
         html += `
-          <div class="bismillah" style="font-family:'Amiri Quran', serif; font-size: clamp(16px, 4vw, 20px); margin: 0 0 2px;line-height: 1.1; text-align:center; color:#5a3e00;">
-            بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ
-          </div>
+<div class="bismillah" style="text-align:center;font-size:26px;margin:6px 0 14px;color:#5a3e00;display:block;font-family:'Amiri Quran',serif;">
+  ﷽
+</div>
         `;
       }
     }
@@ -4249,9 +4273,9 @@ lines.forEach(lineNum => {
           
           if (firstWord.vSurah !== 1 && firstWord.vSurah !== 9) {
             sliderHtml += `
-              <div class="bismillah" style="font-family:'Amiri Quran', serif; font-size: clamp(18px, 4.5vw, 24px); margin: 2px 0 6px; text-align:center; color:#5a3e00;">
-                بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ
-              </div>
+<div class="bismillah" style="text-align:center;font-size:26px;margin:6px 0 14px;color:#5a3e00;display:block;font-family:'Amiri Quran',serif;">
+﷽
+</div>
             `;
           }
         }
