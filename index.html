@@ -1422,36 +1422,7 @@ body.hide-controls #quran {
   <div class="mushaf-top-controls" id="mushafTopControls">
 
 	  
-<div class="surah-header-frame" style="position: relative; width: 100%; max-width: 380px; margin: 4px auto 6px; text-align: center; display: flex; align-items: center; justify-content: center;">
-  <!-- خلفية الإطار الزخرفي SVG المتجاوب -->
-  <svg viewBox="0 0 450 60" style="width: 100%; height: auto; display: block; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.3));">
-    <!-- خلفية خضراء زيتونية داكنة بنمط المصحف -->
-    <rect x="5" y="5" width="440" height="50" rx="10" fill="#142018" stroke="#cda869" stroke-width="2.5" />
-    
-    <!-- الزخارف الجانبية الأرابيسك المذهبة -->
-    <g fill="none" stroke="#cda869" stroke-width="1.8">
-      <!-- زخرفة اليمين -->
-      <path d="M 20,30 Q 35,15 50,30 Q 35,45 20,30 Z" fill="#1e3325" />
-      <circle cx="35" cy="30" r="4" fill="#cda869" />
-      <path d="M 50,30 C 65,18 80,42 95,30" />
-      <circle cx="95" cy="30" r="3" fill="#cda869" />
 
-      <!-- زخرفة اليسار المتطابقة -->
-      <path d="M 430,30 Q 415,15 400,30 Q 415,45 430,30 Z" fill="#1e3325" />
-      <circle cx="415" cy="30" r="4" fill="#cda869" />
-      <path d="M 400,30 C 385,18 370,42 355,30" />
-      <circle cx="355" cy="30" r="3" fill="#cda869" />
-    </g>
-
-    <!-- إطار النص الداخلي -->
-    <rect x="120" y="10" width="210" height="40" rx="6" fill="#0b130e" stroke="#cda869" stroke-width="1.2" stroke-dasharray="4,2" />
-  </svg>
-
-  <!-- نص السورة بخط الثلث المذهب فوق الإطار -->
-  <div style="position: absolute; color: #f4ecd8; font-size: 22px; font-family: 'Amiri Quran', 'Amiri', serif; font-weight: bold; text-shadow: 0 1px 3px #000; letter-spacing: 0.5px; z-index: 2;">
-    سُورَةُ ${sName}
-  </div>
-</div>  
 	
 	<!-- زر الرجوع المباشر للرئيسية -->
       <button class="back-btn" onclick="showPage('home', null); closeSurah();" title="الرجوع للرئيسية">→</button>
@@ -4085,7 +4056,27 @@ const fontSize = isSpecialPage
       renderedSurahHeaders.add(firstWord.vSurah);
       const sObj = surahs.find(s => s.n === firstWord.vSurah);
       const sName = sObj ? sObj.name : '';
-      html += `<div class="surah-name-header" style="margin: 3px 0 2px; padding: 3px 10px; font-size: 15px;">سُورَةُ ${sName}</div>`;
+html += `
+  <div class="surah-header-frame" style="position: relative; width: 100%; max-width: 360px; margin: 2px auto 4px; text-align: center; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+    <svg viewBox="0 0 450 60" style="width: 100%; height: auto; max-height: 38px; display: block; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+      <rect x="5" y="5" width="440" height="50" rx="10" fill="#142018" stroke="#cda869" stroke-width="2" />
+      <g fill="none" stroke="#cda869" stroke-width="1.8">
+        <path d="M 20,30 Q 35,15 50,30 Q 35,45 20,30 Z" fill="#1e3325" />
+        <circle cx="35" cy="30" r="4" fill="#cda869" />
+        <path d="M 50,30 C 65,18 80,42 95,30" />
+        <circle cx="95" cy="30" r="3" fill="#cda869" />
+        <path d="M 430,30 Q 415,15 400,30 Q 415,45 430,30 Z" fill="#1e3325" />
+        <circle cx="415" cy="30" r="4" fill="#cda869" />
+        <path d="M 400,30 C 385,18 370,42 355,30" />
+        <circle cx="355" cy="30" r="3" fill="#cda869" />
+      </g>
+      <rect x="120" y="10" width="210" height="40" rx="6" fill="#0b130e" stroke="#cda869" stroke-width="1.2" stroke-dasharray="4,2" />
+    </svg>
+    <div style="position: absolute; color: #f4ecd8; font-size: 16px; font-family: 'Amiri Quran', 'Amiri', serif; font-weight: bold; text-shadow: 0 1px 3px #000; z-index: 2;">
+      سُورَةُ ${sName}
+    </div>
+  </div>`;
+	
       if (firstWord.vSurah !== 1 && firstWord.vSurah !== 9) {
         html += `
           <div class="bismillah" style="font-family:'Amiri Quran', serif; font-size: clamp(16px, 4vw, 20px); margin: 0 0 2px;line-height: 1.1; text-align:center; color:#5a3e00;">
@@ -4286,8 +4277,26 @@ lines.forEach(lineNum => {
           const sObj = surahs.find(s => s.n === firstWord.vSurah);
           const sName = sObj ? sObj.name : '';
           
-          sliderHtml += `<div class="surah-name-header" style="margin: 1px 0; padding: 2px 8px; font-size: 15px; line-height: 1.1;">سُورَةُ ${sName}</div>`;
-          
+sliderHtml += `
+  <div class="surah-header-frame" style="position: relative; width: 100%; max-width: 360px; margin: 2px auto 4px; text-align: center; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+    <svg viewBox="0 0 450 60" style="width: 100%; height: auto; max-height: 38px; display: block; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+      <rect x="5" y="5" width="440" height="50" rx="10" fill="#142018" stroke="#cda869" stroke-width="2" />
+      <g fill="none" stroke="#cda869" stroke-width="1.8">
+        <path d="M 20,30 Q 35,15 50,30 Q 35,45 20,30 Z" fill="#1e3325" />
+        <circle cx="35" cy="30" r="4" fill="#cda869" />
+        <path d="M 50,30 C 65,18 80,42 95,30" />
+        <circle cx="95" cy="30" r="3" fill="#cda869" />
+        <path d="M 430,30 Q 415,15 400,30 Q 415,45 430,30 Z" fill="#1e3325" />
+        <circle cx="415" cy="30" r="4" fill="#cda869" />
+        <path d="M 400,30 C 385,18 370,42 355,30" />
+        <circle cx="355" cy="30" r="3" fill="#cda869" />
+      </g>
+      <rect x="120" y="10" width="210" height="40" rx="6" fill="#0b130e" stroke="#cda869" stroke-width="1.2" stroke-dasharray="4,2" />
+    </svg>
+    <div style="position: absolute; color: #f4ecd8; font-size: 16px; font-family: 'Amiri Quran', 'Amiri', serif; font-weight: bold; text-shadow: 0 1px 3px #000; z-index: 2;">
+      سُورَةُ ${sName}
+    </div>
+  </div>`;          
           if (firstWord.vSurah !== 1 && firstWord.vSurah !== 9) {
             sliderHtml += `
               <div class="bismillah" style="font-family:'Amiri Quran', serif; font-size: clamp(18px, 4.5vw, 24px); margin: 2px 0 6px; text-align:center; color:#5a3e00;">
