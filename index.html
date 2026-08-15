@@ -346,7 +346,7 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
   width: 100vw !important;
   height: 100vh !important;
   max-height: 100vh !important;
-  padding: 6px 12px 38px !important; /* إضافة حواشي جانبية (12px) ليدخل العرض لجوة سنة، وبادينج سفلي (38px) لرفع الآيات لفوق السطر */
+  padding: 4px 10px 8px !important; /* إضافة حواشي جانبية (12px) ليدخل العرض لجوة سنة، وبادينج سفلي (38px) لرفع الآيات لفوق السطر */
   display: flex !important;
   flex-direction: column !important;
   justify-content: space-between !important;
@@ -1148,7 +1148,7 @@ body.hide-controls #quran {
 
 .surah-frame-img {
   width: 100% !important;
-  height: 38px !important; /* ارتفاع ثابت متناسق */
+  height: 26px !important; /* ارتفاع ثابت متناسق */
   display: block;
   object-fit: fill !important; /* تمديد الزخرفة لكامل عرض الصفحة */
   border-radius: 4px;
@@ -4107,8 +4107,7 @@ const fontSize = isSpecialPage
   let html = `<div class="mushaf-page" id="mpage_${pageNum}" data-page="${pageNum}" style="position:relative; width:100vw; height:100vh; max-height:100vh; display:flex; flex-direction:column; justify-content:space-between; padding:4px 10px 10px; box-sizing:border-box; overflow:hidden;">`;
 
   html += `
-    <div style="display:flex; justify-content:space-between; align-items:center; width:100%; padding:1px 6px; font-size:11px; font-weight:bold; color:var(--text2); border-bottom:1px solid rgba(212,175,55,0.12); margin-bottom:1px; font-family:'Amiri', serif; flex-shrink:0; white-space:nowrap; overflow:hidden;">
-      <span style="overflow:hidden; text-overflow:ellipsis; max-width:65%;">${headerRightText}</span>
+<div style="display:flex; justify-content:space-between; align-items:center; width:100%; padding:0px 6px; font-size:9px; font-weight:bold; color:var(--text2); border-bottom:1px solid rgba(212,175,55,0.12); margin-bottom:0px; font-family:'Amiri', serif; flex-shrink:0; white-space:nowrap; overflow:hidden;">      <span style="overflow:hidden; text-overflow:ellipsis; max-width:65%;">${headerRightText}</span>
       <span style="flex-shrink:0;">سُورَةُ ${pageSurah ? pageSurah.name : ''}</span>
     </div>
   `;
@@ -4138,7 +4137,7 @@ const fontSize = isSpecialPage
 
       if (firstWord.vSurah !== 1 && firstWord.vSurah !== 9) {
         html += `
-<div class="bismillah" style="font-family:'Amiri Quran', serif; font-size: 24px; margin: 4px auto 18px; line-height: 1.2; text-align: center; color: #5a3e00; flex-shrink: 0;">
+<div class="bismillah" style="font-family:'Amiri Quran', serif; font-size: 24px; margin: 2px auto 6px; line-height: 1.2; text-align: center; color: #5a3e00; flex-shrink: 0;">
   ﷽
 </div>
         `;
@@ -4309,8 +4308,7 @@ if (myOpenReqId !== window._openSurahReqId) return;
       
       // الهيدر العلوي
       sliderHtml += `
-        <div style="display:flex; justify-content:space-between; align-items:center; width:100%; padding:2px 6px; font-size:12px; font-weight:bold; color:var(--text2); border-bottom:1px solid rgba(212,175,55,0.12); margin-bottom:4px; font-family:'Amiri', serif; flex-shrink:0; white-space:nowrap; overflow:hidden;">
-          <span style="overflow:hidden; text-overflow:ellipsis; max-width:65%;">${headerRightText}</span>
+<div style="display:flex; justify-content:space-between; align-items:center; width:100%; padding:1px 6px; font-size:10px; font-weight:bold; color:var(--text2); border-bottom:1px solid rgba(212,175,55,0.12); margin-bottom:1px; font-family:'Amiri', serif; flex-shrink:0; white-space:nowrap; overflow:hidden;">          <span style="overflow:hidden; text-overflow:ellipsis; max-width:65%;">${headerRightText}</span>
           <span style="flex-shrink:0;">سُورَةُ ${pageSurah ? pageSurah.name : ''}</span>
         </div>
       `;
@@ -4346,7 +4344,7 @@ const fontSize = isSpecialPage
           
           if (firstWord.vSurah !== 1 && firstWord.vSurah !== 9) {
             sliderHtml += `
-<div class="bismillah" style="font-family:'Amiri Quran', serif; font-size: 24px; margin: 4px auto 18px; line-height: 1.2; text-align: center; color: #5a3e00; flex-shrink: 0;">
+<div class="bismillah" style="font-family:'Amiri Quran', serif; font-size: 24px; margin: 2px auto 6px; line-height: 1.2; text-align: center; color: #5a3e00; flex-shrink: 0;">
                 ﷽
               </div>
             `;
