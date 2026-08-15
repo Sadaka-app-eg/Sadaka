@@ -12,6 +12,7 @@
 <title>كن ذا أثر</title>
  <link rel="icon" href="./icon.png">
 <link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+	
 <!-- 🧹 حط كود منظف الذاكرة هنا -->
 <script>
 (function() {
@@ -64,7 +65,10 @@ const keysToKeep = [
 <script src="https://cdn.jsdelivr.net/npm/mp4-muxer@5/build/mp4-muxer.js"></script>
  
  <style>
-
+@font-face {
+  font-family: 'QCF_SurahHeader';
+  src: url('https://verses.quran.foundation/fonts/quran/surah-names/v1/surah-name.woff2') format('woff2');
+}
 :root {
   /* Dark Theme */
   --bg: #0b120c;
@@ -4100,7 +4104,7 @@ function buildSinglePageHTML(pageNum, pagesDict, allVerses) {
     ? 'clamp(16px, 2.8vh, 24px)' 
     : (hasHeaders ? 'clamp(11.5px, 1.85vh, 16px)' : 'clamp(13.5px, 2.2vh, 19.5px)');
 
-  let html = `<div class="mushaf-page" id="mpage_${pageNum}" data-page="${pageNum}" style="position:relative; width:100vw; height:100vh; max-height:100vh; display:flex; flex-direction:column; justify-content:space-between; padding:2px 8px 5px; box-sizing:border-box; overflow:hidden;">`;
+  let html = `<div class="mushaf-page" id="mpage_${pageNum}" data-page="${pageNum}" style="position:relative; width:100vw; height:100vh; max-height:100vh; display:flex; flex-direction:column; justify-content:space-between; padding:4px 10px 10px; box-sizing:border-box; overflow:hidden;">`;
 
   html += `
     <div style="display:flex; justify-content:space-between; align-items:center; width:100%; padding:1px 6px; font-size:11px; font-weight:bold; color:var(--text2); border-bottom:1px solid rgba(212,175,55,0.12); margin-bottom:1px; font-family:'Amiri', serif; flex-shrink:0; white-space:nowrap; overflow:hidden;">
@@ -4128,15 +4132,15 @@ function buildSinglePageHTML(pageNum, pagesDict, allVerses) {
         <div class="surah-name-header-img-wrap">
           <img src="image/surah_header_frame.png" onerror="this.src='surah_header_frame.png'; this.onerror=null;" class="surah-frame-img" alt="إطار السورة" />
           <div class="surah-title-overlay">
-            <span class="surah-title-text">سُورَةُ ${sName}</span>
+<span class="surah-title-text" style="font-family:'QCF_SurahHeader', 'Amiri Quran' !important; font-size: 26px; line-height: 1;">${String(firstWord.vSurah).padStart(3, '0')}</span>			
           </div>
         </div>`;
 
       if (firstWord.vSurah !== 1 && firstWord.vSurah !== 9) {
         html += `
-          <div class="bismillah" style="font-family:'Amiri Quran', 'Amiri', serif !important; font-size:clamp(22px, 3.8vh, 30px); margin:0 auto 2px; line-height:1; text-align:center; color:#5a3e00; flex-shrink:0; letter-spacing:0;">
-            ﷽
-          </div>
+<div class="bismillah" style="font-family:'Amiri Quran', serif; font-size: 24px; margin: 4px auto 10px; line-height: 1.2; text-align: center; color: #5a3e00; flex-shrink: 0;">
+  ﷽
+</div>
         `;
       }
     }
