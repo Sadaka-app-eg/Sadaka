@@ -346,7 +346,7 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
   width: 100vw !important;
   height: 100vh !important;
   max-height: 100vh !important;
-  padding: 6px 12px 38px !important; /* إضافة حواشي جانبية (12px) ليدخل العرض لجوة سنة، وبادينج سفلي (38px) لرفع الآيات لفوق السطر */
+  padding: 4px 18px 42px !important; /* إضافة حواشي جانبية (12px) ليدخل العرض لجوة سنة، وبادينج سفلي (38px) لرفع الآيات لفوق السطر */
   display: flex !important;
   flex-direction: column !important;
   justify-content: space-between !important;
@@ -4101,9 +4101,8 @@ function buildSinglePageHTML(pageNum, pagesDict, allVerses) {
 
   const hasHeaders = pageHasNewSurahStart || pageHasBismillah;
 const fontSize = isSpecialPage 
-    ? 'clamp(20px, 3.6vh, 32px)' 
-    : (hasHeaders ? 'clamp(15px, 2.4vh, 22px)' : 'clamp(17px, 2.7vh, 25px)');
-
+  ? 'clamp(18px, 3.2vw, 28px)' 
+  : (extraLines > 0 ? 'clamp(13px, 4.3vw, 22px)' : 'clamp(14px, 4.65vw, 24px)');
   let html = `<div class="mushaf-page" id="mpage_${pageNum}" data-page="${pageNum}" style="position:relative; width:100vw; height:100vh; max-height:100vh; display:flex; flex-direction:column; justify-content:space-between; padding:4px 10px 10px; box-sizing:border-box; overflow:hidden;">`;
 
   html += `
@@ -4326,8 +4325,8 @@ lines.forEach(lineNum => {
         
         // 🎯 هذا هو السطر المفقود الذي كان يسبب خطأ الشاشة السوداء
 const fontSize = isSpecialPage 
-          ? 'clamp(20px, 3.6vh, 32px)' 
-          : (extraLines > 0 ? 'clamp(17px, 2.6vh, 26px)' : 'clamp(18px, 2.9vh, 28px)');
+  ? 'clamp(18px, 3.2vw, 28px)' 
+  : (hasHeaders ? 'clamp(13px, 4.3vw, 22px)' : 'clamp(14px, 4.65vw, 24px)');
 
         const firstWord = lineWords[0];
         if (firstWord && firstWord.vAyah === 1 && !renderedSurahHeaders.has(firstWord.vSurah)) {
@@ -4354,7 +4353,7 @@ const fontSize = isSpecialPage
         }
 
         // 🎯 الضمان الثاني: تثبيت السطر أفقي محذى 100% بدون انكسار
-sliderHtml += `<div style="display:flex; flex-direction:row; ${lineJustify} align-items:center; width:100%; min-height: calc(100% / 15); overflow:visible; white-space:nowrap; padding: 0 6px; box-sizing: border-box;">`;
+sliderHtml += `<div style="display:flex; flex-direction:row; ${lineJustify} align-items:center; width:100%; min-height: calc(100% / 15); overflow:visible; white-space:nowrap; padding: 0 4px; box-sizing: border-box;">`;
 	lineWords.forEach(w => {
      const ayahIndex = currentAyahsData.findIndex(a => a.surahNumber === w.vSurah && a.numberInSurah === w.vAyah);
 sliderHtml += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}"
