@@ -4102,7 +4102,8 @@ function buildSinglePageHTML(pageNum, pagesDict, allVerses) {
   const hasHeaders = pageHasNewSurahStart || pageHasBismillah;
 const fontSize = isSpecialPage 
   ? 'clamp(18px, 3.2vw, 28px)' 
-  : (extraLines > 0 ? 'clamp(13px, 4.3vw, 22px)' : 'clamp(14px, 4.65vw, 24px)');
+  : (hasHeaders ? 'clamp(13px, 4.3vw, 22px)' : 'clamp(14px, 4.65vw, 24px)');
+	
   let html = `<div class="mushaf-page" id="mpage_${pageNum}" data-page="${pageNum}" style="position:relative; width:100vw; height:100vh; max-height:100vh; display:flex; flex-direction:column; justify-content:space-between; padding:4px 10px 10px; box-sizing:border-box; overflow:hidden;">`;
 
   html += `
