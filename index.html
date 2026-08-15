@@ -4326,8 +4326,7 @@ lines.forEach(lineNum => {
         // 🎯 هذا هو السطر المفقود الذي كان يسبب خطأ الشاشة السوداء
 const fontSize = isSpecialPage 
   ? 'clamp(18px, 3.2vw, 28px)' 
-  : (hasHeaders ? 'clamp(13px, 4.3vw, 22px)' : 'clamp(14px, 4.65vw, 24px)');
-
+  : (extraLines > 0 ? 'clamp(13px, 4.3vw, 22px)' : 'clamp(14px, 4.65vw, 24px)');
         const firstWord = lineWords[0];
         if (firstWord && firstWord.vAyah === 1 && !renderedSurahHeaders.has(firstWord.vSurah)) {
           renderedSurahHeaders.add(firstWord.vSurah);
