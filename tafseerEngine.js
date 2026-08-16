@@ -1,16 +1,15 @@
 // =========================================================================
-// 📖 محرك التفاسير الموحّد والشامل - تطبيق أثر
+// 📖 محرك التفاسير الشامل والمطوّر - تطبيق أثر
 // =========================================================================
 
-// 1️⃣ قائمة التفاسير المعتمدة بالـ Slugs الرسمية المباشرة
 const TAFSIR_TARGETS = [
   { key: 'muyassar',   slug: 'ar-tafsir-muyassar',          label: 'التفسير الميسر' },
   { key: 'saadi',      slug: 'ar-tafseer-al-saddi',         label: 'تفسير السعدي' },
+  { key: 'mukhtasar',  slug: 'ar-tafsir-almukhtasar',       label: 'المختصر في التفسير' },
   { key: 'ibnkathir',  slug: 'ar-tafsir-ibn-kathir',        label: 'تفسير ابن كثير' },
   { key: 'baghawi',    slug: 'ar-tafsir-al-baghawi',        label: 'تفسير البغوي' },
   { key: 'qurtubi',    slug: 'ar-tafseer-al-qurtubi',       label: 'تفسير القرطبي' },
   { key: 'tabari',     slug: 'ar-tafsir-al-tabari',         label: 'تفسير الطبري' },
-  { key: 'mukhtasar',  slug: 'ar-tafsir-almukhtasar',       label: 'المختصر في التفسير' },
   { key: 'wasit',      slug: 'ar-tafseer-tanweer-al-miqbas', label: 'تنوير المقباس' }
 ];
 
@@ -19,75 +18,56 @@ window.isAyahTextVisibleInTafseer = localStorage.getItem('athr_show_ayah_tafseer
 window.currentTafseerAyahIndex = 0;
 window.isDownloadingTafseer = false;
 
-// -------------------------------------------------------------------------
-// 2️⃣ دالة جلب نص التفسير مع التخزين المؤقت
-// -------------------------------------------------------------------------
+// 1️⃣ جلب نص التفسير من السيرفر
 async function fetchTafsirTextByKey(key, surahNum, ayahNum) {
   const cacheKey = `tafseer_${key}_${surahNum}_${ayahNum}`;
 
-  // 1. فحص التخزين المحلي أولاً (أوفلاين)
   try {
-    const cached = localStorage.getItem(cacheKey) || (typeof getAppData === 'function' ? await getAppData(cacheKey) : null);
+    const cached = localStorage.getItem(cacheKey);
     if (cached) return cached;
   } catch (e) {}
 
   const target = TAFSIR_TARGETS.find(t => t.key === key) || TAFSIR_TARGETS[0];
   const slug = target.slug;
 
-  // 2. طلب التفسير المباشر من السيرفر
   try {
     const res = await fetch(`https://api.qurancdn.com/api/v4/tafsirs/${slug}/by_ayah/${surahNum}:${ayahNum}`);
     if (res.ok) {
       const data = await res.json();
       const rawText = data?.tafsir?.text || data?.tafsirs?.[0]?.text;
-      
       if (rawText) {
-        // تنظيف وسوم الـ HTML واستخراج النص العربي الصافي
         const tempDiv = document.createElement("div");
         tempDiv.innerHTML = rawText;
         const cleanText = (tempDiv.textContent || tempDiv.innerText || "").trim();
-
-        // حفظ في الكاش ليعمل أوفلاين بعد ذلك
-        try {
-          localStorage.setItem(cacheKey, cleanText);
-          if (typeof setAppData === 'function') setAppData(cacheKey, cleanText);
-        } catch (e) {}
-
+        try { localStorage.setItem(cacheKey, cleanText); } catch (e) {}
         return cleanText;
       }
     }
-  } catch (err) {
-    console.warn("خطأ في جلب التفسير من السيرفر الأساسي، محاولة بديلة...", err);
-  }
+  } catch (err) {}
 
-  // 3. مسار احتياطي في حال بطء الشبكة
+  // محاولة عبر السيرفر الاحتياطي
   try {
-    const resBackup = await fetch(`https://api.quran.com/api/v4/quran/tafsirs/${slug}?verse_key=${surahNum}:${ayahNum}`);
-    if (resBackup.ok) {
-      const dataBackup = await resBackup.json();
-      const rawTextBackup = dataBackup?.tafsirs?.[0]?.text || dataBackup?.tafsir?.text;
-      if (rawTextBackup) {
+    const res2 = await fetch(`https://api.quran.com/api/v4/quran/tafsirs/${slug}?verse_key=${surahNum}:${ayahNum}`);
+    if (res2.ok) {
+      const data2 = await res2.json();
+      const rawText2 = data2?.tafsirs?.[0]?.text || data2?.tafsir?.text;
+      if (rawText2) {
         const tempDiv = document.createElement("div");
-        tempDiv.innerHTML = rawTextBackup;
-        const cleanTextBackup = (tempDiv.textContent || tempDiv.innerText || "").trim();
-        try { localStorage.setItem(cacheKey, cleanTextBackup); } catch (e) {}
-        return cleanTextBackup;
+        tempDiv.innerHTML = rawText2;
+        const cleanText2 = (tempDiv.textContent || tempDiv.innerText || "").trim();
+        try { localStorage.setItem(cacheKey, cleanText2); } catch (e) {}
+        return cleanText2;
       }
     }
-  } catch (e) {
-    console.error("فشل جلب التفسير نهائياً:", e);
-  }
+  } catch (e) {}
 
   return null;
 }
 
-// -------------------------------------------------------------------------
-// 3️⃣ تشغيل نافذة التفسير للآية المختارة
-// -------------------------------------------------------------------------
+// 2️⃣ فتح نافذة التفسير للآية المحددة
 window.actionTafseer = function () {
   if (typeof closeActionMenu === 'function') closeActionMenu();
 
-  // التقاط معرف الآية النشطة بدقة
   let idx = 0;
   if (typeof activeAyahIndex !== 'undefined' && activeAyahIndex !== null) {
     idx = activeAyahIndex;
@@ -100,12 +80,10 @@ window.actionTafseer = function () {
   window.renderTafseerContent();
 };
 
-// -------------------------------------------------------------------------
-// 4️⃣ بناء وتصميم نافذة التفسير (UI متجاوب 100%)
-// -------------------------------------------------------------------------
+// 3️⃣ بناء هيكل النافذة بدون الفوتر وبمساحة عرض واسعة
 window.ensureTafseerModalDOM = function () {
   const existing = document.getElementById('athrTafseerModal');
-  if (existing) existing.remove(); // إعادة البناء لضمان تطبيق الأبعاد الصحيحة
+  if (existing) existing.remove();
 
   const optionsHtml = TAFSIR_TARGETS.map(t =>
     `<option value="${t.key}" ${t.key === window.currentTafseerBookKey ? 'selected' : ''}>📖 ${t.label}</option>`
@@ -113,19 +91,19 @@ window.ensureTafseerModalDOM = function () {
 
   const modalHTML = `
     <div id="athrTafseerModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); z-index:10000005; align-items:center; justify-content:center; padding:12px; direction:rtl; font-family:'Amiri', serif;">
-      <div style="width:100%; max-width:520px; height:88vh; max-height:800px; background:#0e1510; border:1.5px solid var(--gold, #d4af37); border-radius:20px; display:flex; flex-direction:column; justify-content:space-between; padding:14px; box-shadow:0 20px 60px rgba(0,0,0,0.9); overflow:hidden; box-sizing:border-box;">
+      <div style="width:100%; max-width:520px; height:88vh; max-height:800px; background:#0e1510; border:1.5px solid var(--gold, #d4af37); border-radius:20px; display:flex; flex-direction:column; padding:14px; box-shadow:0 20px 60px rgba(0,0,0,0.9); overflow:hidden; box-sizing:border-box; gap:10px;">
 
-        <!-- الهيدر العلوي المنسق -->
+        <!-- الهيدر العلوي المتجاوب -->
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(212,175,55,0.2); padding-bottom:10px; gap:8px; flex-shrink:0;">
           <select id="tafseerBookSelect" onchange="window.changeTafseerBook(this.value)" style="flex:1; min-width:120px; background:#000; color:var(--gold, #d4af37); border:1px solid var(--gold, #d4af37); padding:6px 10px; border-radius:12px; font-family:'Amiri',serif; font-size:13px; font-weight:bold; outline:none; cursor:pointer;">
             ${optionsHtml}
           </select>
           
-          <button onclick="window.downloadFullTafseerBook()" id="downloadTafseerBtn" style="background:rgba(212,175,55,0.12); border:1px solid var(--gold, #d4af37); color:var(--gold, #d4af37); padding:6px 12px; border-radius:12px; font-size:12px; font-weight:bold; font-family:'Amiri',serif; cursor:pointer; display:flex; align-items:center; gap:4px; white-space:nowrap;" title="تحميل تفسير السورة أوفلاين">
+          <button onclick="window.downloadFullTafseerBook()" id="downloadTafseerBtn" style="background:rgba(212,175,55,0.12); border:1px solid var(--gold, #d4af37); color:var(--gold, #d4af37); padding:6px 12px; border-radius:12px; font-size:12px; font-weight:bold; font-family:'Amiri',serif; cursor:pointer; display:flex; align-items:center; gap:4px; white-space:nowrap;">
             <span>📥</span> تحميل
           </button>
           
-          <button id="toggleAyahEyeBtn" onclick="window.toggleAyahVisibilityInTafseer()" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); color:#fff; width:36px; height:36px; border-radius:50%; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;" title="إظهار / إخفاء نص الآية">
+          <button id="toggleAyahEyeBtn" onclick="window.toggleAyahVisibilityInTafseer()" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); color:#fff; width:36px; height:36px; border-radius:50%; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
             ${window.isAyahTextVisibleInTafseer ? '👁️' : '🙈'}
           </button>
           
@@ -134,8 +112,8 @@ window.ensureTafseerModalDOM = function () {
           </button>
         </div>
 
-        <!-- شريط تقدم التحميل الأوفلاين -->
-        <div id="tafseerDownloadProgressWrap" style="display:none; background:rgba(0,0,0,0.5); padding:8px 12px; border-radius:10px; margin-top:8px; border:1px dashed var(--gold, #d4af37);">
+        <!-- شريط تقدم التحميل -->
+        <div id="tafseerDownloadProgressWrap" style="display:none; background:rgba(0,0,0,0.5); padding:8px 12px; border-radius:10px; border:1px dashed var(--gold, #d4af37);">
           <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--gold, #d4af37); margin-bottom:4px;">
             <span id="tafseerProgressLabel">جاري التحميل...</span>
             <span id="tafseerProgressPct">0%</span>
@@ -145,10 +123,10 @@ window.ensureTafseerModalDOM = function () {
           </div>
         </div>
 
-        <!-- منطقة عرض الآية والتفسير وسحب اللمس -->
-        <div id="tafseerSwipeZone" style="flex:1; overflow-y:auto; padding:10px 2px; display:flex; flex-direction:column; gap:10px;">
+        <!-- مساحة عرض الآية والتفسير -->
+        <div id="tafseerSwipeZone" style="flex:1; overflow-y:auto; padding:4px 2px; display:flex; flex-direction:column; gap:10px;">
           
-          <!-- صندوق الآية الكريمة -->
+          <!-- صندوق الآية الكريمة بدون أرقام مكررة -->
           <div id="tafseerAyahContainer" style="display:${window.isAyahTextVisibleInTafseer ? 'block' : 'none'}; background:rgba(212,175,55,0.08); border-right:3px solid var(--gold, #d4af37); border-radius:14px; padding:12px 14px; text-align:justify; line-height:2.1; font-family:'Amiri Quran', serif; font-size:18px; color:#fff;">
             <span id="tafseerAyahText">جاري تحميل الآية...</span>
           </div>
@@ -164,13 +142,6 @@ window.ensureTafseerModalDOM = function () {
 
         </div>
 
-        <!-- الفوتر للتنقل السريع بين الآيات -->
-        <div style="border-top:1px solid rgba(255,255,255,0.1); padding-top:8px; display:flex; justify-content:space-between; align-items:center; font-size:12px; flex-shrink:0;">
-          <button onclick="window.navTafseerSwipe(-1)" style="background:none; border:none; color:var(--gold, #d4af37); font-size:14px; cursor:pointer; font-weight:bold; font-family:'Amiri',serif;">→ الآية السابقة</button>
-          <span style="font-size:11px; color:var(--text2, #9aa79c); opacity:0.75;">👈 اسحب للتنقل 👉</span>
-          <button onclick="window.navTafseerSwipe(1)" style="background:none; border:none; color:var(--gold, #d4af37); font-size:14px; cursor:pointer; font-weight:bold; font-family:'Amiri',serif;">الآية التالية ←</button>
-        </div>
-
       </div>
     </div>
   `;
@@ -178,50 +149,44 @@ window.ensureTafseerModalDOM = function () {
   window.attachTafseerSwipeEvents();
 };
 
-// -------------------------------------------------------------------------
-// 5️⃣ عرض وتحديث بيانات الآية والتفسير
-// -------------------------------------------------------------------------
-// 5️⃣ عرض وتحديث بيانات الآية والتفسير
+// 4️⃣ عرض نص الآية والتفسير
 window.renderTafseerContent = async function () {
   const modal = document.getElementById('athrTafseerModal');
   if (!modal) return;
   modal.style.display = 'flex';
 
-  // جلب مصفوفة الآيات من أي مكان متاحة فيه
   const allAyahs = window.currentAyahsData || (typeof currentAyahsData !== 'undefined' ? currentAyahsData : []);
   const activeIdx = (typeof window.currentTafseerAyahIndex === 'number') ? window.currentTafseerAyahIndex : (window.activeAyahIndex || 0);
 
   let ayahData = allAyahs[activeIdx];
-
-  // إذا لم يجد الآية بالـ Index، يأخذ أول آية متاحة
   if (!ayahData && allAyahs.length > 0) {
     ayahData = allAyahs[0];
     window.currentTafseerAyahIndex = 0;
   }
 
-  const activeSurahObj = window.currentSurah || (typeof currentSurah !== 'undefined' ? currentSurah : null);
-
   if (!ayahData) {
-    document.getElementById('tafseerBodyText').textContent = '⚠️ تعذر العثور على بيانات الآية، يرجى إعادة اختيارها من المصحف.';
+    document.getElementById('tafseerBodyText').textContent = '⚠️ الرجاء فتح سورة أولاً ثم تحديد الآية.';
     return;
   }
 
+  const activeSurahObj = window.currentSurah || (typeof currentSurah !== 'undefined' ? currentSurah : null);
   const surahNum = ayahData.surahNumber || (activeSurahObj ? activeSurahObj.n : 1);
   const ayahNum = ayahData.numberInSurah;
   const surahName = activeSurahObj ? activeSurahObj.name : (ayahData.surahName || '');
 
-  // تنظيف البسملة
   let cleanAyah = ayahData.text || '';
   if (surahNum !== 1 && surahNum !== 9 && ayahNum === 1) {
     cleanAyah = cleanAyah.replace(/^بِسْمِ[\s\S]+?رَّحِيمِ\s*/, '').replace(/^بِسْمِ[\s\S]+?الرَّحِيمِ\s*/, '');
   }
 
+  // وضع نص الآية فقط دون إلحاق رقم إضافي بالقوسين
   const ayahTextEl = document.getElementById('tafseerAyahText');
-  const headingInfoEl = document.getElementById('tafseerHeadingInfo');
-  const bodyEl = document.getElementById('tafseerBodyText');
+  if (ayahTextEl) ayahTextEl.textContent = cleanAyah;
 
-  if (ayahTextEl) ayahTextEl.textContent = `﴿ ${cleanAyah} ﴾ [${ayahNum}]`;
+  const headingInfoEl = document.getElementById('tafseerHeadingInfo');
   if (headingInfoEl) headingInfoEl.textContent = `سورة ${surahName} — الآية (${ayahNum})`;
+
+  const bodyEl = document.getElementById('tafseerBodyText');
   if (bodyEl) bodyEl.textContent = '⏳ جاري جلب التفسير...';
 
   const text = await fetchTafsirTextByKey(window.currentTafseerBookKey, surahNum, ayahNum);
@@ -230,35 +195,39 @@ window.renderTafseerContent = async function () {
   }
 };
 
-// -------------------------------------------------------------------------
-// 6️⃣ دعم السحب باللمس (Swipe Gesture)
-// -------------------------------------------------------------------------
+// 5️⃣ السحب الأفقي فقط للتنقل (يمين = الآية التالية)
 window.attachTafseerSwipeEvents = function () {
-  const zone = document.getElementById('tafseerSwipeZone');
+  const zone = document.getElementById('athrTafseerModal');
   if (!zone) return;
   let startX = 0;
+  let startY = 0;
 
   zone.addEventListener('touchstart', (e) => {
     if (e.touches && e.touches.length > 0) {
       startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
     }
   }, { passive: true });
 
   zone.addEventListener('touchend', (e) => {
     if (!e.changedTouches || e.changedTouches.length === 0) return;
     const dx = e.changedTouches[0].clientX - startX;
-    if (Math.abs(dx) > 45) {
-      window.navTafseerSwipe(dx > 0 ? -1 : 1);
+    const dy = e.changedTouches[0].clientY - startY;
+
+    // الشرط: حركة أفقية صريحة أكبر من 40px وتتجاوز الحركة الرأسية لمنع القلب عند التمرير
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      // سحب لليمين (dx > 0) = الآية التالية (+1)
+      // سحب لليسار (dx < 0) = الآية السابقة (-1)
+      window.navTafseerSwipe(dx > 0 ? 1 : -1);
     }
   }, { passive: true });
 };
 
-// -------------------------------------------------------------------------
-// 7️⃣ دوال التنقل، التحميل، والنسخ
-// -------------------------------------------------------------------------
 window.navTafseerSwipe = function (direction) {
-  const max = window.currentAyahsData ? window.currentAyahsData.length : 0;
+  const allAyahs = window.currentAyahsData || (typeof currentAyahsData !== 'undefined' ? currentAyahsData : []);
+  const max = allAyahs.length;
   const next = window.currentTafseerAyahIndex + direction;
+
   if (next >= 0 && next < max) {
     window.currentTafseerAyahIndex = next;
     window.renderTafseerContent();
@@ -300,7 +269,8 @@ window.downloadFullTafseerBook = async function () {
   if (wrap) wrap.style.display = 'block';
   if (btn) btn.disabled = true;
 
-  const ayahsOfSurah = window.currentAyahsData.filter(a => a.surahNumber === surahNum);
+  const allAyahs = window.currentAyahsData || (typeof currentAyahsData !== 'undefined' ? currentAyahsData : []);
+  const ayahsOfSurah = allAyahs.filter(a => a.surahNumber === surahNum);
   const total = ayahsOfSurah.length || 1;
 
   try {
@@ -315,7 +285,6 @@ window.downloadFullTafseerBook = async function () {
     if (label) label.textContent = `✅ تم حفظ تفسير سورة ${surahName} أوفلاين بنجاح!`;
     setTimeout(() => { if (wrap) wrap.style.display = 'none'; }, 2000);
   } catch (e) {
-    console.error('خطأ أثناء تحميل التفسير:', e);
     alert('⚠️ حدث خطأ أثناء التحميل، تأكد من الاتصال بالإنترنت.');
   } finally {
     window.isDownloadingTafseer = false;
