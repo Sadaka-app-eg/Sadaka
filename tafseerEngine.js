@@ -181,31 +181,36 @@ window.ensureTafseerModalDOM = function () {
 // -------------------------------------------------------------------------
 // 5️⃣ عرض وتحديث بيانات الآية والتفسير
 // -------------------------------------------------------------------------
+// 5️⃣ عرض وتحديث بيانات الآية والتفسير
 window.renderTafseerContent = async function () {
   const modal = document.getElementById('athrTafseerModal');
   if (!modal) return;
   modal.style.display = 'flex';
 
-  let ayahData = (window.currentAyahsData && window.currentAyahsData[window.currentTafseerAyahIndex])
-    ? window.currentAyahsData[window.currentTafseerAyahIndex]
-    : null;
+  // جلب مصفوفة الآيات من أي مكان متاحة فيه
+  const allAyahs = window.currentAyahsData || (typeof currentAyahsData !== 'undefined' ? currentAyahsData : []);
+  const activeIdx = (typeof window.currentTafseerAyahIndex === 'number') ? window.currentTafseerAyahIndex : (window.activeAyahIndex || 0);
 
-  // فحص احتياطي لضمان جلب البيانات
-  if (!ayahData && window.currentAyahsData && window.currentAyahsData.length > 0) {
-    ayahData = window.currentAyahsData[0];
+  let ayahData = allAyahs[activeIdx];
+
+  // إذا لم يجد الآية بالـ Index، يأخذ أول آية متاحة
+  if (!ayahData && allAyahs.length > 0) {
+    ayahData = allAyahs[0];
     window.currentTafseerAyahIndex = 0;
   }
 
+  const activeSurahObj = window.currentSurah || (typeof currentSurah !== 'undefined' ? currentSurah : null);
+
   if (!ayahData) {
-    document.getElementById('tafseerBodyText').textContent = '⚠️ الرجاء فتح سورة أولاً ثم تحديد الآية.';
+    document.getElementById('tafseerBodyText').textContent = '⚠️ تعذر العثور على بيانات الآية، يرجى إعادة اختيارها من المصحف.';
     return;
   }
 
-  const surahNum = ayahData.surahNumber || (window.currentSurah ? window.currentSurah.n : 1);
+  const surahNum = ayahData.surahNumber || (activeSurahObj ? activeSurahObj.n : 1);
   const ayahNum = ayahData.numberInSurah;
-  const surahName = window.currentSurah ? window.currentSurah.name : '';
+  const surahName = activeSurahObj ? activeSurahObj.name : (ayahData.surahName || '');
 
-  // تنظيف البسملة إن كانت أول آية في غير الفاتحة والتوبة
+  // تنظيف البسملة
   let cleanAyah = ayahData.text || '';
   if (surahNum !== 1 && surahNum !== 9 && ayahNum === 1) {
     cleanAyah = cleanAyah.replace(/^بِسْمِ[\s\S]+?رَّحِيمِ\s*/, '').replace(/^بِسْمِ[\s\S]+?الرَّحِيمِ\s*/, '');
