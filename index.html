@@ -1295,6 +1295,10 @@ width: 100%;
 <div class="tabs" id="tabsMenu">
   <div style="padding: 20px 14px; border-bottom: 1px solid var(--border); color: var(--gold); font-size: 18px; font-weight: bold; text-align: center;">القائمة الرئيسية</div>
   <div class="tab active" onclick="showPage('home',this)">🏠 الرئيسية</div>
+	<!-- زر لوحة التحكم السري (يظهر فقط إذا كان الإيميل مطابقاً للمشرف) -->
+<div id="adminMenuBtn" class="tab" onclick="window.openAdminDashboardModal()" style="display:none; color:var(--gold); font-weight:bold; background:rgba(212,175,55,0.1); border-right:4px solid var(--gold);">
+  👑 لوحة تحكم المشرف
+</div>
  <div class="tab" onclick="showPage('obeyPlanPage',this)">🌿 خطة الطاعة اليومية</div> 
 <div class="tab" onclick="openQuranFromMenu(this)">📖 القرآن الكريم</div>	
   <div class="tab" onclick="showPage('azkar',this)">🤲 الأذكار كاملة</div>
@@ -8861,6 +8865,7 @@ window.closeSurah = function() {
   <script src="prayforthem/prayforthem.js"></script>
 <script src="shareApp.js"></script>
 <script src="heartMirror.js"></script>
+	<script src="adminDashboard.js"></script>
 <script src="downloadsManager.js"></script>
  <!-- مكتبة موزيلا الرسمية لقراءة ملفات الـ PDF داخلياً -->
 <script src="homeShortcuts.js"></script>
@@ -8954,7 +8959,11 @@ window.closeSurah = function() {
 
       if (typeof window.realFinishLogin === 'function') window.realFinishLogin(displayName);
       if (typeof updateSettingsAccountBox === 'function') updateSettingsAccountBox();
-
+// أضف هذا السطر عند نجاح تسجيل الدخول:
+if (window.isAdminUser && window.isAdminUser()) {
+  const admBtn = document.getElementById('adminMenuBtn');
+  if (admBtn) admBtn.style.display = 'block';
+}
       if (window.firebaseDb) {
         setDoc(doc(window.firebaseDb, "users", user.uid), {
           name: displayName,
