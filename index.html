@@ -6634,8 +6634,7 @@ function saveUserName() {
   
   finishLogin(name);
 }
-
- // ==========================================
+// ==========================================
 // دالة تسجيل الدخول والترحيب بالاسم (النسخة الكاملة والمؤمنة Global)
 // ==========================================
 window.realFinishLogin = function(name) {
@@ -6657,17 +6656,8 @@ window.realFinishLogin = function(name) {
   if (loginBtn) {
     loginBtn.textContent = '👤 ' + name;
     loginBtn.onclick = () => {
-      if (confirm('هل ترغب في تسجيل الخروج من الحساب؟')) {
-        localStorage.removeItem('user_display_name');
-        if (window.firebaseAuth) {
-          window.firebaseAuth.signOut().then(() => {
-            location.reload();
-          }).catch(err => {
-            location.reload();
-          });
-        } else {
-          location.reload();
-        }
+      if (typeof window.handleGlobalSignOut === 'function') {
+        window.handleGlobalSignOut();
       }
     };
   }
@@ -7768,8 +7758,8 @@ function updateSettingsAccountBox() {
       <h3 style="color: var(--green); margin-top: 0; font-size: 18px;">👤 مرحباً بك، تم تسجيل الدخول</h3>
       <p style="margin: 10px 0; color: var(--text);">الاسم الحالي: <strong style="color: var(--gold);">${savedName}</strong></p>
       <p style="font-size: 12px; color: var(--text2); margin-bottom: 14px;">بياناتك ومفضلاتك محفوظة ومؤمنة بحساب جوجل بنجاح.</p>
-      <button onclick="window.triggerHeaderGoogleLogin()" style="background: #ff4d4d; color: white; border: none; padding: 10px 20px; border-radius: 12px; font-family: 'Amiri', serif; font-weight: bold; cursor: pointer; width: 100%;">🚪 تسجيل الخروج من الحساب</button>
-    `;
+<button onclick="window.handleGlobalSignOut()" style="background: #ff4d4d; color: white; border: none; padding: 10px 20px; border-radius: 12px; font-family: 'Amiri', serif; font-weight: bold; cursor: pointer; width: 100%;">🚪 تسجيل الخروج من الحساب</button>
+`;
   } else {
     // لو داخل كـ زائر
     box.innerHTML = `
@@ -8981,34 +8971,47 @@ if (window.isAdminUser && window.isAdminUser()) {
     }
   });
 
-  // 8️⃣ تسجيل الدخول بنافذة منبثقة
+// =========================================================================
+  // 🚪 دالة تسجيل الخروج الشاملة المعتمدة
+  // =========================================================================
+  window.handleGlobalSignOut = async function() {
+    if (!confirm('هل ترغب في تسجيل الخروج من الحساب والمجتمع؟')) return;
+
+    try {
+      if (window.athrHeartbeatInterval) {
+        clearInterval(window.athrHeartbeatInterval);
+        window.athrHeartbeatInterval = null;
+      }
+
+      const keysToRemove = [
+        'user_email', 'user_display_name', 'user_photo_url',
+        'athr_user_name', 'athr_user_gender', 'athr_user_avatar',
+        'athr_user_bio', 'athr_family_room_code'
+      ];
+      keysToRemove.forEach(k => localStorage.removeItem(k));
+      sessionStorage.clear();
+
+      if (auth) {
+        await signOut(auth);
+      }
+      
+      alert("🔒 تم تسجيل الخروج بنجاح.");
+      window.location.reload();
+    } catch (err) {
+      console.error("Signout Error:", err);
+      localStorage.removeItem('user_email');
+      localStorage.removeItem('user_display_name');
+      localStorage.removeItem('athr_user_name');
+      window.location.reload();
+    }
+  };
+
+  // 8️⃣ تسجيل الدخول بنافذة منبثقة أو الخروج لو مسجل
   window.triggerHeaderGoogleLogin = function() {
     const savedName = localStorage.getItem('user_display_name');
 
     if (savedName || (auth && auth.currentUser)) {
-      if (confirm('هل ترغب في تسجيل الخروج من الحساب والمجتمع؟')) {
-        if (window.athrHeartbeatInterval) {
-          clearInterval(window.athrHeartbeatInterval);
-          window.athrHeartbeatInterval = null;
-        }
-
-        const keysToRemove = [
-          'user_email', 'user_display_name', 'user_photo_url',
-          'athr_user_name', 'athr_user_gender', 'athr_user_avatar',
-          'athr_user_bio', 'athr_family_room_code'
-        ];
-        keysToRemove.forEach(k => localStorage.removeItem(k));
-        sessionStorage.clear();
-
-        if (auth) {
-          signOut(auth).finally(() => {
-            alert("🔒 تم تسجيل الخروج بنجاح.");
-            window.location.reload();
-          });
-        } else {
-          window.location.reload();
-        }
-      }
+      window.handleGlobalSignOut();
       return;
     }
 
