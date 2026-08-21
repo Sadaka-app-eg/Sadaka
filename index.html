@@ -4087,78 +4087,87 @@ function buildSinglePageHTML(pageNum, pagesDict, allVerses) {
   const pageSurah = getSurahByPageNumber(pageNum);
 
   let pageHasNewSurahStart = false, pageHasBismillah = false;
-  Object.values(pagesDict[pageNum]).forEach(lineWords => {
-    const fw = lineWords[0];
-    if (fw && fw.vAyah === 1) {
-      pageHasNewSurahStart = true;
-      if (fw.vSurah !== 1 && fw.vSurah !== 9) pageHasBismillah = true;
-    }
-  });
+  if (pagesDict[pageNum]) {
+    Object.values(pagesDict[pageNum]).forEach(lineWords => {
+      const fw = lineWords[0];
+      if (fw && fw.vAyah === 1) {
+        pageHasNewSurahStart = true;
+        if (fw.vSurah !== 1 && fw.vSurah !== 9) pageHasBismillah = true;
+      }
+    });
+  }
 
-  const hasHeaders = pageHasNewSurahStart || pageHasBismillah;
-const fontSize = isSpecialPage 
-  ? 'clamp(18px, 3.2vw, 28px)' 
-  : (hasHeaders ? 'clamp(13px, 4.3vw, 22px)' : 'clamp(14px, 4.65vw, 24px)');
-	
-  let html = `<div class="mushaf-page" id="mpage_${pageNum}" data-page="${pageNum}" style="position:relative; width:100vw; height:100vh; max-height:100vh; display:flex; flex-direction:column; justify-content:space-between; padding:4px 10px 10px; box-sizing:border-box; overflow:hidden;">`;
+  const extraLines = (pageHasNewSurahStart ? 1 : 0) + (pageHasBismillah ? 1 : 0);
+  
+  // 🎯 الحجم الكبير والمضبوط لكل صفحات المصحف
+  const fontSize = isSpecialPage 
+    ? 'clamp(22px, 4.8vw, 32px)' 
+    : (extraLines > 0 ? 'clamp(17px, 5.2vw, 26px)' : 'clamp(18px, 5.6vw, 28px)');
 
+  let html = `<div class="mushaf-page" id="mpage_${pageNum}" data-page="${pageNum}">`;
+
+  // الهيدر العلوي
   html += `
-    <div style="display:flex; justify-content:space-between; align-items:center; width:100%; padding:1px 6px; font-size:11px; font-weight:bold; color:var(--text2); border-bottom:1px solid rgba(212,175,55,0.12); margin-bottom:1px; font-family:'Amiri', serif; flex-shrink:0; white-space:nowrap; overflow:hidden;">
+    <div style="display:flex; justify-content:space-between; align-items:center; width:100%; padding:2px 6px; font-size:12px; font-weight:bold; color:var(--text2); border-bottom:1px solid rgba(212,175,55,0.12); margin-bottom:4px; font-family:'Amiri', serif; flex-shrink:0; white-space:nowrap; overflow:hidden;">
       <span style="overflow:hidden; text-overflow:ellipsis; max-width:65%;">${headerRightText}</span>
       <span style="flex-shrink:0;">سُورَةُ ${pageSurah ? pageSurah.name : ''}</span>
     </div>
   `;
 
-  html += `<div style="flex:1; display:flex; flex-direction:column; justify-content:${isSpecialPage ? 'center' : 'space-between'}; width:100%; overflow:hidden; padding:0; box-sizing:border-box;">`;
+  // أسطر الآيات
+  html += `<div style="flex:1; display:flex; flex-direction:column; justify-content:${isSpecialPage ? 'center' : 'space-between'}; width:100%; overflow:hidden; margin-bottom: 6px; box-sizing:border-box;">`;
   
-  const lines = Object.keys(pagesDict[pageNum]).map(Number).sort((a, b) => a - b);
-  let renderedSurahHeaders = new Set();
+  if (pagesDict[pageNum]) {
+    const lines = Object.keys(pagesDict[pageNum]).map(Number).sort((a, b) => a - b);
+    let renderedSurahHeaders = new Set();
 
-  lines.forEach(lineNum => {
-    const lineWords = pagesDict[pageNum][lineNum];
-    const lineJustify = isSpecialPage ? 'justify-content:center; gap:6px;' : 'justify-content:space-between;';
-    
-    const firstWord = lineWords[0];
-    if (firstWord && firstWord.vAyah === 1 && !renderedSurahHeaders.has(firstWord.vSurah)) {
-      renderedSurahHeaders.add(firstWord.vSurah);
-      const sObj = surahs.find(s => s.n === firstWord.vSurah);
-      const sName = sObj ? sObj.name : '';
+    lines.forEach(lineNum => {
+      const lineWords = pagesDict[pageNum][lineNum];
+      const lineJustify = isSpecialPage ? 'justify-content:center;gap:8px;' : 'justify-content:space-between;';
+      const firstWord = lineWords[0];
 
-      html += `
-        <div class="surah-name-header-img-wrap">
-          <img src="image/surah_header_frame.png" onerror="this.src='surah_header_frame.png'; this.onerror=null;" class="surah-frame-img" alt="إطار السورة" />
-<div class="surah-title-overlay">
-                <span class="surah-title-text">سُورَةُ ${sName}</span>
-              </div>
-        </div>`;
+      if (firstWord && firstWord.vAyah === 1 && !renderedSurahHeaders.has(firstWord.vSurah)) {
+        renderedSurahHeaders.add(firstWord.vSurah);
+        const sObj = surahs.find(s => s.n === firstWord.vSurah);
+        const sName = sObj ? sObj.name : '';
 
-      if (firstWord.vSurah !== 1 && firstWord.vSurah !== 9) {
         html += `
-<div class="bismillah" style="font-family:'Amiri Quran', serif; font-size: 24px; margin: 4px auto 18px; line-height: 1.2; text-align: center; color: #5a3e00; flex-shrink: 0;">
-  ﷽
-</div>
-        `;
-      }
-    }
+          <div class="surah-name-header-img-wrap">
+            <img src="image/surah_header_frame.png" onerror="this.src='surah_header_frame.png'; this.onerror=null;" class="surah-frame-img" alt="إطار السورة" />
+            <div class="surah-title-overlay">
+              <span class="surah-title-text">سُورَةُ ${sName}</span>
+            </div>
+          </div>`;
 
-    html += `<div style="display:flex; flex-direction:row; ${lineJustify} align-items:center; width:100%; overflow:visible; white-space:nowrap; flex:1; min-height:0; line-height:1;">`;
-    
-    lineWords.forEach(w => {
-      const ayahIndex = currentAyahsData.findIndex(a => a.surahNumber === w.vSurah && a.numberInSurah === w.vAyah);
-      html += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}"
-        style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:1; font-weight:bold; display:inline-flex; align-items:center; user-select:none; white-space:nowrap;"
-        ontouchstart="startPress(event, ${ayahIndex})"
-        ontouchmove="cancelPress(event)"
-        ontouchend="cancelPress(event); if(!isScrolling && window.isPickingEndAyah){ handleAyahClick(${ayahIndex}); }">
-        ${w.code}
-      </span>`; 
+        if (firstWord.vSurah !== 1 && firstWord.vSurah !== 9) {
+          html += `
+            <div class="bismillah" style="font-family:'Amiri Quran', serif; font-size: 24px; margin: 4px auto 18px; line-height: 1.2; text-align: center; color: #5a3e00; flex-shrink: 0;">
+              ﷽
+            </div>`;
+        }
+      }
+
+      html += `<div style="display:flex; flex-direction:row; ${lineJustify} align-items:center; width:100%; min-height: calc(100% / 15); overflow:visible; white-space:nowrap; padding: 0 4px; box-sizing: border-box;">`;
+      
+      lineWords.forEach(w => {
+        const ayahIndex = currentAyahsData.findIndex(a => a.surahNumber === w.vSurah && a.numberInSurah === w.vAyah);
+        html += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}"
+          style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:1.35; font-weight:bold; display:inline-flex; align-items:center; user-select:none; white-space:nowrap;"
+          ontouchstart="startPress(event, ${ayahIndex})"
+          ontouchmove="cancelPress(event)"
+          ontouchend="cancelPress(event); if(!isScrolling && window.isPickingEndAyah){ handleAyahClick(${ayahIndex}); }">
+          ${w.code}
+        </span>`;
+      });
+
+      html += `</div>`;
     });
-    html += `</div>`;
-  });
+  }
 
   html += `</div>`;
-  
-html += `
+
+  // الفوتر السفلي
+  html += `
     <div style="position:absolute; bottom:6px; left:0; right:0; text-align:center; z-index:10;">
       <div class="page-footer-frame" style="display:inline-flex; align-items:center; justify-content:center; margin:0 auto; padding:2px 12px; background:#142018; border:1.5px solid #cda869; border-radius:8px; font-size:11px; font-weight:bold; color:#f4ecd8; font-family:'Amiri', serif; box-shadow:0 2px 5px rgba(0,0,0,0.3);">
         <span style="color:#cda869; font-size:9px; margin-left:3px;">⚜️</span>
@@ -4285,98 +4294,8 @@ const minPage = Math.max(1, targetP - 2);
 await Promise.all(pageNums.map(p => loadQcfPageFont(p))); // ننتظر فعلياً كل الخطوط تخلص
 if (myOpenReqId !== window._openSurahReqId) return;
     let sliderHtml = '';
-
-    pageNums.forEach((pageNum) => {
-      const isSpecialPage = pageNum === 1 || pageNum === 2;
-      const headerRightText = getHeaderJuzText(pageNum, allVerses);
-      const pageSurah = getSurahByPageNumber(pageNum);
-
-      // فحص هل الصفحة دي فيها بداية سورة جديدة (هيدر/بسملة) عشان نصغّر الخط شوية ونعوّض المساحة
-      let pageHasNewSurahStart = false, pageHasBismillah = false;
-      Object.values(pagesDict[pageNum]).forEach(lineWords => {
-        const fw = lineWords[0];
-        if (fw && fw.vAyah === 1) {
-          pageHasNewSurahStart = true;
-          if (fw.vSurah !== 1 && fw.vSurah !== 9) pageHasBismillah = true;
-        }
-      });
-      const extraLines = (pageHasNewSurahStart ? 1 : 0) + (pageHasBismillah ? 1 : 0);
-      sliderHtml += `<div class="mushaf-page" id="mpage_${pageNum}" data-page="${pageNum}">`;
-      
-      // الهيدر العلوي
-      sliderHtml += `
-        <div style="display:flex; justify-content:space-between; align-items:center; width:100%; padding:2px 6px; font-size:12px; font-weight:bold; color:var(--text2); border-bottom:1px solid rgba(212,175,55,0.12); margin-bottom:4px; font-family:'Amiri', serif; flex-shrink:0; white-space:nowrap; overflow:hidden;">
-          <span style="overflow:hidden; text-overflow:ellipsis; max-width:65%;">${headerRightText}</span>
-          <span style="flex-shrink:0;">سُورَةُ ${pageSurah ? pageSurah.name : ''}</span>
-        </div>
-      `;
-
-      // أسطر الآيات
-sliderHtml += `<div style="flex:1; display:flex; flex-direction:column; justify-content:${isSpecialPage ? 'center' : 'space-between'}; width:100%; overflow:hidden; margin-bottom: 6px; box-sizing:border-box;">`;     
-      const lines = Object.keys(pagesDict[pageNum]).map(Number).sort((a, b) => a - b);
-      let renderedSurahHeaders = new Set();
-
-lines.forEach(lineNum => {
-        const lineWords = pagesDict[pageNum][lineNum];
-        const lineJustify = isSpecialPage ? 'justify-content:center;gap:8px;' : 'justify-content:space-between;';
-        
-        // 🎯 هذا هو السطر المفقود الذي كان يسبب خطأ الشاشة السوداء
-const fontSize = isSpecialPage 
-  ? 'clamp(22px, 4.8vw, 32px)' 
-  : (extraLines > 0 ? 'clamp(17px, 5.2vw, 26px)' : 'clamp(18px, 5.6vw, 28px)');
-        const firstWord = lineWords[0];
-        if (firstWord && firstWord.vAyah === 1 && !renderedSurahHeaders.has(firstWord.vSurah)) {
-          renderedSurahHeaders.add(firstWord.vSurah);
-          const sObj = surahs.find(s => s.n === firstWord.vSurah);
-          const sName = sObj ? sObj.name : '';
-          
-// ✅ ضع هذا مكانه
-          sliderHtml += `
-            <div class="surah-name-header-img-wrap">
-              <img src="image/surah_header_frame.png" onerror="this.src='surah_header_frame.png'; this.onerror=null;" class="surah-frame-img" alt="إطار السورة" />
-<div class="surah-title-overlay">
-            <span class="surah-title-text">سُورَةُ ${sName}</span>
-          </div>
-            </div>`;
-          
-          if (firstWord.vSurah !== 1 && firstWord.vSurah !== 9) {
-            sliderHtml += `
-<div class="bismillah" style="font-family:'Amiri Quran', serif; font-size: 24px; margin: 4px auto 18px; line-height: 1.2; text-align: center; color: #5a3e00; flex-shrink: 0;">
-                ﷽
-              </div>
-            `;
-          }
-        }
-
-        // 🎯 الضمان الثاني: تثبيت السطر أفقي محذى 100% بدون انكسار
-sliderHtml += `<div style="display:flex; flex-direction:row; ${lineJustify} align-items:center; width:100%; min-height: calc(100% / 15); overflow:visible; white-space:nowrap; padding: 0 4px; box-sizing: border-box;">`;
-	lineWords.forEach(w => {
-     const ayahIndex = currentAyahsData.findIndex(a => a.surahNumber === w.vSurah && a.numberInSurah === w.vAyah);
-
-	
-// السطر المعدل
-sliderHtml += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}"
-  style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:1.35; font-weight:bold; display:inline-flex; align-items:center; user-select:none; white-space:nowrap;"
-  ontouchstart="startPress(event, ${ayahIndex})"
-  ontouchmove="cancelPress(event)"
-  ontouchend="cancelPress(event); if(!isScrolling && window.isPickingEndAyah){ handleAyahClick(${ayahIndex}); }">
-  ${w.code}
-</span>`;
-        });
-        sliderHtml += `</div>`;
-      });
-
-      sliderHtml += `</div>`;
-
-// الفوتر السفلي
-sliderHtml += `<div style="position:absolute; bottom:6px; left:0; right:0; text-align:center; z-index:10;">
-          <div class="page-footer-frame" style="display:inline-flex; align-items:center; justify-content:center; margin:0 auto; padding:2px 12px; background:#142018; border:1.5px solid #cda869; border-radius:8px; font-size:11px; font-weight:bold; color:#f4ecd8; font-family:'Amiri', serif; box-shadow:0 2px 5px rgba(0,0,0,0.3);">
-            <span style="color:#cda869; font-size:9px; margin-left:3px;">⚜️</span>
-            ${toAr(pageNum)}
-            <span style="color:#cda869; font-size:9px; margin-right:3px;">⚜️</span>
-          </div>
-        </div>`;  
-      sliderHtml += `</div>`;
+pageNums.forEach((pageNum) => {
+      sliderHtml += buildSinglePageHTML(pageNum, pagesDict, allVerses);
     });
 
   if (myOpenReqId !== window._openSurahReqId) return; // فيه سورة اتفتحت بعدي، أنا نداء قديم، بلاش أكتب فوقها
