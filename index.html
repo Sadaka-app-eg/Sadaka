@@ -8880,8 +8880,18 @@ window.closeSurah = function() {
     signOut, 
     onAuthStateChanged 
   } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  import { getFirestore, doc, setDoc } 
-    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { 
+  getFirestore, 
+  collection, 
+  getDocs, 
+  doc, 
+  setDoc, 
+  deleteDoc, 
+  addDoc, 
+  query, 
+  orderBy, 
+  serverTimestamp 
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   // 3️⃣ إعدادات الفايربيز
   const firebaseConfig = {
@@ -8899,12 +8909,22 @@ window.closeSurah = function() {
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  window.firebaseAuth = auth;
-  window.firebaseDb = db;
-  window.GoogleAuthProvider = GoogleAuthProvider;
-  window.signInWithPopup = signInWithPopup;
-  window.signOut = signOut;
+window.firebaseAuth = auth;
+window.firebaseDb = db;
+window.GoogleAuthProvider = GoogleAuthProvider;
+window.signInWithPopup = signInWithPopup;
+window.signOut = signOut;
 
+// 🌟 ضيف السطور دي هنا ضروري جداً:
+window.collection = collection;
+window.getDocs = getDocs;
+window.doc = doc;
+window.setDoc = setDoc;
+window.deleteDoc = deleteDoc;
+window.addDoc = addDoc;
+window.query = query;
+window.orderBy = orderBy;
+window.serverTimestamp = serverTimestamp;
   // 5️⃣ تثبيت الجلسة محلياً للأبد
   setPersistence(auth, browserLocalPersistence).catch(err => console.error("Persistence Error:", err));
 
