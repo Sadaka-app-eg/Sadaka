@@ -346,14 +346,13 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
   width: 100vw !important;
   height: 100vh !important;
   max-height: 100vh !important;
-  padding: 4px 18px 42px !important; /* إضافة حواشي جانبية (12px) ليدخل العرض لجوة سنة، وبادينج سفلي (38px) لرفع الآيات لفوق السطر */
+  padding: 8px 12px 35px !important;
   display: flex !important;
   flex-direction: column !important;
   justify-content: space-between !important;
   box-sizing: border-box !important;
   overflow: hidden !important;
   scroll-snap-align: center !important;
-  scroll-snap-stop: always !important;
   background: var(--mushaf-bg);
   color: var(--mushaf-text);
 }
@@ -441,18 +440,15 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
   border-radius: 3px;
   transition: background 0.15s;
   line-height: 1.35 !important;
-  font-weight: 600 !important;
+  font-weight: 700 !important;
   color: #1a1008 !important;
   text-rendering: optimizeLegibility !important;
   -webkit-font-smoothing: antialiased !important;
   -moz-osx-font-smoothing: grayscale;
   transform: translateZ(0);
   backface-visibility: hidden;
-  -webkit-user-select: none !important;
-  -moz-user-select: none !important;
-  -ms-user-select: none !important;
   user-select: none !important;
-  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
 }
 
 
@@ -4326,8 +4322,8 @@ lines.forEach(lineNum => {
         
         // 🎯 هذا هو السطر المفقود الذي كان يسبب خطأ الشاشة السوداء
 const fontSize = isSpecialPage 
-  ? 'clamp(18px, 3.2vw, 28px)' 
-  : (extraLines > 0 ? 'clamp(13px, 4.3vw, 22px)' : 'clamp(14px, 4.65vw, 24px)');
+  ? 'clamp(22px, 4.8vw, 32px)' 
+  : (extraLines > 0 ? 'clamp(17px, 5.2vw, 26px)' : 'clamp(18px, 5.6vw, 28px)');
         const firstWord = lineWords[0];
         if (firstWord && firstWord.vAyah === 1 && !renderedSurahHeaders.has(firstWord.vSurah)) {
           renderedSurahHeaders.add(firstWord.vSurah);
@@ -4360,8 +4356,7 @@ sliderHtml += `<div style="display:flex; flex-direction:row; ${lineJustify} alig
 	
 // السطر المعدل
 sliderHtml += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}"
-  style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:1.4; font-weight:700; -webkit-text-stroke: 0.6px currentColor; display:inline-flex; align-items:center; user-select:none; white-space:nowrap;"
-	
+  style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:1.35; font-weight:bold; display:inline-flex; align-items:center; user-select:none; white-space:nowrap;"
   ontouchstart="startPress(event, ${ayahIndex})"
   ontouchmove="cancelPress(event)"
   ontouchend="cancelPress(event); if(!isScrolling && window.isPickingEndAyah){ handleAyahClick(${ayahIndex}); }">
@@ -8948,7 +8943,6 @@ window.closeSurah = function() {
  <!-- مكتبة موزيلا الرسمية لقراءة ملفات الـ PDF داخلياً -->
 <script src="homeShortcuts.js"></script>
  <script src="tafseerEngine.js"></script>
-<script type="module">
   // 1️⃣ إلغاء مفعول دالة الـ load القديمة
 <script type="module">
   // 1️⃣ ربط دالة الترحيب
