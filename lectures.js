@@ -1,6 +1,15 @@
 // ==========================================
 // 👳‍♂️ مصفوفة صور شيوخ وعلماء الدروس والمواعظ
 // ==========================================
+// =========================================================================
+// 📺 دالة استخراج معرف فيديو اليوتيوب من أي رابط
+// =========================================================================
+window.getYoutubeId = function(url) {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|shorts\/)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11) ? match[2] : null;
+};
 window.lectureSheikhAvatars = {
 "مواعظ متنوعة": "image/mwa.png",
   "دورة التجويد": "https://i.ytimg.com/vi/iMVt8qkrjTM/maxresdefault.jpg",
@@ -2250,63 +2259,89 @@ window.shareAthrCertificateImage = function() {
 };
 
 // =========================================================================
-// 🎬 مشغل الفيديو المنبثق المطور (Video Modal Player)
+// 🎬 مشغل الفيديو المنبثق المطور (يدعم MP4 + تضمين YouTube المباشر)
 // =========================================================================
-window.openAthrVideoModal = function(title, src) {
-    if (window.currentPlayingLectureAudio) {
-        window.currentPlayingLectureAudio.pause();
-        if (window.currentPlayingLectureBtn) window.currentPlayingLectureBtn.textContent = '▶';
-    }
+window.openAthrVideoModal = function(title, src, isYoutubeOverride) {
+  if (window.currentPlayingLectureAudio) {
+    window.currentPlayingLectureAudio.pause();
+    if (window.currentPlayingLectureBtn) window.currentPlayingLectureBtn.textContent = '▶';
+  }
+  if (window.lectureAudioPlayer && !window.lectureAudioPlayer.paused) {
+    window.lectureAudioPlayer.pause();
+  }
 
-    let modal = document.getElementById('athrVideoPlayerModal');
-    if (!modal) {
-        modal = document.createElement('div');
-        modal.id = 'athrVideoPlayerModal';
-        modal.style.cssText = "position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.92); z-index:9999999; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:15px; direction:rtl;";
-        document.body.appendChild(modal);
-    }
+  let modal = document.getElementById('athrVideoPlayerModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'athrVideoPlayerModal';
+    modal.style.cssText = "position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:9999999; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:15px; direction:rtl;";
+    document.body.appendChild(modal);
+  }
 
-    modal.innerHTML = `
+  const ytId = window.getYoutubeId(src);
+  const isYoutube = isYoutubeOverride || !!ytId;
+
+  let playerContentHtml = "";
+
+  if (isYoutube && ytId) {
+    playerContentHtml = `
+      <iframe 
+        id="athrActiveYoutubeFrame"
+        src="https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&rel=0&modestbranding=1&playsinline=1" 
+        title="${title}" 
+        frameborder="0" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+        allowfullscreen 
+        style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;">
+      </iframe>
+    `;
+  } else {
+    playerContentHtml = `
+      <video id="athrActiveVideoElement" controls autoplay playsinline x5-playsinline webkit-playsinline style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;">
+        <source src="${src}" type="video/mp4">
+      </video>
+    `;
+  }
+
+  modal.innerHTML = `
     <div style="width:100%; max-width:850px; background:var(--card, #111); border:1px solid var(--gold, #d4af37); border-radius:16px; overflow:hidden; box-shadow:0 20px 50px rgba(0,0,0,0.8); display:flex; flex-direction:column;">
-        <div style="padding:15px; background:var(--bg2, #1a1a1a); display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border, #333);">
-            <strong style="color:var(--gold, #d4af37); font-family:'Amiri',serif; font-size:15px;">🎥 ${title}</strong>
-            <div style="display:flex; gap:10px; align-items:center;">
-                <button onclick="window.enableVideoAudioOnlyBackground()" style="background:rgba(212,175,55,0.15); color:var(--gold); border:1px solid var(--gold); border-radius:12px; padding:4px 10px; font-size:11px; cursor:pointer; font-weight:bold;">🎧 تشغيل في الخلفية</button>
-                <button onclick="window.closeAthrVideoModal()" style="background:rgba(255,77,77,0.2); color:#ff4d4d; border:1px solid #ff4d4d; border-radius:50%; width:30px; height:30px; cursor:pointer; font-weight:bold;">✕</button>
-            </div>
+      <div style="padding:15px; background:var(--bg2, #1a1a1a); display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border, #333);">
+        <strong style="color:var(--gold, #d4af37); font-family:'Amiri',serif; font-size:15px;">${isYoutube ? '📺' : '🎥'} ${title}</strong>
+        <div style="display:flex; gap:10px; align-items:center;">
+          ${!isYoutube ? `<button onclick="window.enableVideoAudioOnlyBackground()" style="background:rgba(212,175,55,0.15); color:var(--gold); border:1px solid var(--gold); border-radius:12px; padding:4px 10px; font-size:11px; cursor:pointer; font-weight:bold;">🎧 تشغيل في الخلفية</button>` : ''}
+          <button onclick="window.closeAthrVideoModal()" style="background:rgba(255,77,77,0.2); color:#ff4d4d; border:1px solid #ff4d4d; border-radius:50%; width:30px; height:30px; cursor:pointer; font-weight:bold;">✕</button>
         </div>
-        <div style="position:relative; width:100%; padding-top:56.25%; background:#000;">
-            <video id="athrActiveVideoElement" controls autoplay playsinline x5-playsinline webkit-playsinline style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;">
-                <source src="${src}" type="video/mp4">
-            </video>
-        </div>
+      </div>
+      <div style="position:relative; width:100%; padding-top:56.25%; background:#000;">
+        ${playerContentHtml}
+      </div>
     </div>`;
 
-    modal.style.display = 'flex';
+  modal.style.display = 'flex';
 
-    // تفعيل التحكم بالميديا في ستارة الموبايل (MediaSession API) للتشغيل بالخلفية
+  if (!isYoutube) {
     const video = document.getElementById('athrActiveVideoElement');
     if (video && 'mediaSession' in navigator) {
-        navigator.mediaSession.metadata = new MediaMetadata({
-            title: title,
-            artist: 'منصة أثر الإسلامية',
-            album: 'الفقه الميسر'
-        });
-
-        navigator.mediaSession.setActionHandler('play', () => video.play());
-        navigator.mediaSession.setActionHandler('pause', () => video.pause());
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: title,
+        artist: 'منصة أثر الإسلامية',
+        album: 'الدروس والمواعظ'
+      });
+      navigator.mediaSession.setActionHandler('play', () => video.play());
+      navigator.mediaSession.setActionHandler('pause', () => video.pause());
     }
+  }
 };
 
-window.enableVideoAudioOnlyBackground = function() {
+window.closeAthrVideoModal = function() {
+  const modal = document.getElementById('athrVideoPlayerModal');
+  if (modal) {
     const video = document.getElementById('athrActiveVideoElement');
-    if (video) {
-        if (video.requestPictureInPicture) {
-            video.requestPictureInPicture().catch(() => {});
-        } else {
-            alert("✨ يمكنك الآن الخروج وتصفح الهاتف وسيقوم المشغل بمتابعة الصوت في الخلفية بروقان!");
-        }
-    }
+    if (video) video.pause();
+    // إفراغ المحتوى لإيقاف صوت اليوتيوب فور إغلاق النافذة
+    modal.innerHTML = '';
+    modal.style.display = 'none';
+  }
 };
 
 window.closeAthrVideoModal = function() {
@@ -2791,15 +2826,17 @@ window.openLectureContextMenu = async function(src, btnElement) {
 
   document.body.insertAdjacentHTML('beforeend', menuHTML);
 };
-// فتح شاشة التشغيل
+// فتح شاشة التشغيل (صوت أو فيديو أو يوتيوب)
 window.openLectureNowPlaying = function(src) {
   const track = window.lecturesData.find(item => item.src === src);
   if (!track) return;
 
-  // لو كان فيديو يفتح مودال الفيديو المصور
-  if (track.type === 'video') {
+  const isYoutube = track.type === 'youtube' || (track.src && (track.src.includes('youtube.com') || track.src.includes('youtu.be')));
+
+  // لو كان فيديو عادي أو يوتيوب يفتح نافذة الفيديو
+  if (track.type === 'video' || isYoutube) {
     if (typeof window.openAthrVideoModal === 'function') {
-      window.openAthrVideoModal(track.title, track.src);
+      window.openAthrVideoModal(track.title, track.src, isYoutube);
     }
     return;
   }
@@ -3412,19 +3449,24 @@ window.publishAllLessonsToCloud = async function() {
 
     const firestoreDb = window.db || db;
 
-    for (const lesson of window.sessionBatchLessons) {
-      await window.addDoc(window.collection(firestoreDb, "custom_lectures"), {
-        category: courseName,
-        title: lesson.title,
-        src: lesson.src,
-        type: lesson.src.endsWith(".mp4") ? "video" : "audio",
-        avatar: avatarUrl,
-        sheikh: sheikhName,
-        desc: `سلسلة ${courseName} للشيخ ${sheikhName}`,
-        addedBy: myName,
-        addedAt: window.serverTimestamp ? window.serverTimestamp() : new Date()
-      });
-    }
+// استبدل حلقة حفظ الدروس في publishAllLessonsToCloud بهذا المقطع:
+for (const lesson of window.sessionBatchLessons) {
+  const isYt = window.getYoutubeId(lesson.src) !== null;
+  const isMp4 = lesson.src.endsWith(".mp4");
+  const trackType = isYt ? "youtube" : (isMp4 ? "video" : "audio");
+
+  await window.addDoc(window.collection(firestoreDb, "custom_lectures"), {
+    category: courseName,
+    title: lesson.title,
+    src: lesson.src,
+    type: trackType,
+    avatar: avatarUrl,
+    sheikh: sheikhName,
+    desc: `سلسلة ${courseName} للشيخ ${sheikhName}`,
+    addedBy: myName,
+    addedAt: window.serverTimestamp ? window.serverTimestamp() : new Date()
+  });
+}
 
     window.lectureSheikhAvatars[courseName] = avatarUrl;
 
@@ -3465,5 +3507,127 @@ window.deleteCloudLectureCategory = async function(categoryName) {
   } catch(e) {
     console.error("Delete lecture error:", e);
     alert("⚠️ حدث خطأ أثناء حذف الدورة.");
+  }
+};
+// =========================================================================
+// 📤 نظام اقتراح ونشر الدروس بواسطة المستخدمين
+// =========================================================================
+
+// 1️⃣ نافذة للمستخدم العادي لإضافة درس/تلاوة من اليوتيوب
+window.openUserSubmitLessonModal = function() {
+  let modal = document.getElementById('userSubmitLessonModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'userSubmitLessonModal';
+    modal.style.cssText = "position:fixed; inset:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); z-index:99999999; display:flex; align-items:center; justify-content:center; padding:15px; direction:rtl; font-family:'Amiri', serif;";
+    document.body.appendChild(modal);
+  }
+
+  modal.innerHTML = `
+    <div style="width:100%; max-width:450px; background:#0f1510; border:1px solid var(--gold, #d4af37); border-radius:20px; padding:22px; display:flex; flex-direction:column; gap:14px; box-shadow:0 15px 40px rgba(0,0,0,0.9); text-align:right;">
+      
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border, #222); padding-bottom:10px;">
+        <strong style="color:var(--gold, #d4af37); font-size:17px;">🤲 إضافة تلاوة أو درس علمي</strong>
+        <button onclick="document.getElementById('userSubmitLessonModal').style.display='none'" style="background:none; border:none; color:#ff4d4d; font-size:20px; cursor:pointer;">✕</button>
+      </div>
+
+      <p style="color:var(--text2, #aaa); font-size:12.5px; line-height:1.5; margin:0;">
+        ضع رابط الفيديو من اليوتيوب وسيتم إضافته للمنصة لتنال أجر كل من يستمع إليه بإذن الله.
+      </p>
+
+      <div>
+        <label style="color:var(--text, #fff); font-size:13px; display:block; margin-bottom:5px;">📌 القسم / الدورة:</label>
+        <input id="userLessonCategory" list="categoriesList" placeholder="اختر قسماً أو اكتب قسماً جديداً..." style="width:100%; padding:10px; background:#000; border:1px solid var(--border, #333); color:#fff; border-radius:8px; outline:none; box-sizing:border-box;" />
+        <datalist id="categoriesList">
+          <option value="مواعظ متنوعة">
+          <option value="تفسير القرآن الكريم">
+          <option value="السيرة النبوية">
+          <option value="الفقه الميسر">
+          <option value="أصول العقيدة">
+          <option value="محاضرات المشايخ">
+        </datalist>
+      </div>
+
+      <div>
+        <label style="color:var(--text, #fff); font-size:13px; display:block; margin-bottom:5px;">🎙️ عنوان الدرس / التلاوة:</label>
+        <input id="userLessonTitle" type="text" placeholder="مثال: تلاوة خاشعة لسورة مريم" style="width:100%; padding:10px; background:#000; border:1px solid var(--border, #333); color:#fff; border-radius:8px; outline:none; box-sizing:border-box;" />
+      </div>
+
+      <div>
+        <label style="color:var(--text, #fff); font-size:13px; display:block; margin-bottom:5px;">🔗 رابط يوتيوب (فيديو أو شورتس):</label>
+        <input id="userLessonUrl" type="url" placeholder="https://youtu.be/... أو https://youtube.com/watch?v=..." style="width:100%; padding:10px; background:#000; border:1px solid var(--border, #333); color:#fff; border-radius:8px; outline:none; box-sizing:border-box;" />
+      </div>
+
+      <div>
+        <label style="color:var(--text, #fff); font-size:13px; display:block; margin-bottom:5px;">👤 اسم الشيخ أو القارئ (اختياري):</label>
+        <input id="userLessonSheikh" type="text" placeholder="مثال: الشيخ عبد الباسط عبد الصمد" style="width:100%; padding:10px; background:#000; border:1px solid var(--border, #333); color:#fff; border-radius:8px; outline:none; box-sizing:border-box;" />
+      </div>
+
+      <button id="submitLessonBtn" onclick="window.handleUserLessonSubmit()" style="background:var(--gold, #d4af37); color:#111; border:none; padding:12px; border-radius:10px; font-weight:bold; font-size:15px; cursor:pointer; font-family:'Amiri',serif; margin-top:5px; box-shadow:0 4px 15px rgba(212,175,55,0.3);">
+        🚀 نشر المقطع في المنصة
+      </button>
+
+    </div>
+  `;
+  modal.style.display = 'flex';
+};
+
+// 2️⃣ دالة المعالجة والرفع لقاعدة البيانات (Firestore)
+window.handleUserLessonSubmit = async function() {
+  const cat = document.getElementById('userLessonCategory').value.trim();
+  const title = document.getElementById('userLessonTitle').value.trim();
+  const url = document.getElementById('userLessonUrl').value.trim();
+  const sheikh = document.getElementById('userLessonSheikh').value.trim();
+  const myName = localStorage.getItem('athr_user_name') || "محب للخير";
+
+  if (!cat || !title || !url) {
+    alert("⚠️ يرجى ملء القسم، العنوان، ورابط اليوتيوب.");
+    return;
+  }
+
+  const ytId = window.getYoutubeId(url);
+  if (!ytId && !url.endsWith('.mp3') && !url.endsWith('.mp4')) {
+    alert("⚠️ يرجى التأكد من وضع رابط يوتيوب صحيح.");
+    return;
+  }
+
+  const btn = document.getElementById('submitLessonBtn');
+  btn.disabled = true;
+  btn.textContent = "جاري الحفظ والنشر... ⏳";
+
+  try {
+    const firestoreDb = window.db || db;
+    
+    // استخراج صورة الغلاف التلقائية من يوتيوب بجودة عالية
+    const autoAvatar = ytId 
+      ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`
+      : (window.lectureSheikhAvatars[cat] || "image/moha.png");
+
+    await window.addDoc(window.collection(firestoreDb, "custom_lectures"), {
+      category: cat,
+      title: title,
+      src: url,
+      type: ytId ? "youtube" : (url.endsWith('.mp4') ? "video" : "audio"),
+      avatar: autoAvatar,
+      sheikh: sheikh || "غير محدد",
+      desc: `تمت الإضافة بواسطة ${myName}`,
+      addedBy: myName,
+      addedAt: window.serverTimestamp ? window.serverTimestamp() : new Date()
+    });
+
+    alert("✨ جزاك الله خيراً! تم نشر الدرس بنجاح وصار متاحاً للجميع.");
+    document.getElementById('userSubmitLessonModal').style.display = 'none';
+    
+    // تحديث الواجهة فوراً
+    if (typeof renderLectures === 'function') {
+      renderLectures();
+    }
+
+  } catch (err) {
+    console.error("Error submitting lesson:", err);
+    alert("⚠️ حدث خطأ أثناء الحفظ، يرجى المحاولة مرة أخرى.");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "🚀 نشر المقطع في المنصة";
   }
 };
