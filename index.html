@@ -3985,100 +3985,98 @@ function getSurahByPageNumber(pageNum) {
   }
   return surahs[0];
 }
-
 async function extendMushafPages(direction) {
-  const now = Date.now();
-  if (window._extendingPages) { window._extendPending = direction; return; }
-  if (window._lastExtendTime && (now - window._lastExtendTime) < 400) return;
-  window._lastExtendTime = now;
+  if (window._extendingPages) return;
   const slider = document.getElementById('mushafSlider');
   if (!slider || !window.currentSurahPages || window.currentSurahPages.length === 0) return;
 
   const pages = window.currentSurahPages;
-  let newPageNum;
+  const pagesToAdd = [];
+  const BATCH_SIZE = 4; // إضافة 4 صفحات مسبقاً لتفادي اللاج في السحب السريع
+
   if (direction === 1) {
-    newPageNum = pages[pages.length - 1] + 1;
-    if (newPageNum > 604) return;
+    let lastP = pages[pages.length - 1];
+    for (let i = 1; i <= BATCH_SIZE; i++) {
+      let nextP = lastP + i;
+      if (nextP <= 604 && !pages.includes(nextP)) pagesToAdd.push(nextP);
+    }
   } else {
-    newPageNum = pages[0] - 1;
-    if (newPageNum < 1) return;
+    let firstP = pages[0];
+    for (let i = 1; i <= BATCH_SIZE; i++) {
+      let prevP = firstP - i;
+      if (prevP >= 1 && !pages.includes(prevP)) pagesToAdd.unshift(prevP);
+    }
   }
-  if (pages.includes(newPageNum)) return;
 
+  if (pagesToAdd.length === 0) return;
   window._extendingPages = true;
+
   try {
-    let pageData = await getCachedSurahDB(`page_${newPageNum}`);
-    if (!pageData) {
-      const res = await fetch(`https://api.quran.com/api/v4/verses/by_page/${newPageNum}?per_page=300&words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number,rub_el_hizb_number`);
-      pageData = await res.json();
-      if (pageData && pageData.verses) setCachedSurahDB(`page_${newPageNum}`, pageData);
-    }
-    const verses = pageData && pageData.verses ? pageData.verses : [];
-    if (verses.length === 0) { window._extendingPages = false; return; }
+    for (const newPageNum of pagesToAdd) {
+      let pageData = await getCachedSurahDB(`page_${newPageNum}`);
+      if (!pageData) {
+        try {
+          const res = await fetch(`https://api.quran.com/api/v4/verses/by_page/${newPageNum}?per_page=300&words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number,rub_el_hizb_number`);
+          pageData = await res.json();
+          if (pageData && pageData.verses) setCachedSurahDB(`page_${newPageNum}`, pageData);
+        } catch(e) {}
+      }
 
-    const pagesDict = { [newPageNum]: {} };
-    verses.forEach((verse) => {
-      const [vSurah, vAyah] = verse.verse_key.split(':').map(Number);
-      currentAyahsData.push({
-        text: verse.words.map(w => w.text_uthmani).join(" "),
-        numberInSurah: vAyah,
-        globalNumber: verse.id,
-        page: newPageNum,
-        surahNumber: vSurah,
-        tafseer: `تفسير الآية ${vAyah}`
+      const verses = pageData && pageData.verses ? pageData.verses : [];
+      if (verses.length === 0) continue;
+
+      const pagesDict = { [newPageNum]: {} };
+      verses.forEach((verse) => {
+        const [vSurah, vAyah] = verse.verse_key.split(':').map(Number);
+        currentAyahsData.push({
+          text: verse.words.map(w => w.text_uthmani).join(" "),
+          numberInSurah: vAyah,
+          globalNumber: verse.id,
+          page: newPageNum,
+          surahNumber: vSurah,
+          tafseer: `تفسير الآية ${vAyah}`
+        });
+        verse.words.forEach((word) => {
+          const lineNum = word.line_number;
+          if (!pagesDict[newPageNum][lineNum]) pagesDict[newPageNum][lineNum] = [];
+          pagesDict[newPageNum][lineNum].push({ id: word.id, code: word.code_v2, vSurah, vAyah, text: word.text_uthmani });
+        });
       });
-      verse.words.forEach((word) => {
-        const lineNum = word.line_number;
-        if (!pagesDict[newPageNum][lineNum]) pagesDict[newPageNum][lineNum] = [];
-        pagesDict[newPageNum][lineNum].push({ id: word.id, code: word.code_v2, vSurah, vAyah, text: word.text_uthmani });
-      });
-    });
 
-    await loadQcfPageFont(newPageNum);
-    const pageHTML = buildSinglePageHTML(newPageNum, pagesDict, verses);
+      await loadQcfPageFont(newPageNum);
+      const pageHTML = buildSinglePageHTML(newPageNum, pagesDict, verses);
 
-    const wrapper = document.createElement('div');
-    wrapper.innerHTML = pageHTML;
-    const pageEl = wrapper.firstElementChild;
+      const wrapper = document.createElement('div');
+      wrapper.innerHTML = pageHTML;
+      const pageEl = wrapper.firstElementChild;
 
-    if (direction === 1) {
-      slider.appendChild(pageEl);
-      window.currentSurahPages.push(newPageNum);
-    } else {
-      const prevScrollLeft = slider.scrollLeft;
-      const pageWidth = slider.clientWidth || window.innerWidth;
+      if (direction === 1) {
+        slider.appendChild(pageEl);
+        window.currentSurahPages.push(newPageNum);
+      } else {
+        const prevScrollLeft = slider.scrollLeft;
+        const pageWidth = slider.clientWidth || window.innerWidth;
 
-     
-// إيقاف الـ snap والـ behavior لحماية الشاشة من القفز
-slider.style.scrollSnapType = 'none';
-slider.style.scrollBehavior = 'auto';
+        slider.style.scrollSnapType = 'none';
+        slider.style.scrollBehavior = 'auto';
 
-slider.insertBefore(pageEl, slider.firstChild);
-window.currentSurahPages.unshift(newPageNum);
+        slider.insertBefore(pageEl, slider.firstChild);
+        window.currentSurahPages.unshift(newPageNum);
 
-const isRTL = window.getComputedStyle(slider).direction === 'rtl';
-slider.scrollLeft = isRTL ? prevScrollLeft - pageWidth : prevScrollLeft + pageWidth;
+        const isRTL = window.getComputedStyle(slider).direction === 'rtl';
+        slider.scrollLeft = isRTL ? prevScrollLeft - pageWidth : prevScrollLeft + pageWidth;
 
-// إرجاع الـ Snap بعد ما المتصفح يستقر
-setTimeout(() => {
-  slider.style.scrollSnapType = 'x mandatory';
-  slider.style.scrollBehavior = '';
-}, 50);
-
-     
+        setTimeout(() => {
+          slider.style.scrollSnapType = 'x mandatory';
+          slider.style.scrollBehavior = '';
+        }, 50);
+      }
     }
-
-    if (typeof renderBookmarkHighlight === 'function') renderBookmarkHighlight();
   } catch (e) {
     console.error('extendMushafPages error:', e);
+  } finally {
+    window._extendingPages = false;
   }
-window._extendingPages = false;
-  if (window._extendPending) {
-    const pending = window._extendPending;
-    window._extendPending = null;
-    extendMushafPages(pending);
-  }
-  
 }
 
 function buildSinglePageHTML(pageNum, pagesDict, allVerses) {
@@ -4864,10 +4862,15 @@ if (currentPageNum) {
 clearTimeout(mushafExtendTimer);
 mushafExtendTimer = setTimeout(() => {
   const settledIdx = Math.round(Math.abs(slider.scrollLeft) / pageWidth);
-  // التعديل: التحميل فقط عند الوصول لأول أو آخر صفحة فعلياً
-  if (settledIdx >= window.currentSurahPages.length - 1) { extendMushafPages(1); }
-  if (settledIdx <= 0) { extendMushafPages(-1); }
-}, 200);
+  // التحميل الاستباقي: لو اقترب من آخر صفحتين، حمّل الدفعة التالية فوراً
+  if (settledIdx >= window.currentSurahPages.length - 2) { 
+    extendMushafPages(1); 
+  }
+  // لو اقترب من أول صفحتين، حمّل الدفعة السابقة فوراً
+  if (settledIdx <= 1) { 
+    extendMushafPages(-1); 
+  }
+}, 80); // تقليل التايمر من 200 إلى 80ms للاستجابة السريعة
      
     }, { passive: true });
   }
