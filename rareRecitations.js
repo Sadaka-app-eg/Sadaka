@@ -1,6 +1,3 @@
-// ==========================================
-// مصفوفة التلاوات النادرة المظبوطة بالملي
-// ========================================== 
 
 // ==========================================
 // مصفوفة صور القراء (استبدل الرابط بأي صورة من جوجل)
@@ -649,9 +646,26 @@ window.playRare = async function (url) {
   const player = window.rareAudioPlayer;
   ensureRareAudioEngine();
 
+  // 🛑 إيقاف جميع مشغلات الصوت الأخرى فوراً داخل التطبيق
+  const otherPlayers = ['audioPlayer', 'azkarPlayer', 'globalRadioAudioPlayer'];
+  otherPlayers.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && !el.paused) {
+      el.pause();
+      el.currentTime = 0;
+    }
+  });
+  const mainPlayBtn = document.getElementById('playBtn');
+  if (mainPlayBtn) mainPlayBtn.textContent = '▶';
+  const azkarBtn = document.getElementById('azkarPlayBtn');
+  if (azkarBtn) azkarBtn.textContent = '▶';
+  const radioBtn = document.getElementById('globalRadioPlayBtn');
+  if (radioBtn) radioBtn.textContent = '▶';
+
   let safeUrl = url === "audio/nasr_6.mp3" ? "audio/nast_6.mp3" : url;
   
   if (window.currentRareUrl === url) {
+
     if (!player.paused) {
       player.pause();
     } else {
@@ -771,7 +785,7 @@ window.toggleShuffle = function() {
 };
 
 // ==========================================
-// ⏱️ إعدادات مؤقت النوم داخل الشاشة
+// ⏱️ محرك مؤقت النوم الحي الشامل والمحفوظ
 // ==========================================
 window.startSleepTimer = function (minutes, stopAtEnd = false) {
   window.rareAudioPlayer.volume = 1.0;
@@ -780,10 +794,15 @@ window.startSleepTimer = function (minutes, stopAtEnd = false) {
 
   if (stopAtEnd) {
     window.sleepTimer.endAt = 0;
+    localStorage.setItem('athr_sleep_timer_mode', 'end_track');
+    localStorage.removeItem('athr_sleep_timer_end');
   } else {
     minutes = parseFloat(minutes);
     if (!minutes || minutes <= 0) return;
-    window.sleepTimer.endAt = Date.now() + minutes * 60 * 1000;
+    const endTimestamp = Date.now() + (minutes * 60 * 1000);
+    window.sleepTimer.endAt = endTimestamp;
+    localStorage.setItem('athr_sleep_timer_end', endTimestamp);
+    localStorage.setItem('athr_sleep_timer_mode', 'time');
   }
 
   if (window.sleepTimer.intervalId) clearInterval(window.sleepTimer.intervalId);
@@ -798,6 +817,8 @@ window.cancelSleepTimer = function () {
   window.sleepTimer.active = false;
   window.sleepTimer.endAt = 0;
   window.sleepTimer.stopAtEndTrack = false;
+  localStorage.removeItem('athr_sleep_timer_end');
+  localStorage.removeItem('athr_sleep_timer_mode');
   if (window.sleepTimer.intervalId) {
     clearInterval(window.sleepTimer.intervalId);
     window.sleepTimer.intervalId = null;
@@ -814,6 +835,7 @@ window.tickSleepTimer = function () {
     if (remainingMs <= 0) {
       window.rareAudioPlayer.pause();
       window.cancelSleepTimer();
+      alert("🌙 تقبل الله طاعتكم.. انتهى وقت مؤقت النوم وتوقفت التلاوة.");
       return;
     }
   }
@@ -822,18 +844,41 @@ window.tickSleepTimer = function () {
 
 window.updateSleepTimerBadge = function() {
   const badge = document.getElementById('npTimerBadge');
-  if (!badge) return;
+  const timerBar = document.getElementById('sleepTimerBar');
 
-  if (!window.sleepTimer.active) {
-    badge.textContent = '⏱️';
-    badge.style.color = 'var(--text)';
-  } else if (window.sleepTimer.stopAtEndTrack) {
-    badge.textContent = '⏱️ نهاية المقطع';
-    badge.style.color = 'var(--gold)';
-  } else {
-    const remainingMs = Math.max(0, window.sleepTimer.endAt - Date.now());
-    badge.textContent = `⏱️ ${window.formatTime(remainingMs / 1000)}`;
-    badge.style.color = 'var(--gold)';
+  let label = '⏱️';
+  let isTimerOn = false;
+
+  if (window.sleepTimer.active) {
+    isTimerOn = true;
+    if (window.sleepTimer.stopAtEndTrack) {
+      label = '⏱️ عند نهاية المقطع';
+    } else {
+      const remainingSecs = Math.max(0, Math.floor((window.sleepTimer.endAt - Date.now()) / 1000));
+      const m = Math.floor(remainingSecs / 60);
+      const s = remainingSecs % 60;
+      label = `⏳ ${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+  }
+
+  if (badge) {
+    badge.textContent = label;
+    badge.style.color = isTimerOn ? 'var(--gold)' : 'var(--text)';
+  }
+
+  // تحديث شريط مؤقت النوم داخل صفحة التلاوات الخاشعة إن وجد
+  if (timerBar) {
+    timerBar.innerHTML = `
+      <div style="background: rgba(212,175,55,0.08); border: 1px solid var(--border); border-radius: 12px; padding: 8px 14px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; direction: rtl;">
+        <span style="font-size: 13px; color: var(--gold); font-family: 'Amiri', serif;">${isTimerOn ? label : '⏱️ مؤقت النوم (إيقاف تلقائي)'}</span>
+        <div style="display: flex; gap: 6px;">
+          <button onclick="window.startSleepTimer(15)" style="background: var(--card); border: 1px solid var(--border); color: var(--text); padding: 4px 8px; border-radius: 8px; font-size: 11px; cursor: pointer;">١٥ د</button>
+          <button onclick="window.startSleepTimer(30)" style="background: var(--card); border: 1px solid var(--border); color: var(--text); padding: 4px 8px; border-radius: 8px; font-size: 11px; cursor: pointer;">٣٠ د</button>
+          <button onclick="window.startSleepTimer(60)" style="background: var(--card); border: 1px solid var(--border); color: var(--text); padding: 4px 8px; border-radius: 8px; font-size: 11px; cursor: pointer;">٦٠ د</button>
+          ${isTimerOn ? `<button onclick="window.cancelSleepTimer()" style="background: rgba(255,77,77,0.2); border: 1px solid #ff4d4d; color: #ff4d4d; padding: 4px 8px; border-radius: 8px; font-size: 11px; cursor: pointer;">إلغاء ✕</button>` : ''}
+        </div>
+      </div>
+    `;
   }
 };
 
@@ -1647,7 +1692,27 @@ window.shareRareAudio = async function(name, url, btnElement) {
   }
 };
 
-document.addEventListener('DOMContentLoaded', () => { renderRareRecitations(); });
+document.addEventListener('DOMContentLoaded', () => { 
+  renderRareRecitations();
+
+  // فحص واسترجاع مؤقت النوم الحي إذا كان شغال قبل الخروج
+  const savedEnd = parseInt(localStorage.getItem('athr_sleep_timer_end') || '0');
+  const savedMode = localStorage.getItem('athr_sleep_timer_mode');
+  if (savedMode === 'end_track') {
+    window.sleepTimer.active = true;
+    window.sleepTimer.stopAtEndTrack = true;
+    window.updateSleepTimerBadge();
+  } else if (savedEnd && savedEnd > Date.now()) {
+    window.sleepTimer.active = true;
+    window.sleepTimer.endAt = savedEnd;
+    window.sleepTimer.intervalId = setInterval(window.tickSleepTimer, 1000);
+    window.updateSleepTimerBadge();
+  } else {
+    localStorage.removeItem('athr_sleep_timer_end');
+    localStorage.removeItem('athr_sleep_timer_mode');
+  }
+});
+
 // ==========================================
 // 📱 قائمة الخيارات المنسقة رأسيًا بالفخامة المظلمة (Bottom Sheet)
 // ==========================================
