@@ -1,98 +1,5 @@
 
 // ==========================================
-// 📊 نظام الاستماعات الحقيقي عبر Firebase
-// ==========================================
-window.liveListenersUnsub = null;
-window.liveHeartbeatTimer = null;
-
-// تحويل رابط التلاوة لمعرّف صالح لوثيقة Firebase
-function getTrackDocId(url) {
-  let hash = 0;
-  for (let i = 0; i < url.length; i++) hash = (hash * 31 + url.charCodeAt(i)) & 0xFFFFFFFF;
-  return 'track_' + Math.abs(hash);
-}
-
-// 1. تسجيل استماع حقيقي على السيرفر (+1)
-window.recordRealListen = async function(url) {
-  const db = window.firebaseDb;
-
-  
-  if (!db || !window.doc || !window.setDoc || !window.increment) return;
-
-const docId = getTrackDocId(url);
-
-  try {
-    const ref = window.doc(db, "recitation_stats", docId);
-    await window.setDoc(ref, {
-      totalListens: window.increment(1)
-    }, { merge: true });
-  } catch (e) {
-    console.warn("فشل تحديث عداد الاستماع:", e);
-  }
-};
-
-// 2. تحديث "يستمعون الآن" (إرسال إشارة بقاء كل 25 ثانية)
-window.startLivePresence = function(url) {
-  window.stopLivePresence(); // إيقاف التلاوة السابقة
-
-  const db = window.firebaseDb;
-  const user = window.firebaseAuth?.currentUser;
-  const uid = user ? user.uid : (localStorage.getItem('athr_guest_id') || 'guest_' + Math.random().toString(36).substr(2, 9));
-  localStorage.setItem('athr_guest_id', uid);
-
-  if (!db || !window.doc || !window.setDoc) return;
-
-  const docId = getTrackDocId(url);
-
-  const sendHeartbeat = async () => {
-    try {
-      const presenceRef = window.doc(db, "recitation_stats", docId, "live_users", uid);
-      await window.setDoc(presenceRef, {
-        lastSeen: Date.now()
-      });
-    } catch (e) {}
-  };
-
-  sendHeartbeat();
-  window.liveHeartbeatTimer = setInterval(sendHeartbeat, 25000);
-
-  // الاستماع الحي الفعلي لعدد المتواجدين حالياً
-  if (window.collection && window.onSnapshot) {
-    const liveCol = window.collection(db, "recitation_stats", docId, "live_users");
-    window.liveListenersUnsub = window.onSnapshot(liveCol, (snapshot) => {
-      const now = Date.now();
-      let activeCount = 0;
-
-      // عدّ فقط من كان نشطاً خلال آخر 45 ثانية
-      snapshot.forEach(doc => {
-        if (now - doc.data().lastSeen < 45000) activeCount++;
-      });
-
-      const liveBadge = document.getElementById('liveCount_' + docId);
-      if (liveBadge) {
-        liveBadge.textContent = `🟢 ${activeCount} الآن`;
-      }
-
-      const npTrackBadge = document.getElementById('nowPlayingLiveBadge');
-      if (npTrackBadge) {
-        npTrackBadge.textContent = `🟢 ${activeCount} يستمعون الآن`;
-      }
-    });
-  }
-};
-
-window.stopLivePresence = function() {
-  if (window.liveHeartbeatTimer) {
-    clearInterval(window.liveHeartbeatTimer);
-    window.liveHeartbeatTimer = null;
-  }
-  if (window.liveListenersUnsub) {
-    window.liveListenersUnsub();
-    window.liveListenersUnsub = null;
-  }
-};
-
-// ==========================================
 // مصفوفة صور القراء (استبدل الرابط بأي صورة من جوجل)
 // ==========================================
 window.sheikhAvatars = {
@@ -694,7 +601,6 @@ function ensureRareAudioEngine() {
   };
 
   player.onpause = () => {
-    window.stopLivePresence();
     window.updateNowPlayingUI();
     window.updateListPlayState();
     window.renderRareRecitations();
@@ -728,7 +634,6 @@ player.onended = () => {
     // 🛑 الفصل التام والتوقف عند انتهاء التلاوة
     player.pause();
     player.currentTime = 0;
-    window.stopLivePresence();
     window.updateNowPlayingUI();
     window.updateMiniPlayerUI();
     window.updateListPlayState();
@@ -738,9 +643,6 @@ player.onended = () => {
 
 // التشغيل السريع بدون بطء
 window.playRare = async function (url) {
-  window.recordRealListen(url);
-window.startLivePresence(url);
-  window.incrementTrackListen(url);
   const player = window.rareAudioPlayer;
   ensureRareAudioEngine();
 
@@ -1161,9 +1063,7 @@ window.updateNowPlayingUI = function() {
 
   document.getElementById('nowPlayingSheikh').textContent = track.tag;
   document.getElementById('nowPlayingSheikh').style.color = accentColor; // لون اسم الشيخ
-document.getElementById('nowPlayingTrackName').innerHTML = `${cleanName}<br><span style="font-size:11px; color:var(--gold); opacity:0.9;">🎧 ${window.getTrackListens(track.url).toLocaleString('ar-EG')} استماع • 🟢 ${window.getLiveListenersOrAdmin(track.url)} يستمعون الآن</span>`;  
-  const trackViews = window.getTrackViewsCount(track.url);
-const liveNow = window.getLiveListenersCount(track.url);
+  document.getElementById('nowPlayingTrackName').textContent = cleanName;
 
   const avatarImg = document.getElementById('nowPlayingAvatar');
   avatarImg.src = avatarUrl;
@@ -1316,7 +1216,6 @@ window.renderRareRecitations = function () {
 
 html += filteredList.map((item) => {
     const realIndex = window.rareRecitations.indexOf(item);
-    const docId = getTrackDocId(item.url);
     const isCurrent = (window.currentRareUrl === item.url);
     const isPlaying = isCurrent && !window.rareAudioPlayer.paused;
 
@@ -1353,14 +1252,9 @@ html += filteredList.map((item) => {
               ${soundWaveHtml}
               <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${cleanName}</span>
             </div>
-<div style="font-size: 11px; color: var(--text2); font-family: 'Amiri', serif; margin-top: 5px; display: flex; align-items: center; gap: 8px;">
-  <span style="color: var(--gold); font-weight: bold;">${item.tag}</span>
-  <span>•</span>
-  <span id="liveCount_${docId}" style="color: #6fbf73;">🟢 جارِ الحساب...</span>
-  ${isCurrent ? '<span style="color: var(--gold); font-weight: bold;">• (🔊)</span>' : ''}
-</div>
-
-
+            <div style="font-size: 12px; color: ${isCurrent ? 'var(--gold)' : 'var(--text2)'}; font-family: 'Amiri', serif; margin-top: 4px; opacity: 0.9;">
+              ${item.tag} ${isCurrent ? ' • (يُشغّل الآن 🎧)' : ''}
+            </div>
           </div>
 
         </div>
@@ -1818,27 +1712,6 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.removeItem('athr_sleep_timer_mode');
   }
 });
-// توليد عدد إجمالي للمستمعين ثابت لكل تلاوة بناءً على رابطها (بين 1.2k و 48.5k)
-window.getTrackViewsCount = function(url) {
-  let hash = 0;
-  for (let i = 0; i < url.length; i++) {
-    hash = url.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const baseViews = 1200 + (Math.abs(hash) % 47000);
-  if (baseViews >= 1000) {
-    return (baseViews / 1000).toFixed(1) + 'k';
-  }
-  return baseViews.toString();
-};
-
-// توليد عدد مستمعين مباشرين عشوائي (بين 15 و 140 مستمع حالي)
-window.getLiveListenersCount = function(url) {
-  let hash = 0;
-  for (let i = 0; i < url.length; i++) {
-    hash = (hash * 31 + url.charCodeAt(i)) & 0xFFFFFFFF;
-  }
-  return 15 + (Math.abs(hash) % 125);
-};
 
 // ==========================================
 // 📱 قائمة الخيارات المنسقة رأسيًا بالفخامة المظلمة (Bottom Sheet)
