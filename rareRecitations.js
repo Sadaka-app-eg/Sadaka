@@ -1,34 +1,92 @@
 
 // ==========================================
-// 📊 نظام الإحصائيات التلقائي والمشرفين
+// 📊 نظام الاستماعات الحقيقي عبر Firebase
 // ==========================================
-// جلب عدد مرات الاستماع (يزيد 1 مع كل ضغطة ويُحفظ محلياً)
-window.getTrackListens = function(url) {
-  const customListens = JSON.parse(localStorage.getItem('athr_track_listens') || '{}');
-  if (customListens[url]) return customListens[url];
+window.liveListenersUnsub = null;
+window.liveHeartbeatTimer = null;
 
+// تحويل رابط التلاوة لمعرّف صالح لوثيقة Firebase
+function getTrackDocId(url) {
   let hash = 0;
   for (let i = 0; i < url.length; i++) hash = (hash * 31 + url.charCodeAt(i)) & 0xFFFFFFFF;
-  return 450 + (Math.abs(hash) % 1500); // رقم أولي واقعي
-};
+  return 'track_' + Math.abs(hash);
+}
 
-// زيادة العداد +1 عند التشغيل
-window.incrementTrackListen = function(url) {
-  const customListens = JSON.parse(localStorage.getItem('athr_track_listens') || '{}');
-  const current = window.getTrackListens(url);
-  customListens[url] = current + 1;
-  localStorage.setItem('athr_track_listens', JSON.stringify(customListens));
-};
+// 1. تسجيل استماع حقيقي على السيرفر (+1)
+window.recordRealListen = async function(url) {
+  const db = window.firebaseDb;
+  if (!db || !window.doc || !window.setDoc || !window.increment) return;
 
-// عدد المستمعين (إذا كان المستخدم مشرفاً يظهر 90 تلقائياً، وللمستخدم العادي رقم عشوائي قليل بين 1 إلى 3)
-window.getLiveListenersOrAdmin = function(url) {
-  const isMeAdmin = typeof window.isAdminUser === 'function' ? window.isAdminUser() : false;
-  if (isMeAdmin) {
-    return 90; // العدد التلقائي للمشرفين
+const docId = getTrackDocId(item.url);  
+  try {
+    const ref = window.doc(db, "recitation_stats", docId);
+    await window.setDoc(ref, {
+      totalListens: window.increment(1)
+    }, { merge: true });
+  } catch (e) {
+    console.warn("فشل تحديث عداد الاستماع:", e);
   }
-  let hash = 0;
-  for (let i = 0; i < url.length; i++) hash += url.charCodeAt(i);
-  return 1 + (hash % 3); // 1 أو 2 أو 3 للمستخدم العادي
+};
+
+// 2. تحديث "يستمعون الآن" (إرسال إشارة بقاء كل 25 ثانية)
+window.startLivePresence = function(url) {
+  window.stopLivePresence(); // إيقاف التلاوة السابقة
+
+  const db = window.firebaseDb;
+  const user = window.firebaseAuth?.currentUser;
+  const uid = user ? user.uid : (localStorage.getItem('athr_guest_id') || 'guest_' + Math.random().toString(36).substr(2, 9));
+  localStorage.setItem('athr_guest_id', uid);
+
+  if (!db || !window.doc || !window.setDoc) return;
+
+  const docId = getTrackDocId(url);
+
+  const sendHeartbeat = async () => {
+    try {
+      const presenceRef = window.doc(db, "recitation_stats", docId, "live_users", uid);
+      await window.setDoc(presenceRef, {
+        lastSeen: Date.now()
+      });
+    } catch (e) {}
+  };
+
+  sendHeartbeat();
+  window.liveHeartbeatTimer = setInterval(sendHeartbeat, 25000);
+
+  // الاستماع الحي الفعلي لعدد المتواجدين حالياً
+  if (window.collection && window.onSnapshot) {
+    const liveCol = window.collection(db, "recitation_stats", docId, "live_users");
+    window.liveListenersUnsub = window.onSnapshot(liveCol, (snapshot) => {
+      const now = Date.now();
+      let activeCount = 0;
+
+      // عدّ فقط من كان نشطاً خلال آخر 45 ثانية
+      snapshot.forEach(doc => {
+        if (now - doc.data().lastSeen < 45000) activeCount++;
+      });
+
+      const liveBadge = document.getElementById('liveCount_' + docId);
+      if (liveBadge) {
+        liveBadge.textContent = `🟢 ${activeCount} الآن`;
+      }
+
+      const npTrackBadge = document.getElementById('nowPlayingLiveBadge');
+      if (npTrackBadge) {
+        npTrackBadge.textContent = `🟢 ${activeCount} يستمعون الآن`;
+      }
+    });
+  }
+};
+
+window.stopLivePresence = function() {
+  if (window.liveHeartbeatTimer) {
+    clearInterval(window.liveHeartbeatTimer);
+    window.liveHeartbeatTimer = null;
+  }
+  if (window.liveListenersUnsub) {
+    window.liveListenersUnsub();
+    window.liveListenersUnsub = null;
+  }
 };
 
 // ==========================================
@@ -633,6 +691,7 @@ function ensureRareAudioEngine() {
   };
 
   player.onpause = () => {
+    window.stopLivePresence();
     window.updateNowPlayingUI();
     window.updateListPlayState();
     window.renderRareRecitations();
@@ -666,6 +725,7 @@ player.onended = () => {
     // 🛑 الفصل التام والتوقف عند انتهاء التلاوة
     player.pause();
     player.currentTime = 0;
+    window.stopLivePresence();
     window.updateNowPlayingUI();
     window.updateMiniPlayerUI();
     window.updateListPlayState();
@@ -675,6 +735,8 @@ player.onended = () => {
 
 // التشغيل السريع بدون بطء
 window.playRare = async function (url) {
+  window.recordRealListen(url);
+window.startLivePresence(url);
   window.incrementTrackListen(url);
   const player = window.rareAudioPlayer;
   ensureRareAudioEngine();
@@ -1287,12 +1349,10 @@ html += filteredList.map((item) => {
               ${soundWaveHtml}
               <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${cleanName}</span>
             </div>
-<div style="font-size: 11px; color: var(--text2); font-family: 'Amiri', serif; margin-top: 5px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+<div style="font-size: 11px; color: var(--text2); font-family: 'Amiri', serif; margin-top: 5px; display: flex; align-items: center; gap: 8px;">
   <span style="color: var(--gold); font-weight: bold;">${item.tag}</span>
   <span>•</span>
-  <span style="color: #e0e0e0;">🎧 ${window.getTrackListens(item.url).toLocaleString('ar-EG')} استماع</span>
-  <span>•</span>
-  <span style="color: #6fbf73;">🟢 ${window.getLiveListenersOrAdmin(item.url)} يستمعون الآن</span>
+  <span id="liveCount_${docId}" style="color: #6fbf73;">🟢 جارِ الحساب...</span>
   ${isCurrent ? '<span style="color: var(--gold); font-weight: bold;">• (🔊)</span>' : ''}
 </div>
 

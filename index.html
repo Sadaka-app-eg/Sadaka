@@ -352,9 +352,7 @@ body{font-family:'Amiri',serif;background:var(--bg);color:var(--text);min-height
   justify-content: space-between !important;
   box-sizing: border-box !important;
   overflow: hidden !important;
-scroll-snap-align: center !important;
-  scroll-snap-stop: always !important;
-
+  scroll-snap-align: center !important;
   background: var(--mushaf-bg);
   color: var(--mushaf-text);
 }
@@ -2075,7 +2073,7 @@ width: 100%;
 
   <!-- قسم كروت معاينة مؤذني باقي الصلوات -->
   <div style="font-size:14px; color:var(--gold); margin-bottom:10px; font-family:'Amiri',serif; font-weight:bold; border-right:3px solid var(--green); padding-right:8px;">🕌 مؤذنو باقي الصلوات الخمس:</div>
-    <div id="regularCardsContainer" style="display:grid; "></div>
+    <div id="regularCardsContainer" style="display:grid; ..."></div>
 
   <div style="background: rgba(212, 175, 55, 0.05); border: 1px dashed var(--gold); border-radius: 16px; padding: 14px; margin-top: 15px; margin-bottom: 15px; direction: rtl; text-align: justify; line-height: 1.8;">
     <div style="font-size: 14px; color: var(--gold); font-weight: bold; margin-bottom: 6px; font-family: 'Amiri', serif;">💡 لَفْتَةٌ تَنْبِيهِيَّةٌ لِصَاحِبِ الأَثَرِ:</div>
@@ -3992,56 +3990,257 @@ function getSurahByPageNumber(pageNum) {
   return surahs[0];
 }
 // =========================================================================
-// 📖 محرك المصحف الموحد (النافذة الافتراضية السلسة 1 - 604)
+// 📖 محرك المصحف الانسيابي المستمر
 // =========================================================================
-window.activeMushafPage = 1;
-window._isRenderingWindow = false;
+window._isExtendingMushaf = false;
 
-// 1. جلب بيانات ورسم نافذة مكونة من 5 صفحات متتالية فقط حول الصفحة الحالية
-async function renderMushafWindow(targetPage, preserveScroll = false) {
-  if (window._isRenderingWindow) return;
-  window._isRenderingWindow = true;
-
+// تمديد هادئ بصفحة واحدة فقط دون التأثير على حركة اليد
+async function extendMushafPages(direction) {
+  if (window._isExtendingMushaf) return;
   const slider = document.getElementById('mushafSlider');
-  if (!slider) { window._isRenderingWindow = false; return; }
+  if (!slider || !window.currentSurahPages || window.currentSurahPages.length === 0) return;
 
-  targetPage = Math.max(1, Math.min(604, targetPage));
-  window.activeMushafPage = targetPage;
+  const pages = window.currentSurahPages;
+  let targetP = 0;
 
-  // تحديد نطاق الـ 5 صفحات (صفحتين قبل وصفحتين بعد)
-  const startP = Math.max(1, targetPage - 2);
-  const endP = Math.min(604, targetPage + 2);
-  const windowPages = [];
-  for (let p = startP; p <= endP; p++) windowPages.push(p);
+  if (direction === 1) {
+    targetP = pages[pages.length - 1] + 1;
+    if (targetP > 604 || pages.includes(targetP)) return;
+  } else {
+    targetP = pages[0] - 1;
+    if (targetP < 1 || pages.includes(targetP)) return;
+  }
 
-  window.currentSurahPages = windowPages;
+  window._isExtendingMushaf = true;
 
-  // جلب بيانات الصفحات بسرعة البرق من IndexedDB بالتوازي
-  const pagePromises = windowPages.map(async (p) => {
-    let data = await getCachedSurahDB(`page_${p}`);
-    if (!data) {
+  try {
+    let pageData = await getCachedSurahDB(`page_${targetP}`);
+    if (!pageData) {
       try {
-        const res = await fetch(`https://api.quran.com/api/v4/verses/by_page/${p}?per_page=300&words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number,rub_el_hizb_number`);
-        data = await res.json();
-        if (data && data.verses) setCachedSurahDB(`page_${p}`, data);
+        const res = await fetch(`https://api.quran.com/api/v4/verses/by_page/${targetP}?per_page=300&words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number,rub_el_hizb_number`);
+        pageData = await res.json();
+        if (pageData && pageData.verses) setCachedSurahDB(`page_${targetP}`, pageData);
       } catch(e) {}
     }
-    return { pageNum: p, verses: data && data.verses ? data.verses : [] };
-  });
 
-  const results = await Promise.all(pagePromises);
-  await Promise.all(windowPages.map(p => loadQcfPageFont(p)));
+    const verses = pageData && pageData.verses ? pageData.verses : [];
+    if (verses.length === 0) {
+      window._isExtendingMushaf = false;
+      return;
+    }
 
-  // تحديث مصفوفة الآيات الشاملة للنطاق الحالي
-  currentAyahsData = [];
-  const pagesDict = {};
-  let allVerses = [];
-
-  results.forEach(({ pageNum, verses }) => {
-    pagesDict[pageNum] = {};
-    allVerses.push(...verses);
-
+    const pagesDict = { [targetP]: {} };
     verses.forEach((verse) => {
+      const [vSurah, vAyah] = verse.verse_key.split(':').map(Number);
+      currentAyahsData.push({
+        text: verse.words.map(w => w.text_uthmani).join(" "),
+        numberInSurah: vAyah,
+        globalNumber: verse.id,
+        page: targetP,
+        surahNumber: vSurah,
+        tafseer: `تفسير الآية ${vAyah}`
+      });
+      verse.words.forEach((word) => {
+        const lineNum = word.line_number;
+        if (!pagesDict[targetP][lineNum]) pagesDict[targetP][lineNum] = [];
+        pagesDict[targetP][lineNum].push({ id: word.id, code: word.code_v2, vSurah, vAyah, text: word.text_uthmani });
+      });
+    });
+
+    await loadQcfPageFont(targetP);
+    const pageHTML = buildSinglePageHTML(targetP, pagesDict, verses);
+
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = pageHTML;
+    const pageEl = wrapper.firstElementChild;
+
+    if (direction === 1) {
+      slider.appendChild(pageEl);
+      window.currentSurahPages.push(targetP);
+    } else {
+      const prevScrollLeft = slider.scrollLeft;
+      const pageWidth = slider.clientWidth || window.innerWidth;
+
+      // تثبيت موضع الإطار بدون اهتزاز
+      slider.style.scrollSnapType = 'none';
+      slider.style.scrollBehavior = 'auto';
+
+      slider.insertBefore(pageEl, slider.firstChild);
+      window.currentSurahPages.unshift(targetP);
+
+      const isRTL = window.getComputedStyle(slider).direction === 'rtl';
+      slider.scrollLeft = isRTL ? (prevScrollLeft - pageWidth) : (prevScrollLeft + pageWidth);
+
+      setTimeout(() => {
+        slider.style.scrollSnapType = 'x mandatory';
+        slider.style.scrollBehavior = '';
+      }, 50);
+    }
+  } catch (e) {
+    console.error("خطأ تمديد الصفحات:", e);
+  } finally {
+    window._isExtendingMushaf = false;
+  }
+}
+
+function buildSinglePageHTML(pageNum, pagesDict, allVerses) {
+  const isSpecialPage = pageNum === 1 || pageNum === 2;
+  const headerRightText = getHeaderJuzText(pageNum, allVerses);
+  const pageSurah = getSurahByPageNumber(pageNum);
+
+  let pageHasNewSurahStart = false, pageHasBismillah = false;
+  if (pagesDict[pageNum]) {
+    Object.values(pagesDict[pageNum]).forEach(lineWords => {
+      const fw = lineWords[0];
+      if (fw && fw.vAyah === 1) {
+        pageHasNewSurahStart = true;
+        if (fw.vSurah !== 1 && fw.vSurah !== 9) pageHasBismillah = true;
+      }
+    });
+  }
+
+  const extraLines = (pageHasNewSurahStart ? 1 : 0) + (pageHasBismillah ? 1 : 0);
+  const fontSize = isSpecialPage 
+    ? 'clamp(22px, 4.8vw, 32px)' 
+    : (extraLines > 0 ? 'clamp(17px, 5.2vw, 26px)' : 'clamp(18px, 5.6vw, 28px)');
+
+  let html = `<div class="mushaf-page" id="mpage_${pageNum}" data-page="${pageNum}">`;
+
+  html += `
+    <div style="display:flex; justify-content:space-between; align-items:center; width:100%; padding:2px 6px; font-size:12px; font-weight:bold; color:var(--text2); border-bottom:1px solid rgba(212,175,55,0.12); margin-bottom:4px; font-family:'Amiri', serif; flex-shrink:0; white-space:nowrap; overflow:hidden;">
+      <span style="overflow:hidden; text-overflow:ellipsis; max-width:65%;">${headerRightText}</span>
+      <span style="flex-shrink:0;">سُورَةُ ${pageSurah ? pageSurah.name : ''}</span>
+    </div>
+  `;
+
+  html += `<div style="flex:1; display:flex; flex-direction:column; justify-content:${isSpecialPage ? 'center' : 'space-between'}; width:100%; overflow:hidden; margin-bottom: 6px; box-sizing:border-box;">`;
+  
+  if (pagesDict[pageNum]) {
+    const lines = Object.keys(pagesDict[pageNum]).map(Number).sort((a, b) => a - b);
+    let renderedSurahHeaders = new Set();
+
+    lines.forEach(lineNum => {
+      const lineWords = pagesDict[pageNum][lineNum];
+      const lineJustify = isSpecialPage ? 'justify-content:center;gap:8px;' : 'justify-content:space-between;';
+      const firstWord = lineWords[0];
+
+      if (firstWord && firstWord.vAyah === 1 && !renderedSurahHeaders.has(firstWord.vSurah)) {
+        renderedSurahHeaders.add(firstWord.vSurah);
+        const sObj = surahs.find(s => s.n === firstWord.vSurah);
+        const sName = sObj ? sObj.name : '';
+
+        html += `
+          <div class="surah-name-header-img-wrap">
+            <img src="image/surah_header_frame.png" onerror="this.src='surah_header_frame.png'; this.onerror=null;" class="surah-frame-img" alt="إطار السورة" />
+            <div class="surah-title-overlay">
+              <span class="surah-title-text">سُورَةُ ${sName}</span>
+            </div>
+          </div>`;
+
+        if (firstWord.vSurah !== 1 && firstWord.vSurah !== 9) {
+          html += `
+            <div class="bismillah" style="font-family:'Amiri Quran', serif; font-size: 24px; margin: 4px auto 18px; line-height: 1.2; text-align: center; color: #5a3e00; flex-shrink: 0;">
+              ﷽
+            </div>`;
+        }
+      }
+
+      html += `<div style="display:flex; flex-direction:row; ${lineJustify} align-items:center; width:100%; min-height: calc(100% / 15); overflow:visible; white-space:nowrap; padding: 0 4px; box-sizing: border-box;">`;
+      
+      lineWords.forEach(w => {
+        const ayahIndex = currentAyahsData.findIndex(a => a.surahNumber === w.vSurah && a.numberInSurah === w.vAyah);
+        html += `<span class="qcf-word ayah-span ayah-group_${ayahIndex}"
+          style="font-family:'QCF_V2_P${pageNum}'; font-size:${fontSize}; line-height:1.35; font-weight:bold; display:inline-flex; align-items:center; user-select:none; white-space:nowrap;"
+          ontouchstart="startPress(event, ${ayahIndex})"
+          ontouchmove="cancelPress(event)"
+          ontouchend="cancelPress(event); if(!isScrolling && window.isPickingEndAyah){ handleAyahClick(${ayahIndex}); }">
+          ${w.code}
+        </span>`;
+      });
+
+      html += `</div>`;
+    });
+  }
+
+  html += `</div>`;
+
+  html += `
+    <div style="position:absolute; bottom:6px; left:0; right:0; text-align:center; z-index:10;">
+      <div class="page-footer-frame" style="display:inline-flex; align-items:center; justify-content:center; margin:0 auto; padding:2px 12px; background:#142018; border:1.5px solid #cda869; border-radius:8px; font-size:11px; font-weight:bold; color:#f4ecd8; font-family:'Amiri', serif; box-shadow:0 2px 5px rgba(0,0,0,0.3);">
+        <span style="color:#cda869; font-size:9px; margin-left:3px;">⚜️</span>
+        ${toAr(pageNum)}
+        <span style="color:#cda869; font-size:9px; margin-right:3px;">⚜️</span>
+      </div>
+    </div>`;
+
+  html += `</div>`;
+  return html;
+}
+
+async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
+  currentSurah = surahs.find(s => s.n === n);
+  localStorage.setItem('last_active_surah', n);
+  localStorage.setItem('surah_screen_open', '1');
+
+  stopAudio();
+  applyMushafNightState();
+
+  if (window._restoreTimeoutId) { clearTimeout(window._restoreTimeoutId); window._restoreTimeoutId = null; }
+
+  window._openSurahReqId = (window._openSurahReqId || 0) + 1;
+  const myOpenReqId = window._openSurahReqId;
+  const screen = document.getElementById('surahScreen');
+  screen.classList.add('open');
+  document.getElementById('surahScreenTitle').textContent = 'سورة ' + currentSurah.name;
+  document.getElementById('favSurahBtn').textContent = favorites.includes('s'+n) ? '⭐' : '🤍';
+
+  const slider = document.getElementById('mushafSlider');
+  selectedAyahsQueue = [];
+  if (document.getElementById('clearSelBtn')) document.getElementById('clearSelBtn').style.display = 'none';
+  if (document.getElementById('clearSelWrap')) document.getElementById('clearSelWrap').style.display = 'none';
+
+  const surahStartP = surahStartPages[n - 1] || 1;
+  const surahEndP = (surahStartPages[n] ? surahStartPages[n] - 1 : 604);
+
+  let targetP = surahStartP;
+  if (typeof targetPageNumber === 'number' && targetPageNumber >= 1 && targetPageNumber <= 604) {
+    targetP = targetPageNumber;
+  } else if (targetPageNumber === 'last') {
+    targetP = surahEndP;
+  }
+
+  // تحميل نطاق البداية للسورة مع صفحة تسبقها وصفحة تليها للاتصال السلس
+  const minPage = Math.max(1, surahStartP - 1);
+  const maxPage = Math.min(604, surahEndP + 1);
+
+  try {
+    const pageNumsArray = Array.from({ length: maxPage - minPage + 1 }, (_, i) => minPage + i);
+
+    const pagePromises = pageNumsArray.map(async (p) => {
+      let pageData = await getCachedSurahDB(`page_${p}`);
+      if (!pageData) {
+        try {
+          const res = await fetch(`https://api.quran.com/api/v4/verses/by_page/${p}?per_page=300&words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number,rub_el_hizb_number`);
+          pageData = await res.json();
+          if (pageData && pageData.verses) setCachedSurahDB(`page_${p}`, pageData);
+        } catch(e) {}
+      }
+      return pageData && pageData.verses ? pageData.verses : [];
+    });
+
+    const pagesResults = await Promise.all(pagePromises);
+    if (myOpenReqId !== window._openSurahReqId) return;
+
+    let allVerses = [];
+    pagesResults.forEach(verses => allVerses.push(...verses));
+
+    const pagesDict = {};
+    currentAyahsData = [];
+
+    allVerses.forEach((verse) => {
+      const pageNum = verse.page_number;
+      if (!pagesDict[pageNum]) pagesDict[pageNum] = {};
+
       const [vSurah, vAyah] = verse.verse_key.split(':').map(Number);
       currentAyahsData.push({
         text: verse.words.map(w => w.text_uthmani).join(" "),
@@ -4064,76 +4263,38 @@ async function renderMushafWindow(targetPage, preserveScroll = false) {
         });
       });
     });
-  });
 
-  // بناء الـ HTML
-  let sliderHtml = '';
-  windowPages.forEach(p => {
-    sliderHtml += buildSinglePageHTML(p, pagesDict, allVerses);
-  });
+    const pageNums = Object.keys(pagesDict).map(Number).sort((a,b) => a-b);
+    window.currentSurahPages = pageNums;
 
-  // تعطيل الـ Snap لحظياً للقفز للمركز بدون حركة للعين
-  slider.style.scrollSnapType = 'none';
-  slider.style.scrollBehavior = 'auto';
-  slider.innerHTML = sliderHtml;
+    await Promise.all(pageNums.map(p => loadQcfPageFont(p)));
+    if (myOpenReqId !== window._openSurahReqId) return;
 
-  const targetIdx = windowPages.indexOf(targetPage);
-  const pageWidth = slider.clientWidth || window.innerWidth;
-  const isRTL = window.getComputedStyle(slider).direction === 'rtl';
-  slider.scrollLeft = isRTL ? -(targetIdx * pageWidth) : (targetIdx * pageWidth);
+    let sliderHtml = '';
+    pageNums.forEach((pageNum) => {
+      sliderHtml += buildSinglePageHTML(pageNum, pagesDict, allVerses);
+    });
 
-  setTimeout(() => {
-    slider.style.scrollSnapType = 'x mandatory';
-    slider.style.scrollBehavior = '';
-    window._isRenderingWindow = false;
-  }, 40);
+    slider.innerHTML = sliderHtml;
 
-  // تحديث العناوين وسلايدر الصفحات
-  const curSurahObj = getSurahByPageNumber(targetPage);
-  if (curSurahObj) {
-    currentSurah = curSurahObj;
-    document.getElementById('surahScreenTitle').textContent = 'سورة ' + curSurahObj.name;
-    document.getElementById('favSurahBtn').textContent = favorites.includes('s' + curSurahObj.n) ? '⭐' : '🤍';
-    localStorage.setItem('last_active_surah', curSurahObj.n);
-  }
-  localStorage.setItem('last_active_page', targetPage);
+    const targetIdx = pageNums.indexOf(targetP);
+    if (targetIdx !== -1) {
+      setTimeout(() => {
+        const pageWidth = slider.clientWidth || window.innerWidth;
+        slider.scrollLeft = window.getComputedStyle(slider).direction === 'rtl'
+          ? -(targetIdx * pageWidth)
+          : (targetIdx * pageWidth);
+      }, 50);
+    }
 
-  const jumpSlider = document.getElementById('mushafJumpSlider');
-  if (jumpSlider) jumpSlider.value = targetPage;
+    renderBookmarkHighlight();
+    setupMushafJumpSlider(pageNums, pageNums);
 
-  renderBookmarkHighlight();
-}
-
-// 2. دالة فتح السورة الرئيسية
-async function openSurah(n, targetAyahNum = null, targetPageNumber = null) {
-  currentSurah = surahs.find(s => s.n === n);
-  localStorage.setItem('last_active_surah', n);
-  localStorage.setItem('surah_screen_open', '1');
-
-  stopAudio();
-  applyMushafNightState();
-
-  const screen = document.getElementById('surahScreen');
-  screen.classList.add('open');
-
-  selectedAyahsQueue = [];
-  if (document.getElementById('clearSelBtn')) document.getElementById('clearSelBtn').style.display = 'none';
-  if (document.getElementById('clearSelWrap')) document.getElementById('clearSelWrap').style.display = 'none';
-
-  let targetP = surahStartPages[n - 1] || 1;
-  if (typeof targetPageNumber === 'number' && targetPageNumber >= 1 && targetPageNumber <= 604) {
-    targetP = targetPageNumber;
-  } else if (targetPageNumber === 'last') {
-    targetP = surahStartPages[n] ? surahStartPages[n] - 1 : 604;
-  }
-
-  await renderMushafWindow(targetP);
-
-  const realPageNums = Array.from({ length: 604 }, (_, i) => i + 1);
-  setupMushafJumpSlider(window.currentSurahPages, realPageNums);
-
-  if (targetAyahNum) {
-    scrollToTargetAyahIfNeeded(targetAyahNum);
+    if (targetAyahNum) {
+      scrollToTargetAyahIfNeeded(targetAyahNum);
+    }
+  } catch(e) {
+    console.error("خطأ فتح المصحف:", e);
   }
 }
 // دالة التنقل الانسيابي بين السور
@@ -4644,23 +4805,45 @@ loadSavedThemeSystem();
 
 const slider = document.getElementById('mushafSlider');
   if (slider) {
-    let scrollDebounce = null;
+   let mushafExtendTimer = null;
 
-    slider.addEventListener('scroll', () => {
-      if (slider.classList.contains('vscroll-mode') || window._isRenderingWindow) return;
+   slider.addEventListener('scroll', () => {
+      if (slider.classList.contains('vscroll-mode')) return;
       if (!window.currentSurahPages || window.currentSurahPages.length === 0) return;
+      
+      const pageWidth = slider.clientWidth || window.innerWidth;
+      const physicalIdx = Math.round(Math.abs(slider.scrollLeft) / pageWidth);
+      const currentPageNum = window.currentSurahPages[physicalIdx];
 
-      clearTimeout(scrollDebounce);
-      scrollDebounce = setTimeout(() => {
-        const pageWidth = slider.clientWidth || window.innerWidth;
-        const currentIdx = Math.round(Math.abs(slider.scrollLeft) / pageWidth);
-        const settledPage = window.currentSurahPages[currentIdx];
-
-        if (settledPage && settledPage !== window.activeMushafPage) {
-          // إذا اقترب القارئ من أطراف النافذة، نعيد توسيط النافذة فوراً حول الصفحة الجديدة
-          renderMushafWindow(settledPage);
+if (currentPageNum) {
+        localStorage.setItem('last_active_page', currentPageNum);
+        const activeSurah = getSurahByPageNumber(currentPageNum);
+        if (activeSurah) {
+          const titleEl = document.getElementById('surahScreenTitle');
+          
+          if (titleEl && titleEl.textContent !== 'سورة ' + activeSurah.name) {
+            titleEl.textContent = 'سورة ' + activeSurah.name;
+            
+            if (currentSurah && currentSurah.n !== activeSurah.n) {
+              currentSurah = activeSurah;
+              localStorage.setItem('last_active_surah', activeSurah.n);
+              stopAudio();
+            }
+          }
         }
-      }, 70);
+      }
+
+clearTimeout(mushafExtendTimer);
+mushafExtendTimer = setTimeout(() => {
+  const settledIdx = Math.round(Math.abs(slider.scrollLeft) / pageWidth);
+  // التحميل فقط عند الوصول للطرف الأخير أو الأول فعلياً وبفارق زمني كافٍ
+  if (settledIdx >= window.currentSurahPages.length - 1) { 
+    extendMushafPages(1); 
+  } else if (settledIdx <= 0) { 
+    extendMushafPages(-1); 
+  }
+}, 180); // تقليل التايمر من 200 إلى 80ms للاستجابة السريعة
+     
     }, { passive: true });
   }
 
@@ -8439,7 +8622,7 @@ function getMushafPageIndex(slider) {
 }
 
 function attachMushafEdgeSwipe() {
-  // تم إلغاء السحب الإضافي لمنع تكرار القفز؛ المتصفح يقوم بذلك بالسلاسة الأصلية عبر scroll
+  // تم تفريغ الدالة لمنع تكرار طلب الصفحات مع السكرول الطبيعي للمتصفح
 }
 
 // تفعيل الدوس على الشاشة لإظهار/إخفاء عناصر التحكم
@@ -8618,6 +8801,7 @@ window.closeSurah = function() {
  <!-- مكتبة موزيلا الرسمية لقراءة ملفات الـ PDF داخلياً -->
 <script src="homeShortcuts.js"></script>
  <script src="tafseerEngine.js"></script>
+  // 1️⃣ إلغاء مفعول دالة الـ load القديمة
 <script type="module">
   // 1️⃣ ربط دالة الترحيب
   window.finishLogin = function(name) { 
@@ -8647,7 +8831,9 @@ import {
   addDoc, 
   query, 
   orderBy, 
-  serverTimestamp 
+  serverTimestamp,
+  increment,   // 👈 ضيف دي
+  onSnapshot   // 👈 وضيف دي
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   // 3️⃣ إعدادات الفايربيز
@@ -8671,6 +8857,8 @@ window.firebaseDb = db;
 window.GoogleAuthProvider = GoogleAuthProvider;
 window.signInWithPopup = signInWithPopup;
 window.signOut = signOut;
+window.increment = increment;
+window.onSnapshot = onSnapshot;
 
 // 🌟 ضيف السطور دي هنا ضروري جداً:
 window.collection = collection;
