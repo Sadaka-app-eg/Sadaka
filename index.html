@@ -3995,86 +3995,81 @@ async function extendMushafPages(direction) {
   if (!slider || !window.currentSurahPages || window.currentSurahPages.length === 0) return;
 
   const pages = window.currentSurahPages;
-  const pagesToAdd = [];
-  const BATCH_SIZE = 4; // إضافة 4 صفحات مسبقاً لتفادي اللاج في السحب السريع
+  let newPageNum;
 
   if (direction === 1) {
-    let lastP = pages[pages.length - 1];
-    for (let i = 1; i <= BATCH_SIZE; i++) {
-      let nextP = lastP + i;
-      if (nextP <= 604 && !pages.includes(nextP)) pagesToAdd.push(nextP);
-    }
+    newPageNum = pages[pages.length - 1] + 1;
+    if (newPageNum > 604 || pages.includes(newPageNum)) return;
   } else {
-    let firstP = pages[0];
-    for (let i = 1; i <= BATCH_SIZE; i++) {
-      let prevP = firstP - i;
-      if (prevP >= 1 && !pages.includes(prevP)) pagesToAdd.unshift(prevP);
-    }
+    newPageNum = pages[0] - 1;
+    if (newPageNum < 1 || pages.includes(newPageNum)) return;
   }
 
-  if (pagesToAdd.length === 0) return;
   window._extendingPages = true;
 
   try {
-    for (const newPageNum of pagesToAdd) {
-      let pageData = await getCachedSurahDB(`page_${newPageNum}`);
-      if (!pageData) {
-        try {
-          const res = await fetch(`https://api.quran.com/api/v4/verses/by_page/${newPageNum}?per_page=300&words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number,rub_el_hizb_number`);
-          pageData = await res.json();
-          if (pageData && pageData.verses) setCachedSurahDB(`page_${newPageNum}`, pageData);
-        } catch(e) {}
-      }
+    let pageData = await getCachedSurahDB(`page_${newPageNum}`);
+    if (!pageData) {
+      try {
+        const res = await fetch(`https://api.quran.com/api/v4/verses/by_page/${newPageNum}?per_page=300&words=true&word_fields=code_v2,line_number,page_number,text_uthmani&fields=chapter_id,juz_number,rub_el_hizb_number`);
+        pageData = await res.json();
+        if (pageData && pageData.verses) setCachedSurahDB(`page_${newPageNum}`, pageData);
+      } catch(e) {}
+    }
 
-      const verses = pageData && pageData.verses ? pageData.verses : [];
-      if (verses.length === 0) continue;
+    const verses = pageData && pageData.verses ? pageData.verses : [];
+    if (verses.length === 0) {
+      window._extendingPages = false;
+      return;
+    }
 
-      const pagesDict = { [newPageNum]: {} };
-      verses.forEach((verse) => {
-        const [vSurah, vAyah] = verse.verse_key.split(':').map(Number);
-        currentAyahsData.push({
-          text: verse.words.map(w => w.text_uthmani).join(" "),
-          numberInSurah: vAyah,
-          globalNumber: verse.id,
-          page: newPageNum,
-          surahNumber: vSurah,
-          tafseer: `تفسير الآية ${vAyah}`
-        });
-        verse.words.forEach((word) => {
-          const lineNum = word.line_number;
-          if (!pagesDict[newPageNum][lineNum]) pagesDict[newPageNum][lineNum] = [];
-          pagesDict[newPageNum][lineNum].push({ id: word.id, code: word.code_v2, vSurah, vAyah, text: word.text_uthmani });
-        });
+    const pagesDict = { [newPageNum]: {} };
+    verses.forEach((verse) => {
+      const [vSurah, vAyah] = verse.verse_key.split(':').map(Number);
+      currentAyahsData.push({
+        text: verse.words.map(w => w.text_uthmani).join(" "),
+        numberInSurah: vAyah,
+        globalNumber: verse.id,
+        page: newPageNum,
+        surahNumber: vSurah,
+        tafseer: `تفسير الآية ${vAyah}`
       });
+      verse.words.forEach((word) => {
+        const lineNum = word.line_number;
+        if (!pagesDict[newPageNum][lineNum]) pagesDict[newPageNum][lineNum] = [];
+        pagesDict[newPageNum][lineNum].push({ id: word.id, code: word.code_v2, vSurah, vAyah, text: word.text_uthmani });
+      });
+    });
 
-      await loadQcfPageFont(newPageNum);
-      const pageHTML = buildSinglePageHTML(newPageNum, pagesDict, verses);
+    await loadQcfPageFont(newPageNum);
+    const pageHTML = buildSinglePageHTML(newPageNum, pagesDict, verses);
 
-      const wrapper = document.createElement('div');
-      wrapper.innerHTML = pageHTML;
-      const pageEl = wrapper.firstElementChild;
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = pageHTML;
+    const pageEl = wrapper.firstElementChild;
 
-      if (direction === 1) {
-        slider.appendChild(pageEl);
-        window.currentSurahPages.push(newPageNum);
-      } else {
-        const prevScrollLeft = slider.scrollLeft;
-        const pageWidth = slider.clientWidth || window.innerWidth;
+    if (direction === 1) {
+      slider.appendChild(pageEl);
+      window.currentSurahPages.push(newPageNum);
+    } else {
+      const prevScrollLeft = slider.scrollLeft;
+      const pageWidth = slider.clientWidth || window.innerWidth;
 
-        slider.style.scrollSnapType = 'none';
-        slider.style.scrollBehavior = 'auto';
+      // تعطيل الـ Snap مؤقتاً لتثبيت مكان الشاشة الحالية
+      slider.style.scrollSnapType = 'none';
+      slider.style.scrollBehavior = 'auto';
 
-        slider.insertBefore(pageEl, slider.firstChild);
-        window.currentSurahPages.unshift(newPageNum);
+      slider.insertBefore(pageEl, slider.firstChild);
+      window.currentSurahPages.unshift(newPageNum);
 
-        const isRTL = window.getComputedStyle(slider).direction === 'rtl';
-        slider.scrollLeft = isRTL ? prevScrollLeft - pageWidth : prevScrollLeft + pageWidth;
+      // إعادة ضبط موضع الـ Scroll بدقة دون أي حركة مفاجئة للعين
+      const isRTL = window.getComputedStyle(slider).direction === 'rtl';
+      slider.scrollLeft = isRTL ? prevScrollLeft - pageWidth : prevScrollLeft + pageWidth;
 
-        setTimeout(() => {
-          slider.style.scrollSnapType = 'x mandatory';
-          slider.style.scrollBehavior = '';
-        }, 50);
-      }
+      setTimeout(() => {
+        slider.style.scrollSnapType = 'x mandatory';
+        slider.style.scrollBehavior = '';
+      }, 60);
     }
   } catch (e) {
     console.error('extendMushafPages error:', e);
@@ -4866,15 +4861,13 @@ if (currentPageNum) {
 clearTimeout(mushafExtendTimer);
 mushafExtendTimer = setTimeout(() => {
   const settledIdx = Math.round(Math.abs(slider.scrollLeft) / pageWidth);
-  // التحميل الاستباقي: لو اقترب من آخر صفحتين، حمّل الدفعة التالية فوراً
-  if (settledIdx >= window.currentSurahPages.length - 2) { 
+  if (settledIdx >= window.currentSurahPages.length - 1) { 
     extendMushafPages(1); 
   }
-  // لو اقترب من أول صفحتين، حمّل الدفعة السابقة فوراً
-  if (settledIdx <= 1) { 
+  if (settledIdx <= 0) { 
     extendMushafPages(-1); 
   }
-}, 80); // تقليل التايمر من 200 إلى 80ms للاستجابة السريعة
+}, 220);
      
     }, { passive: true });
   }
@@ -8654,34 +8647,7 @@ function getMushafPageIndex(slider) {
 }
 
 function attachMushafEdgeSwipe() {
-  const slider = document.getElementById('mushafSlider');
-  if (!slider) return;
-
-  slider.ontouchstart = (e) => {
-    if (e.touches && e.touches.length > 0) {
-      window.mushafSwipeStartX = e.touches[0].clientX;
-      window.mushafSwipeStartXSet = true;
-    }
-  };
-
-  slider.ontouchend = (e) => {
-    if (!window.mushafSwipeStartXSet) return;
-    window.mushafSwipeStartXSet = false;
-    if (!e.changedTouches || e.changedTouches.length === 0) return;
-
-    const endX = e.changedTouches[0].clientX;
-    const deltaX = endX - window.mushafSwipeStartX;
-    if (Math.abs(deltaX) < 35) return;
-
-    const total = slider.children.length;
-    const rawIdx = getMushafPageIndex(slider);
-
-    if (deltaX < -35 && rawIdx >= total - 1.2) {
-      extendMushafPages(1);
-    } else if (deltaX > 35 && rawIdx <= 0.2) {
-      extendMushafPages(-1);
-    }
-  };
+  // تم إلغاء السحب الإضافي لمنع تكرار القفز؛ المتصفح يقوم بذلك بالسلاسة الأصلية عبر scroll
 }
 
 // تفعيل الدوس على الشاشة لإظهار/إخفاء عناصر التحكم
@@ -8860,7 +8826,6 @@ window.closeSurah = function() {
  <!-- مكتبة موزيلا الرسمية لقراءة ملفات الـ PDF داخلياً -->
 <script src="homeShortcuts.js"></script>
  <script src="tafseerEngine.js"></script>
-  // 1️⃣ إلغاء مفعول دالة الـ load القديمة
 <script type="module">
   // 1️⃣ ربط دالة الترحيب
   window.finishLogin = function(name) { 
