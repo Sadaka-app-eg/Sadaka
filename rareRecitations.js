@@ -1,5 +1,37 @@
 
 // ==========================================
+// 📊 نظام الإحصائيات التلقائي والمشرفين
+// ==========================================
+// جلب عدد مرات الاستماع (يزيد 1 مع كل ضغطة ويُحفظ محلياً)
+window.getTrackListens = function(url) {
+  const customListens = JSON.parse(localStorage.getItem('athr_track_listens') || '{}');
+  if (customListens[url]) return customListens[url];
+
+  let hash = 0;
+  for (let i = 0; i < url.length; i++) hash = (hash * 31 + url.charCodeAt(i)) & 0xFFFFFFFF;
+  return 450 + (Math.abs(hash) % 1500); // رقم أولي واقعي
+};
+
+// زيادة العداد +1 عند التشغيل
+window.incrementTrackListen = function(url) {
+  const customListens = JSON.parse(localStorage.getItem('athr_track_listens') || '{}');
+  const current = window.getTrackListens(url);
+  customListens[url] = current + 1;
+  localStorage.setItem('athr_track_listens', JSON.stringify(customListens));
+};
+
+// عدد المستمعين (إذا كان المستخدم مشرفاً يظهر 90 تلقائياً، وللمستخدم العادي رقم عشوائي قليل بين 1 إلى 3)
+window.getLiveListenersOrAdmin = function(url) {
+  const isMeAdmin = typeof window.isAdminUser === 'function' ? window.isAdminUser() : false;
+  if (isMeAdmin) {
+    return 90; // العدد التلقائي للمشرفين
+  }
+  let hash = 0;
+  for (let i = 0; i < url.length; i++) hash += url.charCodeAt(i);
+  return 1 + (hash % 3); // 1 أو 2 أو 3 للمستخدم العادي
+};
+
+// ==========================================
 // مصفوفة صور القراء (استبدل الرابط بأي صورة من جوجل)
 // ==========================================
 window.sheikhAvatars = {
@@ -643,6 +675,7 @@ player.onended = () => {
 
 // التشغيل السريع بدون بطء
 window.playRare = async function (url) {
+  window.incrementTrackListen(url);
   const player = window.rareAudioPlayer;
   ensureRareAudioEngine();
 
@@ -1063,7 +1096,9 @@ window.updateNowPlayingUI = function() {
 
   document.getElementById('nowPlayingSheikh').textContent = track.tag;
   document.getElementById('nowPlayingSheikh').style.color = accentColor; // لون اسم الشيخ
-  document.getElementById('nowPlayingTrackName').textContent = cleanName;
+document.getElementById('nowPlayingTrackName').innerHTML = `${cleanName}<br><span style="font-size:11px; color:var(--gold); opacity:0.9;">🎧 ${window.getTrackListens(track.url).toLocaleString('ar-EG')} استماع • 🟢 ${window.getLiveListenersOrAdmin(track.url)} يستمعون الآن</span>`;  
+  const trackViews = window.getTrackViewsCount(track.url);
+const liveNow = window.getLiveListenersCount(track.url);
 
   const avatarImg = document.getElementById('nowPlayingAvatar');
   avatarImg.src = avatarUrl;
@@ -1252,9 +1287,16 @@ html += filteredList.map((item) => {
               ${soundWaveHtml}
               <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${cleanName}</span>
             </div>
-            <div style="font-size: 12px; color: ${isCurrent ? 'var(--gold)' : 'var(--text2)'}; font-family: 'Amiri', serif; margin-top: 4px; opacity: 0.9;">
-              ${item.tag} ${isCurrent ? ' • (يُشغّل الآن 🎧)' : ''}
-            </div>
+<div style="font-size: 11px; color: var(--text2); font-family: 'Amiri', serif; margin-top: 5px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+  <span style="color: var(--gold); font-weight: bold;">${item.tag}</span>
+  <span>•</span>
+  <span style="color: #e0e0e0;">🎧 ${window.getTrackListens(item.url).toLocaleString('ar-EG')} استماع</span>
+  <span>•</span>
+  <span style="color: #6fbf73;">🟢 ${window.getLiveListenersOrAdmin(item.url)} يستمعون الآن</span>
+  ${isCurrent ? '<span style="color: var(--gold); font-weight: bold;">• (🔊)</span>' : ''}
+</div>
+
+
           </div>
 
         </div>
@@ -1712,6 +1754,27 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.removeItem('athr_sleep_timer_mode');
   }
 });
+// توليد عدد إجمالي للمستمعين ثابت لكل تلاوة بناءً على رابطها (بين 1.2k و 48.5k)
+window.getTrackViewsCount = function(url) {
+  let hash = 0;
+  for (let i = 0; i < url.length; i++) {
+    hash = url.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const baseViews = 1200 + (Math.abs(hash) % 47000);
+  if (baseViews >= 1000) {
+    return (baseViews / 1000).toFixed(1) + 'k';
+  }
+  return baseViews.toString();
+};
+
+// توليد عدد مستمعين مباشرين عشوائي (بين 15 و 140 مستمع حالي)
+window.getLiveListenersCount = function(url) {
+  let hash = 0;
+  for (let i = 0; i < url.length; i++) {
+    hash = (hash * 31 + url.charCodeAt(i)) & 0xFFFFFFFF;
+  }
+  return 15 + (Math.abs(hash) % 125);
+};
 
 // ==========================================
 // 📱 قائمة الخيارات المنسقة رأسيًا بالفخامة المظلمة (Bottom Sheet)
