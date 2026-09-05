@@ -15,9 +15,12 @@ function getTrackDocId(url) {
 // 1. تسجيل استماع حقيقي على السيرفر (+1)
 window.recordRealListen = async function(url) {
   const db = window.firebaseDb;
+
+  
   if (!db || !window.doc || !window.setDoc || !window.increment) return;
 
-const docId = getTrackDocId(item.url);  
+const docId = getTrackDocId(url);
+
   try {
     const ref = window.doc(db, "recitation_stats", docId);
     await window.setDoc(ref, {
@@ -1313,6 +1316,7 @@ window.renderRareRecitations = function () {
 
 html += filteredList.map((item) => {
     const realIndex = window.rareRecitations.indexOf(item);
+    const docId = getTrackDocId(item.url);
     const isCurrent = (window.currentRareUrl === item.url);
     const isPlaying = isCurrent && !window.rareAudioPlayer.paused;
 
